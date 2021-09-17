@@ -1,0 +1,64 @@
+
+GitBase: ..
+
+TopRoguePackage: hps
+
+RoguePackages:
+   - common/HpsDaq/python
+
+RogueScripts:
+  - ../software/scripts/BootloaderPromLoad.py  
+  - ../software/scripts/SvtCodaDummy.py
+  - ../software/scripts/SvtCodaRun.py
+  - ../software/scripts/SvtDaqClientCmd.py
+  - ../software/scripts/SvtDaqCmd.py
+  - ../software/scripts/SvtDaqGui.py  
+  - ../software/scripts/SvtSimGui.py
+
+CondaDependencies:
+  - surf=v2.24.0
+  - rogue=v5.9.3
+  - axi_pcie_core=v3.5.3
+  - rce_gen3_fw_lib=v2.3.2
+  
+
+RogueConfig:
+
+Targets:
+   ControlDpm:
+      ImageDir: targets/ControlDpm/images
+      Extensions:
+      - bit
+
+   DataDpm:
+      ImageDir: targets/DataDpm/images
+      Extensions:
+      - bit
+
+   Feb:
+      ImageDir: targets/Feb/images
+      Extensions:
+      - mcs
+
+   FebBootloader:
+      ImageDir: targets/FebBootloader/images
+      Extensions:
+      - mcs
+      
+   PcieTiDtm:
+      ImageDir: targets/PcieTiDtm/images
+      Extensions:
+      - bit
+
+
+Releases:
+   hps_svt_daq:
+      Targets:
+      - ControlDpm
+      - DataDpm
+      - Feb
+      - FebBootloader
+      - PcieTiDtm
+      Types:
+      - Rogue
+
