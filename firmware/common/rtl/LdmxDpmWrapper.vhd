@@ -34,7 +34,7 @@ use rce_gen3_fw_lib.RceG3Pkg.all;
 entity LdmxDpmWrapper is
    generic (
       TPD_G           : time := 1 ns;
-      HS_LINK_COUNT_G : natural range 1 to 12 := 4)
+      HS_LINK_COUNT_G : natural range 1 to 12 := 4);
    port (
       -- Clocks and Resets
       sysClk125    : in sl;
@@ -63,10 +63,10 @@ entity LdmxDpmWrapper is
       dmaIbSlave  : in  AxiStreamSlaveType;
 
       -- High Speed Interface
-      dpmToRtmHsP : out slv(HYBRIDS_G-1 downto 0);
-      dpmToRtmHsM : out slv(HYBRIDS_G-1 downto 0);
-      rtmToDpmHsP : in  slv(HYBRIDS_G-1 downto 0);
-      rtmToDpmHsM : in  slv(HYBRIDS_G-1 downto 0);
+      dpmToRtmHsP : out slv(HS_LINK_COUNT_G-1 downto 0);
+      dpmToRtmHsM : out slv(HS_LINK_COUNT_G-1 downto 0);
+      rtmToDpmHsP : in  slv(HS_LINK_COUNT_G-1 downto 0);
+      rtmToDpmHsM : in  slv(HS_LINK_COUNT_G-1 downto 0);
 
       -- COB Timing Interface
       rxData   : in  Slv10Array(1 downto 0);
@@ -138,10 +138,10 @@ architecture rtl of LdmxDpmWrapper is
          dmaIbSlave_tReady  : in  sl;
 
          -- High Speed Interface
-         dpmToRtmHsP : out slv(HYBRIDS_G-1 downto 0);
-         dpmToRtmHsM : out slv(HYBRIDS_G-1 downto 0);
-         rtmToDpmHsP : in  slv(HYBRIDS_G-1 downto 0);
-         rtmToDpmHsM : in  slv(HYBRIDS_G-1 downto 0);
+         dpmToRtmHsP : out slv(HS_LINK_COUNT_G-1 downto 0);
+         dpmToRtmHsM : out slv(HS_LINK_COUNT_G-1 downto 0);
+         rtmToDpmHsP : in  slv(HS_LINK_COUNT_G-1 downto 0);
+         rtmToDpmHsM : in  slv(HS_LINK_COUNT_G-1 downto 0);
 
          -- COB Timing Interface
          rxDataA   : in  slv(9 downto 0);
@@ -151,6 +151,7 @@ architecture rtl of LdmxDpmWrapper is
          txData    : out slv(9 downto 0);
          txDataEn  : out sl;
          txReady   : in  sl);
+   end component;
 
 begin
 
@@ -216,9 +217,9 @@ begin
          txReady                  => txReady);
 
    -- Undriven Signals
-   dmaIbMaster.tData(511 downto 64) := (others=>'0');
-   dmaIbMaster.tStrb(63 downto 8)   := (others=>'0');
-   dmaIbMaster.tKeep(63 downto 8)   := (others=>'0');
-   dmaIbMaster.tUser(511 downto 64) := (others=>'0');
+   dmaIbMaster.tData(511 downto 64) <= (others=>'0');
+   dmaIbMaster.tStrb(63 downto 8)   <= (others=>'0');
+   dmaIbMaster.tKeep(63 downto 8)   <= (others=>'0');
+   dmaIbMaster.tUser(511 downto 64) <= (others=>'0');
 
 end architecture rtl;

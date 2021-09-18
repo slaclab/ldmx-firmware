@@ -17,22 +17,13 @@ use surf.ClockManager7Pkg.all;
 library rce_gen3_fw_lib;
 use rce_gen3_fw_lib.RceG3Pkg.all;
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
-use hps_daq.HpsTiPkg.all;
+library ldmx;
 
 entity ExampleDpm is
    generic (
       TPD_G              : time                        := 1 ns;
       BUILD_INFO_G       : BuildInfoType               := BUILD_INFO_DEFAULT_SLV_C;
-      SIMULATION_G       : boolean                     := false;
-      SIM_MEM_PORT_NUM_G : natural range 1024 to 49151 := 2000;
-      SIM_DMA_PORT_NUM_G : natural range 1024 to 49151 := 3000;
-      SIM_PGP_PORT_NUM_G : natural range 1024 to 49151 := 4000;
       HS_LINK_COUNT_G    : natural range 1 to 12       := 4;
-      THRESHOLD_EN_G     : boolean                     := true;
-      PACK_APV_DATA_G    : boolean                     := true;
-      DATA_PGP_CFG_G     : DataPgpCfgType              := DATA_2500_S;
       DIST_CLK_PLL_G     : boolean                     := true);
    port (
 
@@ -118,12 +109,12 @@ architecture STRUCTURE of ExampleDpm is
    signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(AXIL_MASTER_SLOTS_C-1 downto 0);
 
    -- DMA
-   signal dmaClk      : sl;
-   signal dmaRst      : sl;
-   signal dmaObMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal dmaObSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal dmaIbMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal dmaIbSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal dmaClk      : slv(2 downto 0);
+   signal dmaRst      : slv(2 downto 0);
+   signal dmaObMaster : AxiStreamMasterArray(2 downto 0);
+   signal dmaObSlave  : AxiStreamSlaveArray(2 downto 0);
+   signal dmaIbMaster : AxiStreamMasterArray(2 downto 0);
+   signal dmaIbSlave  : AxiStreamSlaveArray(2 downto 0);
 
    -- Distributed clociing
    signal dtmRefClk     : sl;
@@ -174,10 +165,10 @@ begin
          dmaClk             => dmaClk,               -- [in]
          dmaClkRst          => dmaRst,               -- [in]
          dmaState           => open,                 -- [out]
-         dmaObMaster        => dmaObMasters,         -- [out]
-         dmaObSlave         => dmaObSlaves,          -- [in]
-         dmaIbMaster        => dmaIbMasters,         -- [in]
-         dmaIbSlave         => dmaIbSlaves,          -- [out]
+         dmaObMaster        => dmaObMaster,          -- [out]
+         dmaObSlave         => dmaObSlave,           -- [in]
+         dmaIbMaster        => dmaIbMaster,          -- [in]
+         dmaIbSlave         => dmaIbSlave);          -- [out]
 
    -------------------------------------
    -- AXI Lite Crossbar
@@ -291,16 +282,16 @@ begin
          locRefClkM      => locRefClkM,
          axilClk         => axilClk,
          axilRst         => axilRst,
-         axilReadMaster  => locAxilReadMaster(1),
-         axilReadSlave   => locAxilReadSlave(1),
-         axilWriteMaster => locAxilWriteMaster(1),
-         axilWriteSlave  => locAxilWriteSlave(1),
-         dmaClk          => dmaClk,
-         dmaRst          => dmaRst,
-         dmaObMaster     => dmaObMaster,
-         dmaObSlave      => dmaObSlave,
-         dmaIbMaster     => dmaIbMaster,
-         dmaIbSlave      => dmaIbSlave,
+         axilReadMaster  => locAxilReadMasters(1),
+         axilReadSlave   => locAxilReadSlaves(1),
+         axilWriteMaster => locAxilWriteMasters(1),
+         axilWriteSlave  => locAxilWriteSlaves(1),
+         dmaClk          => dmaClk(0),
+         dmaRst          => dmaRst(0),
+         dmaObMaster     => dmaObMaster(0),
+         dmaObSlave      => dmaObSlave(0),
+         dmaIbMaster     => dmaIbMaster(0),
+         dmaIbSlave      => dmaIbSlave(0),
          dpmToRtmHsP     => dpmToRtmHsP,
          dpmToRtmHsM     => dpmToRtmHsM,
          rtmToDpmHsP     => rtmToDpmHsP,
@@ -311,6 +302,11 @@ begin
          txDataEn        => txDataEn,
          txReady         => txReady
       );
+
+   dmaClk(2 downto 1)      <= (others=>sysClk200);
+   dmaRst(2 downto 1)      <= (others=>sysClk200Rst);
+   dmaObSlave(2 downto 1)  <= (others=>AXI_STREAM_SLAVE_INIT_C);
+   dmaIbMaster(2 downto 1) <= (others=>AXI_STREAM_MASTER_INIT_C);
 
    --------------------------------------------------
    -- Unused Top Level Signals
