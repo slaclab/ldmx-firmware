@@ -3,7 +3,7 @@
 target: bit
 
 # Define target part
-export PRJ_PART = XC7Z045FFG900-2
+export PRJ_PART = XC7Z030FBG484-2
 
 export RUCKUS_DIR = $(abspath $(PWD)/../../submodules/ruckus)
 
