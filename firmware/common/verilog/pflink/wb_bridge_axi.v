@@ -119,8 +119,7 @@ module wb_bridge_axi(
    always @(posedge axi_clk)
      reset_io<=reset;
    
-   wire        write;
-   
+ 
    
    genvar j1;
    generate for (j1=0; j1<NUM_CMD_WORDS; j1=j1+1) begin: gen_j1
@@ -141,17 +140,17 @@ module wb_bridge_axi(
 
 
    reg [2:0] wack_delay;
-   always @(axi_clk)
+   always @(posedge axi_clk)
      if (!axi_wstr) wack_delay<=3'h0;
      else wack_delay<={wack_delay[1:0],axi_wstr};
    assign write=wack_delay[1]&&!wack_delay[2];
    assign axi_wack=wack_delay[2];
    
    reg [2:0] rack_delay;     
-   always @(axi_clk)
+   always @(posedge axi_clk)
      if (!axi_rstr) rack_delay<=3'h0;
      else rack_delay<={rack_delay[1:0],axi_rstr};
-   assign axi_wack=rack_delay[2];
+   assign axi_rack=rack_delay[2];
    
    assign Status[0]={4'h0,duration,12'h0,2'h0,wb_done, wb_str};
    assign Status[1]=wb_read_latch;

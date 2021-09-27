@@ -29,7 +29,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    input  wire [2:0]    axilReadMaster_arprot;
    input  wire          axilReadMaster_arvalid;
    input  wire          axilReadMaster_rready;
-   output wire          axilReadSlave_arready;
+   output reg           axilReadSlave_arready;
    output wire [31:0]   axilReadSlave_rdata;
    output wire [1:0]    axilReadSlave_rresp;
    output wire          axilReadSlave_rvalid;
@@ -40,7 +40,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    input  wire [3:0]    axilWriteMaster_wstrb;
    input  wire          axilWriteMaster_wvalid;
    input  wire          axilWriteMaster_bready;
-   output wire          axilWriteSlave_awready;
+   output reg           axilWriteSlave_awready;
    output wire          axilWriteSlave_wready;
    output wire [1:0]    axilWriteSlave_bresp;
    output wire          axilWriteSlave_bvalid;
@@ -82,19 +82,178 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    output wire          txDataEn;
    input  wire          txReady;
 
+    reg [29:0] axilReadMaster_araddr_r;
+    reg [29:0] axilWriteMaster_awaddr_r;
+    
+    reg axi_rstart;
+    
+ always @(posedge axilClk) begin
+    if (axilRst) begin
+       axilReadSlave_arready<=1'h0;
+       axi_rstart<=1'h0;
+    end else if (axilReadMaster_arvalid) begin
+       axilReadSlave_arready<=1'h1;
+       axi_rstart<=1'h1;
+    end else begin
+       axilReadSlave_arready<=1'h0;
+       axi_rstart<=1'h0;
+    end 
+    axilReadMaster_araddr_r<=axilReadMaster_araddr[31:2];
+  end
+    
+ always @(posedge axilClk) begin
+    if (axilRst) begin
+       axilWriteSlave_awready<=1'h0;
+    end else if (axilWriteMaster_awvalid) begin
+       axilWriteSlave_awready<=1'h1;
+    end else begin
+       axilWriteSlave_awready<=1'h0;
+    end 
+    axilWriteMaster_awaddr_r<=axilWriteMaster_awaddr[31:2];
+  end
+  
+  wire fc_wstr, fc_wack, fc_rstr, fc_rack;
+  wire [31:0] fc_dout;
+  
+  wire [1:0] gt_wstr, gt_wack, gt_rstr, gt_rack;
+  wire [(32*2-1):0] gt_dout;
+  wire [1:0] wb_wstr, wb_wack, wb_rstr, wb_rack;
+  wire [(32*2-1):0] wb_dout;
+
+  wire clk_link;
+  wire clk_bx;
+  wire [1:0] clk_tx_raw;
+  wire [15:0] fc_stream;
+  wire [1:0] mmcm_reset;
+  wire olink_clk_locked;
+  
+  clk_man_olink clk_man_opti(.reset((|mmcm_reset)),
+			   .clk_tx(clk_tx_raw[0]),
+			   .clk_bx(clk_bx),
+			   .clk_olink(clk_link),
+			   .locked(olink_clk_locked)
+			   );
+  
+  fast_control fc_block(
+    .clk_bx(clk_bx),
+    .clk_link(clk_link),
+    .fc_stream_enc(fc_stream),
+    .reset(axilRst),
+    .axi_clk(axilClk),
+    .axi_wstr(fc_wstr),.axi_rstr(fc_rstr),
+    .axi_wack(fc_wack),.axi_rack(fc_rack),
+    .axi_raddr(axilReadMaster_araddr_r[7:0]),
+    .axi_waddr(axilWriteMaster_awaddr_r[7:0]),
+    .axi_din(axilWriteMaster_wdata),
+    .axi_dout(fc_dout)
+    );
 
 
+  wire locRefClk;
+  IBUFDS_GTE2 #(
+      .CLKCM_CFG("TRUE"),   // Refer to Transceiver User Guide
+      .CLKRCV_TRST("TRUE"), // Refer to Transceiver User Guide
+      .CLKSWING_CFG(2'b11)  // Refer to Transceiver User Guide
+   )
+   IBUFDS_GTE2_inst (
+      .O(locRefClk),         // 1-bit output: Refer to Transceiver User Guide
+//      .ODIV2(ODIV2), // 1-bit output: Refer to Transceiver User Guide
+      .CEB(1'h0),     // 1-bit input: Refer to Transceiver User Guide
+      .I(locRefClkP),         // 1-bit input: Refer to Transceiver User Guide
+      .IB(locRefClkN)        // 1-bit input: Refer to Transceiver User Guide
+   );
+ 
+    wire qpll_lock, qpll_clkout, qpll_refclkout, qpll_refclklost;
+   
+   gt_pfclktx_common qpll
+(
+    .QPLLREFCLKSEL_IN(3'b001),
+    .GTREFCLK0_IN(locRefClk),
+    .GTREFCLK1_IN(1'h0),
+    .QPLLLOCK_OUT(qpll_lock),
+    .QPLLLOCKDETCLK_IN(sysClk125),
+    .QPLLOUTCLK_OUT(qpll_clkout),
+    .QPLLOUTREFCLK_OUT(qpll_refclkout),
+    .QPLLREFCLKLOST_OUT(qpll_refclklost),   
+    .QPLLRESET_IN(sysClk125Rst)
+);
+
+   
+   genvar i0;
+   generate
+      for ( i0 = 0 ; i0 < 2 ; i0 = i0 + 1 )
+      begin: bkplane_l
+
+        wire [15:0] data_to_link;
+        wire [1:0] k_to_link;
+        wire link_valid;
+        wire [31:0] data_from_link;
+        wire [3:0] k_from_link;
+        
+        wb_bridge_axi wb_bridge(       
+        .clk_link(clk_link),
+        .reset(axilRst),
+        .data_to_link(data_to_link),
+        .k_to_link(k_to_link),
+        .data_from_link(data_from_link),
+        .k_from_link(k_from_link),
+        .link_valid(link_valid),
+        .fast_control_encoded(fc_stream),
+        .axi_clk(axilClk),
+        .axi_wstr(wb_wstr[i0]),.axi_rstr(wb_rstr[i0]),
+        .axi_wack(wb_wack[i0]),.axi_rack(wb_rack[i0]),
+        .axi_raddr(axilReadMaster_araddr_r[7:0]),
+        .axi_waddr(axilWriteMaster_awaddr_r[7:0]),
+        .axi_din(axilWriteMaster_wdata),
+        .axi_dout(wb_dout[(31+i0*32):(i0*32)])
+        );
+
+        olink daqGTX(.clk_125(sysClk125),
+	     .reset(sysClk125Rst),
+         .clk_tx_raw(clk_tx_raw[i0]),
+         .clk_tx_mmcm_reset(mmcm_reset[i0]),
+         .clk_link_lock(olink_clk_locked),
+         .clk_link(clk_link),
+         .qpll_lock(qpll_lock), .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout), .qpll_refclklost(qpll_refclklost),
+         .rx_n(rtmToDpmHsM[(i0*2+1):(i0*2)]),
+         .rx_p(rtmToDpmHsP[(i0*2+1):(i0*2)]),
+         .tx_n(dpmToRtmHsM[(i0*2+1):(i0*2)]),
+         .tx_p(dpmToRtmHsP[(i0*2+1):(i0*2)]),
+//	     .refclk({locRefClk,1'h0}),
+         .tx_d(data_to_link),
+         .tx_k(k_to_link),
+         .rx_d(data_from_link),
+         .rx_k(k_from_link),
+         .rx_v(link_valid)
+         );	 
+      end
+   endgenerate
 
 
-
-   assign axilReadSlave_arready  = 0;
-   assign axilReadSlave_rdata    = 0;
-   assign axilReadSlave_rresp    = 0;
-   assign axilReadSlave_rvalid   = 0;
-   assign axilWriteSlave_awready = 0;
-   assign axilWriteSlave_wready  = 0;
-   assign axilWriteSlave_bresp   = 0;
-   assign axilWriteSlave_bvalid  = 0;
+  axi_merge_ldmx_jm core_if_jm(.axilClk(axilClk),
+   .axilRst(axilRst),
+   .raddr(axilReadMaster_araddr_r),
+   .rready(axilReadMaster_rready),
+   .rstart(axi_rstart),
+   .rdata(axilReadSlave_rdata),
+   .rresp(axilReadSlave_rresp),
+   .rvalid(axilReadSlave_rvalid),
+   .waddr(axilWriteMaster_awaddr_r),
+   .wstart(axilWriteMaster_wvalid),
+   .bready(axilWriteMaster_bready),
+   .wready(axilWriteSlave_wready),
+   .bresp(axilWriteSlave_bresp),
+   .bvalid(axilWriteSlave_bvalid),
+   .fc_wstr(fc_wstr), .fc_rstr(fc_rstr),
+   .fc_wack(fc_wack), .fc_rack(fc_rack),
+   .fc_din(fc_dout),
+   .gt_wstr(gt_wstr), .gt_rstr(gt_rstr),
+   .gt_wack(gt_wack), .gt_rack(gt_rack),
+   .gt_din(gt_dout),
+   .wb_wstr(wb_wstr), .wb_rstr(wb_rstr),
+   .wb_wack(wb_wack), .wb_rack(wb_rack),
+   .wb_din(wb_dout)
+   ); 
 
    assign dmaClk = sysClk200;
    assign dmaRst = sysClk200Rst;
@@ -111,12 +270,5 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 
    assign txData   = rxDataA | rxDataB;
    assign txDataEn = rxDataAEn | rxDataBEn;
-
-
-
-
-
-
-
 
 endmodule

@@ -82,7 +82,7 @@ module fast_control(
    generate for (z=0; z<NUM_CTL_WORDS; z=z+1) begin: gen_write
       always @(posedge axi_clk) begin
 	 if (reset_io == 1) Control[z] <= DefaultCtlReg[z];
-	 else if ((write == 1) && (IPbus_addr == z)) Control[z] <= IPbus_DataIn;
+	 else if ((write == 1) && (axi_waddr == z)) Control[z] <= axi_din;
 	 else begin
 	    if (z==1) Control[z]<=32'h0;
 	    else Control[z] <= Control[z];
@@ -97,16 +97,16 @@ module fast_control(
      else axi_dout<=32'h0;
 
    reg [2:0] wack_delay;
-   always @(axi_clk)
+   always @(posedge axi_clk)
      if (!axi_wstr) wack_delay<=3'h0;
      else wack_delay<={wack_delay[1:0],axi_wstr};
    assign write=wack_delay[1]&&!wack_delay[2];
    assign axi_wack=wack_delay[2];
    
    reg [2:0] rack_delay;     
-   always @(axi_clk)
+   always @(posedge axi_clk)
      if (!axi_rstr) rack_delay<=3'h0;
      else rack_delay<={rack_delay[1:0],axi_rstr};
-   assign axi_wack=rack_delay[2];
+   assign axi_rack=rack_delay[2];
    	
 endmodule
