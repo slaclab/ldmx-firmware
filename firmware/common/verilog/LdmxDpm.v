@@ -82,8 +82,8 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    output wire          txDataEn;
    input  wire          txReady;
 
-    reg [29:0] axilReadMaster_araddr_r;
-    reg [29:0] axilWriteMaster_awaddr_r;
+    reg [(31-2-12):0] axilReadMaster_araddr_r;
+    reg [(31-2-12):0] axilWriteMaster_awaddr_r;
     
     reg axi_rstart;
     
@@ -98,7 +98,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
        axilReadSlave_arready<=1'h0;
        axi_rstart<=1'h0;
     end 
-    axilReadMaster_araddr_r<=axilReadMaster_araddr[31:2];
+    axilReadMaster_araddr_r<=axilReadMaster_araddr[19:2];
   end
     
  always @(posedge axilClk) begin
@@ -109,7 +109,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
     end else begin
        axilWriteSlave_awready<=1'h0;
     end 
-    axilWriteMaster_awaddr_r<=axilWriteMaster_awaddr[31:2];
+    axilWriteMaster_awaddr_r<=axilWriteMaster_awaddr[19:2];
   end
   
   wire fc_wstr, fc_wack, fc_rstr, fc_rack;

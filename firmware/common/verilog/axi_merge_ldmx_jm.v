@@ -23,13 +23,13 @@
 module axi_merge_ldmx_jm(
    input  wire          axilClk,
    input  wire          axilRst,
-   input  wire [29:0]   raddr,
+   input  wire [17:0]   raddr,
    input  wire          rready,
    input  wire          rstart,
    output reg [31:0]    rdata,
    output reg [1:0]     rresp,
    output reg           rvalid,
-   input  wire [29:0]   waddr,
+   input  wire [17:0]   waddr,
    input  wire          wstart,
    input  wire          bready,
    output reg           wready,
@@ -46,11 +46,16 @@ module axi_merge_ldmx_jm(
    input [(32*2-1):0] gt_din 
     );
     
-    localparam ADDR_FASTCONTROL = 22'h0010;
-    localparam ADDR_OLINK0      = 22'h0100;
-    localparam ADDR_OLINK1      = 22'h0110;
-    localparam ADDR_WISHBONE0   = 14'h1;
-    localparam ADDR_WISHBONE1   = 14'h2;
+    localparam ADDR_FASTCONTROL = 18'h00100; // 0x400 with shift
+    localparam MASK_FASTCONTROL = 18'h3FF00;
+    localparam ADDR_OLINK0      = 18'h01000; // 0x4000 with shift
+    localparam MASK_OLINK0      = 18'h3F000; 
+    localparam ADDR_OLINK1      = 18'h02000; // 0x8000 with shift
+    localparam MASK_OLINK1      = 18'h3F000;
+    localparam ADDR_WISHBONE0   = 18'h11000; // 0x44000 with shift
+    localparam MASK_WISHBONE0   = 18'h3F000;
+    localparam ADDR_WISHBONE1   = 18'h12000; // 0x48000 with shift
+    localparam MASK_WISHBONE1   = 18'h3F000;
 
 /// read logic    
     reg invalid_raddr_ack;
@@ -63,11 +68,11 @@ module axi_merge_ldmx_jm(
            wb_rstr<=2'h0;
         end else if (rstart) begin
            /// address decoding
-           if (raddr[29:8]==ADDR_FASTCONTROL) fc_rstr<=1'h1;
-           else if (raddr[29:8]==ADDR_OLINK0) gt_rstr<=2'b01;
-           else if (raddr[29:8]==ADDR_OLINK1) gt_rstr<=2'b10;
-           else if (raddr[29:16]==ADDR_WISHBONE0) wb_rstr<=2'b01;
-           else if (raddr[29:16]==ADDR_WISHBONE1) wb_rstr<=2'b10;
+           if ((raddr&MASK_FASTCONTROL)==ADDR_FASTCONTROL) fc_rstr<=1'h1;
+           else if ((raddr&MASK_OLINK0)==ADDR_OLINK0) gt_rstr<=2'b01;
+           else if ((raddr&MASK_OLINK1)==ADDR_OLINK1) gt_rstr<=2'b10;
+           else if ((raddr&MASK_WISHBONE0)==ADDR_WISHBONE0) wb_rstr<=2'b01;
+           else if ((raddr&MASK_WISHBONE1)==ADDR_WISHBONE1) wb_rstr<=2'b10;
            else invalid_raddr_ack<=1'h1;
         end 
     
@@ -97,11 +102,11 @@ module axi_merge_ldmx_jm(
         end else if (wstart) begin
            wtrans<=1'h1;
            /// address decoding
-           if (waddr[29:8]==ADDR_FASTCONTROL) fc_wstr<=1'h1;
-          else if (waddr[29:8]==ADDR_OLINK0) gt_wstr<=2'b01;
-           else if (waddr[29:8]==ADDR_OLINK1) gt_wstr<=2'b10;
-           else if (waddr[29:16]==ADDR_WISHBONE0) wb_wstr<=2'b01;
-           else if (waddr[29:16]==ADDR_WISHBONE1) wb_wstr<=2'b10;
+           if ((waddr&MASK_FASTCONTROL)==ADDR_FASTCONTROL) fc_wstr<=1'h1;
+           else if ((waddr&MASK_OLINK0)==ADDR_OLINK0) gt_wstr<=2'b01;
+           else if ((waddr&MASK_OLINK1)==ADDR_OLINK1) gt_wstr<=2'b10;
+           else if ((waddr&MASK_WISHBONE0)==ADDR_WISHBONE0) wb_wstr<=2'b01;
+           else if ((waddr&MASK_WISHBONE1)==ADDR_WISHBONE1) wb_wstr<=2'b10;
            else invalid_waddr_ack<=1'h1;
         end 
     
