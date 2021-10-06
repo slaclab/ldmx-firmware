@@ -2,8 +2,8 @@
 # DTM Clock
 create_clock -name dtmClk -period 8.0 [get_ports dtmRefClkP]
 
-create_generated_clock -name distClk \
-    [get_pins {GenDistClkPll.ClockManager7_1/PllGen.U_Pll/CLKOUT0}]
+#create_generated_clock -name distClk \
+#    [get_pins {GenDistClkPll.ClockManager7_1/PllGen.U_Pll/CLKOUT0}]
 #    [get_nets distClk]
 #-source [get_ports dtmRefClkP] \
 

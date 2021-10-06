@@ -84,9 +84,9 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 
     reg [(31-2-12):0] axilReadMaster_araddr_r;
     reg [(31-2-12):0] axilWriteMaster_awaddr_r;
-    
+
     reg axi_rstart;
-    
+
  always @(posedge axilClk) begin
     if (axilRst) begin
        axilReadSlave_arready<=1'h0;
@@ -97,10 +97,10 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
     end else begin
        axilReadSlave_arready<=1'h0;
        axi_rstart<=1'h0;
-    end 
+    end
     axilReadMaster_araddr_r<=axilReadMaster_araddr[19:2];
   end
-    
+
  always @(posedge axilClk) begin
     if (axilRst) begin
        axilWriteSlave_awready<=1'h0;
@@ -108,13 +108,13 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
        axilWriteSlave_awready<=1'h1;
     end else begin
        axilWriteSlave_awready<=1'h0;
-    end 
+    end
     axilWriteMaster_awaddr_r<=axilWriteMaster_awaddr[19:2];
   end
-  
+
   wire fc_wstr, fc_wack, fc_rstr, fc_rack;
   wire [31:0] fc_dout;
-  
+
   wire [1:0] gt_wstr, gt_wack, gt_rstr, gt_rack;
   wire [(32*2-1):0] gt_dout;
   wire [1:0] wb_wstr, wb_wack, wb_rstr, wb_rack;
@@ -126,14 +126,14 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
   wire [15:0] fc_stream;
   wire [1:0] mmcm_reset;
   wire olink_clk_locked;
-  
+
   clk_man_olink clk_man_opti(.reset((|mmcm_reset)),
 			   .clk_tx(clk_tx_raw[0]),
 			   .clk_bx(clk_bx),
 			   .clk_olink(clk_link),
 			   .locked(olink_clk_locked)
 			   );
-  
+
   fast_control fc_block(
     .clk_bx(clk_bx),
     .clk_link(clk_link),
@@ -155,16 +155,17 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
       .CLKRCV_TRST("TRUE"), // Refer to Transceiver User Guide
       .CLKSWING_CFG(2'b11)  // Refer to Transceiver User Guide
    )
+
    IBUFDS_GTE2_inst (
       .O(locRefClk),         // 1-bit output: Refer to Transceiver User Guide
 //      .ODIV2(ODIV2), // 1-bit output: Refer to Transceiver User Guide
       .CEB(1'h0),     // 1-bit input: Refer to Transceiver User Guide
       .I(locRefClkP),         // 1-bit input: Refer to Transceiver User Guide
-      .IB(locRefClkN)        // 1-bit input: Refer to Transceiver User Guide
+      .IB(locRefClkM)        // 1-bit input: Refer to Transceiver User Guide
    );
- 
+
     wire qpll_lock, qpll_clkout, qpll_refclkout, qpll_refclklost;
-   
+
    gt_pfclktx_common qpll
 (
     .QPLLREFCLKSEL_IN(3'b001),
@@ -174,11 +175,11 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
     .QPLLLOCKDETCLK_IN(sysClk125),
     .QPLLOUTCLK_OUT(qpll_clkout),
     .QPLLOUTREFCLK_OUT(qpll_refclkout),
-    .QPLLREFCLKLOST_OUT(qpll_refclklost),   
+    .QPLLREFCLKLOST_OUT(qpll_refclklost),
     .QPLLRESET_IN(sysClk125Rst)
 );
 
-   
+
    genvar i0;
    generate
       for ( i0 = 0 ; i0 < 2 ; i0 = i0 + 1 )
@@ -189,8 +190,8 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
         wire link_valid;
         wire [31:0] data_from_link;
         wire [3:0] k_from_link;
-        
-        wb_bridge_axi wb_bridge(       
+
+        wb_bridge_axi wb_bridge(
         .clk_link(clk_link),
         .reset(axilRst),
         .data_to_link(data_to_link),
@@ -225,7 +226,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
          .rx_d(data_from_link),
          .rx_k(k_from_link),
          .rx_v(link_valid)
-         );	 
+         );
       end
    endgenerate
 
@@ -253,7 +254,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    .wb_wstr(wb_wstr), .wb_rstr(wb_rstr),
    .wb_wack(wb_wack), .wb_rack(wb_rack),
    .wb_din(wb_dout)
-   ); 
+   );
 
    assign dmaClk = sysClk200;
    assign dmaRst = sysClk200Rst;

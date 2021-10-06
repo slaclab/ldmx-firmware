@@ -135,7 +135,7 @@ begin
    --------------------------------------------------
    -- Core
    --------------------------------------------------
-   U_DpmCore_1 : entity rce_gen3_fw_lib.DpmCore
+   U_DpmCore : entity rce_gen3_fw_lib.DpmCore
       generic map (
          TPD_G              => TPD_G,
          BUILD_INFO_G       => BUILD_INFO_G,
