@@ -139,7 +139,7 @@ begin
       generic map (
          TPD_G              => TPD_G,
          BUILD_INFO_G       => BUILD_INFO_G,
-         ETH_TYPE_G         => "1000BASE-KX",
+         ETH_TYPE_G         => "ZYNQ-GEM",
          RCE_DMA_MODE_G     => RCE_DMA_AXISV2_C)
       port map (
          i2cSda             => i2cSda,               -- [inout]
