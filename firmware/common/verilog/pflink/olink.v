@@ -159,9 +159,7 @@ always @(posedge clk_link) begin
 	spy_tx_buffer[spy_tx_ptr]<={tx_k,tx_d};
 end
 
-
 wire tx_out_clk, clk_tx_buf;
-wire rx_rec_clk, clk_rec;
 
   BUFH buf_ref(.I(tx_out_clk),.O(clk_tx_buf));
    assign clk_tx_raw=clk_tx_buf;
@@ -254,11 +252,12 @@ clk_gtx_wrapper clkout(.clk_125(clk_125),.soft_reset(gtx_ctl_pulse[6]),.pll_lock
 
 		       .clk_link(clk_link),//.cpll_reset_in(gtx_ctl_pulse[7]),.refclk(refclk[0]),
 		       .reset_done_out(gtx_status[5]),.tx_p(tx_p[1]),.tx_n(tx_n[1]));
+
+   assign DefaultCommand[0]=32'h0;
+   assign DefaultCommand[1]=32'h0;   
+   assign DefaultCommand[2]={4'h7,3'h0,5'h08,4'h3,12'h0,3'h0,1'h0};
+   assign DefaultCommand[3]=32'h0;
    
-assign DefaultCommand[2]={4'h7,3'h0,5'h08,4'h3,12'h0,3'h0,1'h0};
-
-   reg [31:0] data_out;
-
    genvar j1;
    generate for (j1=0; j1<NUM_CMD_WORDS; j1=j1+1) begin: gen_j1
       always @(posedge axi_clk) begin
@@ -270,20 +269,20 @@ assign DefaultCommand[2]={4'h7,3'h0,5'h08,4'h3,12'h0,3'h0,1'h0};
    end endgenerate
 
    always @(posedge axi_clk)
-     if (!axi_rstr) data_out<=32'h0;
+     if (!axi_rstr) axi_dout<=32'h0;
      else begin
-	if (axi_raddr[7:6]==2'h0 && axi_raddr[5:2]==4'h0) data_out<=Command[axi_raddr[1:0]];
-	if (axi_raddr[7:6]==2'h1 && axi_raddr[5:3]==3'h0) data_out<=Status[axi_raddr[2:0]];
-	if (axi_raddr[7:6]==2'h2) data_out<=spy_rx_buffer_r;
-	if (axi_raddr[7:6]==2'h3) data_out<=spy_tx_buffer_r;
-	else data_out<=32'h0;
+	if (axi_raddr[7:6]==2'h0 && axi_raddr[5:2]==4'h0) axi_dout<=Command[axi_raddr[1:0]];
+	if (axi_raddr[7:6]==2'h1 && axi_raddr[5:3]==3'h0) axi_dout<=Status[axi_raddr[2:0]];
+	if (axi_raddr[7:6]==2'h2) axi_dout<=spy_rx_buffer_r;
+	if (axi_raddr[7:6]==2'h3) axi_dout<=spy_tx_buffer_r;
+	else axi_dout<=32'h0;
      end
 
    assign Status[0]={16'h0010,16'h0002};   
    assign Status[1]={clk_link_lock,was_other_comma,was_comma,rx_v,was_ok, gtx_status};
 
    clkRateTool testA(.reset_in(reset),.clk125(clk_125),.clktest(clk_link),.value(Status[2]));
-   clkRateTool testB(.reset_in(reset),.clk125(clk_125),.clktest(rx_rec_clk),.value(Status[3]));
+   assign Status[3]=32'h0;   
    clkRateTool testK(.reset_in(reset),.clk125(clk_125),.clktest(was_comma),.value(Status[4]));
 
    reg [31:0] countBad;
