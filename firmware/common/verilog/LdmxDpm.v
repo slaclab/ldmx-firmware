@@ -225,7 +225,14 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
          .tx_k(k_to_link),
          .rx_d(data_from_link),
          .rx_k(k_from_link),
-         .rx_v(link_valid)
+         .rx_v(link_valid),
+        .axi_clk(axilClk),
+        .axi_wstr(gt_wstr[i0]),.axi_rstr(gt_rstr[i0]),
+        .axi_wack(gt_wack[i0]),.axi_rack(gt_rack[i0]),
+        .axi_raddr(axilReadMaster_araddr_r[7:0]),
+        .axi_waddr(axilWriteMaster_awaddr_r[7:0]),
+        .axi_din(axilWriteMaster_wdata),
+        .axi_dout(gt_dout[(31+i0*32):(i0*32)])
          );
       end
    endgenerate
