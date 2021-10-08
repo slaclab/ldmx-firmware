@@ -61,7 +61,7 @@ module olink(
    wire [31:0] 			  DefaultCommand[NUM_CMD_WORDS-1:0];
    
    // readonly status starts at 0x40
-   localparam NUM_STS_WORDS = 5;
+   localparam NUM_STS_WORDS = 6;   
    wire [31:0] 			  Status[NUM_STS_WORDS-1:0];
    wire 			  write;
    wire 			  spy_rx_start;
@@ -279,11 +279,12 @@ assign DefaultCommand[2]={4'h7,3'h0,5'h08,4'h3,12'h0,3'h0,1'h0};
 	else data_out<=32'h0;
      end
 
-   assign Status[0]={clk_link_lock,was_other_comma,was_comma,rx_v,was_ok, gtx_status};
+   assign Status[0]={16'h0010,16'h0002};   
+   assign Status[1]={clk_link_lock,was_other_comma,was_comma,rx_v,was_ok, gtx_status};
 
-   clkRateTool testA(.reset_in(reset),.clk125(clk_125),.clktest(clk_link),.value(Status[1]));
-   clkRateTool testB(.reset_in(reset),.clk125(clk_125),.clktest(rx_rec_clk),.value(Status[2]));
-   clkRateTool testK(.reset_in(reset),.clk125(clk_125),.clktest(was_comma),.value(Status[3]));
+   clkRateTool testA(.reset_in(reset),.clk125(clk_125),.clktest(clk_link),.value(Status[2]));
+   clkRateTool testB(.reset_in(reset),.clk125(clk_125),.clktest(rx_rec_clk),.value(Status[3]));
+   clkRateTool testK(.reset_in(reset),.clk125(clk_125),.clktest(was_comma),.value(Status[4]));
 
    reg [31:0] countBad;
 
@@ -292,7 +293,7 @@ assign DefaultCommand[2]={4'h7,3'h0,5'h08,4'h3,12'h0,3'h0,1'h0};
      else if (~was_ok) countBad<=countBad+32'h1;
      else countBad<=countBad;
    
-   assign Status[4]=countBad;
+   assign Status[5]=countBad;
 
 
    reg [2:0]  wack_delay;
