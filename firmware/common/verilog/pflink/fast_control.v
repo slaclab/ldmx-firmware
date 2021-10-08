@@ -34,8 +34,8 @@ module fast_control(
    reg [31:0] Control[NUM_CTL_WORDS-1:0];
    wire [31:0] DefaultCtlReg[NUM_CTL_WORDS-1:0];
 
-//   parameter NUM_STS_WORDS = 0;
-//   wire [31:0] Status[NUM_STS_WORDS-1:0];
+   parameter NUM_STS_WORDS = 2;
+   wire [31:0] Status[NUM_STS_WORDS-1:0];
 
    assign DefaultCtlReg[0]=32'h0;
    assign DefaultCtlReg[1]=32'h0;
@@ -94,8 +94,13 @@ module fast_control(
    always @(posedge axi_clk)
      if (!axi_rstr) axi_dout<=32'h0;
      else if (axi_raddr[7:2]==6'h0) axi_dout<=Control[axi_raddr[1:0]];
+     else if (axi_raddr[7:6]==2'h1) axi_dout<=Status[axi_raddr[1:0]];
      else axi_dout<=32'h0;
 
+   assign Status[0]=32'habcd0001;
+   assign Status[1]=32'h00000002;
+  
+   
    reg [2:0] wack_delay;
    always @(posedge axi_clk)
      if (!axi_wstr) wack_delay<=3'h0;
