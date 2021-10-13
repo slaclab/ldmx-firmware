@@ -245,7 +245,7 @@ begin
          DIFF_TERM => true)
       port map(
          I  => dtmToRtmLsP(0),
-         IB => dtmToRtmLsN(0),
+         IB => dtmToRtmLsM(0),
          O  => clock);
 
    DTM_RTM1 : IBUFDS
@@ -253,40 +253,38 @@ begin
          DIFF_TERM => true)
       port map(
          I  => dtmToRtmLsP(1),
-         IB => dtmToRtmLsN(1),
+         IB => dtmToRtmLsM(1),
          O  => data);
 
    DTM_RTM2 : OBUFDS
       port map (
          I  => sfpTx,
          O  => dtmToRtmLsP(2),
-         OB => dtmToRtmLsN(2));
+         OB => dtmToRtmLsM(2));
 
    DTM_RTM3 : OBUFDS
       port map (
          I  => qsfpRst,
          O  => dtmToRtmLsP(3),
-         OB => dtmToRtmLsN(3));
+         OB => dtmToRtmLsM(3));
 
    DTM_RTM4 : OBUFDS
       port map (
          I  => sfpTxDis,
          O  => dtmToRtmLsP(4),
-         OB => dtmToRtmLsN(4));
+         OB => dtmToRtmLsM(4));
 
    DTM_RTM5 : OBUFDS
       port map (
          I  => busyOut,
          O  => dtmToRtmLsP(5),
-         OB => dtmToRtmLsN(5));
+         OB => dtmToRtmLsM(5));
 
    -- Timing Codes
    distClk    <= '0';
    distClkRst <= '0';
-   txDataA    <= (others=>'0');
-   txDataAEn  <= '0';
-   txDataB    <= (others=>'0');
-   txDataBEn  <= '0';
+   txData     <= (others=>(others=>'0'));
+   txDataEn   <= (others=>'0');
 
    --gtTxP : out sl;
    --gtTxN : out sl;
