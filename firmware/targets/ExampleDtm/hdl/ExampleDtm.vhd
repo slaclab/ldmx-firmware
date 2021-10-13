@@ -74,10 +74,10 @@ entity ExampleDtm is
       ethResetL  : out   Slv(1 downto 0);
 
       -- RTM High Speed
-      dtmToRtmHsP : out sl;
-      dtmToRtmHsM : out sl;
-      rtmToDtmHsP : in  sl;
-      rtmToDtmHsM : in  sl;
+      --dtmToRtmHsP : out sl;
+      --dtmToRtmHsM : out sl;
+      --rtmToDtmHsP : in  sl;
+      --rtmToDtmHsM : in  sl;
 
       -- RTM Low Speed
       dtmToRtmLsP : inout slv(5 downto 0);
@@ -303,10 +303,14 @@ begin
             txReady         => txReady,
             rxData          => rxData,
             rxDataEn        => rxDataEn,
-            gtTxP           => dtmToRtmHsP,
-            gtTxN           => dtmToRtmHsM,
-            gtRxP           => rtmToDtmHsP,
-            gtRxN           => rtmToDtmHsM
+            gtTxP           => open,
+            gtTxN           => open,
+            gtRxP           => '0',
+            gtRxN           => '0'
+            --gtTxP           => dtmToRtmHsP,
+            --gtTxN           => dtmToRtmHsM,
+            --gtRxP           => rtmToDtmHsP,
+            --gtRxN           => rtmToDtmHsM
             );
 
 
