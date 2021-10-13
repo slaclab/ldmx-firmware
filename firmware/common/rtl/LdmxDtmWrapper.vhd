@@ -230,14 +230,8 @@ begin
 --         gtRxP                    => gtRxP,
 --         gtRxN                    => gtRxN);
 
-   axilReadSlave_arready   <= '0';
-   axilReadSlave_rdata     <= (others=>'0');
-   axilReadSlave_rresp     <= (others=>'0');
-   axilReadSlave_rvalid    <= '0';
-   axilWriteSlave_awready  <= '0';
-   axilWriteSlave_wready   <= '0';
-   axilWriteSlave_bresp    <= (others=>'0');
-   axilWriteSlave_bvalid   <= '0';
+   axilReadSlave   <= AXI_LITE_READ_SLAVE_INIT_C;
+   axilWriteSlave  <= AXI_LITE_WRITE_SLAVE_INIT_C;
 
    --clock; -- Input
    --data; -- Input
