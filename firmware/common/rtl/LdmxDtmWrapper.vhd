@@ -157,71 +157,147 @@ architecture STRUCTURE of LdmxDtmWrapper is
 
    end component;
 
+   signal clock    : sl;
+   signal data     : sl;
+   signal sfpTx    : sl;
+   signal qsfpRst  : sl;
+   signal sfpTxDis : sl;
+   signal busyOut  : sl;
+
 begin
 
    -- Unused
    plSpareP <= (others=>'Z');
    plSpareM <= (others=>'Z');
 
-   U_LdmxDtm: LdmxDtm
+--   U_LdmxDtm: LdmxDtm
+--      port map (
+--         sysClk125                => sysClk125,
+--         sysClk125Rst             => sysClk125Rst,
+--         sysClk200                => sysClk200,
+--         sysClk200Rst             => sysClk200Rst,
+--         locRefClkP               => locRefClkP,
+--         locRefClkM               => locRefClkM,
+--         axilClk                  => axilClk,
+--         axilRst                  => axilClkRst,
+--         axilReadMaster_araddr    => axilReadMaster.araddr,
+--         axilReadMaster_arprot    => axilReadMaster.arprot,
+--         axilReadMaster_arvalid   => axilReadMaster.arvalid,
+--         axilReadMaster_rready    => axilReadMaster.rready,
+--         axilReadSlave_arready    => axilReadSlave.arready,
+--         axilReadSlave_rdata      => axilReadSlave.rdata,
+--         axilReadSlave_rresp      => axilReadSlave.rresp,
+--         axilReadSlave_rvalid     => axilReadSlave.rvalid,
+--         axilWriteMaster_awaddr   => axilWriteMaster.awaddr,
+--         axilWriteMaster_awprot   => axilWriteMaster.awprot,
+--         axilWriteMaster_awvalid  => axilWriteMaster.awvalid,
+--         axilWriteMaster_wdata    => axilWriteMaster.wdata,
+--         axilWriteMaster_wstrb    => axilWriteMaster.wstrb,
+--         axilWriteMaster_wvalid   => axilWriteMaster.wvalid,
+--         axilWriteMaster_bready   => axilWriteMaster.bready,
+--         axilWriteSlave_awready   => axilWriteSlave.awready,
+--         axilWriteSlave_wready    => axilWriteSlave.wready,
+--         axilWriteSlave_bresp     => axilWriteSlave.bresp,
+--         axilWriteSlave_bvalid    => axilWriteSlave.bvalid,
+--         dtmToRtmLsP              => dtmToRtmLsP,
+--         dtmToRtmLsM              => dtmToRtmLsM,
+--         distClk                  => distClk,
+--         distClkRst               => distClkRst,
+--         txDataA                  => txData(0),
+--         txDataAEn                => txDataEn(0),
+--         txDataB                  => txData(1),
+--         txDataBEn                => txDataEn(1),
+--         txReadyA                 => txReady(0),
+--         txReadyB                 => txReady(1),
+--         rxDataA                  => rxData(0),
+--         rxDataAEn                => rxDataEn(0),
+--         rxDataB                  => rxData(1),
+--         rxDataBEn                => rxDataEn(1),
+--         rxDataC                  => rxData(2),
+--         rxDataCEn                => rxDataEn(2),
+--         rxDataD                  => rxData(3),
+--         rxDataDEn                => rxDataEn(3),
+--         rxDataE                  => rxData(4),
+--         rxDataEEn                => rxDataEn(4),
+--         rxDataF                  => rxData(5),
+--         rxDataFEn                => rxDataEn(5),
+--         rxDataG                  => rxData(6),
+--         rxDataGEn                => rxDataEn(6),
+--         rxDataH                  => rxData(7),
+--         rxDataHEn                => rxDataEn(7),
+--         gtTxP                    => gtTxP,
+--         gtTxN                    => gtTxN,
+--         gtRxP                    => gtRxP,
+--         gtRxN                    => gtRxN);
+
+   axilReadSlave_arready   <= '0';
+   axilReadSlave_rdata     <= (others=>'0');
+   axilReadSlave_rresp     <= (others=>'0');
+   axilReadSlave_rvalid    <= '0';
+   axilWriteSlave_awready  <= '0';
+   axilWriteSlave_wready   <= '0';
+   axilWriteSlave_bresp    <= (others=>'0');
+   axilWriteSlave_bvalid   <= '0';
+
+   --clock; -- Input
+   --data; -- Input
+   sfpTx    <= '0';
+   qsfpRst  <= '0';
+   sfpTxDis <= '0';
+   busyOut  <= '0';
+
+   DTM_RTM0 : IBUFDS
+      generic map (
+         DIFF_TERM => true)
+      port map(
+         I  => dtmToRtmLsP(0),
+         IB => dtmToRtmLsN(0),
+         O  => clock);
+
+   DTM_RTM1 : IBUFDS
+      generic map (
+         DIFF_TERM => true)
+      port map(
+         I  => dtmToRtmLsP(1),
+         IB => dtmToRtmLsN(1),
+         O  => data);
+
+   DTM_RTM2 : OBUFDS
       port map (
-         sysClk125                => sysClk125,
-         sysClk125Rst             => sysClk125Rst,
-         sysClk200                => sysClk200,
-         sysClk200Rst             => sysClk200Rst,
-         locRefClkP               => locRefClkP,
-         locRefClkM               => locRefClkM,
-         axilClk                  => axilClk,
-         axilRst                  => axilClkRst,
-         axilReadMaster_araddr    => axilReadMaster.araddr,
-         axilReadMaster_arprot    => axilReadMaster.arprot,
-         axilReadMaster_arvalid   => axilReadMaster.arvalid,
-         axilReadMaster_rready    => axilReadMaster.rready,
-         axilReadSlave_arready    => axilReadSlave.arready,
-         axilReadSlave_rdata      => axilReadSlave.rdata,
-         axilReadSlave_rresp      => axilReadSlave.rresp,
-         axilReadSlave_rvalid     => axilReadSlave.rvalid,
-         axilWriteMaster_awaddr   => axilWriteMaster.awaddr,
-         axilWriteMaster_awprot   => axilWriteMaster.awprot,
-         axilWriteMaster_awvalid  => axilWriteMaster.awvalid,
-         axilWriteMaster_wdata    => axilWriteMaster.wdata,
-         axilWriteMaster_wstrb    => axilWriteMaster.wstrb,
-         axilWriteMaster_wvalid   => axilWriteMaster.wvalid,
-         axilWriteMaster_bready   => axilWriteMaster.bready,
-         axilWriteSlave_awready   => axilWriteSlave.awready,
-         axilWriteSlave_wready    => axilWriteSlave.wready,
-         axilWriteSlave_bresp     => axilWriteSlave.bresp,
-         axilWriteSlave_bvalid    => axilWriteSlave.bvalid,
-         dtmToRtmLsP              => dtmToRtmLsP,
-         dtmToRtmLsM              => dtmToRtmLsM,
-         distClk                  => distClk,
-         distClkRst               => distClkRst,
-         txDataA                  => txData(0),
-         txDataAEn                => txDataEn(0),
-         txDataB                  => txData(1),
-         txDataBEn                => txDataEn(1),
-         txReadyA                 => txReady(0),
-         txReadyB                 => txReady(1),
-         rxDataA                  => rxData(0),
-         rxDataAEn                => rxDataEn(0),
-         rxDataB                  => rxData(1),
-         rxDataBEn                => rxDataEn(1),
-         rxDataC                  => rxData(2),
-         rxDataCEn                => rxDataEn(2),
-         rxDataD                  => rxData(3),
-         rxDataDEn                => rxDataEn(3),
-         rxDataE                  => rxData(4),
-         rxDataEEn                => rxDataEn(4),
-         rxDataF                  => rxData(5),
-         rxDataFEn                => rxDataEn(5),
-         rxDataG                  => rxData(6),
-         rxDataGEn                => rxDataEn(6),
-         rxDataH                  => rxData(7),
-         rxDataHEn                => rxDataEn(7),
-         gtTxP                    => gtTxP,
-         gtTxN                    => gtTxN,
-         gtRxP                    => gtRxP,
-         gtRxN                    => gtRxN);
+         I  => sfpTx,
+         O  => dtmToRtmLsP(2),
+         OB => dtmToRtmLsN(2));
+
+   DTM_RTM3 : OBUFDS
+      port map (
+         I  => qsfpRst,
+         O  => dtmToRtmLsP(3),
+         OB => dtmToRtmLsN(3));
+
+   DTM_RTM4 : OBUFDS
+      port map (
+         I  => sfpTxDis,
+         O  => dtmToRtmLsP(4),
+         OB => dtmToRtmLsN(4));
+
+   DTM_RTM5 : OBUFDS
+      port map (
+         I  => busyOut,
+         O  => dtmToRtmLsP(5),
+         OB => dtmToRtmLsN(5));
+
+   -- Timing Codes
+   distClk    <= '0';
+   distClkRst <= '0';
+   txDataA    <= (others=>'0');
+   txDataAEn  <= '0';
+   txDataB    <= (others=>'0');
+   txDataBEn  <= '0';
+
+   --gtTxP : out sl;
+   --gtTxN : out sl;
+   --gtRxP : in  sl;
+   --gtRxN : in  sl
 
 end architecture STRUCTURE;
 

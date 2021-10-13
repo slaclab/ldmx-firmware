@@ -1,22 +1,23 @@
 
 # IO Types
-#set_property IOSTANDARD LVCMOS25  [get_ports dtmToRtmLsP[0]]
-#set_property IOSTANDARD LVCMOS25  [get_ports dtmToRtmLsM[0]]
+set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsP[0]]
+set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsM[0]]
 
-#set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsP[1]]
-#set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsM[1]]
+set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsP[1]]
+set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsM[1]]
 
-#set_property IOSTANDARD LVCMOS25  [get_ports dtmToRtmLsP[2]]
-#set_property IOSTANDARD LVCMOS25  [get_ports dtmToRtmLsM[2]]
+set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsP[2]]
+set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsM[2]]
 
-#set_property IOSTANDARD LVCMOS25  [get_ports dtmToRtmLsP[3]]
-#set_property IOSTANDARD LVCMOS25  [get_ports dtmToRtmLsM[3]]
+set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsP[3]]
+set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsM[3]]
 
-#set_property IOSTANDARD LVCMOS25  [get_ports dtmToRtmLsP[4]]
-#set_property IOSTANDARD LVCMOS25  [get_ports dtmToRtmLsM[4]]
+set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsP[4]]
+set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsM[4]]
 
-#set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsP[5]]
-#set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsM[5]]
+set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsP[5]]
+set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsM[5]]
+
 #set_property PULLDOWN true        [get_ports dtmToRtmLsP[5]]
 #set_property PULLUP   true        [get_ports dtmToRtmLsM[5]]
 
