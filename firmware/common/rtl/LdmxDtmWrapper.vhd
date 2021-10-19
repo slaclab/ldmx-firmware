@@ -164,10 +164,10 @@ architecture STRUCTURE of LdmxDtmWrapper is
    signal dpmFbEn    : slv(7 downto 0);
    signal dpmBusy    : slv(7 downto 0);
    signal triggerIn  : sl;
-   signal triggerReg : slv(1 downto 0);
+   signal triggerReg : slv(2 downto 0);
    signal triggerArm : sl;
    signal spillIn    : sl;
-   signal spillReg   : slv(1 downto 0);
+   signal spillReg   : slv(2 downto 0);
    signal spillArm   : sl;
    signal locRefClk  : sl;
    signal locRefClkG : sl;
@@ -339,8 +339,9 @@ begin
 
             triggerReg(0) <= triggerIn     after TPD_G;
             triggerReg(1) <= triggerReg(0) after TPD_G;
+            triggerReg(2) <= triggerReg(1) after TPD_G;
 
-            if triggerReg(1) = '1' then
+            if triggerReg(2) = '0' and triggerReg(1) = '1' then
                triggerArm <= '1' after TPD_G;
             elsif txReady = '1' then
                triggerArm <= '0' after TPD_G;
@@ -348,8 +349,9 @@ begin
 
             spillReg(0) <= spillIn     after TPD_G;
             spillReg(1) <= spillReg(0) after TPD_G;
+            spillReg(2) <= spillReg(1) after TPD_G;
 
-            if spillReg(1) = '1' then
+            if spillReg(2) = '0' and spillReg(1) = '1' then
                spillArm <= '1' after TPD_G;
             elsif txReady = '1' then
                spillArm <= '0' after TPD_G;
@@ -363,7 +365,7 @@ begin
       end if;
    end process;
 
-   dtmToRtmLsM(1) <= triggerReg(1);
+   dtmToRtmLsM(1) <= triggerReg(2);
 
    -----------------------------------
    -- Busy processing
