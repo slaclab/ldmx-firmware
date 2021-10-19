@@ -1,10 +1,10 @@
 
 # IO Types
-set_property IOSTANDARD LVCMOS    [get_ports dtmToRtmLsP[0]] # Start of spill
-set_property IOSTANDARD LVCMOS    [get_ports dtmToRtmLsM[0]] # Trigger In
+#set_property IOSTANDARD LVCMOS    [get_ports dtmToRtmLsP[0]] # Start of spill
+#set_property IOSTANDARD LVCMOS    [get_ports dtmToRtmLsM[0]] # Trigger In
 
-set_property IOSTANDARD LVCMOS    [get_ports dtmToRtmLsP[1]] # Busy
-set_property IOSTANDARD LVCMOS    [get_ports dtmToRtmLsM[1]] # Trig Re-sync
+#set_property IOSTANDARD LVCMOS    [get_ports dtmToRtmLsP[1]] # Busy
+#set_property IOSTANDARD LVCMOS    [get_ports dtmToRtmLsM[1]] # Trig Re-sync
 
 set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsP[2]]
 set_property IOSTANDARD LVDS_25   [get_ports dtmToRtmLsM[2]]
