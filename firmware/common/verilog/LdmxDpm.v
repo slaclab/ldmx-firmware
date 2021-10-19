@@ -2,7 +2,7 @@
 `timescale 1ns/10ps
 
 // Edge Module Definition
-module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, locRefClkM, axilClk, axilRst,
+module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, locRefClkM, dtmRefClkG, axilClk, axilRst,
                  axilReadMaster_araddr, axilReadMaster_arprot, axilReadMaster_arvalid, axilReadMaster_rready, axilReadSlave_arready,
                  axilReadSlave_rdata, axilReadSlave_rresp, axilReadSlave_rvalid, axilWriteMaster_awaddr, axilWriteMaster_awprot,
                  axilWriteMaster_awvalid, axilWriteMaster_wdata, axilWriteMaster_wstrb, axilWriteMaster_wvalid, axilWriteMaster_bready,
@@ -10,7 +10,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
                  dmaObMaster_tValid, dmaObMaster_tData, dmaObMaster_tStrb, dmaObMaster_tKeep, dmaObMaster_tLast, dmaObMaster_tDest,
                  dmaObMaster_tId, dmaObMaster_tUser, dmaObSlave_tReady, dmaIbMaster_tValid, dmaIbMaster_tData, dmaIbMaster_tStrb,
                  dmaIbMaster_tKeep, dmaIbMaster_tLast, dmaIbMaster_tDest, dmaIbMaster_tId, dmaIbMaster_tUser, dmaIbSlave_tReady, dpmToRtmHsP,
-                 dpmToRtmHsM, rtmToDpmHsP, rtmToDpmHsM, rxDataA, rxDataAEn, rxDataB, rxDataBEn, txData, txDataEn, txReady);
+                 dpmToRtmHsM, rtmToDpmHsP, rtmToDpmHsM, distDivClk, distDivClkRst, trigger, spill, busy);
 
    // Clocks and Resets
    input  wire          sysClk125;
@@ -21,6 +21,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    // External reference clock
    input  wire          locRefClkP;
    input  wire          locRefClkM;
+   input  wire          dtmRefClkG;
 
    // AXI-Lite Interface
    input  wire          axilClk;
@@ -74,13 +75,11 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    input  wire [3:0]    rtmToDpmHsM;
 
    // COB Timing Interface
-   input  wire [9:0]    rxDataA;
-   input  wire          rxDataAEn;
-   input  wire [9:0]    rxDataB;
-   input  wire          rxDataBEn;
-   output wire [9:0]    txData;
-   output wire          txDataEn;
-   input  wire          txReady;
+   input  wire          distDivClk;
+   input  wire          distDivClkRst;
+   input  wire          trigger;
+   input  wire          spill;
+   output wire          busy;
 
     reg [(31-2-12):0] axilReadMaster_araddr_r;
     reg [(31-2-12):0] axilWriteMaster_awaddr_r;
@@ -269,7 +268,16 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    assign dmaIbMaster_tId     = dmaObMaster_tId;
    assign dmaIbMaster_tUser   = dmaObMaster_tUser;
 
-   assign txData   = rxDataA | rxDataB;
-   assign txDataEn = rxDataAEn | rxDataBEn;
+   reg ibusy;
+
+   always @(posedge distDivClk) begin
+    if (distDivClkRst) begin
+       ibusy <= 1'h0;
+    end else begin
+       ibusy <= trigger | spill;
+    end
+  end
+
+  assign busy = ibusy;
 
 endmodule

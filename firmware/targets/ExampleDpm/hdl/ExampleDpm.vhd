@@ -23,8 +23,7 @@ entity ExampleDpm is
    generic (
       TPD_G              : time                        := 1 ns;
       BUILD_INFO_G       : BuildInfoType               := BUILD_INFO_DEFAULT_SLV_C;
-      HS_LINK_COUNT_G    : natural range 1 to 12       := 4;
-      DIST_CLK_PLL_G     : boolean                     := true);
+      HS_LINK_COUNT_G    : natural range 1 to 12       := 4);
    port (
 
       -- Debug
@@ -120,12 +119,14 @@ architecture STRUCTURE of ExampleDpm is
    signal dtmRefClk     : sl;
    signal dtmRefClkG    : sl;
    signal distClk       : sl;
-   signal distClkLocked : sl;
    signal distClkRst    : sl;
+   signal distClkLocked : sl;
+   signal distDivClk    : sl;
+   signal distDivClkRst : sl;
 
    -- Timing sink
-   signal rxData   : Slv10Array(1 downto 0);
-   signal rxDataEn : slv(1 downto 0);
+   signal rxData   : slv(9 downto 0);
+   signal rxDataEn : sl;
    signal txData   : slv(9 downto 0);
    signal txDataEn : sl;
    signal txReady  : sl;
@@ -215,32 +216,26 @@ begin
          O => dtmRefClkG
          );
 
-   GenDistClkPll : if (DIST_CLK_PLL_G) generate
-      ClockManager7_1 : entity surf.ClockManager7
-         generic map (
-            TPD_G            => TPD_G,
-            TYPE_G           => "PLL",
-            INPUT_BUFG_G     => false,
-            FB_BUFG_G        => true,
-            NUM_CLOCKS_G     => 1,
-            BANDWIDTH_G      => "HIGH",
-            CLKIN_PERIOD_G   => 8.0,
-            DIVCLK_DIVIDE_G  => 1,
-            CLKFBOUT_MULT_G  => 14,
-            CLKOUT0_DIVIDE_G => 14)
-         port map (
-            clkIn     => dtmRefClkG,
-            rstIn     => axilRst,
-            clkOut(0) => distClk,
-            locked    => distClkLocked);
-   end generate;
+   ClockManager7_1 : entity surf.ClockManager7
+      generic map (
+         TPD_G            => TPD_G,
+         TYPE_G           => "PLL",
+         INPUT_BUFG_G     => false,
+         FB_BUFG_G        => true,
+         NUM_CLOCKS_G     => 1,
+         BANDWIDTH_G      => "HIGH",
+         CLKIN_PERIOD_G   => 8.0,
+         DIVCLK_DIVIDE_G  => 1,
+         CLKFBOUT_MULT_G  => 14,
+         CLKOUT0_DIVIDE_G => 14)
+      port map (
+         clkIn     => dtmRefClkG,
+         rstIn     => axilRst,
+         clkOut(0) => distClk,
+         rstOut(0) => distClkRst,
+         locked    => distClkLocked);
 
-   NoGenDistClkPll : if (not DIST_CLK_PLL_G) generate
-      distClk       <= dtmRefClkG;
-      distClkLocked <= '1';
-   end generate;
-
-   U_DpmTimingSinkV2 : entity rce_gen3_fw_lib.DpmTimingSinkV2
+   U_LdmxDpmTimingSink : entity ldmx.LdmxDpmTimingSink
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -256,9 +251,9 @@ begin
          dtmClkM        => dtmClkM,
          dtmFbP         => dtmFbP,
          dtmFbM         => dtmFbM,
-         distClk        => distClk,
+         distDivClk     => distDivClk,
+         distDivClkRst  => distDivClkRst,
          distClkLocked  => distClkLocked,
-         distClkRst     => distClkRst,
          rxData         => rxData,
          rxDataEn       => rxDataEn,
          txData         => txData,
@@ -280,6 +275,7 @@ begin
          sysClk200Rst    => sysClk200Rst,
          locRefClkP      => locRefClkP,
          locRefClkM      => locRefClkM,
+         dtmRefClkG      => dtmRefClkG,
          axilClk         => axilClk,
          axilRst         => axilRst,
          axilReadMaster  => locAxilReadMasters(1),
@@ -296,6 +292,8 @@ begin
          dpmToRtmHsM     => dpmToRtmHsM,
          rtmToDpmHsP     => rtmToDpmHsP,
          rtmToDpmHsM     => rtmToDpmHsM,
+         distDivClk      => distDivClk,
+         distDivClkRst   => distDivClkRst,
          rxData          => rxData,
          rxDataEn        => rxDataEn,
          txData          => txData,
