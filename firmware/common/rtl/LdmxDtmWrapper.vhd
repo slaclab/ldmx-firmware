@@ -69,7 +69,7 @@ entity LdmxDtmWrapper is
       distDivClkRst : out sl;
       txData        : out slv(9 downto 0);
       txDataEn      : out sl;
-      txReady       : in  slv(1 downto 0);
+      txReady       : in  sl;
       rxData        : in  Slv10Array(7 downto 0);
       rxDataEn      : in  slv(7 downto 0);
 
@@ -308,12 +308,12 @@ begin
          BANDWIDTH_G             => "OPTIMIZED",
          CLKIN_PERIOD_G          => 4.0,
          DIVCLK_DIVIDE_G         => 1,
-         CLKFBOUT_MULT_F_G       => 7.44, -- 1.86Ghz
-         CLKOUT0_DIVIDE_G        => 10,   -- 186Mhz
-         CLKOUT1_DIVIDE_G        => 50    -- 37.2Mhz
+         CLKFBOUT_MULT_F_G       => 3.72, -- 930Mhz
+         CLKOUT0_DIVIDE_G        => 5,    -- 186Mhz
+         CLKOUT1_DIVIDE_G        => 25    -- 37.2Mhz
       ) port map (
          clkIn            => locRefClkG,
-         rstIn            => axiClkRst,
+         rstIn            => axilClkRst,
          clkOut(0)        => distClk,
          clkOut(1)        => distDivClk,
          rstOut(0)        => distClkRst,
@@ -329,9 +329,9 @@ begin
    begin
       if rising_edge(idistDivClk) then
          if idistDivClkRst = '1' then
-            triggerReg <= '0' after TPD_G;
+            triggerReg <= (others=>'0') after TPD_G;
             triggerArm <= '0' after TPD_G;
-            spillReg   <= '0' after TPD_G;
+            spillReg   <= (others=>'0') after TPD_G;
             spillArm   <= '0' after TPD_G;
             txData     <= (others=>'0') after TPD_G;
             txDataEn   <= '0' after TPD_G;
@@ -363,7 +363,7 @@ begin
       end if;
    end process;
 
-   dtmTpRtmLsM(1) <= triggerReg(1);
+   dtmToRtmLsM(1) <= triggerReg(1);
 
    -----------------------------------
    -- Busy processing

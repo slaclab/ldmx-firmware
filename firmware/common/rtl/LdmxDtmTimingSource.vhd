@@ -84,8 +84,8 @@ architecture STRUCTURE of LdmxDtmTimingSource is
    signal rxCountSync      : Slv32Array(7 downto 0);
    signal fbStatusIdleCnt  : Slv16Array(7 downto 0);
    signal fbStatusErrorCnt : Slv16Array(7 downto 0);
-   signal regCode          : Slv10Array(1 downto 0);
-   signal regCodeEn        : slv(1 downto 0);
+   signal regCode          : slv(9 downto 0);
+   signal regCodeEn        : sl;
    signal dpmFb            : slv(7 downto 0);
    signal countReset       : sl;
 
@@ -410,11 +410,12 @@ begin
 
          -- Tx Data A Count, 0x414
          elsif axiReadMaster.araddr(11 downto 0) = x"414" then
-            v.axiReadSlave.rdata := txCountSync(0);
+            --v.axiReadSlave.rdata := txCountSync(0);
+            v.axiReadSlave.rdata := txCountSync;
 
          -- Tx Data B Count, 0x418
-         elsif axiReadMaster.araddr(11 downto 0) = x"418" then
-            v.axiReadSlave.rdata := txCountSync(1);
+         --elsif axiReadMaster.araddr(11 downto 0) = x"418" then
+            --v.axiReadSlave.rdata := txCountSync(1);
 
             -- Counter Reset, 0x41C
 
@@ -465,23 +466,9 @@ begin
          wr_en  => r.cmdCodeEn(0),      -- [in]
          din    => r.cmdCode(0),        -- [in]
          rd_clk => distClk,             -- [in]
-         rd_en  => regCodeEn(0),        -- [in]
-         valid  => regCodeEn(0),        -- [out]
-         dout   => regCode(0));         -- [out]
-
-   U_SynchronizerFifo_2 : entity surf.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 10)
-      port map (
-         wr_clk => axiClk,              -- [in]
-         wr_en  => r.cmdCodeEn(1),      -- [in]
-         din    => r.cmdCode(1),        -- [in]
-         rd_clk => distClk,             -- [in]
-         rd_en  => regCodeEn(1),        -- [in]
-         valid  => regCodeEn(1),        -- [out]
-         dout   => regCode(1));         -- [out]
-
+         rd_en  => regCodeEn,           -- [in]
+         valid  => regCodeEn,           -- [out]
+         dout   => regCode);            -- [out]
 
 end architecture STRUCTURE;
 

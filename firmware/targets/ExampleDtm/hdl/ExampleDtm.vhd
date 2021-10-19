@@ -130,7 +130,7 @@ architecture STRUCTURE of ExampleDtm is
    signal locAxilWriteSlave  : AxiLiteWriteSlaveArray(1 downto 0);
    signal txData             : slv(9 downto 0);
    signal txDataEn           : sl;
-   signal txReady            : slv(1 downto 0);
+   signal txReady            : sl;
    signal rxData             : Slv10Array(7 downto 0);
    signal rxDataEn           : slv(7 downto 0);
    signal distClk            : sl;
