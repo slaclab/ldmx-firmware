@@ -224,10 +224,10 @@ begin
          FB_BUFG_G        => true,
          NUM_CLOCKS_G     => 1,
          BANDWIDTH_G      => "HIGH",
-         CLKIN_PERIOD_G   => 8.0,
+         CLKIN_PERIOD_G   => 5.37,  -- 186Mhz
          DIVCLK_DIVIDE_G  => 1,
-         CLKFBOUT_MULT_G  => 14,
-         CLKOUT0_DIVIDE_G => 14)
+         CLKFBOUT_MULT_G  => 5,     -- 930Mhz
+         CLKOUT0_DIVIDE_G => 5)
       port map (
          clkIn     => dtmRefClkG,
          rstIn     => axilRst,
