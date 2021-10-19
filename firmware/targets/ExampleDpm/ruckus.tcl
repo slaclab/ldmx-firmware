@@ -9,6 +9,7 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 loadRuckusTcl $::env(TOP_DIR)/common/
 loadRuckusTcl $::env(TOP_DIR)/submodules/surf
 loadRuckusTcl $::env(TOP_DIR)/submodules/rce-gen3-fw-lib/DpmCore
+loadRuckusTcl $::env(TOP_DIR)/submodules/ldmx-fastcontrol
 
 # Load target's source code and constraints
 loadSource -lib hps_daq      -dir  "$::DIR_PATH/hdl/"
