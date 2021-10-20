@@ -365,8 +365,7 @@ begin
       end if;
    end process;
 
-   --dtmToRtmLsM(1) <= triggerReg(2);
-   dtmToRtmLsM(1) <= dtmToRtmLsM(0);
+   dtmToRtmLsM(1) <= triggerReg(2);
 
    -----------------------------------
    -- Busy processing
