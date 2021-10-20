@@ -365,7 +365,8 @@ begin
       end if;
    end process;
 
-   dtmToRtmLsM(1) <= triggerReg(2);
+   --dtmToRtmLsM(1) <= triggerReg(2);
+   dtmToRtmLsM(1) <= dtmToRtmLsM(0);
 
    -----------------------------------
    -- Busy processing
@@ -399,7 +400,8 @@ begin
                busyOut <= '1' after TPD_G;
             end if;
 
-            busyOutReg <= busyOut after TPD_G;
+            --busyOutReg <= busyOut after TPD_G;
+            busyOutReg <= not busyOutReg after TPD_G;
          end if;
       end if;
    end process;
