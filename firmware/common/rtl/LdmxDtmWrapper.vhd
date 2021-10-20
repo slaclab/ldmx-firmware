@@ -314,10 +314,10 @@ begin
       ) port map (
          clkIn            => locRefClkG,
          rstIn            => axilClkRst,
-         clkOut(0)        => distClk,
-         clkOut(1)        => distDivClk,
-         rstOut(0)        => distClkRst,
-         rstOut(1)        => distDivClkRst);
+         clkOut(0)        => idistClk,
+         clkOut(1)        => idistDivClk,
+         rstOut(0)        => idistClkRst,
+         rstOut(1)        => idistDivClkRst);
 
    -----------------------------------
    -- Trigger Signal Processing
