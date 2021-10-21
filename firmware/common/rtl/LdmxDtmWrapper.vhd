@@ -399,8 +399,8 @@ begin
                busyOut <= '1' after TPD_G;
             end if;
 
-            --busyOutReg <= busyOut after TPD_G;
-            busyOutReg <= not busyOutReg after TPD_G;
+            busyOutReg <= busyOut after TPD_G;
+            --busyOutReg <= not busyOutReg after TPD_G;
          end if;
       end if;
    end process;
