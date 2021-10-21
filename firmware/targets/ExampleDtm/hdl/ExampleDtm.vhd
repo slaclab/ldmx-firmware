@@ -74,10 +74,10 @@ entity ExampleDtm is
       ethResetL  : out   Slv(1 downto 0);
 
       -- RTM High Speed
-      dtmToRtmHsP : out sl;
-      dtmToRtmHsM : out sl;
-      rtmToDtmHsP : in  sl;
-      rtmToDtmHsM : in  sl;
+      --dtmToRtmHsP : out sl;
+      --dtmToRtmHsM : out sl;
+      --rtmToDtmHsP : in  sl;
+      --rtmToDtmHsM : in  sl;
 
       -- RTM Low Speed
       dtmToRtmLsP : inout slv(5 downto 0);
@@ -128,13 +128,15 @@ architecture STRUCTURE of ExampleDtm is
    signal locAxilReadSlave   : AxiLiteReadSlaveArray(1 downto 0);
    signal locAxilWriteMaster : AxiLiteWriteMasterArray(1 downto 0);
    signal locAxilWriteSlave  : AxiLiteWriteSlaveArray(1 downto 0);
-   signal txData             : Slv10Array(1 downto 0);
-   signal txDataEn           : slv(1 downto 0);
-   signal txReady            : slv(1 downto 0);
+   signal txData             : slv(9 downto 0);
+   signal txDataEn           : sl;
+   signal txReady            : sl;
    signal rxData             : Slv10Array(7 downto 0);
    signal rxDataEn           : slv(7 downto 0);
    signal distClk            : sl;
    signal distClkRst         : sl;
+   signal distDivClk         : sl;
+   signal distDivClkRst      : sl;
 
 begin
 
@@ -247,7 +249,7 @@ begin
    --------------------------------------------------
    -- Timing
    --------------------------------------------------
-   U_DtmTimingSourceV2 : entity rce_gen3_fw_lib.DtmTimingSourceV2
+   U_LdmxDtmTimingSource : entity ldmx.LdmxDtmTimingSource
       generic map (
          TPD_G => TPD_G
          ) port map (
@@ -261,6 +263,8 @@ begin
             sysClk200Rst   => sysClk200Rst,
             distClk        => distClk,
             distClkRst     => distClkRst,
+            distDivClk     => distDivClk,
+            distDivClkRst  => distDivClkRst,
             txData         => txData,
             txDataEn       => txDataEn,
             txReady        => txReady,
@@ -303,10 +307,14 @@ begin
             txReady         => txReady,
             rxData          => rxData,
             rxDataEn        => rxDataEn,
-            gtTxP           => dtmToRtmHsP,
-            gtTxN           => dtmToRtmHsM,
-            gtRxP           => rtmToDtmHsP,
-            gtRxN           => rtmToDtmHsM
+            gtTxP           => open,
+            gtTxN           => open,
+            gtRxP           => '0',
+            gtRxN           => '0'
+            --gtTxP           => dtmToRtmHsP,
+            --gtTxN           => dtmToRtmHsM,
+            --gtRxP           => rtmToDtmHsP,
+            --gtRxN           => rtmToDtmHsM
             );
 
 
