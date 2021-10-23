@@ -214,7 +214,7 @@ gt_pflink_init pflink(.sysclk_in(clk_125),
 //    output          gt0_eyescandataerror_out,
     .gt0_eyescantrigger_in(1'h0),
     //---------------- Receive Ports - FPGA RX Interface Ports -----------------
-    .gt0_rxusrclk_in(clk_link),
+   .gt0_rxusrclk_in(clk_link),
     .gt0_rxusrclk2_in(clk_link),
     //---------------- Receive Ports - FPGA RX interface Ports -----------------
     .gt0_rxdata_out(rx_d_i),
@@ -252,7 +252,12 @@ gt_pflink_init pflink(.sysclk_in(clk_125),
     .gt0_rxpolarity_in(gtx_ctl_level[2])
 	     );
 
-   wire [2:0] rx_status;
+   wire [2:0] tsrx_status;
+   reg 	      rx_polarity_r;
+
+   always @(posedge clk_125)
+     rx_polarity_r<=gtx_ctl_level[3];
+   
    
 clk_gtx_wrapper clkout(.clk_125(clk_125),.soft_reset(gtx_ctl_pulse[6]),.pll_lock_in(clk_link_lock),
                .qpll_lock(qpll_lock), .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout), .qpll_refclklost(qpll_refclklost),
@@ -261,7 +266,7 @@ clk_gtx_wrapper clkout(.clk_125(clk_125),.soft_reset(gtx_ctl_pulse[6]),.pll_lock
 		       .refclk(refclk[0]),
 		       .reset_done_out(gtx_status[5]),.tx_p(tx_p[1]),.tx_n(tx_n[1]),
 		       .rx_n(rx_n[1]),.rx_p(rx_p[1]),
-		       .rx_status(rx_status),.rx_reset(gtx_ctl_pulse[8]),.rx_polarity(gtx_ctl_level[3]),
+		       .rx_status(tsrx_status),.rx_reset(gtx_ctl_pulse[8]),.rx_polarity(rx_polarity_r),
 		       .rx_clk(ts_rx_clk),.rx_k(ts_rx_k),.rx_err(ts_rx_err),.rx_d(ts_rx_d)
 		       );
   
