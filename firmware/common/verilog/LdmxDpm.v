@@ -113,7 +113,11 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 
   wire fc_wstr, fc_wack, fc_rstr, fc_rack;
   wire [31:0] fc_dout;
-
+   
+  wire ts_wstr, ts_wack, ts_rstr, ts_rack;
+  wire [31:0] ts_dout;
+   
+   
   wire [1:0] gt_wstr, gt_wack, gt_rstr, gt_rack;
   wire [(32*2-1):0] gt_dout;
   wire [1:0] wb_wstr, wb_wack, wb_rstr, wb_rack;
@@ -254,6 +258,9 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    .fc_wstr(fc_wstr), .fc_rstr(fc_rstr),
    .fc_wack(fc_wack), .fc_rack(fc_rack),
    .fc_din(fc_dout),
+   .ts_wstr(ts_wstr), .ts_rstr(ts_rstr),
+   .ts_wack(ts_wack), .ts_rack(ts_rack),
+   .ts_din(ts_dout),
    .gt_wstr(gt_wstr), .gt_rstr(gt_rstr),
    .gt_wack(gt_wack), .gt_rack(gt_rack),
    .gt_din(gt_dout),
