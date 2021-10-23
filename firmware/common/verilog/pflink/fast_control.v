@@ -5,7 +5,7 @@
 
 module fast_control(
     input 			clk_bx,
-    input 			clk_link,
+//    input 			clk_link,
     output reg [15:0] 		fc_stream_enc,
     input 			reset,
     input 	      axi_clk,
