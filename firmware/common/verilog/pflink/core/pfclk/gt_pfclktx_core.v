@@ -72,6 +72,7 @@ module gt_pfclktx_core #
 (
     parameter EXAMPLE_SIM_GTRESET_SPEEDUP            = "TRUE",     // Simulation setting for GT SecureIP model
     parameter EXAMPLE_SIMULATION                     =  0,         // Set to 1 for simulation
+    parameter USE_BUFG                               =  0,         // Set to 1 for BUFG usage in cpll railing logic
     parameter STABLE_CLOCK_PERIOD                    = 8,         //Period of the stable clock driving this state-machine, unit is [ns]
     parameter EXAMPLE_USE_CHIPSCOPE                  =  0          // Set to 1 to use Chipscope to drive resets
 
@@ -79,6 +80,7 @@ module gt_pfclktx_core #
 (
 input           sysclk_in,
 input           soft_reset_tx_in,
+input           soft_reset_rx_in,
 input           dont_reset_on_data_error_in,
 output          gt0_tx_fsm_reset_done_out,
 output          gt0_rx_fsm_reset_done_out,
@@ -89,6 +91,14 @@ output          gt0_tx_mmcm_reset_out,
     //_________________________________________________________________________
     //GT0  (X1Y5)
     //____________________________CHANNEL PORTS________________________________
+    //------------------------------- CPLL Ports -------------------------------
+    output          gt0_cpllfbclklost_out,
+    output          gt0_cplllock_out,
+    input           gt0_cplllockdetclk_in,
+    input           gt0_cpllreset_in,
+    //------------------------ Channel - Clocking Ports ------------------------
+    input           gt0_gtrefclk0_in,
+    input           gt0_gtrefclk1_in,
     //-------------------------- Channel - DRP Ports  --------------------------
     input   [8:0]   gt0_drpaddr_in,
     input           gt0_drpclk_in,
@@ -101,14 +111,38 @@ output          gt0_tx_mmcm_reset_out,
     output  [7:0]   gt0_dmonitorout_out,
     //------------------- RX Initialization and Reset Ports --------------------
     input           gt0_eyescanreset_in,
+    input           gt0_rxuserrdy_in,
     //------------------------ RX Margin Analysis Ports ------------------------
     output          gt0_eyescandataerror_out,
     input           gt0_eyescantrigger_in,
+    //---------------- Receive Ports - FPGA RX Interface Ports -----------------
+    input           gt0_rxusrclk_in,
+    input           gt0_rxusrclk2_in,
+    //---------------- Receive Ports - FPGA RX interface Ports -----------------
+    output  [15:0]  gt0_rxdata_out,
+    //---------------- Receive Ports - RX 8B/10B Decoder Ports -----------------
+    output  [1:0]   gt0_rxdisperr_out,
+    output  [1:0]   gt0_rxnotintable_out,
+    //------------------------- Receive Ports - RX AFE -------------------------
+    input           gt0_gtxrxp_in,
+    //---------------------- Receive Ports - RX AFE Ports ----------------------
+    input           gt0_gtxrxn_in,
     //------------------- Receive Ports - RX Equalizer Ports -------------------
+    input           gt0_rxdfelpmreset_in,
     output  [6:0]   gt0_rxmonitorout_out,
     input   [1:0]   gt0_rxmonitorsel_in,
+    //------------- Receive Ports - RX Fabric Output Control Ports -------------
+    output          gt0_rxoutclk_out,
+    output          gt0_rxoutclkfabric_out,
     //----------- Receive Ports - RX Initialization and Reset Ports ------------
     input           gt0_gtrxreset_in,
+    input           gt0_rxpmareset_in,
+    //--------------- Receive Ports - RX Polarity Control Ports ----------------
+    input           gt0_rxpolarity_in,
+    //----------------- Receive Ports - RX8B/10B Decoder Ports -----------------
+    output  [1:0]   gt0_rxcharisk_out,
+    //------------ Receive Ports -RX Initialization and Reset Ports ------------
+    output          gt0_rxresetdone_out,
     //------------------- TX Initialization and Reset Ports --------------------
     input           gt0_gttxreset_in,
     input           gt0_txuserrdy_in,
@@ -143,13 +177,17 @@ output          gt0_tx_mmcm_reset_out,
 
 
     //Typical CDRLOCK Time is 50,000UI, as per DS183
-    localparam RX_CDRLOCK_TIME      = (EXAMPLE_SIMULATION == 1) ? 1000 : 100000/3.125;
+    localparam RX_CDRLOCK_TIME      = (EXAMPLE_SIMULATION == 1) ? 1000 : 100000/5;
        
     localparam integer   WAIT_TIME_CDRLOCK    = RX_CDRLOCK_TIME / STABLE_CLOCK_PERIOD;      
 
 //-------------------------- GT Wrapper Wires ------------------------------
     wire           gt0_rxpmaresetdone_i;
     wire           gt0_txpmaresetdone_i;
+    wire           gt0_cpllreset_i;
+    wire           gt0_cpllreset_t;
+    wire           gt0_cpllrefclklost_i;
+    wire           gt0_cplllock_i;
     wire           gt0_txresetdone_i;
     wire           gt0_txresetdone_ii;
     wire           gt0_rxresetdone_i;
@@ -158,6 +196,7 @@ output          gt0_tx_mmcm_reset_out,
     wire           gt0_gttxreset_t;
     wire           gt0_gtrxreset_i;
     wire           gt0_gtrxreset_t;
+    wire           gt0_rxdfelpmreset_i;
     wire           gt0_txuserrdy_i;
     wire           gt0_txuserrdy_t;
     wire           gt0_rxuserrdy_i;
@@ -218,6 +257,7 @@ output          gt0_tx_mmcm_reset_out,
 
 
 
+reg              rx_cdrlocked;
 
 
  
@@ -238,6 +278,7 @@ assign  tied_to_vcc_i                        =  1'b1;
 
     gt_pfclktx_multi_gt #
     (
+        .USE_BUFG                       (USE_BUFG),
         .WRAPPER_SIM_GTRESET_SPEEDUP    (EXAMPLE_SIM_GTRESET_SPEEDUP)
     )
     gt_pfclktx_i
@@ -247,6 +288,15 @@ assign  tied_to_vcc_i                        =  1'b1;
         //_____________________________________________________________________
         //GT0  (X1Y5)
 
+        //------------------------------- CPLL Ports -------------------------------
+        .gt0_cpllfbclklost_out          (gt0_cpllfbclklost_out), // output wire gt0_cpllfbclklost_out
+        .gt0_cplllock_out               (gt0_cplllock_i), // output wire gt0_cplllock_i
+        .gt0_cplllockdetclk_in          (gt0_cplllockdetclk_in), // input wire gt0_cplllockdetclk_in
+        .gt0_cpllrefclklost_out         (gt0_cpllrefclklost_i), // output wire gt0_cpllrefclklost_i
+        .gt0_cpllreset_in               (gt0_cpllreset_i), // input wire gt0_cpllreset_i
+        //------------------------ Channel - Clocking Ports ------------------------
+        .gt0_gtrefclk0_in               (gt0_gtrefclk0_in), // input wire gt0_gtrefclk0_in
+        .gt0_gtrefclk1_in               (gt0_gtrefclk1_in), // input wire gt0_gtrefclk1_in
         //-------------------------- Channel - DRP Ports  --------------------------
         .gt0_drpaddr_in                 (gt0_drpaddr_in), // input wire [8:0] gt0_drpaddr_in
         .gt0_drpclk_in                  (gt0_drpclk_in), // input wire gt0_drpclk_in
@@ -259,16 +309,41 @@ assign  tied_to_vcc_i                        =  1'b1;
         .gt0_dmonitorout_out            (gt0_dmonitorout_out), // output wire [7:0] gt0_dmonitorout_out
         //------------------- RX Initialization and Reset Ports --------------------
         .gt0_eyescanreset_in            (gt0_eyescanreset_in), // input wire gt0_eyescanreset_in
+        .gt0_rxuserrdy_in               (gt0_rxuserrdy_i), // input wire gt0_rxuserrdy_i
         //------------------------ RX Margin Analysis Ports ------------------------
         .gt0_eyescandataerror_out       (gt0_eyescandataerror_out), // output wire gt0_eyescandataerror_out
         .gt0_eyescantrigger_in          (gt0_eyescantrigger_in), // input wire gt0_eyescantrigger_in
+        //---------------- Receive Ports - FPGA RX Interface Ports -----------------
+        .gt0_rxusrclk_in                (gt0_rxusrclk_in), // input wire gt0_rxusrclk_in
+        .gt0_rxusrclk2_in               (gt0_rxusrclk2_in), // input wire gt0_rxusrclk2_in
+        //---------------- Receive Ports - FPGA RX interface Ports -----------------
+        .gt0_rxdata_out                 (gt0_rxdata_out), // output wire [15:0] gt0_rxdata_out
+        //---------------- Receive Ports - RX 8B/10B Decoder Ports -----------------
+        .gt0_rxdisperr_out              (gt0_rxdisperr_out), // output wire [1:0] gt0_rxdisperr_out
+        .gt0_rxnotintable_out           (gt0_rxnotintable_out), // output wire [1:0] gt0_rxnotintable_out
+        //------------------------- Receive Ports - RX AFE -------------------------
+        .gt0_gtxrxp_in                  (gt0_gtxrxp_in), // input wire gt0_gtxrxp_in
+        //---------------------- Receive Ports - RX AFE Ports ----------------------
+        .gt0_gtxrxn_in                  (gt0_gtxrxn_in), // input wire gt0_gtxrxn_in
+        //------------------ Receive Ports - RX Equailizer Ports -------------------
+        .gt0_rxlpmhfhold_in             (gt0_rxlpmhfhold_i), // input wire gt0_rxlpmhfhold_i
+        .gt0_rxlpmlfhold_in             (gt0_rxlpmlfhold_i), // input wire gt0_rxlpmlfhold_i
         //------------------- Receive Ports - RX Equalizer Ports -------------------
-        .gt0_rxdfeagchold_in            (gt0_rxdfeagchold_i), // input wire gt0_rxdfeagchold_i
-        .gt0_rxdfelfhold_in             (gt0_rxdfelfhold_i), // input wire gt0_rxdfelfhold_i
+        .gt0_rxdfelpmreset_in           (gt0_rxdfelpmreset_in), // input wire gt0_rxdfelpmreset_in
         .gt0_rxmonitorout_out           (gt0_rxmonitorout_out), // output wire [6:0] gt0_rxmonitorout_out
         .gt0_rxmonitorsel_in            (gt0_rxmonitorsel_in), // input wire [1:0] gt0_rxmonitorsel_in
+        //------------- Receive Ports - RX Fabric Output Control Ports -------------
+        .gt0_rxoutclk_out               (gt0_rxoutclk_i), // output wire gt0_rxoutclk_i
+        .gt0_rxoutclkfabric_out         (gt0_rxoutclkfabric_out), // output wire gt0_rxoutclkfabric_out
         //----------- Receive Ports - RX Initialization and Reset Ports ------------
         .gt0_gtrxreset_in               (gt0_gtrxreset_i), // input wire gt0_gtrxreset_i
+        .gt0_rxpmareset_in              (gt0_rxpmareset_in), // input wire gt0_rxpmareset_in
+        //--------------- Receive Ports - RX Polarity Control Ports ----------------
+        .gt0_rxpolarity_in              (gt0_rxpolarity_in), // input wire gt0_rxpolarity_in
+        //----------------- Receive Ports - RX8B/10B Decoder Ports -----------------
+        .gt0_rxcharisk_out              (gt0_rxcharisk_out), // output wire [1:0] gt0_rxcharisk_out
+        //------------ Receive Ports -RX Initialization and Reset Ports ------------
+        .gt0_rxresetdone_out            (gt0_rxresetdone_i), // output wire gt0_rxresetdone_i
         //------------------- TX Initialization and Reset Ports --------------------
         .gt0_gttxreset_in               (gt0_gttxreset_i), // input wire gt0_gttxreset_i
         .gt0_txuserrdy_in               (gt0_txuserrdy_i), // input wire gt0_txuserrdy_i
@@ -307,24 +382,31 @@ assign  tied_to_vcc_i                        =  1'b1;
     );
 
 
+    assign  gt0_rxdfelpmreset_i                  =  tied_to_ground_i;
 
 
+assign  gt0_cplllock_out                     =  gt0_cplllock_i;
 assign  gt0_txresetdone_out                  =  gt0_txresetdone_i;
+assign  gt0_rxresetdone_out                  =  gt0_rxresetdone_i;
+assign  gt0_rxoutclk_out                     =  gt0_rxoutclk_i;
 assign  gt0_txoutclk_out                     =  gt0_txoutclk_i;
 assign  gt0_qpllreset_out                    =  gt0_qpllreset_t;
 
 generate
 if (EXAMPLE_USE_CHIPSCOPE == 1) 
 begin : chipscope
+assign  gt0_cpllreset_i                      =  gt0_cpllreset_in || gt0_cpllreset_t;
 assign  gt0_gttxreset_i                      =  gt0_gttxreset_in || gt0_gttxreset_t;
 assign  gt0_gtrxreset_i                      =  gt0_gtrxreset_in || gt0_gtrxreset_t;
 assign  gt0_txuserrdy_i                      =  gt0_txuserrdy_in && gt0_txuserrdy_t;
+assign  gt0_rxuserrdy_i                      =  gt0_rxuserrdy_in && gt0_rxuserrdy_t;
 end
 endgenerate 
 
 generate
 if (EXAMPLE_USE_CHIPSCOPE == 0) 
 begin : no_chipscope
+assign  gt0_cpllreset_i                      =  gt0_cpllreset_t;
 assign  gt0_gttxreset_i                      =  gt0_gttxreset_t;
 assign  gt0_gtrxreset_i                      =  gt0_gtrxreset_t;
 assign  gt0_txuserrdy_i                      =  gt0_txuserrdy_t;
@@ -368,11 +450,70 @@ gt0_txresetfsm_i
            );
 
 
-assign gt0_rxuserrdy_t = tied_to_ground_i;
-assign gt0_gtrxreset_t = tied_to_vcc_i;
 
 
 
+gt_pfclktx_RX_STARTUP_FSM  #
+          (
+           .EXAMPLE_SIMULATION       (EXAMPLE_SIMULATION),
+           .EQ_MODE                  ("LPM"),                   //Rx Equalization Mode - Set to DFE or LPM
+           .STABLE_CLOCK_PERIOD      (STABLE_CLOCK_PERIOD),              //Period of the stable clock driving this state-machine, unit is [ns]
+           .RETRY_COUNTER_BITWIDTH   (8), 
+           .TX_QPLL_USED             ("TRUE"),                           // the TX and RX Reset FSMs must 
+           .RX_QPLL_USED             ("FALSE"),                          // share these two generic values
+           .PHASE_ALIGNMENT_MANUAL   ("FALSE")                 // Decision if a manual phase-alignment is necessary or the automatic 
+                                                                         // is enough. For single-lane applications the automatic alignment is 
+                                                                         // sufficient              
+             )     
+gt0_rxresetfsm_i
+             ( 
+        .STABLE_CLOCK                   (sysclk_in),
+        .RXUSERCLK                      (gt0_rxusrclk_in),
+        .SOFT_RESET                     (soft_reset_rx_in),
+        .DONT_RESET_ON_DATA_ERROR       (dont_reset_on_data_error_in),
+        .QPLLREFCLKLOST                 (tied_to_ground_i),
+        .CPLLREFCLKLOST                 (gt0_cpllrefclklost_i),
+        .QPLLLOCK                       (tied_to_vcc_i),
+        .CPLLLOCK                       (gt0_cplllock_i),
+        .RXRESETDONE                    (gt0_rxresetdone_i),
+        .MMCM_LOCK                      (tied_to_vcc_i),
+        .RECCLK_STABLE                  (gt0_recclk_stable_i),
+        .RECCLK_MONITOR_RESTART         (tied_to_ground_i),
+        .DATA_VALID                     (gt0_data_valid_in),
+        .TXUSERRDY                      (tied_to_vcc_i),
+        .GTRXRESET                      (gt0_gtrxreset_t),
+        .MMCM_RESET                     (),
+        .QPLL_RESET                     (),
+        .CPLL_RESET                     (gt0_cpllreset_t),
+        .RX_FSM_RESET_DONE              (gt0_rx_fsm_reset_done_out),
+        .RXUSERRDY                      (gt0_rxuserrdy_t),
+        .RUN_PHALIGNMENT                (),
+        .RESET_PHALIGNMENT              (),
+        .PHALIGNMENT_DONE               (tied_to_vcc_i),
+        .RXDFEAGCHOLD                   (gt0_rxdfeagchold_i),
+        .RXDFELFHOLD                    (gt0_rxdfelfhold_i),
+        .RXLPMLFHOLD                    (gt0_rxlpmlfhold_i),
+        .RXLPMHFHOLD                    (gt0_rxlpmhfhold_i),
+        .RETRY_COUNTER                  ()
+           );
+
+  always @(posedge sysclk_in)
+  begin
+        if(gt0_gtrxreset_i)
+        begin
+          gt0_rx_cdrlocked       <= `DLY    1'b0;
+          gt0_rx_cdrlock_counter <= `DLY    0;      
+        end                
+        else if (gt0_rx_cdrlock_counter == WAIT_TIME_CDRLOCK) 
+        begin
+          gt0_rx_cdrlocked       <= `DLY    1'b1;
+          gt0_rx_cdrlock_counter <= `DLY    gt0_rx_cdrlock_counter;
+        end
+        else
+          gt0_rx_cdrlock_counter <= `DLY    gt0_rx_cdrlock_counter + 1;
+  end 
+
+assign  gt0_recclk_stable_i                  =  gt0_rx_cdrlocked;
 
 
 

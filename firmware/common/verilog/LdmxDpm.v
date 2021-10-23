@@ -150,6 +150,26 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
     .axi_dout(fc_dout)
     );
 
+   wire [1:0] ts_rx_clk;
+   wire [(2*2-1):0] ts_rx_k;
+   wire [(2*2-1):0] ts_rx_err;   
+   wire [(2*16-1):0] ts_rx_d;
+      
+  trigscint ts_block(
+		     .rx_clk(ts_rx_clk),
+		     .rx_k(ts_rx_k),
+		     .rx_err(ts_rx_err),
+		     .rx_d(ts_rx_d),
+    .reset(axilRst),
+    .axi_clk(axilClk),
+    .axi_wstr(ts_wstr),.axi_rstr(ts_rstr),
+    .axi_wack(ts_wack),.axi_rack(ts_rack),
+    .axi_raddr(axilReadMaster_araddr_r[7:0]),
+    .axi_waddr(axilWriteMaster_awaddr_r[7:0]),
+    .axi_din(axilWriteMaster_wdata),
+    .axi_dout(ts_dout)
+    );
+
 
   wire locRefClk;
   IBUFDS_GTE2 #(
@@ -224,12 +244,16 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
          .rx_p(rtmToDpmHsP[(i0*2+1):(i0*2)]),
          .tx_n(dpmToRtmHsM[(i0*2+1):(i0*2)]),
          .tx_p(dpmToRtmHsP[(i0*2+1):(i0*2)]),
-//	     .refclk({locRefClk,1'h0}),
+	 .refclk({locRefClk,1'h0}),
          .tx_d(data_to_link),
          .tx_k(k_to_link),
          .rx_d(data_from_link),
          .rx_k(k_from_link),
          .rx_v(link_valid),
+		     .ts_rx_clk(ts_rx_clk[i0]),
+		     .ts_rx_k(ts_rx_k[(2*i0+1):(2*i0)]),
+		     .ts_rx_err(ts_rx_err[(2*i0+1):(2*i0)]),
+		     .ts_rx_d(ts_rx_d[(16*i0+15):(16*i0)]),
         .axi_clk(axilClk),
         .axi_wstr(gt_wstr[i0]),.axi_rstr(gt_rstr[i0]),
         .axi_wack(gt_wack[i0]),.axi_rack(gt_rack[i0]),

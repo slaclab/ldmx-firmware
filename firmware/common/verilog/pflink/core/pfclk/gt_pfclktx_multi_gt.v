@@ -72,6 +72,7 @@
     // Simulation attributes
     parameter   WRAPPER_SIM_GTRESET_SPEEDUP    =   "FALSE",     // Set to "TRUE" to speed up sim reset
     parameter   RX_DFE_KL_CFG2_IN              =   32'h301148AC,
+    parameter   USE_BUFG                       =   0, // set to 1 if you want to use BUFG for cpll railing logic
     parameter   PMA_RSV_IN                     =   32'h00018480
 )
 (
@@ -79,6 +80,15 @@
     //_________________________________________________________________________
     //GT0  (X0Y5)
     //____________________________CHANNEL PORTS________________________________
+    //------------------------------- CPLL Ports -------------------------------
+    output          gt0_cpllfbclklost_out,
+    output          gt0_cplllock_out,
+    input           gt0_cplllockdetclk_in,
+    output          gt0_cpllrefclklost_out,
+    input           gt0_cpllreset_in,
+    //------------------------ Channel - Clocking Ports ------------------------
+    input           gt0_gtrefclk0_in,
+    input           gt0_gtrefclk1_in,
     //-------------------------- Channel - DRP Ports  --------------------------
     input   [8:0]   gt0_drpaddr_in,
     input           gt0_drpclk_in,
@@ -91,16 +101,41 @@
     output  [7:0]   gt0_dmonitorout_out,
     //------------------- RX Initialization and Reset Ports --------------------
     input           gt0_eyescanreset_in,
+    input           gt0_rxuserrdy_in,
     //------------------------ RX Margin Analysis Ports ------------------------
     output          gt0_eyescandataerror_out,
     input           gt0_eyescantrigger_in,
+    //---------------- Receive Ports - FPGA RX Interface Ports -----------------
+    input           gt0_rxusrclk_in,
+    input           gt0_rxusrclk2_in,
+    //---------------- Receive Ports - FPGA RX interface Ports -----------------
+    output  [15:0]  gt0_rxdata_out,
+    //---------------- Receive Ports - RX 8B/10B Decoder Ports -----------------
+    output  [1:0]   gt0_rxdisperr_out,
+    output  [1:0]   gt0_rxnotintable_out,
+    //------------------------- Receive Ports - RX AFE -------------------------
+    input           gt0_gtxrxp_in,
+    //---------------------- Receive Ports - RX AFE Ports ----------------------
+    input           gt0_gtxrxn_in,
+    //------------------ Receive Ports - RX Equailizer Ports -------------------
+    input           gt0_rxlpmhfhold_in,
+    input           gt0_rxlpmlfhold_in,
     //------------------- Receive Ports - RX Equalizer Ports -------------------
-    input           gt0_rxdfeagchold_in,
-    input           gt0_rxdfelfhold_in,
+    input           gt0_rxdfelpmreset_in,
     output  [6:0]   gt0_rxmonitorout_out,
     input   [1:0]   gt0_rxmonitorsel_in,
+    //------------- Receive Ports - RX Fabric Output Control Ports -------------
+    output          gt0_rxoutclk_out,
+    output          gt0_rxoutclkfabric_out,
     //----------- Receive Ports - RX Initialization and Reset Ports ------------
     input           gt0_gtrxreset_in,
+    input           gt0_rxpmareset_in,
+    //--------------- Receive Ports - RX Polarity Control Ports ----------------
+    input           gt0_rxpolarity_in,
+    //----------------- Receive Ports - RX8B/10B Decoder Ports -----------------
+    output  [1:0]   gt0_rxcharisk_out,
+    //------------ Receive Ports -RX Initialization and Reset Ports ------------
+    output          gt0_rxresetdone_out,
     //------------------- TX Initialization and Reset Ports --------------------
     input           gt0_gttxreset_in,
     input           gt0_txuserrdy_in,
@@ -200,7 +235,17 @@ wire            cpll_pd0_i;
     )
 gt0_gt_pfclktx_i
     (
+        .cpllpd_in(gt0_cpllpd_i),
         .cpllrefclksel_in(3'b001),
+        //------------------------------- CPLL Ports -------------------------------
+        .cpllfbclklost_out              (gt0_cpllfbclklost_out),
+        .cplllock_out                   (gt0_cplllock_out),
+        .cplllockdetclk_in              (gt0_cplllockdetclk_in),
+        .cpllrefclklost_out             (gt0_cpllrefclklost_out),
+        .cpllreset_in                   (gt0_cpllreset_i),
+        //------------------------ Channel - Clocking Ports ------------------------
+        .gtrefclk0_in                   (gt0_gtrefclk0_in),
+        .gtrefclk1_in                   (gt0_gtrefclk1_in),
         //-------------------------- Channel - DRP Ports  --------------------------
         .drpaddr_in                     (gt0_drpaddr_in),
         .drpclk_in                      (gt0_drpclk_in),
@@ -216,16 +261,41 @@ gt0_gt_pfclktx_i
         .dmonitorout_out                (gt0_dmonitorout_out),
         //------------------- RX Initialization and Reset Ports --------------------
         .eyescanreset_in                (gt0_eyescanreset_in),
+        .rxuserrdy_in                   (gt0_rxuserrdy_in),
         //------------------------ RX Margin Analysis Ports ------------------------
         .eyescandataerror_out           (gt0_eyescandataerror_out),
         .eyescantrigger_in              (gt0_eyescantrigger_in),
+        //---------------- Receive Ports - FPGA RX Interface Ports -----------------
+        .rxusrclk_in                    (gt0_rxusrclk_in),
+        .rxusrclk2_in                   (gt0_rxusrclk2_in),
+        //---------------- Receive Ports - FPGA RX interface Ports -----------------
+        .rxdata_out                     (gt0_rxdata_out),
+        //---------------- Receive Ports - RX 8B/10B Decoder Ports -----------------
+        .rxdisperr_out                  (gt0_rxdisperr_out),
+        .rxnotintable_out               (gt0_rxnotintable_out),
+        //------------------------- Receive Ports - RX AFE -------------------------
+        .gtxrxp_in                      (gt0_gtxrxp_in),
+        //---------------------- Receive Ports - RX AFE Ports ----------------------
+        .gtxrxn_in                      (gt0_gtxrxn_in),
+        //------------------ Receive Ports - RX Equailizer Ports -------------------
+        .rxlpmhfhold_in                 (gt0_rxlpmhfhold_in),
+        .rxlpmlfhold_in                 (gt0_rxlpmlfhold_in),
         //------------------- Receive Ports - RX Equalizer Ports -------------------
-        .rxdfeagchold_in                (gt0_rxdfeagchold_in),
-        .rxdfelfhold_in                 (gt0_rxdfelfhold_in),
+        .rxdfelpmreset_in               (gt0_rxdfelpmreset_in),
         .rxmonitorout_out               (gt0_rxmonitorout_out),
         .rxmonitorsel_in                (gt0_rxmonitorsel_in),
+        //------------- Receive Ports - RX Fabric Output Control Ports -------------
+        .rxoutclk_out                   (gt0_rxoutclk_out),
+        .rxoutclkfabric_out             (gt0_rxoutclkfabric_out),
         //----------- Receive Ports - RX Initialization and Reset Ports ------------
         .gtrxreset_in                   (gt0_gtrxreset_in),
+        .rxpmareset_in                  (gt0_rxpmareset_in),
+        //--------------- Receive Ports - RX Polarity Control Ports ----------------
+        .rxpolarity_in                  (gt0_rxpolarity_in),
+        //----------------- Receive Ports - RX8B/10B Decoder Ports -----------------
+        .rxcharisk_out                  (gt0_rxcharisk_out),
+        //------------ Receive Ports -RX Initialization and Reset Ports ------------
+        .rxresetdone_out                (gt0_rxresetdone_out),
         //------------------- TX Initialization and Reset Ports --------------------
         .gttxreset_in                   (gt0_gttxreset_in),
         .txuserrdy_in                   (gt0_txuserrdy_in),
@@ -256,5 +326,20 @@ gt0_gt_pfclktx_i
 
     );
 
+ gt_pfclktx_cpll_railing #
+   (
+        .USE_BUFG(USE_BUFG)
+   )
+  cpll_railing0_i
+   (
+        .cpll_reset_out(cpll_reset0_i),
+        .cpll_pd_out(cpll_pd0_i),
+        .refclk_out(),
+        .refclk_in(gt0_gtrefclk0_in)
+);
+
+
+assign gt0_cpllreset_i = cpll_reset0_i || gt0_cpllreset_in; 
+assign gt0_cpllpd_i = cpll_pd0_i ; 
 endmodule
 

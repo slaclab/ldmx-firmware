@@ -29,13 +29,13 @@ module olink(
 	     input 	       reset,
 	     input [1:0]       rx_n, rx_p,
 	     output [1:0]      tx_n, tx_p,
-//	     input [1:0]       refclk,
+	     input [1:0]       refclk,
 
-         input qpll_lock,
-         input qpll_clkout, 
-         input qpll_refclkout, 
-         input qpll_refclklost,
-         output qpll_reset,
+             input 	       qpll_lock,
+             input 	       qpll_clkout, 
+             input 	       qpll_refclkout, 
+             input 	       qpll_refclklost,
+             output 	       qpll_reset,
 	 
 	     input [15:0]      tx_d,
 	     input [1:0]       tx_k,
@@ -43,6 +43,11 @@ module olink(
 	     output reg [31:0] rx_d,
 	     output reg [3:0]  rx_k,
 	     output reg        rx_v,
+
+	     output 	       ts_rx_clk,
+	     output [1:0]      ts_rx_k,
+	     output [1:0]      ts_rx_err,
+	     output [15:0]     ts_rx_d,
 
 	     input 	       axi_clk,
 	     input 	       axi_wstr,
@@ -72,8 +77,8 @@ module olink(
 	
    wire [7:0] 			  gtx_status;
 
-   wire [7:0] 			  gtx_ctl_pulse;
-   assign gtx_ctl_pulse=Command[1][15:8];
+   wire [9:0] 			  gtx_ctl_pulse;
+   assign gtx_ctl_pulse=Command[1][17:8];
    
    wire [3:0] 			  gtx_ctl_level;
    assign gtx_ctl_level=Command[0][3:0];
@@ -246,12 +251,20 @@ gt_pflink_init pflink(.sysclk_in(clk_125),
     .gt0_txpolarity_in(gtx_ctl_level[1]),
     .gt0_rxpolarity_in(gtx_ctl_level[2])
 	     );
-	 
+
+   wire [2:0] rx_status;
+   
 clk_gtx_wrapper clkout(.clk_125(clk_125),.soft_reset(gtx_ctl_pulse[6]),.pll_lock_in(clk_link_lock),
                .qpll_lock(qpll_lock), .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout), .qpll_refclklost(qpll_refclklost),
 
-		       .clk_link(clk_link),//.cpll_reset_in(gtx_ctl_pulse[7]),.refclk(refclk[0]),
-		       .reset_done_out(gtx_status[5]),.tx_p(tx_p[1]),.tx_n(tx_n[1]));
+		       .clk_link(clk_link), .cpll_reset_in(gtx_ctl_pulse[7]),
+		       .refclk(refclk[0]),
+		       .reset_done_out(gtx_status[5]),.tx_p(tx_p[1]),.tx_n(tx_n[1]),
+		       .rx_n(rx_n[1]),.rx_p(rx_p[1]),
+		       .rx_status(rx_status),.rx_reset(gtx_ctl_pulse[8]),.rx_polarity(gtx_ctl_level[3]),
+		       .rx_clk(ts_rx_clk),.rx_k(ts_rx_k),.rx_err(ts_rx_err),.rx_d(ts_rx_d)
+		       );
+  
 
    assign DefaultCommand[0]=32'h0;
    assign DefaultCommand[1]=32'h0;   
