@@ -127,7 +127,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
   wire olink_clk_locked;
 
   clk_man_olink clk_man_opti(.reset((|mmcm_reset)),
-			   .clk_in1(clk_tx_raw[0]),
+			   .clk_tx(clk_tx_raw[0]),
 			   .clk_bx(clk_bx),
 			   .clk_olink(clk_link),
 			   .locked(olink_clk_locked)
