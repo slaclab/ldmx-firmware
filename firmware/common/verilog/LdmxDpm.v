@@ -127,7 +127,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
   wire olink_clk_locked;
 
   clk_man_olink clk_man_opti(.reset((|mmcm_reset)),
-			   .clk_tx(clk_tx_raw[0]),
+			   .clk_in1(clk_tx_raw[0]),
 			   .clk_bx(clk_bx),
 			   .clk_olink(clk_link),
 			   .locked(olink_clk_locked)
@@ -135,7 +135,6 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 
   fast_control fc_block(
     .clk_bx(clk_bx),
-    .clk_link(clk_link),
     .fc_stream_enc(fc_stream),
     .reset(axilRst),
     .axi_clk(axilClk),
@@ -164,6 +163,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    );
 
     wire qpll_lock, qpll_clkout, qpll_refclkout, qpll_refclklost;
+    wire [1:0] qpll_reset;
 
    gt_pfclktx_common qpll
 (
@@ -175,7 +175,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
     .QPLLOUTCLK_OUT(qpll_clkout),
     .QPLLOUTREFCLK_OUT(qpll_refclkout),
     .QPLLREFCLKLOST_OUT(qpll_refclklost),
-    .QPLLRESET_IN(sysClk125Rst)
+    .QPLLRESET_IN(sysClk125Rst|qpll_reset[0]|qpll_reset[1])
 );
 
 
@@ -215,6 +215,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
          .clk_link_lock(olink_clk_locked),
          .clk_link(clk_link),
          .qpll_lock(qpll_lock), .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout), .qpll_refclklost(qpll_refclklost),
+         .qpll_reset(qpll_reset[i0]),
          .rx_n(rtmToDpmHsM[(i0*2+1):(i0*2)]),
          .rx_p(rtmToDpmHsP[(i0*2+1):(i0*2)]),
          .tx_n(dpmToRtmHsM[(i0*2+1):(i0*2)]),
