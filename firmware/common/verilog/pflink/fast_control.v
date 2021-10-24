@@ -4,10 +4,12 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module fast_control(
-    input 			clk_bx,
+    input 	      clk_bx,
 //    input 			clk_link,
-    output reg [15:0] 		fc_stream_enc,
-    input 			reset,
+    input 	      clk125,
+    input 	      clk_refd2,
+    output reg [15:0] fc_stream_enc,
+    input 	      reset,
     input 	      axi_clk,
     input 	      axi_wstr,
     input 	      axi_rstr,
@@ -34,7 +36,7 @@ module fast_control(
    reg [31:0] Control[NUM_CTL_WORDS-1:0];
    wire [31:0] DefaultCtlReg[NUM_CTL_WORDS-1:0];
 
-   parameter NUM_STS_WORDS = 2;
+   parameter NUM_STS_WORDS = 4;
    wire [31:0] Status[NUM_STS_WORDS-1:0];
 
    assign DefaultCtlReg[0]=32'h0;
@@ -99,7 +101,9 @@ module fast_control(
 
    assign Status[0]=32'habcd0001;
    assign Status[1]=32'h00000002;
-  
+
+   clkRateTool clkm125(.reset_in(reset),.clk125(clk125),.clktest(clk125),.value(Status[2]));
+   clkRateTool clkmrefd2(.reset_in(reset),.clk125(clk125),.clktest(clk_refd2),.value(Status[3]));
    
    reg [2:0] wack_delay;
    always @(posedge axi_clk)

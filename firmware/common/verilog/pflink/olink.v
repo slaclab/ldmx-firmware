@@ -146,7 +146,7 @@ module olink(
 	if (spy_rx_start) spy_rx_ptr<=6'h0;
 	else if (spy_rx_ptr!=6'h3f) spy_rx_ptr<=spy_rx_ptr+6'h1;
 	else spy_rx_ptr<=spy_rx_ptr;
-	spy_rx_buffer[spy_rx_ptr]<={rx_nintable_i,rx_k_i,rx_d_i};
+	spy_rx_buffer[spy_rx_ptr]<={12'h0,rx_nintable_i,rx_k_i,rx_d_i};
 end
 
    reg [31:0] spy_tx_buffer[63:0];
@@ -161,7 +161,7 @@ always @(posedge clk_link) begin
 	if (spy_rx_start) spy_tx_ptr<=6'h0;
 	else if (spy_tx_ptr!=6'h3f) spy_tx_ptr<=spy_tx_ptr+6'h1;
 	else spy_tx_ptr<=spy_tx_ptr;
-	spy_tx_buffer[spy_tx_ptr]<={tx_k,tx_d};
+	spy_tx_buffer[spy_tx_ptr]<={14'h0,tx_k,tx_d};
 end
 
 wire tx_out_clk, clk_tx_buf;
@@ -300,11 +300,11 @@ clk_gtx_wrapper clkout(.clk_125(clk_125),.soft_reset(gtx_ctl_pulse[6]),.pll_lock
 	 else if (axi_raddr[7:6]==2'h3) axi_dout<=spy_tx_buffer_r;
 	 else axi_dout<=32'h0;
 	 
-   assign Status[0]={16'h0010,16'h0002};   
-   assign Status[1]={clk_link_lock,was_other_comma,was_comma,rx_v,was_ok, gtx_status};
+   assign Status[0]={16'h0010,16'h0003};   
+   assign Status[1]={tsrx_status,3'h0,clk_link_lock,was_other_comma,was_comma,rx_v,was_ok, gtx_status};
+   assign Status[2]={qpll_reset,qpll_refclk_lost,qpll_lock};
 
-   clkRateTool testA(.reset_in(reset),.clk125(clk_125),.clktest(clk_link),.value(Status[2][23:0])); assign Status[2][31:24]=8'h0;
-   assign Status[3]=32'h0;
+   clkRateTool testA(.reset_in(reset),.clk125(clk_125),.clktest(clk_link),.value(Status[3][23:0])); assign Status[3][31:24]=8'h0;
    clkRateTool testK(.reset_in(reset),.clk125(clk_125),.clktest(was_comma),.value(Status[4][23:0])); assign Status[4][31:24]=8'h0;
 
    reg [31:0] countBad;

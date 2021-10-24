@@ -1,4 +1,5 @@
-module trigscint(input [1:0] rx_clk,
+module trigscint(input clk125,
+                 input [1:0] rx_clk,
 		 input [(2*2-1):0]  rx_k,
 		 input [(2*2-1):0]  rx_err, 
 		 input [(2*16-1):0] rx_d,
@@ -18,7 +19,7 @@ module trigscint(input [1:0] rx_clk,
    reg [31:0] Control[NUM_CTL_WORDS-1:0];
    wire [31:0] DefaultCtlReg[NUM_CTL_WORDS-1:0];
 
-   parameter NUM_STS_WORDS = 2;
+   parameter NUM_STS_WORDS = 6;
    wire [31:0] Status[NUM_STS_WORDS-1:0];
 
    assign DefaultCtlReg[0]=32'h0;
@@ -64,6 +65,10 @@ module trigscint(input [1:0] rx_clk,
    
    assign Status[0]=32'hbeef0001;
    assign Status[1]=32'h00000002;
+
+   clkRateTool clkrec0(.reset_in(reset),.clk125(clk125),.clktest(rx_clk[0]),.value(Status[2]));
+   clkRateTool clkrec1(.reset_in(reset),.clk125(clk125),.clktest(rx_clk[1]),.value(Status[3]));
+   
   
    
    reg [2:0] wack_delay;
@@ -78,5 +83,7 @@ module trigscint(input [1:0] rx_clk,
      if (!axi_rstr) rack_delay<=3'h0;
      else rack_delay<={rack_delay[3:0],axi_rstr};
    assign axi_rack=rack_delay[4];
+
+   
    
 endmodule   	

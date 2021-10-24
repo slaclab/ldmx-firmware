@@ -140,6 +140,8 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
   fast_control fc_block(
     .clk_bx(clk_bx),
     .fc_stream_enc(fc_stream),
+			.clk125(sysClk125),
+			.clk_refd2(refClkD2),
     .reset(axilRst),
     .axi_clk(axilClk),
     .axi_wstr(fc_wstr),.axi_rstr(fc_rstr),
@@ -155,7 +157,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    wire [(2*2-1):0] ts_rx_err;   
    wire [(2*16-1):0] ts_rx_d;
       
-  trigscint ts_block(
+  trigscint ts_block(.clk125(sysClk125),
 		     .rx_clk(ts_rx_clk),
 		     .rx_k(ts_rx_k),
 		     .rx_err(ts_rx_err),
@@ -171,16 +173,15 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
     );
 
 
-  wire locRefClk;
+  wire locRefClk, refClkD2;
   IBUFDS_GTE2 #(
       .CLKCM_CFG("TRUE"),   // Refer to Transceiver User Guide
       .CLKRCV_TRST("TRUE"), // Refer to Transceiver User Guide
       .CLKSWING_CFG(2'b11)  // Refer to Transceiver User Guide
    )
-
    IBUFDS_GTE2_inst (
       .O(locRefClk),         // 1-bit output: Refer to Transceiver User Guide
-//      .ODIV2(ODIV2), // 1-bit output: Refer to Transceiver User Guide
+      .ODIV2(refClkD2), // 1-bit output: Refer to Transceiver User Guide
       .CEB(1'h0),     // 1-bit input: Refer to Transceiver User Guide
       .I(locRefClkP),         // 1-bit input: Refer to Transceiver User Guide
       .IB(locRefClkM)        // 1-bit input: Refer to Transceiver User Guide
