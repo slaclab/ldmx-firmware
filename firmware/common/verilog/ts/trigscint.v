@@ -1,8 +1,7 @@
 module trigscint(input clk125,
-                 input [1:0] rx_clk,
-		 input [(2*2-1):0]  rx_k,
-		 input [(2*2-1):0]  rx_err, 
-		 input [(2*16-1):0] rx_d,
+		  input [1:0]       rx_n, rx_p,
+	     output [1:0]      tx_n, tx_p,
+	     input 	       refclk_p, refclk_n,
 		 input 		    reset,
 		 input 		    axi_clk,
 		 input 		    axi_wstr,
@@ -28,16 +27,37 @@ module trigscint(input clk125,
    assign DefaultCtlReg[3]=32'h0;
 
    wire        start_spy;
+   wire        reset_soft, reset_rx, cpll_reset;
+   
+   assign reset_soft=Control[1][3];
+   assign reset_rx=Control[1][2];
+   assign cpll_reset=Control[1][1];   
+   assign start_spy=Control[1][4];
+   wire [1:0]  polarity;
 
-   assign start_spy=Control[1][4];   
+   assign polarity=Control[0][9:8];
+   wire [11:0] link_status;
+   
+
+   wire [1:0]  rx_clk;   
+   wire [(2*2-1):0] rx_k;
+   wire [1:0] rx_err;
+   wire [(2*16-1):0] rx_d;
+   
+
+   tslink theLinks(.clk_125(clk125),.reset_soft(reset_soft),
+		   .rx_n(rx_n),.rx_p(rx_p),.tx_n(tx_n),.tx_p(tx_p),.refclk_p(refclk_p),.refclk_n(refclk_n),
+		   .rx_d(rx_d),.rx_k(rx_k),.rx_err(rx_err),.rx_clk(rx_clk),		   
+		   .reset_rx(reset_rx),.cpll_reset(cpll_reset),.polarity(polarity),
+		   .reset_done(link_status[7:0]),.cpll_status(link_status[11:8])
+);
+   
    
    wire [19:0] read_spy0;
-   wire [19:0] read_spy1;
+   wire [19:0] read_spy1;     
    
-   
-   
-   ts_spy ts_spy0(.rx_clk(rx_clk[0]),.rx_k(rx_k[1:0]),.rx_err(rx_err[1:0]),.rx_d(rx_d[15:0]),.addr(axi_raddr[5:0]),.start(start_spy),.io_clk(axi_clk),.data(read_spy0));
-   ts_spy ts_spy1(.rx_clk(rx_clk[1]),.rx_k(rx_k[3:2]),.rx_err(rx_err[3:2]),.rx_d(rx_d[31:16]),.addr(axi_raddr[5:0]),.start(start_spy),.io_clk(axi_clk),.data(read_spy1));
+   ts_spy ts_spy0(.rx_clk(rx_clk[0]),.rx_k(rx_k[1:0]),.rx_err({rx_err[0],1'h0}),.rx_d(rx_d[15:0]),.addr(axi_raddr[5:0]),.start(start_spy),.io_clk(axi_clk),.data(read_spy0));
+   ts_spy ts_spy1(.rx_clk(rx_clk[1]),.rx_k(rx_k[3:2]),.rx_err({rx_err[1],1'h0}),.rx_d(rx_d[31:16]),.addr(axi_raddr[5:0]),.start(start_spy),.io_clk(axi_clk),.data(read_spy1));
 
    reg 	       reset_io;
    always @(posedge axi_clk) reset_io<=reset;
@@ -58,17 +78,19 @@ module trigscint(input clk125,
    always @(posedge axi_clk)
      if (!axi_rstr) axi_dout<=32'h0;
      else if (axi_raddr[7:3]==5'h0) axi_dout<=Control[axi_raddr[1:0]];
-     else if (axi_raddr[7:3]==5'h1) axi_dout<=Status[axi_raddr[1:0]];
+     else if (axi_raddr[7:5]==3'h1) axi_dout<=Status[axi_raddr[2:0]];
      else if (axi_raddr[7:6]==2'h1) axi_dout<=read_spy0;
      else if (axi_raddr[7:6]==2'h2) axi_dout<=read_spy1;
      else axi_dout<=32'h0;
    
-   assign Status[0]=32'hbeef0001;
-   assign Status[1]=32'h00000002;
-
+   assign Status[0]=32'hbeef0003;
+   assign Status[1]=link_status;
+   
    clkRateTool clkrec0(.reset_in(reset),.clk125(clk125),.clktest(rx_clk[0]),.value(Status[2]));
    clkRateTool clkrec1(.reset_in(reset),.clk125(clk125),.clktest(rx_clk[1]),.value(Status[3]));
    
+   simpleCounter raterr0(.reset_in(reset),.clk(rx_clk[0]),.ce(rx_err[0]),.value(Status[4]));
+   simpleCounter raterr1(.reset_in(reset),.clk(rx_clk[1]),.ce(rx_err[1]),.value(Status[5]));
   
    
    reg [2:0] wack_delay;

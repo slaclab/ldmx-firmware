@@ -23,7 +23,7 @@ entity ExampleDpm is
    generic (
       TPD_G              : time                        := 1 ns;
       BUILD_INFO_G       : BuildInfoType               := BUILD_INFO_DEFAULT_SLV_C;
-      HS_LINK_COUNT_G    : natural range 1 to 12       := 4);
+      HS_LINK_COUNT_G    : natural range 1 to 12       := 2);
    port (
 
       -- Debug
