@@ -60,6 +60,13 @@ module tslink(
 
    always @(posedge clk_125)
      polarity_r<=polarity;
+
+   wire 	    tx_clk0;
+   
+   reg [7:0] 	    txc;
+
+   always @(posedge tx_clk0)
+     txc<=txc+8'h1;
    
    
    gtx_ts theGTXs(
@@ -76,7 +83,7 @@ module tslink(
 		  .gt1_data_valid_in(1'h1),
  
 //    output   gt0_txusrclk_out,
-//    output   gt0_txusrclk2_out,
+    .gt0_txusrclk2_out(tx_clk0),
 //    output   gt0_rxusrclk_out,
     .gt0_rxusrclk2_out(rx_clk[0]),
  
@@ -99,7 +106,7 @@ module tslink(
     .gt0_eyescanreset_in(1'h0),
     .gt0_rxuserrdy_in(1'h1),
     .gt0_eyescantrigger_in(1'h0),
-    .gt0_rxdata_out(rx_d[15:0]),
+    .gt0_rxdata_out(rx_d_i[15:0]),
     .gt0_rxdisperr_out(rx_disp_i[1:0]),
     .gt0_rxnotintable_out(rx_notint_i[1:0]),
     .gt0_gtxrxp_in(rx_p[0]),
@@ -110,11 +117,12 @@ module tslink(
     .gt0_gtrxreset_in(reset_rx),
     .gt0_rxpmareset_in(1'h0),
     .gt0_rxpolarity_in(polarity_r[0]),
-    .gt0_rxcharisk_out(rx_k[1:0]),
+    .gt0_rxcharisk_out(rx_k_i[1:0]),
     .gt0_rxresetdone_out(reset_done[4]),
     .gt0_gttxreset_in(1'h0),
     .gt0_txuserrdy_in(1'h1),
-    .gt0_txdata_in(20'b11111000001111100000),
+    .gt0_txdata_in({txc,8'hbc}),
+		  .gt0_txcharisk_in(2'b01),
     .gt0_gtxtxn_out(tx_n[0]),
     .gt0_gtxtxp_out(tx_p[0]),
 //    .gt0_txoutclkfabric_out,
@@ -135,7 +143,7 @@ module tslink(
    .gt1_eyescanreset_in(1'h0),
    .gt1_rxuserrdy_in(1'h0),
    .gt1_eyescantrigger_in(1'h0),
-   .gt1_rxdata_out(rx_d[31:16]),
+   .gt1_rxdata_out(rx_d_i[31:16]),
    .gt1_rxdisperr_out(rx_disp_i[3:2]),
    .gt1_rxnotintable_out(rx_notint_i[3:2]),
    .gt1_gtxrxp_in(rx_p[1]),
@@ -145,11 +153,12 @@ module tslink(
    .gt1_gtrxreset_in(reset_rx),
    .gt1_rxpmareset_in(1'h0),
    .gt1_rxpolarity_in(polarity_r[1]),
-   .gt1_rxcharisk_out(rx_k[3:2]),
+   .gt1_rxcharisk_out(rx_k_i[3:2]),
    .gt1_rxresetdone_out(reset_done[6]),
    .gt1_gttxreset_in(1'h0),
    .gt1_txuserrdy_in(1'h1),
-   .gt1_txdata_in(20'b11111000001111100000),
+		  .gt1_txdata_in({8'h5c,8'hbc}),
+		  .gt1_txcharisk_in(2'b01),
    .gt1_gtxtxn_out(tx_n[1]),
    .gt1_gtxtxp_out(tx_p[1]),
    .gt1_txresetdone_out(reset_done[7]),

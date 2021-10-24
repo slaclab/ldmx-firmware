@@ -143,13 +143,15 @@ input           gt1_data_valid_in,
     input           gt0_gttxreset_in,
     input           gt0_txuserrdy_in,
     //---------------- Transmit Ports - TX Data Path interface -----------------
-    input   [19:0]  gt0_txdata_in,
+    input   [15:0]  gt0_txdata_in,
     //-------------- Transmit Ports - TX Driver and OOB signaling --------------
     output          gt0_gtxtxn_out,
     output          gt0_gtxtxp_out,
     //--------- Transmit Ports - TX Fabric Clock Output Control Ports ----------
     output          gt0_txoutclkfabric_out,
     output          gt0_txoutclkpcs_out,
+    //------------------- Transmit Ports - TX Gearbox Ports --------------------
+    input   [1:0]   gt0_txcharisk_in,
     //----------- Transmit Ports - TX Initialization and Reset Ports -----------
     output          gt0_txresetdone_out,
     //--------------- Transmit Ports - TX Polarity Control Ports ---------------
@@ -204,13 +206,15 @@ input           gt1_data_valid_in,
     input           gt1_gttxreset_in,
     input           gt1_txuserrdy_in,
     //---------------- Transmit Ports - TX Data Path interface -----------------
-    input   [19:0]  gt1_txdata_in,
+    input   [15:0]  gt1_txdata_in,
     //-------------- Transmit Ports - TX Driver and OOB signaling --------------
     output          gt1_gtxtxn_out,
     output          gt1_gtxtxp_out,
     //--------- Transmit Ports - TX Fabric Clock Output Control Ports ----------
     output          gt1_txoutclkfabric_out,
     output          gt1_txoutclkpcs_out,
+    //------------------- Transmit Ports - TX Gearbox Ports --------------------
+    input   [1:0]   gt1_txcharisk_in,
     //----------- Transmit Ports - TX Initialization and Reset Ports -----------
     output          gt1_txresetdone_out,
     //--------------- Transmit Ports - TX Polarity Control Ports ---------------
@@ -302,13 +306,15 @@ input           gt1_data_valid_in,
         .gt0_gttxreset_in               (gt0_gttxreset_in), // input wire gt0_gttxreset_in
         .gt0_txuserrdy_in               (gt0_txuserrdy_in), // input wire gt0_txuserrdy_in
     //---------------- Transmit Ports - TX Data Path interface -----------------
-        .gt0_txdata_in                  (gt0_txdata_in), // input wire [19:0] gt0_txdata_in
+        .gt0_txdata_in                  (gt0_txdata_in), // input wire [15:0] gt0_txdata_in
     //-------------- Transmit Ports - TX Driver and OOB signaling --------------
         .gt0_gtxtxn_out                 (gt0_gtxtxn_out), // output wire gt0_gtxtxn_out
         .gt0_gtxtxp_out                 (gt0_gtxtxp_out), // output wire gt0_gtxtxp_out
     //--------- Transmit Ports - TX Fabric Clock Output Control Ports ----------
         .gt0_txoutclkfabric_out         (gt0_txoutclkfabric_out), // output wire gt0_txoutclkfabric_out
         .gt0_txoutclkpcs_out            (gt0_txoutclkpcs_out), // output wire gt0_txoutclkpcs_out
+    //------------------- Transmit Ports - TX Gearbox Ports --------------------
+        .gt0_txcharisk_in               (gt0_txcharisk_in), // input wire [1:0] gt0_txcharisk_in
     //----------- Transmit Ports - TX Initialization and Reset Ports -----------
         .gt0_txresetdone_out            (gt0_txresetdone_out), // output wire gt0_txresetdone_out
     //--------------- Transmit Ports - TX Polarity Control Ports ---------------
@@ -363,13 +369,15 @@ input           gt1_data_valid_in,
         .gt1_gttxreset_in               (gt1_gttxreset_in), // input wire gt1_gttxreset_in
         .gt1_txuserrdy_in               (gt1_txuserrdy_in), // input wire gt1_txuserrdy_in
     //---------------- Transmit Ports - TX Data Path interface -----------------
-        .gt1_txdata_in                  (gt1_txdata_in), // input wire [19:0] gt1_txdata_in
+        .gt1_txdata_in                  (gt1_txdata_in), // input wire [15:0] gt1_txdata_in
     //-------------- Transmit Ports - TX Driver and OOB signaling --------------
         .gt1_gtxtxn_out                 (gt1_gtxtxn_out), // output wire gt1_gtxtxn_out
         .gt1_gtxtxp_out                 (gt1_gtxtxp_out), // output wire gt1_gtxtxp_out
     //--------- Transmit Ports - TX Fabric Clock Output Control Ports ----------
         .gt1_txoutclkfabric_out         (gt1_txoutclkfabric_out), // output wire gt1_txoutclkfabric_out
         .gt1_txoutclkpcs_out            (gt1_txoutclkpcs_out), // output wire gt1_txoutclkpcs_out
+    //------------------- Transmit Ports - TX Gearbox Ports --------------------
+        .gt1_txcharisk_in               (gt1_txcharisk_in), // input wire [1:0] gt1_txcharisk_in
     //----------- Transmit Ports - TX Initialization and Reset Ports -----------
         .gt1_txresetdone_out            (gt1_txresetdone_out), // output wire gt1_txresetdone_out
     //--------------- Transmit Ports - TX Polarity Control Ports ---------------
