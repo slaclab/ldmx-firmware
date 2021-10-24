@@ -73,12 +73,14 @@ module gtx_ts_GT_USRCLK_SOURCE
     input           GT0_TXOUTCLK_IN,
     output          GT0_RXUSRCLK_OUT,
     output          GT0_RXUSRCLK2_OUT,
+    input           GT0_RXOUTCLK_IN,
  
     output          GT1_TXUSRCLK_OUT,
     output          GT1_TXUSRCLK2_OUT,
     input           GT1_TXOUTCLK_IN,
     output          GT1_RXUSRCLK_OUT,
     output          GT1_RXUSRCLK2_OUT,
+    input           GT1_RXOUTCLK_IN,
     input  wire  Q2_CLK0_GTREFCLK_PAD_N_IN,
     input  wire  Q2_CLK0_GTREFCLK_PAD_P_IN,
     output wire  Q2_CLK0_GTREFCLK_OUT
@@ -95,11 +97,14 @@ module gtx_ts_GT_USRCLK_SOURCE
     wire            tied_to_vcc_i;
  
     wire            gt0_txoutclk_i; 
+    wire            gt0_rxoutclk_i;
  
     wire            gt1_txoutclk_i; 
+    wire            gt1_rxoutclk_i;
     wire  q2_clk0_gtrefclk /*synthesis syn_noclockbuf=1*/;
 
     wire            gt0_txusrclk_i;
+    wire            gt0_rxusrclk_i;
 
 
 //*********************************** Beginning of Code *******************************
@@ -108,7 +113,9 @@ module gtx_ts_GT_USRCLK_SOURCE
     assign tied_to_ground_i             = 1'b0;
     assign tied_to_vcc_i                = 1'b1;
     assign gt0_txoutclk_i = GT0_TXOUTCLK_IN;
+    assign gt0_rxoutclk_i = GT0_RXOUTCLK_IN;
     assign gt1_txoutclk_i = GT1_TXOUTCLK_IN;
+    assign gt1_rxoutclk_i = GT1_RXOUTCLK_IN;
      
     assign Q2_CLK0_GTREFCLK_OUT = q2_clk0_gtrefclk;
 
@@ -134,16 +141,23 @@ module gtx_ts_GT_USRCLK_SOURCE
     );
 
 
+    BUFG rxoutclk_bufg1_i
+    (
+        .I                              (gt0_rxoutclk_i),
+        .O                              (gt0_rxusrclk_i)
+    );
+
+
 
  
 assign GT0_TXUSRCLK_OUT = gt0_txusrclk_i;
 assign GT0_TXUSRCLK2_OUT = gt0_txusrclk_i;
-assign GT0_RXUSRCLK_OUT = gt0_txusrclk_i;
-assign GT0_RXUSRCLK2_OUT = gt0_txusrclk_i;
+assign GT0_RXUSRCLK_OUT = gt0_rxusrclk_i;
+assign GT0_RXUSRCLK2_OUT = gt0_rxusrclk_i;
  
 assign GT1_TXUSRCLK_OUT = gt0_txusrclk_i;
 assign GT1_TXUSRCLK2_OUT = gt0_txusrclk_i;
-assign GT1_RXUSRCLK_OUT = gt0_txusrclk_i;
-assign GT1_RXUSRCLK2_OUT = gt0_txusrclk_i;
+assign GT1_RXUSRCLK_OUT = gt0_rxusrclk_i;
+assign GT1_RXUSRCLK2_OUT = gt0_rxusrclk_i;
 
 endmodule

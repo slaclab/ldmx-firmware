@@ -34,8 +34,12 @@ module trigscint(input clk125,
    assign cpll_reset=Control[1][1];   
    assign start_spy=Control[1][4];
    wire [1:0]  polarity;
+   wire [2:0]  loopback;
+   
 
    assign polarity=Control[0][9:8];
+   assign loopback=Control[0][14:12];
+   
    wire [11:0] link_status;
    
 
@@ -48,7 +52,7 @@ module trigscint(input clk125,
    tslink theLinks(.clk_125(clk125),.reset_soft(reset_soft),
 		   .rx_n(rx_n),.rx_p(rx_p),.tx_n(tx_n),.tx_p(tx_p),.refclk_p(refclk_p),.refclk_n(refclk_n),
 		   .rx_d(rx_d),.rx_k(rx_k),.rx_err(rx_err),.rx_clk(rx_clk),		   
-		   .reset_rx(reset_rx),.cpll_reset(cpll_reset),.polarity(polarity),
+		   .reset_rx(reset_rx),.cpll_reset(cpll_reset),.polarity(polarity),.loopback(loopback),
 		   .reset_done(link_status[7:0]),.cpll_status(link_status[11:8])
 );
    

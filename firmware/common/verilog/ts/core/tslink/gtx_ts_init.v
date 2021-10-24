@@ -110,6 +110,8 @@ input           gt1_data_valid_in,
     input           gt0_drpwe_in,
     //------------------------- Digital Monitor Ports --------------------------
     output  [7:0]   gt0_dmonitorout_out,
+    //----------------------------- Loopback Ports -----------------------------
+    input   [2:0]   gt0_loopback_in,
     //------------------- RX Initialization and Reset Ports --------------------
     input           gt0_eyescanreset_in,
     input           gt0_rxuserrdy_in,
@@ -133,6 +135,7 @@ input           gt1_data_valid_in,
     output  [6:0]   gt0_rxmonitorout_out,
     input   [1:0]   gt0_rxmonitorsel_in,
     //------------- Receive Ports - RX Fabric Output Control Ports -------------
+    output          gt0_rxoutclk_out,
     output          gt0_rxoutclkfabric_out,
     //----------- Receive Ports - RX Initialization and Reset Ports ------------
     input           gt0_gtrxreset_in,
@@ -185,6 +188,8 @@ input           gt1_data_valid_in,
     input           gt1_drpwe_in,
     //------------------------- Digital Monitor Ports --------------------------
     output  [7:0]   gt1_dmonitorout_out,
+    //----------------------------- Loopback Ports -----------------------------
+    input   [2:0]   gt1_loopback_in,
     //------------------- RX Initialization and Reset Ports --------------------
     input           gt1_eyescanreset_in,
     input           gt1_rxuserrdy_in,
@@ -208,6 +213,7 @@ input           gt1_data_valid_in,
     output  [6:0]   gt1_rxmonitorout_out,
     input   [1:0]   gt1_rxmonitorsel_in,
     //------------- Receive Ports - RX Fabric Output Control Ports -------------
+    output          gt1_rxoutclk_out,
     output          gt1_rxoutclkfabric_out,
     //----------- Receive Ports - RX Initialization and Reset Ports ------------
     input           gt1_gtrxreset_in,
@@ -393,6 +399,8 @@ assign  tied_to_vcc_i                        =  1'b1;
         .gt0_drpwe_in                   (gt0_drpwe_in), // input wire gt0_drpwe_in
         //------------------------- Digital Monitor Ports --------------------------
         .gt0_dmonitorout_out            (gt0_dmonitorout_out), // output wire [7:0] gt0_dmonitorout_out
+        //----------------------------- Loopback Ports -----------------------------
+        .gt0_loopback_in                (gt0_loopback_in), // input wire [2:0] gt0_loopback_in
         //------------------- RX Initialization and Reset Ports --------------------
         .gt0_eyescanreset_in            (gt0_eyescanreset_in), // input wire gt0_eyescanreset_in
         .gt0_rxuserrdy_in               (gt0_rxuserrdy_i), // input wire gt0_rxuserrdy_i
@@ -477,6 +485,8 @@ assign  tied_to_vcc_i                        =  1'b1;
         .gt1_drpwe_in                   (gt1_drpwe_in), // input wire gt1_drpwe_in
         //------------------------- Digital Monitor Ports --------------------------
         .gt1_dmonitorout_out            (gt1_dmonitorout_out), // output wire [7:0] gt1_dmonitorout_out
+        //----------------------------- Loopback Ports -----------------------------
+        .gt1_loopback_in                (gt1_loopback_in), // input wire [2:0] gt1_loopback_in
         //------------------- RX Initialization and Reset Ports --------------------
         .gt1_eyescanreset_in            (gt1_eyescanreset_in), // input wire gt1_eyescanreset_in
         .gt1_rxuserrdy_in               (gt1_rxuserrdy_i), // input wire gt1_rxuserrdy_i
@@ -553,10 +563,12 @@ assign  tied_to_vcc_i                        =  1'b1;
 assign  gt0_cplllock_out                     =  gt0_cplllock_i;
 assign  gt0_txresetdone_out                  =  gt0_txresetdone_i;
 assign  gt0_rxresetdone_out                  =  gt0_rxresetdone_i;
+assign  gt0_rxoutclk_out                     =  gt0_rxoutclk_i;
 assign  gt0_txoutclk_out                     =  gt0_txoutclk_i;
 assign  gt1_cplllock_out                     =  gt1_cplllock_i;
 assign  gt1_txresetdone_out                  =  gt1_txresetdone_i;
 assign  gt1_rxresetdone_out                  =  gt1_rxresetdone_i;
+assign  gt1_rxoutclk_out                     =  gt1_rxoutclk_i;
 assign  gt1_txoutclk_out                     =  gt1_txoutclk_i;
 
 generate
@@ -692,7 +704,7 @@ gt0_rxresetfsm_i
         .RECCLK_STABLE                  (gt0_recclk_stable_i),
         .RECCLK_MONITOR_RESTART         (tied_to_ground_i),
         .DATA_VALID                     (gt0_data_valid_in),
-        .TXUSERRDY                      (gt0_txuserrdy_i),
+        .TXUSERRDY                      (tied_to_vcc_i),
         .GTRXRESET                      (gt0_gtrxreset_t),
         .MMCM_RESET                     (),
         .QPLL_RESET                     (),
@@ -736,7 +748,7 @@ gt1_rxresetfsm_i
         .RECCLK_STABLE                  (gt1_recclk_stable_i),
         .RECCLK_MONITOR_RESTART         (tied_to_ground_i),
         .DATA_VALID                     (gt1_data_valid_in),
-        .TXUSERRDY                      (gt1_txuserrdy_i),
+        .TXUSERRDY                      (tied_to_vcc_i),
         .GTRXRESET                      (gt1_gtrxreset_t),
         .MMCM_RESET                     (),
         .QPLL_RESET                     (),

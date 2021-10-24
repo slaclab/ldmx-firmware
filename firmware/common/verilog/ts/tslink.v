@@ -25,16 +25,17 @@ module tslink(
 	     output [1:0]      tx_n, tx_p,
 	     input 	       refclk_p, refclk_n,
 	      
-	     output reg [31:0]     rx_d,
-	     output reg [3:0]      rx_k,
-	     output reg [1:0]      rx_err,
+	     output reg [31:0] rx_d,
+	     output reg [3:0]  rx_k,
+	     output reg [1:0]  rx_err,
 	     output [1:0]      rx_clk,
 
-	      output [7:0] reset_done,
-	      input [1:0] polarity,
-	      input reset_rx,
-	      output [3:0] cpll_status,
-	      input cpll_reset
+	     output [7:0]      reset_done,
+	     input [1:0]       polarity,
+	      input [2:0] loopback,
+	     input 	       reset_rx,
+	     output [3:0]      cpll_status,
+	     input 	       cpll_reset
     );
 
 
@@ -57,9 +58,14 @@ module tslink(
       
    
    reg [1:0] 	    polarity_r;
+   reg [2:0] 	    loopback_r;
+   
 
-   always @(posedge clk_125)
-     polarity_r<=polarity;
+   always @(posedge clk_125) begin
+      polarity_r<=polarity;
+      loopback_r<=loopback;
+   end
+      
 
    wire 	    tx_clk0;
    
@@ -92,6 +98,9 @@ module tslink(
 //    output   gt1_rxusrclk_out,
     .gt1_rxusrclk2_out(rx_clk[1]),
 
+		  .gt0_loopback_in(loopback_r),
+		  .gt1_loopback_in(loopback_r),
+		  
     //_________________________________________________________________________
     //GT0  (X1Y4)
     //____________________________CHANNEL PORTS________________________________

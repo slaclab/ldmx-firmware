@@ -99,6 +99,8 @@
     input           gt0_drpwe_in,
     //------------------------- Digital Monitor Ports --------------------------
     output  [7:0]   gt0_dmonitorout_out,
+    //----------------------------- Loopback Ports -----------------------------
+    input   [2:0]   gt0_loopback_in,
     //------------------- RX Initialization and Reset Ports --------------------
     input           gt0_eyescanreset_in,
     input           gt0_rxuserrdy_in,
@@ -181,6 +183,8 @@
     input           gt1_drpwe_in,
     //------------------------- Digital Monitor Ports --------------------------
     output  [7:0]   gt1_dmonitorout_out,
+    //----------------------------- Loopback Ports -----------------------------
+    input   [2:0]   gt1_loopback_in,
     //------------------- RX Initialization and Reset Ports --------------------
     input           gt1_eyescanreset_in,
     input           gt1_rxuserrdy_in,
@@ -342,6 +346,8 @@ gt0_gtx_ts_i
         .qpllrefclk_in                  (gt0_qpllrefclk_i),
         //------------------------- Digital Monitor Ports --------------------------
         .dmonitorout_out                (gt0_dmonitorout_out),
+        //----------------------------- Loopback Ports -----------------------------
+        .loopback_in                    (gt0_loopback_in),
         //------------------- RX Initialization and Reset Ports --------------------
         .eyescanreset_in                (gt0_eyescanreset_in),
         .rxuserrdy_in                   (gt0_rxuserrdy_in),
@@ -443,6 +449,8 @@ gt1_gtx_ts_i
         .qpllrefclk_in                  (gt1_qpllrefclk_i),
         //------------------------- Digital Monitor Ports --------------------------
         .dmonitorout_out                (gt1_dmonitorout_out),
+        //----------------------------- Loopback Ports -----------------------------
+        .loopback_in                    (gt1_loopback_in),
         //------------------- RX Initialization and Reset Ports --------------------
         .eyescanreset_in                (gt1_eyescanreset_in),
         .rxuserrdy_in                   (gt1_rxuserrdy_in),

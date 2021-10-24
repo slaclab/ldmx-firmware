@@ -111,6 +111,8 @@ input           gt1_data_valid_in,
     input           gt0_drpwe_in,
     //------------------------- Digital Monitor Ports --------------------------
     output  [7:0]   gt0_dmonitorout_out,
+    //----------------------------- Loopback Ports -----------------------------
+    input   [2:0]   gt0_loopback_in,
     //------------------- RX Initialization and Reset Ports --------------------
     input           gt0_eyescanreset_in,
     input           gt0_rxuserrdy_in,
@@ -174,6 +176,8 @@ input           gt1_data_valid_in,
     input           gt1_drpwe_in,
     //------------------------- Digital Monitor Ports --------------------------
     output  [7:0]   gt1_dmonitorout_out,
+    //----------------------------- Loopback Ports -----------------------------
+    input   [2:0]   gt1_loopback_in,
     //------------------- RX Initialization and Reset Ports --------------------
     input           gt1_eyescanreset_in,
     input           gt1_rxuserrdy_in,
@@ -249,6 +253,8 @@ input           gt1_data_valid_in,
     wire            gt0_drpwe_i;
     //------------------------- Digital Monitor Ports --------------------------
     wire    [7:0]   gt0_dmonitorout_i;
+    //----------------------------- Loopback Ports -----------------------------
+    wire    [2:0]   gt0_loopback_i;
     //------------------- RX Initialization and Reset Ports --------------------
     wire            gt0_eyescanreset_i;
     wire            gt0_rxuserrdy_i;
@@ -316,6 +322,8 @@ input           gt1_data_valid_in,
     wire            gt1_drpwe_i;
     //------------------------- Digital Monitor Ports --------------------------
     wire    [7:0]   gt1_dmonitorout_i;
+    //----------------------------- Loopback Ports -----------------------------
+    wire    [2:0]   gt1_loopback_i;
     //------------------- RX Initialization and Reset Ports --------------------
     wire            gt1_eyescanreset_i;
     wire            gt1_rxuserrdy_i;
@@ -441,6 +449,7 @@ input           gt1_data_valid_in,
     .GT0_TXOUTCLK_IN     (gt0_txoutclk_i),
     .GT0_RXUSRCLK_OUT    (gt0_rxusrclk_i),
     .GT0_RXUSRCLK2_OUT   (gt0_rxusrclk2_i),
+    .GT0_RXOUTCLK_IN     (gt0_rxoutclk_i),
  
  
     .GT1_TXUSRCLK_OUT    (gt1_txusrclk_i),
@@ -448,6 +457,7 @@ input           gt1_data_valid_in,
     .GT1_TXOUTCLK_IN     (gt1_txoutclk_i),
     .GT1_RXUSRCLK_OUT    (gt1_rxusrclk_i),
     .GT1_RXUSRCLK2_OUT   (gt1_rxusrclk2_i),
+    .GT1_RXOUTCLK_IN     (gt1_rxoutclk_i),
  
     .Q2_CLK0_GTREFCLK_PAD_N_IN  (q2_clk0_gtrefclk_pad_n_in),
     .Q2_CLK0_GTREFCLK_PAD_P_IN  (q2_clk0_gtrefclk_pad_p_in),
@@ -521,6 +531,8 @@ assign  sysclk_in_i = sysclk_in;
         .gt0_drpwe_in                   (gt0_drpwe_in), // input wire gt0_drpwe_in
         //------------------------- Digital Monitor Ports --------------------------
         .gt0_dmonitorout_out            (gt0_dmonitorout_out), // output wire [7:0] gt0_dmonitorout_out
+        //----------------------------- Loopback Ports -----------------------------
+        .gt0_loopback_in                (gt0_loopback_in), // input wire [2:0] gt0_loopback_in
         //------------------- RX Initialization and Reset Ports --------------------
         .gt0_eyescanreset_in            (gt0_eyescanreset_in), // input wire gt0_eyescanreset_in
         .gt0_rxuserrdy_in               (gt0_rxuserrdy_in), // input wire gt0_rxuserrdy_in
@@ -544,6 +556,7 @@ assign  sysclk_in_i = sysclk_in;
         .gt0_rxmonitorout_out           (gt0_rxmonitorout_out), // output wire [6:0] gt0_rxmonitorout_out
         .gt0_rxmonitorsel_in            (gt0_rxmonitorsel_in), // input wire [1:0] gt0_rxmonitorsel_in
         //------------- Receive Ports - RX Fabric Output Control Ports -------------
+        .gt0_rxoutclk_out               (gt0_rxoutclk_i), // output wire gt0_rxoutclk_i
         .gt0_rxoutclkfabric_out         (gt0_rxoutclkfabric_out), // output wire gt0_rxoutclkfabric_out
         //----------- Receive Ports - RX Initialization and Reset Ports ------------
         .gt0_gtrxreset_in               (gt0_gtrxreset_in), // input wire gt0_gtrxreset_in
@@ -600,6 +613,8 @@ assign  sysclk_in_i = sysclk_in;
         .gt1_drpwe_in                   (gt1_drpwe_in), // input wire gt1_drpwe_in
         //------------------------- Digital Monitor Ports --------------------------
         .gt1_dmonitorout_out            (gt1_dmonitorout_out), // output wire [7:0] gt1_dmonitorout_out
+        //----------------------------- Loopback Ports -----------------------------
+        .gt1_loopback_in                (gt1_loopback_in), // input wire [2:0] gt1_loopback_in
         //------------------- RX Initialization and Reset Ports --------------------
         .gt1_eyescanreset_in            (gt1_eyescanreset_in), // input wire gt1_eyescanreset_in
         .gt1_rxuserrdy_in               (gt1_rxuserrdy_in), // input wire gt1_rxuserrdy_in
@@ -623,6 +638,7 @@ assign  sysclk_in_i = sysclk_in;
         .gt1_rxmonitorout_out           (gt1_rxmonitorout_out), // output wire [6:0] gt1_rxmonitorout_out
         .gt1_rxmonitorsel_in            (gt1_rxmonitorsel_in), // input wire [1:0] gt1_rxmonitorsel_in
         //------------- Receive Ports - RX Fabric Output Control Ports -------------
+        .gt1_rxoutclk_out               (gt1_rxoutclk_i), // output wire gt1_rxoutclk_i
         .gt1_rxoutclkfabric_out         (gt1_rxoutclkfabric_out), // output wire gt1_rxoutclkfabric_out
         //----------- Receive Ports - RX Initialization and Reset Ports ------------
         .gt1_gtrxreset_in               (gt1_gtrxreset_in), // input wire gt1_gtrxreset_in
