@@ -472,7 +472,7 @@ wire            rxstartofseq_float_i;
             .CPLL_LOCK_CFG                          (16'h01E8),
             .CPLL_REFCLK_DIV                        (1),
             .RXOUT_DIV                              (1),
-            .TXOUT_DIV                              (2),
+            .TXOUT_DIV                              (4),
             .SATA_CPLL_CFG                          ("VCO_3000MHZ"),
 
            //------------RX Initialization and Reset Attributes-------------
@@ -524,7 +524,7 @@ wire            rxstartofseq_float_i;
         .CPLLLOCKEN                     (tied_to_vcc_i),
         .CPLLPD                         (cpllpd_in),
         .CPLLREFCLKLOST                 (cpllrefclklost_out),
-        .CPLLREFCLKSEL                  (cpllrefclksel_in),
+        .CPLLREFCLKSEL                  (3'd5),
         .CPLLRESET                      (cpllreset_in),
         .GTRSVD                         (16'b0000000000000000),
         .PCSRSVDIN                      (16'b0000000000000000),
@@ -539,9 +539,11 @@ wire            rxstartofseq_float_i;
         .GTGREFCLK                      (tied_to_ground_i),
         .GTNORTHREFCLK0                 (tied_to_ground_i),
         .GTNORTHREFCLK1                 (tied_to_ground_i),
-        .GTREFCLK0                      (gtrefclk0_in),
+//        .GTREFCLK0                      (gtrefclk0_in),
+        .GTREFCLK0                      (tied_to_ground_i),
         .GTREFCLK1                      (gtrefclk1_in),
-        .GTSOUTHREFCLK0                 (tied_to_ground_i),
+        .GTSOUTHREFCLK0                      (gtrefclk0_in),
+//         .GTSOUTHREFCLK0                 (tied_to_ground_i),
         .GTSOUTHREFCLK1                 (tied_to_ground_i),
         //-------------------------- Channel - DRP Ports  --------------------------
         .DRPADDR                        (drpaddr_in),

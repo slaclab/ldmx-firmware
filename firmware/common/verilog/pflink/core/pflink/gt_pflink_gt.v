@@ -455,8 +455,8 @@ wire            rxstartofseq_float_i;
             .CPLL_INIT_CFG                          (24'h00001E),
             .CPLL_LOCK_CFG                          (16'h01E8),
             .CPLL_REFCLK_DIV                        (2),
-            .RXOUT_DIV                              (2),
-            .TXOUT_DIV                              (2),
+            .RXOUT_DIV                              (4),
+            .TXOUT_DIV                              (4),
             .SATA_CPLL_CFG                          ("VCO_3000MHZ"),
 
            //------------RX Initialization and Reset Attributes-------------

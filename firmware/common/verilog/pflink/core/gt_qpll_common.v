@@ -146,7 +146,7 @@ wire    [63:0]  tied_to_vcc_vec_i;
             .QPLL_INIT_CFG                          (24'h000006),
             .QPLL_LOCK_CFG                          (16'h21E8),
             .QPLL_LPF                               (4'b1111),
-            .QPLL_REFCLK_DIV                        (4)
+            .QPLL_REFCLK_DIV                        (2)
 
     )
     gtxe2_common_i

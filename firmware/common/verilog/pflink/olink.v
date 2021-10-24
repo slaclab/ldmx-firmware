@@ -302,7 +302,7 @@ clk_gtx_wrapper clkout(.clk_125(clk_125),.soft_reset(gtx_ctl_pulse[6]),.pll_lock
 	 
    assign Status[0]={16'h0010,16'h0003};   
    assign Status[1]={tsrx_status,3'h0,clk_link_lock,was_other_comma,was_comma,rx_v,was_ok, gtx_status};
-   assign Status[2]={qpll_reset,qpll_refclk_lost,qpll_lock};
+   assign Status[2]={qpll_reset,qpll_refclklost,qpll_lock};
 
    clkRateTool testA(.reset_in(reset),.clk125(clk_125),.clktest(clk_link),.value(Status[3][23:0])); assign Status[3][31:24]=8'h0;
    clkRateTool testK(.reset_in(reset),.clk125(clk_125),.clktest(was_comma),.value(Status[4][23:0])); assign Status[4][31:24]=8'h0;
