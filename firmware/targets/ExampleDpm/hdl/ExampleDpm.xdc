@@ -1,6 +1,6 @@
 
 # DTM Clock
-create_clock -name dtmClk -period 8.0 [get_ports dtmRefClkP]
+#create_clock -name dtmClk -period 8.0 [get_ports dtmRefClkP]
 
 #create_generated_clock -name distClk \
 #    [get_pins {GenDistClkPll.ClockManager7_1/PllGen.U_Pll/CLKOUT0}]
@@ -21,7 +21,6 @@ create_clock -name dtmDistClk -period 5.37 [get_ports dtmClkP[0]]
 
 set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks fclk0] \
-    -group [get_clocks -include_generated_clocks dtmClk] \
     -group [get_clocks -include_generated_clocks locRefClk] \
     -group [get_clocks -include_generated_clocks ethRefClkP] \
     -group [get_clocks -include_generated_clocks dtmRefClk] \
