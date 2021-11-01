@@ -78,7 +78,17 @@ module gt_pfclktx_GT #
     parameter   PCS_RSVD_ATTR_IN         =   48'h000000000000
 )
 (
+     input cpllpd_in,
      input [2:0]  cpllrefclksel_in,
+    //------------------------------- CPLL Ports -------------------------------
+    output          cpllfbclklost_out,
+    output          cplllock_out,
+    input           cplllockdetclk_in,
+    output          cpllrefclklost_out,
+    input           cpllreset_in,
+    //------------------------ Channel - Clocking Ports ------------------------
+    input           gtrefclk0_in,
+    input           gtrefclk1_in,
     //-------------------------- Channel - DRP Ports  --------------------------
     input   [8:0]   drpaddr_in,
     input           drpclk_in,
@@ -98,8 +108,6 @@ module gt_pfclktx_GT #
     output          eyescandataerror_out,
     input           eyescantrigger_in,
     //------------------- Receive Ports - RX Equalizer Ports -------------------
-    input           rxdfeagchold_in,
-    input           rxdfelfhold_in,
     output  [6:0]   rxmonitorout_out,
     input   [1:0]   rxmonitorsel_in,
     //----------- Receive Ports - RX Initialization and Reset Ports ------------
@@ -205,13 +213,13 @@ wire            rxstartofseq_float_i;
             .RX_SIG_VALID_DLY                       (10),
 
            //----------------RX 8B/10B Decoder Attributes---------------
-            .RX_DISPERR_SEQ_MATCH                   ("FALSE"),
+            .RX_DISPERR_SEQ_MATCH                   ("TRUE"),
             .DEC_MCOMMA_DETECT                      ("TRUE"),
             .DEC_PCOMMA_DETECT                      ("TRUE"),
             .DEC_VALID_COMMA_ONLY                   ("FALSE"),
 
            //----------------------RX Clock Correction Attributes----------------------
-            .CBCC_DATA_SOURCE_SEL                   ("ENCODED"),
+            .CBCC_DATA_SOURCE_SEL                   ("DECODED"),
             .CLK_COR_SEQ_2_USE                      ("FALSE"),
             .CLK_COR_KEEP_IDLE                      ("FALSE"),
             .CLK_COR_MAX_LAT                        (9),
@@ -273,7 +281,7 @@ wire            rxstartofseq_float_i;
             .PMA_RSV4                               (32'h00000000),
             .RX_BIAS_CFG                            (12'b000000000100),
             .DMONITOR_CFG                           (24'h000A00),
-            .RX_CM_SEL                              (2'b11),
+            .RX_CM_SEL                              (2'b01),
             .RX_CM_TRIM                             (3'b010),
             .RX_DEBUG_CFG                           (12'b000000000000),
             .RX_OS_CFG                              (13'b0000010000000),
@@ -331,7 +339,7 @@ wire            rxstartofseq_float_i;
            //For SATA Gen2 GTP- set RXCDR_CFG=83'h0_0000_47FE_2060_2448_1010
 
            //For SATA Gen1 GTP- set RXCDR_CFG=83'h0_0000_47FE_1060_2448_1010
-            .RXCDR_CFG                              (72'h03000023ff40200020),
+            .RXCDR_CFG                              (72'h03000023ff10400020),
             .RXCDR_FR_RESET_ON_EIDLE                (1'b0),
             .RXCDR_HOLD_DURING_EIDLE                (1'b0),
             .RXCDR_PH_RESET_ON_EIDLE                (1'b0),
@@ -421,12 +429,12 @@ wire            rxstartofseq_float_i;
 
            //--------------------------CPLL Attributes----------------------------
             .CPLL_CFG                               (24'hBC07DC),
-            .CPLL_FBDIV                             (5),
+            .CPLL_FBDIV                             (2),
             .CPLL_FBDIV_45                          (5),
             .CPLL_INIT_CFG                          (24'h00001E),
             .CPLL_LOCK_CFG                          (16'h01E8),
-            .CPLL_REFCLK_DIV                        (2),
-            .RXOUT_DIV                              (2),
+            .CPLL_REFCLK_DIV                        (1),
+            .RXOUT_DIV                              (1),
             .TXOUT_DIV                              (2),
             .SATA_CPLL_CFG                          ("VCO_3000MHZ"),
 
@@ -442,7 +450,7 @@ wire            rxstartofseq_float_i;
             .RX_DFE_H4_CFG                          (11'b00011110000),
             .RX_DFE_H5_CFG                          (11'b00011100000),
             .RX_DFE_KL_CFG                          (13'b0000011111110),
-            .RX_DFE_LPM_CFG                         (16'h0954),
+            .RX_DFE_LPM_CFG                         (16'h0904),
             .RX_DFE_LPM_HOLD_DURING_EIDLE           (1'b0),
             .RX_DFE_UT_CFG                          (17'b10001111000000000),
             .RX_DFE_VP_CFG                          (17'b00011111100000011),
@@ -473,14 +481,14 @@ wire            rxstartofseq_float_i;
         (
         
         //------------------------------- CPLL Ports -------------------------------
-        .CPLLFBCLKLOST                  (),
-        .CPLLLOCK                       (),
-        .CPLLLOCKDETCLK                 (tied_to_ground_i),
+        .CPLLFBCLKLOST                  (cpllfbclklost_out),
+        .CPLLLOCK                       (cplllock_out),
+        .CPLLLOCKDETCLK                 (cplllockdetclk_in),
         .CPLLLOCKEN                     (tied_to_vcc_i),
-        .CPLLPD                         (tied_to_vcc_i),
-        .CPLLREFCLKLOST                 (),
+        .CPLLPD                         (cpllpd_in),
+        .CPLLREFCLKLOST                 (cpllrefclklost_out),
         .CPLLREFCLKSEL                  (cpllrefclksel_in),
-        .CPLLRESET                      (tied_to_ground_i),
+        .CPLLRESET                      (cpllreset_in),
         .GTRSVD                         (16'b0000000000000000),
         .PCSRSVDIN                      (16'b0000000000000000),
         .PCSRSVDIN2                     (5'b00000),
@@ -494,8 +502,8 @@ wire            rxstartofseq_float_i;
         .GTGREFCLK                      (tied_to_ground_i),
         .GTNORTHREFCLK0                 (tied_to_ground_i),
         .GTNORTHREFCLK1                 (tied_to_ground_i),
-        .GTREFCLK0                      (tied_to_ground_i),
-        .GTREFCLK1                      (tied_to_ground_i),
+        .GTREFCLK0                      (gtrefclk0_in),
+        .GTREFCLK1                      (gtrefclk1_in),
         .GTSOUTHREFCLK0                 (tied_to_ground_i),
         .GTSOUTHREFCLK1                 (tied_to_ground_i),
         //-------------------------- Channel - DRP Ports  --------------------------
@@ -511,7 +519,7 @@ wire            rxstartofseq_float_i;
         .QPLLCLK                        (qpllclk_in),
         .QPLLREFCLK                     (qpllrefclk_in),
         .RXSYSCLKSEL                    (2'b00),
-        .TXSYSCLKSEL                    (2'b11),
+        .TXSYSCLKSEL                    (2'b00),
         //------------------------- Digital Monitor Ports --------------------------
         .DMONITOROUT                    (dmonitorout_out),
         //--------------- FPGA TX Interface Datapath Configuration  ----------------
@@ -606,11 +614,11 @@ wire            rxstartofseq_float_i;
         .RXLPMHFOVRDEN                  (tied_to_ground_i),
         .RXLPMLFHOLD                    (tied_to_ground_i),
         //------------------- Receive Ports - RX Equalizer Ports -------------------
-        .RXDFEAGCHOLD                   (rxdfeagchold_in),
+        .RXDFEAGCHOLD                   (tied_to_ground_i),
         .RXDFEAGCOVRDEN                 (tied_to_ground_i),
         .RXDFECM1EN                     (tied_to_ground_i),
-        .RXDFELFHOLD                    (rxdfelfhold_in),
-        .RXDFELFOVRDEN                  (tied_to_vcc_i),
+        .RXDFELFHOLD                    (tied_to_ground_i),
+        .RXDFELFOVRDEN                  (tied_to_ground_i),
         .RXDFELPMRESET                  (tied_to_ground_i),
         .RXDFETAP2HOLD                  (tied_to_ground_i),
         .RXDFETAP2OVRDEN                (tied_to_ground_i),
@@ -650,7 +658,7 @@ wire            rxstartofseq_float_i;
         .RXPCSRESET                     (tied_to_ground_i),
         .RXPMARESET                     (tied_to_ground_i),
         //---------------- Receive Ports - RX Margin Analysis ports ----------------
-        .RXLPMEN                        (tied_to_ground_i),
+        .RXLPMEN                        (tied_to_vcc_i),
         //----------------- Receive Ports - RX OOB Signaling ports -----------------
         .RXCOMSASDET                    (),
         .RXCOMWAKEDET                   (),
