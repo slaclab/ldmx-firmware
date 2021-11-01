@@ -29,13 +29,13 @@ module olink(
 	     input 	       reset,
 	     input [1:0]       rx_n, rx_p,
 	     output [1:0]      tx_n, tx_p,
-//	     input [1:0]       refclk,
+	     input 	       refclk,
 
-         input qpll_lock,
-         input qpll_clkout, 
-         input qpll_refclkout, 
-         input qpll_refclklost,
-         output qpll_reset,
+             input 	       qpll_lock,
+             input 	       qpll_clkout, 
+             input 	       qpll_refclkout, 
+             input 	       qpll_refclklost,
+             output 	       qpll_reset,
 	 
 	     input [15:0]      tx_d,
 	     input [1:0]       tx_k,
@@ -70,13 +70,15 @@ module olink(
    assign counter_reset_io=Command[1][2];
    
 	
-   wire [7:0] 			  gtx_status;
+   wire [9:0] 			  gtx_status;
 
    wire [7:0] 			  gtx_ctl_pulse;
    assign gtx_ctl_pulse=Command[1][15:8];
    
    wire [3:0] 			  gtx_ctl_level;
    assign gtx_ctl_level=Command[0][3:0];
+
+   assign qpll_reset=gtx_ctl_pulse[7];
    
    
    reg 				  counter_reset_link;
@@ -97,7 +99,8 @@ module olink(
    
    assign is_ok = rx_nintable_i==2'b00 && gtx_status[4]==1'b1;
 	
-   assign gtx_status[0]=qpll_lock;
+   assign gtx_status[8]=qpll_refclklost;
+   assign gtx_status[9]=qpll_lock;
 
    reg 				  phase_by_two;	
    
@@ -171,25 +174,24 @@ gt_pflink_init pflink(.sysclk_in(clk_125),
 		      .soft_reset_tx_in(gtx_ctl_pulse[1]),
 		      .soft_reset_rx_in(gtx_ctl_pulse[2]),
 		      .dont_reset_on_data_error_in(1'h1),
-		      .gt0_tx_fsm_reset_done_out(gtx_status[1]),
-		      .gt0_rx_fsm_reset_done_out(gtx_status[2]),
+		      .gt0_tx_fsm_reset_done_out(gtx_status[2]),
+		      .gt0_rx_fsm_reset_done_out(gtx_status[3]),
 		      .gt0_data_valid_in(1'h1),
 		      .gt0_tx_mmcm_lock_in(clk_link_lock),
 		      .gt0_tx_mmcm_reset_out(clk_tx_mmcm_reset),
 		      .gt0_rx_mmcm_lock_in(clk_link_lock),
 //output          gt0_rx_mmcm_reset_out,
 
-//    output          gt0_cpllfbclklost_out,
-//    .gt0_cplllock_out(gtx_status[0]),
-//    input           gt0_cplllockdetclk_in,
-//    .gt0_cpllreset_in(gtx_ctl_pulse[0]),
+		      .gt0_cpllfbclklost_out(gtx_status[1]),
+		      .gt0_cplllock_out(gtx_status[0]),
+		      .gt0_cplllockdetclk_in(clk_125),
+                      .gt0_cpllreset_in(gtx_ctl_pulse[0]),
     //------------------------ Channel - Clocking Ports ------------------------
-//    .gt0_gtrefclk0_in(refclk[0]),         .qpll_lock(qpll_lock), .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout), .qpll_refclklost(qpll_refclklost),
-
+		      .gt0_gtrefclk0_in(refclk),
 //    .gt0_gtrefclk1_in(refclk[1]),
-    .gt0_qplllock_in(qpll_lock),
-    .gt0_qpllrefclklost_in(qpll_refclklost),
-    .gt0_qpllreset_out(qpll_reset),
+//   .gt0_qplllock_in(qpll_lock),
+//    .gt0_qpllrefclklost_in(qpll_refclklost),
+//    .gt0_qpllreset_out(qpll_reset),
     .gt0_qplloutclk_in(qpll_clkout),
     .gt0_qplloutrefclk_in(qpll_refclkout),
     //-------------------------- Channel - DRP Ports  --------------------------
@@ -225,7 +227,7 @@ gt_pflink_init pflink(.sysclk_in(clk_125),
     .gt0_rxmonitorsel_in(2'h0),
     //------------- Receive Ports - RX Fabric Output Control Ports -------------
     .gt0_gtrxreset_in(gtx_ctl_pulse[4]),
-    .gt0_rxpmareset_in(gtx_ctl_pulse[5]),
+    .gt0_rxpmareset_in(1'h0),
     .gt0_rxresetdone_out(gtx_status[4]),
     //------------------- TX Initialization and Reset Ports --------------------
     .gt0_gttxreset_in(gtx_ctl_pulse[3]),
@@ -241,16 +243,18 @@ gt_pflink_init pflink(.sysclk_in(clk_125),
     .gt0_gtxtxp_out(tx_p[0]),
     //--------- Transmit Ports - TX Fabric Clock Output Control Ports ----------
     .gt0_txoutclk_out(tx_out_clk),
-    .gt0_txresetdone_out(gtx_status[3]),
+//    .gt0_txresetdone_out(gtx_status[3]),
     //--------------- Transmit Ports - TX Polarity Control Ports ---------------
     .gt0_txpolarity_in(gtx_ctl_level[1]),
     .gt0_rxpolarity_in(gtx_ctl_level[2])
+		      
 	     );
 	 
-clk_gtx_wrapper clkout(.clk_125(clk_125),.soft_reset(gtx_ctl_pulse[6]),.pll_lock_in(clk_link_lock),
-               .qpll_lock(qpll_lock), .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout), .qpll_refclklost(qpll_refclklost),
+clk_gtx_wrapper clkout(.clk_125(clk_125),.soft_reset(gtx_ctl_pulse[5]),.pll_lock_in(clk_link_lock),
+               .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout),
+//		       .qpll_lock(qpll_lock), .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout), .qpll_refclklost(qpll_refclklost),
 
-		       .clk_link(clk_link),//.cpll_reset_in(gtx_ctl_pulse[7]),.refclk(refclk[0]),
+		       .clk_link(clk_link),.cpll_reset_in(gtx_ctl_pulse[6]),.refclk(refclk), .cpll_lock(gtx_status[6]),
 		       .reset_done_out(gtx_status[5]),.tx_p(tx_p[1]),.tx_n(tx_n[1]));
 
    assign DefaultCommand[0]=32'h0;
@@ -282,8 +286,8 @@ clk_gtx_wrapper clkout(.clk_125(clk_125),.soft_reset(gtx_ctl_pulse[6]),.pll_lock
 	 else if (axi_raddr[7:6]==2'h3) axi_dout<=spy_tx_buffer_r;
 	 else axi_dout<=32'h0;
 	 
-   assign Status[0]={16'h0010,16'h0002};   
-   assign Status[1]={clk_link_lock,was_other_comma,was_comma,rx_v,was_ok, gtx_status};
+   assign Status[0]={16'h0010,16'h0004};   
+   assign Status[1]={was_other_comma,was_comma,rx_v,was_ok, 1'h0,clk_link_lock, gtx_status};
 
    clkRateTool testA(.reset_in(reset),.clk125(clk_125),.clktest(clk_link),.value(Status[2][23:0])); assign Status[2][31:24]=8'h0;
    assign Status[3]=32'h0;
