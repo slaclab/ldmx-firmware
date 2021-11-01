@@ -69,10 +69,10 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    input  wire          dmaIbSlave_tReady;
 
    // High Speed Interface
-   output wire [3:0]    dpmToRtmHsP;
-   output wire [3:0]    dpmToRtmHsM;
-   input  wire [3:0]    rtmToDpmHsP;
-   input  wire [3:0]    rtmToDpmHsM;
+   output wire [1:0]    dpmToRtmHsP;
+   output wire [1:0]    dpmToRtmHsM;
+   input  wire [1:0]    rtmToDpmHsP;
+   input  wire [1:0]    rtmToDpmHsM;
 
    // COB Timing Interface
    input  wire          distDivClk;
@@ -114,20 +114,20 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
   wire fc_wstr, fc_wack, fc_rstr, fc_rack;
   wire [31:0] fc_dout;
 
-  wire [1:0] gt_wstr, gt_wack, gt_rstr, gt_rack;
-  wire [(32*2-1):0] gt_dout;
-  wire [1:0] wb_wstr, wb_wack, wb_rstr, wb_rack;
-  wire [(32*2-1):0] wb_dout;
+  wire gt_wstr, gt_wack, gt_rstr, gt_rack;
+  wire [(32-1):0] gt_dout;
+  wire wb_wstr, wb_wack, wb_rstr, wb_rack;
+  wire [(32-1):0] wb_dout;
 
   wire clk_link;
   wire clk_bx;
-  wire [1:0] clk_tx_raw;
+  wire clk_tx_raw;
   wire [15:0] fc_stream;
-  wire [1:0] mmcm_reset;
+  wire mmcm_reset;
   wire olink_clk_locked;
 
-  clk_man_olink clk_man_opti(.reset((|mmcm_reset)),
-			   .clk_tx(clk_tx_raw[0]),
+  clk_man_olink clk_man_opti(.reset((mmcm_reset)),
+			   .clk_tx(clk_tx_raw),
 			   .clk_bx(clk_bx),
 			   .clk_olink(clk_link),
 			   .locked(olink_clk_locked)
@@ -163,80 +163,72 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    );
 
     wire qpll_lock, qpll_clkout, qpll_refclkout, qpll_refclklost;
-    wire [1:0] qpll_reset;
+    wire  qpll_reset;
 
    gt_pfclktx_common qpll
 (
-    .QPLLREFCLKSEL_IN(3'b001),
-    .GTREFCLK0_IN(locRefClk),
-    .GTREFCLK1_IN(1'h0),
-    .QPLLLOCK_OUT(qpll_lock),
-    .QPLLLOCKDETCLK_IN(sysClk125),
-    .QPLLOUTCLK_OUT(qpll_clkout),
-    .QPLLOUTREFCLK_OUT(qpll_refclkout),
-    .QPLLREFCLKLOST_OUT(qpll_refclklost),
-    .QPLLRESET_IN(sysClk125Rst|qpll_reset[0]|qpll_reset[1])
-);
+ .QPLLREFCLKSEL_IN(3'b001),
+ .GTREFCLK0_IN(locRefClk),
+ .GTREFCLK1_IN(1'h0),
+ .QPLLLOCK_OUT(qpll_lock),
+ .QPLLLOCKDETCLK_IN(sysClk125),
+ .QPLLOUTCLK_OUT(qpll_clkout),
+ .QPLLOUTREFCLK_OUT(qpll_refclkout),
+ .QPLLREFCLKLOST_OUT(qpll_refclklost),
+ .QPLLRESET_IN(sysClk125Rst|qpll_reset)
+ );
 
 
-   genvar i0;
-   generate
-      for ( i0 = 0 ; i0 < 2 ; i0 = i0 + 1 )
-      begin: bkplane_l
+   wire [15:0] data_to_link;
+   wire [1:0]  k_to_link;
+   wire        link_valid;
+   wire [31:0] data_from_link;
+   wire [3:0]  k_from_link;
 
-        wire [15:0] data_to_link;
-        wire [1:0] k_to_link;
-        wire link_valid;
-        wire [31:0] data_from_link;
-        wire [3:0] k_from_link;
+   wb_bridge_axi wb_bridge(
+			   .clk_link(clk_link),
+			   .reset(axilRst),
+			   .data_to_link(data_to_link),
+			   .k_to_link(k_to_link),
+			   .data_from_link(data_from_link),
+			   .k_from_link(k_from_link),
+			   .link_valid(link_valid),
+			   .fast_control_encoded(fc_stream),
+			   .axi_clk(axilClk),
+			   .axi_wstr(wb_wstr),.axi_rstr(wb_rstr),
+			   .axi_wack(wb_wack),.axi_rack(wb_rack),
+			   .axi_raddr(axilReadMaster_araddr_r[7:0]),
+			   .axi_waddr(axilWriteMaster_awaddr_r[7:0]),
+			   .axi_din(axilWriteMaster_wdata),
+			   .axi_dout(wb_dout[31:0])
+			   );
 
-        wb_bridge_axi wb_bridge(
-        .clk_link(clk_link),
-        .reset(axilRst),
-        .data_to_link(data_to_link),
-        .k_to_link(k_to_link),
-        .data_from_link(data_from_link),
-        .k_from_link(k_from_link),
-        .link_valid(link_valid),
-        .fast_control_encoded(fc_stream),
-        .axi_clk(axilClk),
-        .axi_wstr(wb_wstr[i0]),.axi_rstr(wb_rstr[i0]),
-        .axi_wack(wb_wack[i0]),.axi_rack(wb_rack[i0]),
-        .axi_raddr(axilReadMaster_araddr_r[7:0]),
-        .axi_waddr(axilWriteMaster_awaddr_r[7:0]),
-        .axi_din(axilWriteMaster_wdata),
-        .axi_dout(wb_dout[(31+i0*32):(i0*32)])
-        );
-
-        olink daqGTX(.clk_125(sysClk125),
-	     .reset(sysClk125Rst),
-         .clk_tx_raw(clk_tx_raw[i0]),
-         .clk_tx_mmcm_reset(mmcm_reset[i0]),
-         .clk_link_lock(olink_clk_locked),
-         .clk_link(clk_link),
-         .qpll_lock(qpll_lock), .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout), .qpll_refclklost(qpll_refclklost),
-         .qpll_reset(qpll_reset[i0]),
-         .rx_n(rtmToDpmHsM[(i0*2+1):(i0*2)]),
-         .rx_p(rtmToDpmHsP[(i0*2+1):(i0*2)]),
-         .tx_n(dpmToRtmHsM[(i0*2+1):(i0*2)]),
-         .tx_p(dpmToRtmHsP[(i0*2+1):(i0*2)]),
+   olink daqGTX(.clk_125(sysClk125),
+		.reset(sysClk125Rst),
+		.clk_tx_raw(clk_tx_raw),
+		.clk_tx_mmcm_reset(mmcm_reset),
+		.clk_link_lock(olink_clk_locked),
+		.clk_link(clk_link),
+		.qpll_lock(qpll_lock), .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout), .qpll_refclklost(qpll_refclklost),
+		.qpll_reset(qpll_reset),
+		.rx_n(rtmToDpmHsM[1:0]),
+		.rx_p(rtmToDpmHsP[1:0]),
+		.tx_n(dpmToRtmHsM[1:0]),
+		.tx_p(dpmToRtmHsP[1:0]),
 //	     .refclk({locRefClk,1'h0}),
-         .tx_d(data_to_link),
-         .tx_k(k_to_link),
-         .rx_d(data_from_link),
-         .rx_k(k_from_link),
-         .rx_v(link_valid),
-        .axi_clk(axilClk),
-        .axi_wstr(gt_wstr[i0]),.axi_rstr(gt_rstr[i0]),
-        .axi_wack(gt_wack[i0]),.axi_rack(gt_rack[i0]),
-        .axi_raddr(axilReadMaster_araddr_r[7:0]),
-        .axi_waddr(axilWriteMaster_awaddr_r[7:0]),
-        .axi_din(axilWriteMaster_wdata),
-        .axi_dout(gt_dout[(31+i0*32):(i0*32)])
-         );
-      end
-   endgenerate
-
+		.tx_d(data_to_link),
+		.tx_k(k_to_link),
+		.rx_d(data_from_link),
+		.rx_k(k_from_link),
+		.rx_v(link_valid),
+		.axi_clk(axilClk),
+		.axi_wstr(gt_wstr),.axi_rstr(gt_rstr),
+		.axi_wack(gt_wack),.axi_rack(gt_rack),
+		.axi_raddr(axilReadMaster_araddr_r[7:0]),
+		.axi_waddr(axilWriteMaster_awaddr_r[7:0]),
+		.axi_din(axilWriteMaster_wdata),
+		.axi_dout(gt_dout[31:0])
+		);
 
   axi_merge_ldmx_jm core_if_jm(.axilClk(axilClk),
    .axilRst(axilRst),
