@@ -125,6 +125,8 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
   wire [15:0] fc_stream;
   wire mmcm_reset;
   wire olink_clk_locked;
+   wire clk_refd2;
+   
 
   clk_man_olink clk_man_opti(.reset((mmcm_reset)),
 			   .clk_tx(clk_tx_raw),
@@ -135,6 +137,8 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 
   fast_control fc_block(
     .clk_bx(clk_bx),
+			.clk125(sysClk125),
+			.clk_refd2(clk_refd2),
     .fc_stream_enc(fc_stream),
     .reset(axilRst),
     .axi_clk(axilClk),
@@ -156,7 +160,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 
    IBUFDS_GTE2_inst (
       .O(locRefClk),         // 1-bit output: Refer to Transceiver User Guide
-//      .ODIV2(ODIV2), // 1-bit output: Refer to Transceiver User Guide
+      .ODIV2(clk_refd2), // 1-bit output: Refer to Transceiver User Guide
       .CEB(1'h0),     // 1-bit input: Refer to Transceiver User Guide
       .I(locRefClkP),         // 1-bit input: Refer to Transceiver User Guide
       .IB(locRefClkM)        // 1-bit input: Refer to Transceiver User Guide
@@ -215,7 +219,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 		.rx_p(rtmToDpmHsP[1:0]),
 		.tx_n(dpmToRtmHsM[1:0]),
 		.tx_p(dpmToRtmHsP[1:0]),
-//	     .refclk({locRefClk,1'h0}),
+  	        .refclk({locRefClk,1'h0}),
 		.tx_d(data_to_link),
 		.tx_k(k_to_link),
 		.rx_d(data_from_link),
