@@ -114,6 +114,9 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
   wire fc_wstr, fc_wack, fc_rstr, fc_rack;
   wire [31:0] fc_dout;
 
+   wire       daq_wstr, daq_wack, daq_rstr, daq_rack;
+   wire [31:0] daq_dout;
+
   wire gt_wstr, gt_wack, gt_rstr, gt_rack;
   wire [(32-1):0] gt_dout;
   wire wb_wstr, wb_wack, wb_rstr, wb_rack;
@@ -136,19 +139,19 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 			   );
 
   fast_control fc_block(
-    .clk_bx(clk_bx),
+			.clk_bx(clk_bx),
 			.clk125(sysClk125),
 			.clk_refd2(locRefClk_fab),
-    .fc_stream_enc(fc_stream),
-    .reset(axilRst),
-    .axi_clk(axilClk),
-    .axi_wstr(fc_wstr),.axi_rstr(fc_rstr),
-    .axi_wack(fc_wack),.axi_rack(fc_rack),
-    .axi_raddr(axilReadMaster_araddr_r[7:0]),
-    .axi_waddr(axilWriteMaster_awaddr_r[7:0]),
-    .axi_din(axilWriteMaster_wdata),
-    .axi_dout(fc_dout)
-    );
+			.fc_stream_enc(fc_stream),
+			.reset(axilRst),
+			.axi_clk(axilClk),
+			.axi_wstr(fc_wstr),.axi_rstr(fc_rstr),
+			.axi_wack(fc_wack),.axi_rack(fc_rack),
+			.axi_raddr(axilReadMaster_araddr_r[7:0]),
+			.axi_waddr(axilWriteMaster_awaddr_r[7:0]),
+			.axi_din(axilWriteMaster_wdata),
+			.axi_dout(fc_dout)
+			);
 
 
   wire locRefClk;
@@ -237,6 +240,21 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 		.axi_dout(gt_dout[31:0])
 		);
 
+ldmx_daq theDAQ(.clk_link(clk_link),
+		.link_data(data_from_link),
+		.link_is_k(k_from_link),
+		.link_valid(link_valid),
+		.reset(sysClk125Rst),
+		.axi_clk(axilClk),
+		.axi_wstr(daq_wstr),.axi_rstr(daq_rstr),
+		.axi_wack(daq_wack),.axi_rack(daq_rack),
+		.axi_raddr(axilReadMaster_araddr_r[11:0]),
+		.axi_waddr(axilWriteMaster_awaddr_r[11:0]),
+		.axi_din(axilWriteMaster_wdata),
+		.axi_dout(daq_dout[31:0])
+		);
+		
+   
   axi_merge_ldmx_jm core_if_jm(.axilClk(axilClk),
    .axilRst(axilRst),
    .raddr(axilReadMaster_araddr_r),
@@ -254,6 +272,9 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    .fc_wstr(fc_wstr), .fc_rstr(fc_rstr),
    .fc_wack(fc_wack), .fc_rack(fc_rack),
    .fc_din(fc_dout),
+   .daq_wstr(daq_wstr), .daq_rstr(daq_rstr),
+   .daq_wack(daq_wack), .daq_rack(daq_rack),
+   .daq_din(daq_dout),
    .gt_wstr(gt_wstr), .gt_rstr(gt_rstr),
    .gt_wack(gt_wack), .gt_rack(gt_rack),
    .gt_din(gt_dout),
