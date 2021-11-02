@@ -165,13 +165,10 @@ module ldmx_daq(
    reg [31:0] data_out;
    wire       write;
       
-   reg 	       reset_io;
-   always @(posedge axi_clk) reset_io<=reset;
-
    genvar z; 
    generate for (z=0; z<NUM_CMD_WORDS; z=z+1) begin: gen_write
       always @(posedge axi_clk) begin
-	 if (reset_io == 1) Command[z] <= DefaultCommand[z];
+	 if (reset_io == 1) Command[z] <= 32'h0;
 	 else if ((write == 1) && (axi_waddr == z)) Command[z] <= axi_din;
 	 else begin
 	    if (z==1) Command[z]<=32'h0;
@@ -195,7 +192,7 @@ module ldmx_daq(
    assign Status[1]={5'h0,read_buffer_lengths,3'h0,nevents,2'h0,full,empty};
    assign Status[2]={7'h0,r_buf_id,7'h0,w_buf_id};
 
-   assign peek_lengths=(IPbus_addr[11:10]==2'b01);    
+   assign peek_lengths=(axi_raddr[11:10]==2'b01);    
 
    reg [2:0]  wack_delay;
    always @(posedge axi_clk)
