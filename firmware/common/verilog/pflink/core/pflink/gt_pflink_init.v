@@ -449,8 +449,8 @@ gt0_txresetfsm_i
         .TXUSERRDY                      (gt0_txuserrdy_t),
         .RUN_PHALIGNMENT                (gt0_run_tx_phalignment_i),
         .RESET_PHALIGNMENT              (gt0_rst_tx_phalignment_i),
-//        .PHALIGNMENT_DONE               (gt0_tx_phalignment_done_i),
-        .PHALIGNMENT_DONE               (tied_to_vcc_i),
+        .PHALIGNMENT_DONE               (gt0_tx_phalignment_done_i),
+//        .PHALIGNMENT_DONE               (tied_to_vcc_i),
         .RETRY_COUNTER                  ()
            );
 

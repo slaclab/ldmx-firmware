@@ -127,7 +127,7 @@ wire clk_in2_clk_man_olink;
     .COMPENSATION         ("ZHOLD"),
     .STARTUP_WAIT         ("FALSE"),
     .DIVCLK_DIVIDE        (1),
-    .CLKFBOUT_MULT_F      (6.000),
+    .CLKFBOUT_MULT_F      (3.750),
     .CLKFBOUT_PHASE       (0.000),
     .CLKFBOUT_USE_FINE_PS ("FALSE"),
     .CLKOUT0_DIVIDE_F     (24.000),
@@ -138,7 +138,7 @@ wire clk_in2_clk_man_olink;
     .CLKOUT1_PHASE        (0.000),
     .CLKOUT1_DUTY_CYCLE   (0.500),
     .CLKOUT1_USE_FINE_PS  ("FALSE"),
-    .CLKIN1_PERIOD        (6.400))
+    .CLKIN1_PERIOD        (4.000))
   mmcm_adv_inst
     // Output clocks
    (
