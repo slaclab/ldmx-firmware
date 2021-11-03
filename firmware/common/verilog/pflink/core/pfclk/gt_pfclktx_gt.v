@@ -429,12 +429,12 @@ wire            rxstartofseq_float_i;
 
            //--------------------------CPLL Attributes----------------------------
             .CPLL_CFG                               (24'hBC07DC),
-            .CPLL_FBDIV                             (2),
+            .CPLL_FBDIV                             (5),
             .CPLL_FBDIV_45                          (5),
             .CPLL_INIT_CFG                          (24'h00001E),
             .CPLL_LOCK_CFG                          (16'h01E8),
-            .CPLL_REFCLK_DIV                        (1),
-            .RXOUT_DIV                              (1),
+            .CPLL_REFCLK_DIV                        (2),
+            .RXOUT_DIV                              (2),
             .TXOUT_DIV                              (2),
             .SATA_CPLL_CFG                          ("VCO_3000MHZ"),
 
