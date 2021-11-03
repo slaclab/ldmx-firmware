@@ -22,9 +22,8 @@ module daq_buffer(
 			    .READ_WIDTH(1),     // Valid values are 1-72 (37-72 only valid when BRAM_SIZE="36Kb")
 			    .DO_REG(1),         // Optional output register (0 or 1)
 			    .INIT_FILE ("NONE"),
-			    .SIM_COLLISION_CHECK ("ALL"), // Collision check enable "ALL", "WARNING_ONLY",
-                            //   "GENERATE_X_ONLY" or "NONE" 
-			    ) BRAM_SDP_MACRO_inst (
+			    .SIM_COLLISION_CHECK ("ALL") // Collision check enable "ALL", "WARNING_ONLY",
+                            ) BRAM_SDP_MACRO_inst (
 						   .DO(doutb[ibit]),         // Output read data port, width defined by READ_WIDTH parameter
 						   .DI(dina[ibit]),         // Input write data port, width defined by WRITE_WIDTH parameter
 						   .RDADDR(addrb), // Input read address, width defined by read port depth
