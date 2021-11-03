@@ -21,7 +21,7 @@ module daq_buffer(
 	     if (wea) bufb[addra]<=dina[ibit];
 
 	   always @(posedge clkb)
-	     doutb<=bufb[addrb];
+	     doutb[addrb]<=bufb[addrb];
 	   	   
 	end
    endgenerate
