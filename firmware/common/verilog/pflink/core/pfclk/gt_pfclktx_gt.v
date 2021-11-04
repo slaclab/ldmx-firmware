@@ -118,16 +118,6 @@ module gt_pfclktx_GT #
     //---------------- Transmit Ports - FPGA TX Interface Ports ----------------
     input           txusrclk_in,
     input           txusrclk2_in,
-    //---------------- Transmit Ports - TX Buffer Bypass Ports -----------------
-    input           txdlyen_in,
-    input           txdlysreset_in,
-    output          txdlysresetdone_out,
-    input           txphalign_in,
-    output          txphaligndone_out,
-    input           txphalignen_in,
-    input           txphdlyreset_in,
-    input           txphinit_in,
-    output          txphinitdone_out,
     //---------------- Transmit Ports - TX Data Path interface -----------------
     input   [19:0]  txdata_in,
     //-------------- Transmit Ports - TX Driver and OOB signaling --------------
@@ -339,7 +329,7 @@ wire            rxstartofseq_float_i;
            //For SATA Gen2 GTP- set RXCDR_CFG=83'h0_0000_47FE_2060_2448_1010
 
            //For SATA Gen1 GTP- set RXCDR_CFG=83'h0_0000_47FE_1060_2448_1010
-            .RXCDR_CFG                              (72'h03000023ff10400020),
+            .RXCDR_CFG                              (72'h03000023ff10200020),
             .RXCDR_FR_RESET_ON_EIDLE                (1'b0),
             .RXCDR_HOLD_DURING_EIDLE                (1'b0),
             .RXCDR_PH_RESET_ON_EIDLE                (1'b0),
@@ -384,7 +374,7 @@ wire            rxstartofseq_float_i;
             .TRANS_TIME_RATE                        (8'h0E),
 
            //------------TX Buffer Attributes----------------
-            .TXBUF_EN                               ("FALSE"),
+            .TXBUF_EN                               ("TRUE"),
             .TXBUF_RESET_ON_RATE_CHANGE             ("TRUE"),
             .TXDLY_CFG                              (16'h001F),
             .TXDLY_LCFG                             (9'h030),
@@ -392,7 +382,7 @@ wire            rxstartofseq_float_i;
             .TXPH_CFG                               (16'h0780),
             .TXPHDLY_CFG                            (24'h084020),
             .TXPH_MONITOR_SEL                       (5'b00000),
-            .TX_XCLK_SEL                            ("TXUSR"),
+            .TX_XCLK_SEL                            ("TXOUT"),
 
            //-----------------------FPGA TX Interface Attributes-------------------------
             .TX_DATA_WIDTH                          (20),
@@ -714,20 +704,20 @@ wire            rxstartofseq_float_i;
         //---------------- Transmit Ports - Pattern Generator Ports ----------------
         .TXPRBSFORCEERR                 (tied_to_ground_i),
         //---------------- Transmit Ports - TX Buffer Bypass Ports -----------------
-        .TXDLYBYPASS                    (tied_to_ground_i),
-        .TXDLYEN                        (txdlyen_in),
+        .TXDLYBYPASS                    (tied_to_vcc_i),
+        .TXDLYEN                        (tied_to_ground_i),
         .TXDLYHOLD                      (tied_to_ground_i),
         .TXDLYOVRDEN                    (tied_to_ground_i),
-        .TXDLYSRESET                    (txdlysreset_in),
-        .TXDLYSRESETDONE                (txdlysresetdone_out),
+        .TXDLYSRESET                    (tied_to_ground_i),
+        .TXDLYSRESETDONE                (),
         .TXDLYUPDOWN                    (tied_to_ground_i),
-        .TXPHALIGN                      (txphalign_in),
-        .TXPHALIGNDONE                  (txphaligndone_out),
-        .TXPHALIGNEN                    (txphalignen_in),
+        .TXPHALIGN                      (tied_to_ground_i),
+        .TXPHALIGNDONE                  (),
+        .TXPHALIGNEN                    (tied_to_ground_i),
         .TXPHDLYPD                      (tied_to_ground_i),
-        .TXPHDLYRESET                   (txphdlyreset_in),
-        .TXPHINIT                       (txphinit_in),
-        .TXPHINITDONE                   (txphinitdone_out),
+        .TXPHDLYRESET                   (tied_to_ground_i),
+        .TXPHINIT                       (tied_to_ground_i),
+        .TXPHINITDONE                   (),
         .TXPHOVRDEN                     (tied_to_ground_i),
         //-------------------- Transmit Ports - TX Buffer Ports --------------------
         .TXBUFSTATUS                    (),
@@ -748,7 +738,7 @@ wire            rxstartofseq_float_i;
         .TXOUTCLK                       (txoutclk_out),
         .TXOUTCLKFABRIC                 (txoutclkfabric_out),
         .TXOUTCLKPCS                    (txoutclkpcs_out),
-        .TXOUTCLKSEL                    (3'b011),
+        .TXOUTCLKSEL                    (3'b010),
         .TXRATEDONE                     (),
         //------------------- Transmit Ports - TX Gearbox Ports --------------------
         .TXCHARISK                      (tied_to_ground_vec_i[7:0]),

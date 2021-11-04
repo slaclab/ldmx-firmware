@@ -115,16 +115,6 @@
     //---------------- Transmit Ports - FPGA TX Interface Ports ----------------
     input           gt0_txusrclk_in,
     input           gt0_txusrclk2_in,
-    //---------------- Transmit Ports - TX Buffer Bypass Ports -----------------
-    input           gt0_txdlyen_in,
-    input           gt0_txdlysreset_in,
-    output          gt0_txdlysresetdone_out,
-    input           gt0_txphalign_in,
-    output          gt0_txphaligndone_out,
-    input           gt0_txphalignen_in,
-    input           gt0_txphdlyreset_in,
-    input           gt0_txphinit_in,
-    output          gt0_txphinitdone_out,
     //---------------- Transmit Ports - TX Data Path interface -----------------
     input   [19:0]  gt0_txdata_in,
     //-------------- Transmit Ports - TX Driver and OOB signaling --------------
@@ -248,16 +238,6 @@ gt0_gt_pfclktx_i
         //---------------- Transmit Ports - FPGA TX Interface Ports ----------------
         .txusrclk_in                    (gt0_txusrclk_in),
         .txusrclk2_in                   (gt0_txusrclk2_in),
-        //---------------- Transmit Ports - TX Buffer Bypass Ports -----------------
-        .txdlyen_in                     (gt0_txdlyen_in),
-        .txdlysreset_in                 (gt0_txdlysreset_in),
-        .txdlysresetdone_out            (gt0_txdlysresetdone_out),
-        .txphalign_in                   (gt0_txphalign_in),
-        .txphaligndone_out              (gt0_txphaligndone_out),
-        .txphalignen_in                 (gt0_txphalignen_in),
-        .txphdlyreset_in                (gt0_txphdlyreset_in),
-        .txphinit_in                    (gt0_txphinit_in),
-        .txphinitdone_out               (gt0_txphinitdone_out),
         //---------------- Transmit Ports - TX Data Path interface -----------------
         .txdata_in                      (gt0_txdata_in),
         //-------------- Transmit Ports - TX Driver and OOB signaling --------------
