@@ -72,7 +72,7 @@ module gt_pfclktx_core #
 (
     parameter EXAMPLE_SIM_GTRESET_SPEEDUP            = "TRUE",     // Simulation setting for GT SecureIP model
     parameter EXAMPLE_SIMULATION                     =  0,         // Set to 1 for simulation
-    parameter USE_BUFG                               =  0,         // Set to 1 for BUFG usage in cpll railing logic
+    parameter USE_BUFG                               =  1,         // Set to 1 for BUFG usage in cpll railing logic
     parameter STABLE_CLOCK_PERIOD                    = 8,         //Period of the stable clock driving this state-machine, unit is [ns]
     parameter EXAMPLE_USE_CHIPSCOPE                  =  0          // Set to 1 to use Chipscope to drive resets
 

@@ -66,7 +66,7 @@ gt_pfclktx_core theGTX(
     .gt0_txusrclk_in(clk_link),
     .gt0_txusrclk2_in(clk_link),
     //---------------- Transmit Ports - TX Data Path interface -----------------
-    .gt0_txdata_in(20'b00000111110000011111),
+    .gt0_txdata_in(20'b11111000000000011111),
     //-------------- Transmit Ports - TX Driver and OOB signaling --------------
     .gt0_gtxtxn_out(tx_n),
     .gt0_gtxtxp_out(tx_p)
