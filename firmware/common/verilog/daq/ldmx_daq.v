@@ -66,6 +66,7 @@ module ldmx_daq(
    reg [MAX_LOG2_BUFCOUNT:0] r_buf_id;
    wire 		     full;
    wire 		     reset_daq;
+   
 	
    SinglePulseDualClock spdc_reset_daq(.i(reset_daq_io),.o(reset_daq),.oclk(clk_link));
 	
@@ -145,7 +146,7 @@ module ldmx_daq(
       nevents<=(w_buf_id-r_buf_id);
       was_advance<=advance_read;
       if (reset_daq_io) r_buf_id<=6'h0;
-      else if (advance_read && was_advance) begin
+      else if (~advance_read && was_advance) begin
 	 if (page_size_link==2'h0) r_buf_id<=r_buf_id+6'h1; // simple sum...
 	 else if (page_size_link==2'h1) begin 
 	    r_buf_id[5]<=1'h0;
