@@ -17,7 +17,6 @@ module daq_buffer(
 
 	   wire [1:0] do2;
 	   
-
 	   // infer 32kb x1   
 	   BRAM_SDP_MACRO #(
 			    .BRAM_SIZE("36Kb"), // Target BRAM, "18Kb" or "36Kb" 
@@ -28,7 +27,7 @@ module daq_buffer(
 			    .INIT_FILE ("NONE"),
 			    .SIM_COLLISION_CHECK ("ALL") // Collision check enable "ALL", "WARNING_ONLY",
                             ) BRAM_SDP_MACRO_inst (
-						   .DO(doutb[ibit]),         // Output read data port, width defined by READ_WIDTH parameter
+						   .DO(do2),         // Output read data port, width defined by READ_WIDTH parameter
 						   .DI(dina[ibit]),         // Input write data port, width defined by WRITE_WIDTH parameter
 						   .RDADDR(addrb[14:1]), // Input read address, width defined by read port depth
 						   .RDCLK(clkb),   // 1-bit input read clock
