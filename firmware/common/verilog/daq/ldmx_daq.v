@@ -88,7 +88,7 @@ module ldmx_daq(
    reg [8:0] 		     buf_len_read_which;
 	
    always @(posedge dma_clk)
-     if (dma_enable) buf_len_read_which<=dma_buf_id;
+     if (enable_dma) buf_len_read_which<=dma_buf_id;
      else if (peek_lengths) buf_len_read_which<=axi_raddr[8:0];
      else buf_len_read_which<=r_buf_id;
    
