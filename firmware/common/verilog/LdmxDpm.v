@@ -245,6 +245,11 @@ ldmx_daq theDAQ(.clk_link(clk_link),
 		.link_is_k(k_from_link),
 		.link_valid(link_valid),
 		.reset(sysClk125Rst),
+		.dma_clk(dmaClk),
+		.dma_ready(dmaIbSlave_tReady),
+		.dma_valid(dmaIbMaster_tValid),
+		.dma_data(dmaIbMaster_tData),
+		.dma_done(dmaIbMaster_tLast),
 		.axi_clk(axilClk),
 		.axi_wstr(daq_wstr),.axi_rstr(daq_rstr),
 		.axi_wack(daq_wack),.axi_rack(daq_rack),
@@ -286,6 +291,7 @@ ldmx_daq theDAQ(.clk_link(clk_link),
    assign dmaClk = sysClk200;
    assign dmaRst = sysClk200Rst;
 
+   /*
    assign dmaObSlave_tReady   = dmaIbSlave_tReady;
    assign dmaIbMaster_tValid  = dmaObMaster_tValid;
    assign dmaIbMaster_tData   = dmaObMaster_tData;
@@ -295,7 +301,14 @@ ldmx_daq theDAQ(.clk_link(clk_link),
    assign dmaIbMaster_tDest   = dmaObMaster_tDest;
    assign dmaIbMaster_tId     = dmaObMaster_tId;
    assign dmaIbMaster_tUser   = dmaObMaster_tUser;
-
+    */
+   assign dmaIbMaster_tStrb = 8'hFF;
+   assign dmaIbMaster_tKeep = 8'hFF;
+   assign dmaIbMaster_tId = 8'h0;
+   assign dmaIbMaster_tDest = 8'h0;
+   assign dmaIbMaster_tUser   = 64'h0; // low bit should be an error indicator eventually
+   
+   
    reg ibusy;
 
    always @(posedge distDivClk) begin

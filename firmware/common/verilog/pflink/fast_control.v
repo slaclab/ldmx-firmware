@@ -41,25 +41,41 @@ module fast_control(
 
    assign DefaultCtlReg[0]=32'h0;
    assign DefaultCtlReg[1]=32'h0;
-   assign DefaultCtlReg[2]={20'h0,12'd45};
+   assign DefaultCtlReg[2]={4'h0,4'h2,8'd20,4'h0,12'd45};
    assign DefaultCtlReg[3]=32'h0;
    
+   wire [7:0]  calib_l1a_offset = Control[2][23:16];     
+   wire [3:0]  calib_pulse_len = Control[2][27:24];
    wire [11:0] orb_length = Control[2][11:0];
    wire        send_l1a_sw_io = Control[1][0];
    wire        send_link_reset_io = Control[1][1];
    wire        send_buffer_clear_io = Control[1][2];
+   wire        send_calib_pulse_io = Control[1][3];
 
-   wire        send_l1a_sw, send_link_reset, send_buffer_clear;
-
+   wire        send_l1a_sw, send_link_reset, send_buffer_clear, send_calib_pulse;
+   reg 	       calib_l1a;
+   
    SinglePulseDualClock spdc_l1a_sw(.i(send_l1a_sw_io),.o(send_l1a_sw),.oclk(clk_bx));
    SinglePulseDualClock spdc_link_reset(.i(send_link_reset_io),.o(send_link_reset),.oclk(clk_bx));
    SinglePulseDualClock spdc_buffer_clear(.i(send_buffer_clear_io),.o(send_buffer_clear),.oclk(clk_bx));
-   
+   SinglePulseDualClock spdc_calib_pulse(.i(send_calib_pulse_io),.o(send_calib_pulse),.oclk(clk_bx));
+ 
    reg [11:0]  bx_counter;
    
    always @(posedge clk_bx) begin
       if ((bx_counter+12'h1)==orb_length) bx_counter<=12'h0;
       else bx_counter<=bx_counter+12'h1;
+   end
+
+   reg [7:0] calib_l1a_delay, calib_pulse_ext;
+   always @(posedge clk_bx) begin
+      if (send_calib_pulse) calib_pulse_ext<=calib_pulse_len;
+      else if (calib_pulse_ext!=4'h0) calib_pulse_ext<=calib_pulse_ext-4'h1;
+      
+      if (send_calib_pulse) calib_l1a_delay<=calib_l1a_offset;
+      else if (calib_l1a_delay!=8'h0) calib_l1a_delay<=calib_l1a_delay-8'h1;
+      else calib_l1a_delay<=8'h0;
+      calib_l1a<=(calib_l1a_delay==8'h1);
    end
 	
    reg [7:0] fc_word;
@@ -68,7 +84,9 @@ module fast_control(
       fc_word[1]<=(send_l1a_sw);
       fc_word[2]<=(send_link_reset);
       fc_word[3]<=(send_buffer_clear);
-      fc_word[7:4]<=Control[0][11:8]; // for debugging, quasi-static signals.
+      fc_word[4]<=Control[0][8]; // for debugging, quasi-static signals.
+      fc_word[5]<=send_calib_pulse || (calib_pulse_ext!=4'h0);
+      fc_word[7:6]<=Control[0][11:10]; // for debugging, quasi-static signals.
    end
    
    wire [15:0] fc_word_enc_i;

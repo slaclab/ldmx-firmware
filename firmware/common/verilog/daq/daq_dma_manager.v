@@ -45,10 +45,11 @@ module daq_dma_manager (
    localparam ST_NEXT_BUFFER            = 4'h6;
    localparam ST_NEXT_BUFFER_SPACE      = 4'h7;
    localparam ST_NEXT_BUFFER_SPACE_WAIT = 4'h8;
-   localparam ST_NEXT_BUFFER_WAIT       = 4'h9;
-   localparam ST_NEXT_BUFFER_WAIT2      = 4'ha;
-   localparam ST_FIRST_BUFFER           = 4'hb;
-   localparam ST_COPY                   = 4'hc;
+   localparam ST_NEXT_BUFFER_SPACE_WAIT2= 4'h9;
+   localparam ST_NEXT_BUFFER_WAIT       = 4'ha;
+   localparam ST_NEXT_BUFFER_WAIT2      = 4'hb;
+   localparam ST_FIRST_BUFFER           = 4'hc;
+   localparam ST_COPY                   = 4'hd;
    localparam ST_DONE                   = 4'hf;
 
 	reg on_last_buffer;
@@ -73,7 +74,8 @@ always @(posedge clk)
 	  else state<=ST_COPY;
   end else if (state==ST_FIRST_BUFFER && space_available) state<=ST_NEXT_BUFFER_WAIT;
   else if (state==ST_NEXT_BUFFER) state<=ST_NEXT_BUFFER_SPACE_WAIT;
-  else if (state==ST_NEXT_BUFFER_SPACE_WAIT) state<=ST_NEXT_BUFFER_SPACE;
+  else if (state==ST_NEXT_BUFFER_SPACE_WAIT) state<=ST_NEXT_BUFFER_SPACE_WAIT2;
+  else if (state==ST_NEXT_BUFFER_SPACE_WAIT2) state<=ST_NEXT_BUFFER_SPACE;
   else if (state==ST_NEXT_BUFFER_SPACE && space_available) state<=ST_NEXT_BUFFER_WAIT;
   else if (state==ST_NEXT_BUFFER_WAIT) state<=ST_NEXT_BUFFER_WAIT2;
   else if (state==ST_NEXT_BUFFER_WAIT2) state<=ST_COPY;    
@@ -135,14 +137,14 @@ always @(posedge clk) begin
 
    always @(posedge clk) begin      
       if (state==ST_COPY_HEADER) begin 
-	     data_to_fifo<=header[r_ptr[2:0]];
+	 data_to_fifo<=header[r_ptr[2:0]];
       end
-		else if ((state==ST_NEXT_BUFFER || state==ST_DONE) && buf_len[0]) data_to_fifo<={32'h0,data_from_buffer[31:0]};
-		else data_to_fifo<=data_from_buffer;
+      else if ((state==ST_NEXT_BUFFER || state==ST_DONE) && buf_len[0]) data_to_fifo<={32'h0,data_from_buffer[31:0]};
+      else data_to_fifo<=data_from_buffer;
 
       fifo_we<=(state==ST_COPY_HEADER || state==ST_COPY || state==ST_NEXT_BUFFER || state==ST_DONE);
-		lastSample<=(state==ST_DONE);
-		done_with_buffer<=(state==ST_NEXT_BUFFER || state==ST_DONE);
+      lastSample<=(state==ST_DONE);
+      done_with_buffer<=(state==ST_NEXT_BUFFER || state==ST_DONE);
    end
 
    always @(posedge clk) begin

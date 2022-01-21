@@ -19,20 +19,25 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 module ldmx_daq(
-    input 	  clk_link,
-    input [31:0]  link_data,
-    input [3:0]   link_is_k,
-    input 	  link_valid,
-    input 	  reset,
-    input 	  axi_clk,
-    input 	  axi_wstr,
-    input 	  axi_rstr,
-    output 	  axi_wack,
-    output 	  axi_rack,
-    input [11:0]   axi_raddr,
-    input [11:0]   axi_waddr,
-    input [31:0]  axi_din,
-    output [31:0] axi_dout
+		input 	      clk_link,
+		input [31:0]  link_data,
+		input [3:0]   link_is_k,
+		input 	      link_valid,
+		input 	      reset,
+		input 	      dma_clk,
+		input 	      dma_ready,
+		output 	      dma_valid,
+		output [63:0] dma_data,
+		output 	      dma_done,
+		input 	      axi_clk,
+		input 	      axi_wstr,
+		input 	      axi_rstr,
+		output 	      axi_wack,
+		output 	      axi_rack,
+		input [11:0]  axi_raddr,
+		input [11:0]  axi_waddr,
+		input [31:0]  axi_din,
+		output [31:0] axi_dout
 		);
    
 	reg reset_io;
@@ -50,13 +55,13 @@ module ldmx_daq(
    // page_size=0 -> 512 word pages (good up to 6 HGCROCs)
    // page_size=1 -> 1024 word pages (good up to 12 HGCROCs)
    // page_size=2 -> 2048 word pages (good up to 24 HGCROCs)
-   wire [1:0]  page_size; 
+   wire [1:0]  page_size_io; 
    wire        clear;
-   reg [1:0]   page_size_link, page_size_io;
+   reg [1:0]   page_size_link, page_size;
    wire        peek_lengths;
    wire        advance_read;
    
-   assign page_size=Command[0][1:0];
+   assign page_size_io=Command[0][1:0];
    assign reset_daq_io=Command[1][0] || reset_io;
    assign advance_read=Command[1][1];
 
@@ -64,6 +69,7 @@ module ldmx_daq(
       
    reg [MAX_LOG2_BUFCOUNT:0] w_buf_id, next_w_buf_id;
    reg [MAX_LOG2_BUFCOUNT:0] r_buf_id;
+   wire [MAX_LOG2_BUFCOUNT:0] dma_buf_id;   
    wire 		     full;
    wire 		     reset_daq;
    
@@ -81,8 +87,9 @@ module ldmx_daq(
    wire [10:0] 		     read_buffer_lengths;
    reg [8:0] 		     buf_len_read_which;
 	
-   always @(posedge axi_clk)
-     if (peek_lengths) buf_len_read_which<=axi_raddr[8:0];
+   always @(posedge dma_clk)
+     if (dma_enable) buf_len_read_which<=dma_buf_id;
+     else if (peek_lengths) buf_len_read_which<=axi_raddr[8:0];
      else buf_len_read_which<=r_buf_id;
    
    daq_write_manager write_manager(.reset(reset_daq),.clk(clk_link),
@@ -90,7 +97,7 @@ module ldmx_daq(
 				   .w_buf_id(w_buf_id),
 				   .w_ptr(w_ptr),.data_to_mem(link_data_d),.mem_we(write_enable_i),
 				   .end_of_event(is_end_of_event),
-				   .clk_io(axi_clk),.w_buf_sel(buf_len_read_which),
+				   .clk_io(dma_clk),.w_buf_sel(buf_len_read_which),
 				   .w_buf_len(read_buffer_lengths));
    
    assign full=(next_w_buf_id==r_buf_id);
@@ -109,35 +116,7 @@ module ldmx_daq(
 	 next_w_buf_id[3:0]<=w_buf_id[3:0]+4'h1; // only incrementing the lower bits
       end	
    end
-	
-   always @(posedge clk_link) begin
-      page_size_link<=page_size;
-      if (page_size_link==2'h0) write_addr<={w_buf_id,w_ptr[8:0]};
-      else if (page_size_link==2'h1) write_addr<={w_buf_id[4:0],w_ptr[9:0]};
-      else write_addr<={w_buf_id[3:0],w_ptr[10:0]};
-      write_enable<=write_enable_i;
-      write_data<=link_data_d;
-   end
-	
-   reg [14:0] read_addr;
-   wire [31:0] read_data;
-	
-   always @(posedge axi_clk) begin
-      page_size_io<=page_size;
-      if (page_size_io==2'h0) read_addr<={r_buf_id,axi_raddr[8:0]};
-      else if (page_size_io==2'h1) read_addr<={r_buf_id[4:0],axi_raddr[9:0]};
-      else read_addr<={r_buf_id[3:0],axi_raddr[10:0]};
-   end
-	
-   daq_buffer buffer(
-		     .clka(clk_link),
-		     .wea(write_enable),
-		     .addra(write_addr),
-		     .dina(write_data),
-		     .clkb(axi_clk),
-		     .addrb(read_addr),
-		     .doutb(read_data));
-   
+
    reg empty, was_advance;
    reg [8:0] nevents;
 	
@@ -157,7 +136,78 @@ module ldmx_daq(
 	 end	
       end else r_buf_id<=r_buf_id;
    end
+	
+   always @(posedge clk_link) begin
+      page_size_link<=page_size_io;
+      if (page_size_link==2'h0) write_addr<={w_buf_id,w_ptr[8:0]};
+      else if (page_size_link==2'h1) write_addr<={w_buf_id[4:0],w_ptr[9:0]};
+      else write_addr<={w_buf_id[3:0],w_ptr[10:0]};
+      write_enable<=write_enable_i;
+      write_data<=link_data_d;
+   end
 
+   wire [31:0] read_data_32;
+   wire [63:0] read_data_64;
+   reg 	       reset_clk_dma;
+   wire [10:0] dma_ptr;
+   wire        dma_done_with_buffer;     
+   
+   daq_dma_manager daq_dma(.reset(reset_clk_dma),
+			   .enable(enable_dma),
+			   .clk(dma_clk),
+			   .bundle_trigcount_async(l1a_bundle_factor),
+			   .nreadouts_available_async(nevents),
+			   .r_buf_id(r_buf_id),
+			   .pick_buf_id(dma_buf_id),
+			   .buf_len(read_buffer_lengths),
+			   .fpga_id(),
+			   .r_ptr(dma_ptr),
+			   .data_from_buffer(read_data_64),
+			   .dma_data(dma_data),
+			   .dma_valid(dma_valid),
+			   .dma_last(dma_done),
+			   .done_with_buffer(dma_done_with_buffer),
+			   .dma_ready(dma_ready),
+			   .status(dma_status)
+			   );
+
+   reg [5:0]   r_buf_addr_overlay;
+   reg [10:0]  axi_raddr_latch;
+         	
+   always @(posedge dma_clk) begin
+      reset_clk_dma<=reset;
+      enable_dma<=enable_dma_io;
+      
+            
+      page_size<=page_size_io;
+      axi_raddr_latch<=axi_raddr;
+
+      if (enable_dma) begin
+	 if (page_size==2'h0) r_buf_addr_overlay<={dma_buf_id};
+	 else if (page_size==2'h1) r_buf_addr_overlay<={dma_buf_id[4:0],1'h0};      
+	 else r_buf_addr_overlay<={dma_buf_id[3:0],2'h0};
+      end else begin
+	 if (page_size==2'h0) r_buf_addr_overlay<={r_buf_id};
+	 else if (page_size==2'h1) r_buf_addr_overlay<={r_buf_id[4:0],1'h0};      
+	 else r_buf_addr_overlay<={r_buf_id[3:0],2'h0};
+      end
+   end
+
+   wire [14:0] read_addr;
+   assign read_addr[14:11]=r_buf_addr_overlay[5:2];
+   assign read_addr[10:9]=(enable_dma)?(r_buf_addr_overlay[1:0]|dma_ptr[10:9]):(r_buf_addr_overlay[1:0]|axi_raddr_latch[10:9]);
+   assign read_addr[8:0]=(enable_dma)?(dma_ptr[8:0]):(axi_raddr_latch[8:0]);   
+	
+   daq_buffer buffer(
+		     .clka(clk_link),
+		     .wea(write_enable),
+		     .addra(write_addr),
+		     .dina(write_data),
+		     .clkb(dma_clk),
+		     .addrb(read_addr),
+		     .doutb(read_data_32),
+		     .doutb64(read_data_64));
+   
 
   //=========================================================================
    // axi interface.
@@ -184,7 +234,7 @@ module ldmx_daq(
      else if (axi_raddr[11:6]==6'h0 && axi_raddr[5:3]==3'h0) data_out<=Command[axi_raddr[2:0]];
      else if (axi_raddr[11:6]==6'h1 && axi_raddr[5:3]==3'h0) data_out<=Status[axi_raddr[2:0]];
      else if (axi_raddr[11:10]==2'b01) data_out<={21'h0,read_buffer_lengths};
-     else if (axi_raddr[11]) data_out<=read_data;
+     else if (axi_raddr[11]) data_out<=read_data_32;
      else data_out<=32'h0;
 	
    assign axi_dout=data_out;
