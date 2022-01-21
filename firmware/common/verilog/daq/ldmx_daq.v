@@ -60,8 +60,12 @@ module ldmx_daq(
    reg [1:0]   page_size_link, page_size;
    wire        peek_lengths;
    wire        advance_read;
+   wire        enable_dma_io;
+   
    
    assign page_size_io=Command[0][1:0];
+   assign enable_dma_io=Command[0][4];
+   
    assign reset_daq_io=Command[1][0] || reset_io;
    assign advance_read=Command[1][1];
 
@@ -173,6 +177,8 @@ module ldmx_daq(
 
    reg [5:0]   r_buf_addr_overlay;
    reg [10:0]  axi_raddr_latch;
+   reg 	       enable_dma;
+   
          	
    always @(posedge dma_clk) begin
       reset_clk_dma<=reset;
