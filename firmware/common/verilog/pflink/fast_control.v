@@ -81,7 +81,7 @@ module fast_control(
    reg [7:0] fc_word;
    always @(posedge clk_bx) begin
       fc_word[0]<=(bx_counter=='h0);
-      fc_word[1]<=(send_l1a_sw);
+      fc_word[1]<=(send_l1a_sw)||(calib_l1a);
       fc_word[2]<=(send_link_reset);
       fc_word[3]<=(send_buffer_clear);
       fc_word[4]<=Control[0][8]; // for debugging, quasi-static signals.
