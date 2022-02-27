@@ -44,6 +44,9 @@ module ldmx_daq(
 	
 	always @(posedge axi_clk) reset_io<=reset;
 
+   localparam FIRMWARE_VERSION = 8'h11;
+   
+   
    // Command registers
    localparam NUM_CMD_WORDS = 8;
    reg [31:0] Command[NUM_CMD_WORDS-1:0];
@@ -61,10 +64,11 @@ module ldmx_daq(
    wire        peek_lengths;
    wire        advance_read;
    wire        enable_dma_io;
-   
+   wire [7:0]  fpga_id;  
    
    assign page_size_io=Command[0][1:0];
    assign enable_dma_io=Command[0][4];
+   assign fpga_id=Command[0][15:8];   
    
    assign reset_daq_io=Command[1][0] || reset_io;
    assign advance_read=Command[1][1];
@@ -154,7 +158,9 @@ module ldmx_daq(
    wire [63:0] read_data_64;
    reg 	       reset_clk_dma;
    wire [10:0] dma_ptr;
-   wire        dma_done_with_buffer;     
+   wire        dma_done_with_buffer;
+   wire [11:0] dma_status;
+   
    
    daq_dma_manager daq_dma(.reset(reset_clk_dma),
 			   .enable(enable_dma),
@@ -164,7 +170,7 @@ module ldmx_daq(
 			   .r_buf_id(r_buf_id),
 			   .pick_buf_id(dma_buf_id),
 			   .buf_len(read_buffer_lengths),
-			   .fpga_id(),
+			   .fpga_id(fpga_id),
 			   .r_ptr(dma_ptr),
 			   .data_from_buffer(read_data_64),
 			   .dma_data(dma_data),
@@ -245,9 +251,11 @@ module ldmx_daq(
 	
    assign axi_dout=data_out;
 
-   assign Status[0]={8'h1,8'd32,8'd32,8'h01};   
+   assign Status[0]={8'h1,8'd32,8'd32,FIRMWARE_VERSION};   
    assign Status[1]={5'h0,read_buffer_lengths,3'h0,nevents,2'h0,full,empty};
    assign Status[2]={7'h0,r_buf_id,7'h0,w_buf_id};
+   assign Status[3]={20'h0,dma_status);
+   
 
    assign peek_lengths=(axi_raddr[11:10]==2'b01);    
 
