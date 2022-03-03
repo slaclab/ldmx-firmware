@@ -254,7 +254,7 @@ module ldmx_daq(
    assign Status[0]={8'h1,8'd32,8'd32,FIRMWARE_VERSION};   
    assign Status[1]={5'h0,read_buffer_lengths,3'h0,nevents,2'h0,full,empty};
    assign Status[2]={7'h0,r_buf_id,7'h0,w_buf_id};
-   assign Status[3]={20'h0,dma_status);
+   assign Status[3]={20'h0,dma_status};
    
 
    assign peek_lengths=(axi_raddr[11:10]==2'b01);    
