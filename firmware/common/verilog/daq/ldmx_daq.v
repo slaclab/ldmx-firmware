@@ -64,15 +64,21 @@ module ldmx_daq(
    wire        peek_lengths;
    wire        advance_read;
    wire        enable_dma_io;
-   wire [7:0]  fpga_id;  
+   wire [7:0]  fpga_id;
+   wire [3:0]  l1a_bundle_factor;
+ 
    
    assign page_size_io=Command[0][1:0];
    assign enable_dma_io=Command[0][4];
-   assign fpga_id=Command[0][15:8];   
+   assign fpga_id=Command[0][15:8];
+   assign l1a_bundle_factor=Command[0][19:16];
+   
    
    assign reset_daq_io=Command[1][0] || reset_io;
    assign advance_read=Command[1][1];
+   
 
+   
    localparam MAX_LOG2_BUFCOUNT = 6-1;
       
    reg [MAX_LOG2_BUFCOUNT:0] w_buf_id, next_w_buf_id;
