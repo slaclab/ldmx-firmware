@@ -74,10 +74,10 @@ entity ExampleDtm is
       ethResetL  : out   Slv(1 downto 0);
 
       -- RTM High Speed
-      --dtmToRtmHsP : out sl;
-      --dtmToRtmHsM : out sl;
-      --rtmToDtmHsP : in  sl;
-      --rtmToDtmHsM : in  sl;
+      dtmToRtmHsP : out sl;
+      dtmToRtmHsM : out sl;
+      rtmToDtmHsP : in  sl;
+      rtmToDtmHsM : in  sl;
 
       -- RTM Low Speed
       dtmToRtmLsP : inout slv(5 downto 0);
@@ -252,29 +252,30 @@ begin
    U_LdmxDtmTimingSource : entity ldmx.LdmxDtmTimingSource
       generic map (
          TPD_G => TPD_G
-         ) port map (
-            axiClk         => axiClk,
-            axiClkRst      => axiClkRst,
-            axiReadMaster  => locAxilReadMaster(0),
-            axiReadSlave   => locAxilReadSlave(0),
-            axiWriteMaster => locAxilWriteMaster(0),
-            axiWriteSlave  => locAxilWriteSlave(0),
-            sysClk200      => sysClk200,
-            sysClk200Rst   => sysClk200Rst,
-            distClk        => distClk,
-            distClkRst     => distClkRst,
-            distDivClk     => distDivClk,
-            distDivClkRst  => distDivClkRst,
-            txData         => txData,
-            txDataEn       => txDataEn,
-            txReady        => txReady,
-            rxData         => rxData,
-            rxDataEn       => rxDataEn,
-            dpmClkP        => dpmClkP,
-            dpmClkM        => dpmClkM,
-            dpmFbP         => dpmFbP,
-            dpmFbM         => dpmFbM
-            );
+         )
+      port map (
+         axiClk         => axiClk,
+         axiClkRst      => axiClkRst,
+         axiReadMaster  => locAxilReadMaster(0),
+         axiReadSlave   => locAxilReadSlave(0),
+         axiWriteMaster => locAxilWriteMaster(0),
+         axiWriteSlave  => locAxilWriteSlave(0),
+         sysClk200      => sysClk200,
+         sysClk200Rst   => sysClk200Rst,
+         distClk        => distClk,
+         distClkRst     => distClkRst,
+         distDivClk     => distDivClk,
+         distDivClkRst  => distDivClkRst,
+         txData         => txData,
+         txDataEn       => txDataEn,
+         txReady        => txReady,
+         rxData         => rxData,
+         rxDataEn       => rxDataEn,
+         dpmClkP        => dpmClkP,
+         dpmClkM        => dpmClkM,
+         dpmFbP         => dpmFbP,
+         dpmFbM         => dpmFbM
+         );
 
 
    --------------------------------------------------
@@ -282,40 +283,38 @@ begin
    --------------------------------------------------
    U_LdmxDtmWrapper : entity ldmx.LdmxDtmWrapper
       generic map (
-         TPD_G     => TPD_G
-         ) port map (
-            axilClk         => axiClk,
-            axilClkRst      => axiClkRst,
-            axilReadMaster  => locAxilReadMaster(1),
-            axilReadSlave   => locAxilReadSlave(1),
-            axilWriteMaster => locAxilWriteMaster(1),
-            axilWriteSlave  => locAxilWriteSlave(1),
-            sysClk200       => sysClk200,
-            sysClk200Rst    => sysClk200Rst,
-            sysClk125       => sysClk125,
-            sysClk125Rst    => sysClk125Rst,
-            locRefClkP      => locRefClkP,
-            locRefClkM      => locRefClkM,
-            dtmToRtmLsP     => dtmToRtmLsP,
-            dtmToRtmLsM     => dtmToRtmLsM,
-            plSpareP        => plSpareP,
-            plSpareM        => plSpareM,
-            distClk         => distClk,
-            distClkRst      => distClkRst,
-            txData          => txData,
-            txDataEn        => txDataEn,
-            txReady         => txReady,
-            rxData          => rxData,
-            rxDataEn        => rxDataEn,
-            gtTxP           => open,
-            gtTxN           => open,
-            gtRxP           => '0',
-            gtRxN           => '0'
-            --gtTxP           => dtmToRtmHsP,
-            --gtTxN           => dtmToRtmHsM,
-            --gtRxP           => rtmToDtmHsP,
-            --gtRxN           => rtmToDtmHsM
-            );
+         TPD_G => TPD_G,
+         AXIL_BASE_ADDR_G => x"A0010000"
+         )
+      port map (
+         axilClk         => axiClk,
+         axilClkRst      => axiClkRst,
+         axilReadMaster  => locAxilReadMaster(1),
+         axilReadSlave   => locAxilReadSlave(1),
+         axilWriteMaster => locAxilWriteMaster(1),
+         axilWriteSlave  => locAxilWriteSlave(1),
+         sysClk200       => sysClk200,
+         sysClk200Rst    => sysClk200Rst,
+         sysClk125       => sysClk125,
+         sysClk125Rst    => sysClk125Rst,
+         locRefClkP      => locRefClkP,
+         locRefClkM      => locRefClkM,
+         dtmToRtmLsP     => dtmToRtmLsP,
+         dtmToRtmLsM     => dtmToRtmLsM,
+         plSpareP        => plSpareP,
+         plSpareM        => plSpareM,
+         distClk         => distClk,
+         distClkRst      => distClkRst,
+         txData          => txData,
+         txDataEn        => txDataEn,
+         txReady         => txReady,
+         rxData          => rxData,
+         rxDataEn        => rxDataEn,
+         gtTxP           => dtmToRtmHsP,
+         gtTxN           => dtmToRtmHsM,
+         gtRxP           => rtmToDtmHsP,
+         gtRxN           => rtmToDtmHsM
+         );
 
 
    --------------------------------------------------
