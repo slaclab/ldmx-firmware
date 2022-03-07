@@ -9,7 +9,7 @@ export RUCKUS_DIR = $(abspath $(PWD)/../../submodules/ruckus)
 
 #export REMOVE_UNUSED_CODE = 1
 
-export PRJ_VERSION = 0x00000006
+export PRJ_VERSION = 0x00000007
 
 #export GIT_BYPASS = 1
 
