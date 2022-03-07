@@ -89,14 +89,14 @@ architecture STRUCTURE of LdmxDtmWrapper is
 
    signal busyOut        : sl;
    signal busyOutReg     : sl;
-   signal busySync : sl;
+   signal busySync       : sl;
    signal dpmFbEn        : slv(7 downto 0);
    signal dpmBusy        : slv(7 downto 0);
    signal triggerIn      : sl;
-   signal triggerReg     : slv(2 downto 0);
+   signal triggerRise    : sl;
    signal triggerArm     : sl;
    signal spillIn        : sl;
-   signal spillReg       : slv(2 downto 0);
+   signal spillRise      : sl;
    signal spillArm       : sl;
    signal locRefClk      : sl;
    signal locRefClkG     : sl;
@@ -111,9 +111,6 @@ begin
    -- Unused
    plSpareP <= (others => 'Z');
    plSpareM <= (others => 'Z');
-
-   axilReadSlave  <= AXI_LITE_READ_SLAVE_INIT_C;
-   axilWriteSlave <= AXI_LITE_WRITE_SLAVE_INIT_C;
 
    DTM_RTM2 : OBUFDS
       port map (
@@ -149,7 +146,7 @@ begin
          AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G)
       port map (
          axilClk         => axilClk,          -- [in]
-         axilRst      => axilClkRst,       -- [in]
+         axilRst         => axilClkRst,       -- [in]
          axilReadMaster  => axilReadMaster,   -- [in]
          axilReadSlave   => axilReadSlave,    -- [out]
          axilWriteMaster => axilWriteMaster,  -- [in]
@@ -215,33 +212,42 @@ begin
    -----------------------------------
    -- Trigger Signal Processing
    -----------------------------------
+
+   U_SynchronizerEdge_1 : entity surf.SynchronizerEdge
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk        => iDistDivClk,     -- [in]
+         rst        => iDistDivClkRst,  -- [in]
+         dataIn     => triggerIn,       -- [in]
+         risingEdge => triggerRise);    -- [out]
+
+   U_SynchronizerEdge_2 : entity surf.SynchronizerEdge
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk        => iDistDivClk,     -- [in]
+         rst        => iDistDivClkRst,  -- [in]
+         dataIn     => spillIn,         -- [in]
+         risingEdge => spillRise);      -- [out]
+
+
    process (idistDivClk)
    begin
       if rising_edge(idistDivClk) then
          if idistDivClkRst = '1' then
-            triggerReg <= (others => '0') after TPD_G;
             triggerArm <= '0'             after TPD_G;
-            spillReg   <= (others => '0') after TPD_G;
             spillArm   <= '0'             after TPD_G;
             txData     <= (others => '0') after TPD_G;
             txDataEn   <= '0'             after TPD_G;
          else
-
-            triggerReg(0) <= triggerIn     after TPD_G;
-            triggerReg(1) <= triggerReg(0) after TPD_G;
-            triggerReg(2) <= triggerReg(1) after TPD_G;
-
-            if triggerReg(2) = '0' and triggerReg(1) = '1' then
+            if triggerRise = '1' then
                triggerArm <= '1' after TPD_G;
             elsif txReady = '1' then
                triggerArm <= '0' after TPD_G;
             end if;
 
-            spillReg(0) <= spillIn     after TPD_G;
-            spillReg(1) <= spillReg(0) after TPD_G;
-            spillReg(2) <= spillReg(1) after TPD_G;
-
-            if spillReg(2) = '0' and spillReg(1) = '1' then
+            if spillRise = '1' then
                spillArm <= '1' after TPD_G;
             elsif txReady = '1' then
                spillArm <= '0' after TPD_G;
@@ -255,11 +261,11 @@ begin
       end if;
    end process;
 
-   dtmToRtmLsM(1) <= triggerReg(2);
+--   dtmToRtmLsM(1) <= triggerReg(2);
 
-   -----------------------------------
-   -- Busy processing
-   -----------------------------------
+-----------------------------------
+-- Busy processing
+-----------------------------------
    dpmFbEn <= "00000001";
 
    U_FbGen : for i in 0 to 7 generate
@@ -304,7 +310,7 @@ begin
          dataIn  => busyOutReg,         -- [in]
          dataOut => busySync);          -- [out]
 
-   dtmToRtmLsP(1) <= busyOutReg;
+--   dtmToRtmLsP(1) <= busyOutReg;
 
 end architecture STRUCTURE;
 

@@ -88,6 +88,8 @@ architecture rtl of LdmxDtmPgp is
    signal locAxilWriteMasters : AxiLiteWriteMasterArray(1 downto 0);
    signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
 
+   signal spillLoc : sl;
+   signal l1aLoc   : sl;
 
 begin
 
@@ -96,8 +98,28 @@ begin
 
    locTxIn.locData(0) <= busy;
 
-   spill <= pgpRxOut.opCodeEn and pgpRxOut.opCode(0);
-   l1a   <= pgpRxOut.opCodeEn and pgpRxOut.opCode(1);
+   spillLoc <= pgpRxOut.opCodeEn and pgpRxOut.opCode(0);
+   l1aLoc   <= pgpRxOut.opCodeEn and pgpRxOut.opCode(1);
+
+   U_RegisterVector_1 : entity surf.RegisterVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 1)
+      port map (
+         clk      => pgpRxClk,          -- [in]
+         rst      => pgpRxRst,          -- [in]
+         sig_i(0) => spillLoc,          -- [in]
+         reg_o(0) => spill);            -- [out]
+
+   U_RegisterVector_2 : entity surf.RegisterVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 1)
+      port map (
+         clk      => pgpRxClk,          -- [in]
+         rst      => pgpRxRst,          -- [in]
+         sig_i(0) => l1aLoc,            -- [in]
+         reg_o(0) => l1a);              -- [out]
 
    U_AxiCrossbar : entity surf.AxiLiteCrossbar
       generic map (
