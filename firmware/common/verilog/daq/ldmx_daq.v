@@ -133,13 +133,15 @@ module ldmx_daq(
 
    reg empty, was_advance;
    reg [8:0] nevents;
+   wire        dma_done_with_buffer, dma_done_with_buffer_axi;
+   SinglePulseDualClock spdc_dma_done_with_buffer(.i(dma_done_with_buffer),.o(dma_done_with_buffer_axi),.oclk(axi_clk));
 	
    always @(posedge axi_clk) begin
       empty<=(w_buf_id==r_buf_id);
       nevents<=(w_buf_id-r_buf_id);
       was_advance<=advance_read;
       if (reset_daq_io) r_buf_id<=6'h0;
-      else if (~advance_read && was_advance) begin
+      else if ((~advance_read && was_advance) || dma_done_with_buffer_axi) begin
 	 if (page_size_link==2'h0) r_buf_id<=r_buf_id+6'h1; // simple sum...
 	 else if (page_size_link==2'h1) begin 
 	    r_buf_id[5]<=1'h0;
@@ -164,7 +166,6 @@ module ldmx_daq(
    wire [63:0] read_data_64;
    reg 	       reset_clk_dma;
    wire [10:0] dma_ptr;
-   wire        dma_done_with_buffer;
    wire [11:0] dma_status;
    
    
