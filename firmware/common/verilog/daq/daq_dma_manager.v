@@ -25,7 +25,7 @@ module daq_dma_manager (
 			output reg [11:0] status
 			);
 
-   localparam FormatVersion = 4'h1;
+   localparam FormatVersion = 4'h2;
 
    reg [63:0] 			     header [4:0];
    reg [3:0] 			     bundle_trigcount;   
@@ -91,13 +91,13 @@ always @(posedge clk)
 
    // capturing the buffer lengths
 always @(posedge clk) begin
-   header[0][31:0]<=32'hbeef2021;
+   header[0][31:0]<=32'hbeef2022;
    header[0][63:60]<=FormatVersion;
    header[0][59:52]<=fpga_id;
    header[0][51:48]<=bundle_trigcount;
    
    if (state==ST_IDLE) header[0][47:32]<=16'h5;
-   else if (state==ST_LEN_STORE) header[0][47:32]<=header[0][47:32]+buf_len[9:1]+buf_len[0]; // counting 64-bit words
+   else if (state==ST_LEN_STORE) header[0][47:32]<=header[0][47:32]+buf_len[9:1]+buf_len[0]; // counting 64-bit words to have enough space (also subpacket packing)
    else header[0][47:32]<=header[0][47:32];  
 
    if (state==ST_IDLE) header[1]<=64'h0;
