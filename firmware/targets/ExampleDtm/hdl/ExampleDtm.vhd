@@ -23,7 +23,8 @@ library ldmx;
 entity ExampleDtm is
    generic (
       TPD_G        : time          := 1 ns;
-      BUILD_INFO_G : BuildInfoType := BUILD_INFO_DEFAULT_SLV_C);
+      BUILD_INFO_G : BuildInfoType := BUILD_INFO_DEFAULT_SLV_C;
+      SIMULATION_G : boolean       := false);
    port (
 
       -- Debug
@@ -34,17 +35,17 @@ entity ExampleDtm is
       i2cScl : inout sl;
 
       -- PCI Exress
-      pciRefClkP : in  sl;
-      pciRefClkM : in  sl;
-      pciRxP     : in  sl;
-      pciRxM     : in  sl;
+      pciRefClkP : in  sl := '0';
+      pciRefClkM : in  sl := '0';
+      pciRxP     : in  sl := '0';
+      pciRxM     : in  sl := '0';
       pciTxP     : out sl;
       pciTxM     : out sl;
       pciResetL  : out sl;
 
       -- COB Ethernet
-      ethRxP : in  sl;
-      ethRxM : in  sl;
+      ethRxP : in  sl := '0';
+      ethRxM : in  sl := '0';
       ethTxP : out sl;
       ethTxM : out sl;
 
@@ -57,31 +58,31 @@ entity ExampleDtm is
       clkSelB : out sl;
 
       -- Base Ethernet
-      ethRxCtrl  : in    slv(1 downto 0);
-      ethRxClk   : in    slv(1 downto 0);
-      ethRxDataA : in    Slv(1 downto 0);
-      ethRxDataB : in    Slv(1 downto 0);
-      ethRxDataC : in    Slv(1 downto 0);
-      ethRxDataD : in    Slv(1 downto 0);
-      ethTxCtrl  : out   slv(1 downto 0);
-      ethTxClk   : out   slv(1 downto 0);
-      ethTxDataA : out   Slv(1 downto 0);
-      ethTxDataB : out   Slv(1 downto 0);
-      ethTxDataC : out   Slv(1 downto 0);
-      ethTxDataD : out   Slv(1 downto 0);
-      ethMdc     : out   Slv(1 downto 0);
-      ethMio     : inout Slv(1 downto 0);
-      ethResetL  : out   Slv(1 downto 0);
+      ethRxCtrl  : in    slv(1 downto 0) := "00";
+      ethRxClk   : in    slv(1 downto 0) := "00";
+      ethRxDataA : in    Slv(1 downto 0) := "00";
+      ethRxDataB : in    Slv(1 downto 0) := "00";
+      ethRxDataC : in    Slv(1 downto 0) := "00";
+      ethRxDataD : in    Slv(1 downto 0) := "00";
+      ethTxCtrl  : out   slv(1 downto 0) := "00";
+      ethTxClk   : out   slv(1 downto 0) := "00";
+      ethTxDataA : out   Slv(1 downto 0) := "00";
+      ethTxDataB : out   Slv(1 downto 0) := "00";
+      ethTxDataC : out   Slv(1 downto 0) := "00";
+      ethTxDataD : out   Slv(1 downto 0) := "00";
+      ethMdc     : out   Slv(1 downto 0) := "00";
+      ethMio     : inout Slv(1 downto 0) := "HH";
+      ethResetL  : out   Slv(1 downto 0) := "00";
 
       -- RTM High Speed
-      dtmToRtmHsP : out sl;
-      dtmToRtmHsM : out sl;
-      rtmToDtmHsP : in  sl;
-      rtmToDtmHsM : in  sl;
+      dtmToRtmHsP : out sl := '0';
+      dtmToRtmHsM : out sl := '0';
+      rtmToDtmHsP : in  sl := '0';
+      rtmToDtmHsM : in  sl := '0';
 
       -- RTM Low Speed
-      dtmToRtmLsP : inout slv(5 downto 0);
-      dtmToRtmLsM : inout slv(5 downto 0);
+      dtmToRtmLsP : inout slv(5 downto 0) := (others => 'L');
+      dtmToRtmLsM : inout slv(5 downto 0) := (others => 'H');
 
       -- DPM Signals
       dpmClkP : out slv(2 downto 0);
@@ -90,12 +91,12 @@ entity ExampleDtm is
       dpmFbM  : in  slv(7 downto 0);
 
       -- Backplane Clocks
-      bpClkIn  : in  slv(5 downto 0);
-      bpClkOut : out slv(5 downto 0);
+      bpClkIn  : in  slv(5 downto 0) := (others => '0');
+      bpClkOut : out slv(5 downto 0) := (others => '0');
 
       -- Spare Signals
-      plSpareP : inout slv(4 downto 0);
-      plSpareM : inout slv(4 downto 0);
+      plSpareP : inout slv(4 downto 0) := (others => '0');
+      plSpareM : inout slv(4 downto 0) := (others => '0');
 
       -- IPMI
       dtmToIpmiP : out slv(1 downto 0);
@@ -147,6 +148,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          BUILD_INFO_G   => BUILD_INFO_G,
+         SIMULATION_G   => SIMULATION_G,
          RCE_DMA_MODE_G => RCE_DMA_AXISV2_C)
       port map (
          i2cSda             => i2cSda,
@@ -214,14 +216,16 @@ begin
          MASTERS_CONFIG_G   => (
 
             -- Channel 0 = 0xA0000000 - 0xA000FFFF : DTM Timing
-            0                  => (baseAddr => x"A0000000",
-                  addrBits     => 16,
-                  connectivity => x"FFFF"),
+            0               => (
+               baseAddr     => x"A0000000",
+               addrBits     => 16,
+               connectivity => x"FFFF"),
 
             -- Channel 1 = 0xA0001000 - 0xA001FFFF : DTM Trigger
-            1                  => (baseAddr => x"A0010000",
-                  addrBits     => 16,
-                  connectivity => x"FFFF")
+            1               => (
+               baseAddr     => x"A0010000",
+               addrBits     => 16,
+               connectivity => x"FFFF")
             )
          ) port map (
             axiClk              => axiClk,
@@ -283,7 +287,8 @@ begin
    --------------------------------------------------
    U_LdmxDtmWrapper : entity ldmx.LdmxDtmWrapper
       generic map (
-         TPD_G => TPD_G,
+         TPD_G            => TPD_G,
+         SIMULATION_G     => SIMULATION_G,
          AXIL_BASE_ADDR_G => x"A0010000"
          )
       port map (
