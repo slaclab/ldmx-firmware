@@ -181,8 +181,10 @@ begin
 --          RX_DFE_KL_CFG2_G        => RX_DFE_KL_CFG2_G,
          STABLE_CLK_SRC_G      => "gtClk0",
          TX_REFCLK_SRC_G       => "gtClk0",
+         TX_USER_CLK_SRC_G     => "txRefClk",
+         TX_OUTCLK_SRC_G       => "PLLREFCLK",
          RX_REFCLK_SRC_G       => "gtClk0",
-         CPLL_CFG_G            => getGtx7CPllCfg(250.0e6, 2.5e9),
+         CPLL_CFG_G            => getGtx7CPllCfg(125.0e6, 2.5e9),
 --         QPLL_CFG_G              => QPLL_CFG_G,
          TX_PLL_G              => "CPLL",
          RX_PLL_G              => "CPLL")
