@@ -22,12 +22,19 @@ module daq_dma_manager (
 			output dma_last,
 			output reg done_with_buffer,
 			input dma_ready, 
-			output reg [11:0] status
+			output reg [11:0] status,
+			input [11:0] tag_bxid,
+			input [11:0] tag_spill,
+			input [31:0] tag_time_in_spill,
+			input [31:0] tag_evtid,
+			input [31:0] tag_runinfo
 			);
 
    localparam FormatVersion = 4'h2;
 
-   reg [63:0] 			     header [4:0];
+   localparam HEADER_LEN = 9'h6; // actually the id of the last header word
+   
+   reg [63:0] 			     header [6:0];
    reg [3:0] 			     bundle_trigcount;   
    reg 				     ready_to_build;   
    reg [3:0] 			     state;
@@ -66,7 +73,7 @@ always @(posedge clk)
      else state<=ST_LEN_PREP;
   end 
   else if (state==ST_COPY_HEADER) begin
-     if (r_ptr==9'h4) state<=ST_FIRST_BUFFER;
+     if (r_ptr==HEADER_LEN) state<=ST_FIRST_BUFFER;
      else state<=ST_COPY_HEADER;     
   end else if (state==ST_COPY) begin
      if (r_ptr[9:1]==(buf_len[9:1]+buf_len[0]) && on_last_buffer) state<=ST_DONE;
@@ -96,7 +103,7 @@ always @(posedge clk) begin
    header[0][59:52]<=fpga_id;
    header[0][51:48]<=bundle_trigcount;
    
-   if (state==ST_IDLE) header[0][47:32]<=16'h5;
+   if (state==ST_IDLE) header[0][47:32]<=HEADER_LEN+16'h1;
    else if (state==ST_LEN_STORE) header[0][47:32]<=header[0][47:32]+buf_len[9:1]+buf_len[0]; // counting 64-bit words to have enough space (also subpacket packing)
    else header[0][47:32]<=header[0][47:32];  
 
@@ -128,7 +135,14 @@ always @(posedge clk) begin
       if (state==ST_LEN_STORE && pick_trig_count==4'he) header[4][47:32]<={4'h0,buf_len};
       if (state==ST_LEN_STORE && pick_trig_count==4'hf) header[4][63:48]<={4'h0,buf_len};
    end
-  end
+
+   if (state==ST_IDLE) header[5]<=64'h0;
+   else header[5]<={tag_time_in_spill,8'h4,tag_spill,tag_bxid};
+
+   if (state==ST_IDLE) header[6]<=64'h0;
+   else header[6]<={tag_runinfo,tag_evtid};
+   
+end
 
    
    reg [63:0] data_to_fifo;

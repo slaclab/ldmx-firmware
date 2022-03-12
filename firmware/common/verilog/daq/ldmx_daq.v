@@ -23,6 +23,9 @@ module ldmx_daq(
 		input [31:0]  link_data,
 		input [3:0]   link_is_k,
 		input 	      link_valid,
+		input         bx_clk,
+		input [87:0]  evttag,
+		output 	      tagdone,
 		input 	      reset,
 		input 	      dma_clk,
 		input 	      dma_ready,
@@ -44,7 +47,7 @@ module ldmx_daq(
 	
 	always @(posedge axi_clk) reset_io<=reset;
 
-   localparam FIRMWARE_VERSION = 8'h11;
+   localparam FIRMWARE_VERSION = 8'h12;
    
    
    // Command registers
@@ -63,9 +66,12 @@ module ldmx_daq(
    reg [1:0]   page_size_link, page_size;
    wire        peek_lengths;
    wire        advance_read;
+   wire        advance_tag;
    wire        enable_dma_io;
    wire [7:0]  fpga_id;
    wire [3:0]  l1a_bundle_factor;
+   wire [31:0] runinfo;
+   
  
    
    assign page_size_io=Command[0][1:0];
@@ -76,9 +82,10 @@ module ldmx_daq(
    
    assign reset_daq_io=Command[1][0] || reset_io;
    assign advance_read=Command[1][1];
+   assign advance_tag=Command[1][2];   
    
-
-   
+   assign runinfo=Command[3];
+      
    localparam MAX_LOG2_BUFCOUNT = 6-1;
       
    reg [MAX_LOG2_BUFCOUNT:0] w_buf_id, next_w_buf_id;
@@ -167,8 +174,7 @@ module ldmx_daq(
    reg 	       reset_clk_dma;
    wire [10:0] dma_ptr;
    wire [11:0] dma_status;
-   
-   
+
    daq_dma_manager daq_dma(.reset(reset_clk_dma),
 			   .enable(enable_dma),
 			   .clk(dma_clk),
@@ -185,7 +191,12 @@ module ldmx_daq(
 			   .dma_last(dma_done),
 			   .done_with_buffer(dma_done_with_buffer),
 			   .dma_ready(dma_ready),
-			   .status(dma_status)
+			   .status(dma_status),
+			   .tag_bxid(evttag[11:0]),
+			   .tag_spill(evttag[23:12]),
+			   .tag_time_in_spill(evttag[55:24]),
+			   .tag_evtid(evttag[87:56]),
+			   .tag_runinfo(runinfo)
 			   );
 
    reg [5:0]   r_buf_addr_overlay;
@@ -228,6 +239,8 @@ module ldmx_daq(
 		     .doutb64(read_data_64));
    
 
+   SinglePulseDualClock spdc_tagdone(.i(dma_done&&enable_dma || advance_tag),.o(tagdone),.oclk(bx_clk));   
+   
   //=========================================================================
    // axi interface.
    //=========================================================================
@@ -262,7 +275,9 @@ module ldmx_daq(
    assign Status[1]={5'h0,read_buffer_lengths,3'h0,nevents,2'h0,full,empty};
    assign Status[2]={7'h0,r_buf_id,7'h0,w_buf_id};
    assign Status[3]={20'h0,dma_status};
-   
+   assign Status[4]={8'h0,evttag[23:0]};
+   assign Status[5]=evttag[55:24];
+   assign Status[6]=evttag[87:56];   
 
    assign peek_lengths=(axi_raddr[11:10]==2'b01);    
 

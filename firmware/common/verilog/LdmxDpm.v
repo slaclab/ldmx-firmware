@@ -138,11 +138,17 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 			   .locked(olink_clk_locked)
 			   );
 
+   wire tagdone;
+   wire [87:0] evttag;
+  
+   
   fast_control fc_block(
 			.clk_bx(clk_bx),
 			.clk125(sysClk125),
 			.clk_refd2(locRefClk_fab),
 			.fc_stream_enc(fc_stream),
+			.tagdone(tagdone),
+			.evttag(evttag),
 			.reset(axilRst),
 			.axi_clk(axilClk),
 			.axi_wstr(fc_wstr),.axi_rstr(fc_rstr),
@@ -244,6 +250,9 @@ ldmx_daq theDAQ(.clk_link(clk_link),
 		.link_data(data_from_link),
 		.link_is_k(k_from_link),
 		.link_valid(link_valid),
+		.bx_clk(clk_bx),
+		.evttag(evttag),
+		.tagdone(tagdone),
 		.reset(sysClk125Rst),
 		.dma_clk(dmaClk),
 		.dma_ready(dmaIbSlave_tReady),
