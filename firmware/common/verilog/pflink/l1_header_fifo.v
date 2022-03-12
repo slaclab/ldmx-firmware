@@ -76,10 +76,10 @@ module l1_header_fifo(input bx_clk,
    
    always @(posedge clk125) begin
       newspill125<=newspill;      
-      if (newsplill125) timeinspill<=32'h0;
+      if (newspill125) timeinspill<=32'h0;
       else if (count) timeinspill<=timeinspill+32'h1;
       else timeinspill<=timeinspill;
    end
-end    
+endmodule
    
    
