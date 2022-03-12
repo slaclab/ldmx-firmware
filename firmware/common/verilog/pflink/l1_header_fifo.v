@@ -14,7 +14,7 @@ module l1_header_fifo(input bx_clk,
 		      output reg [31:0] tag_evtid,
 		      output reg [31:0] tag_timeinspill,
 		      output reg [11:0] tag_spill, 
-		      output reg [11:0] tag_bxid
+		      output reg [11:0] tag_bxid,
 		      output reg [31:0] evtid,
 		      output reg [11:0] spill
 		      );
