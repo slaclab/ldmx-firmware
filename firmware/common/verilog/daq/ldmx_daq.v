@@ -47,7 +47,7 @@ module ldmx_daq(
 	
 	always @(posedge axi_clk) reset_io<=reset;
 
-   localparam FIRMWARE_VERSION = 8'h12;
+   localparam FIRMWARE_VERSION = 8'h13;
    
    
    // Command registers
@@ -68,11 +68,10 @@ module ldmx_daq(
    wire        advance_read;
    wire        advance_tag;
    wire        enable_dma_io;
+   reg 	       enable_dma;
    wire [7:0]  fpga_id;
    wire [3:0]  l1a_bundle_factor;
    wire [31:0] runinfo;
-   
- 
    
    assign page_size_io=Command[0][1:0];
    assign enable_dma_io=Command[0][4];
@@ -106,7 +105,7 @@ module ldmx_daq(
    wire 		     is_end_of_event;
    wire [31:0] 		     link_data_d;
    wire [10:0] 		     read_buffer_lengths;
-   reg [8:0] 		     buf_len_read_which;
+   reg [5:0] 		     buf_len_read_which;
 	
    always @(posedge dma_clk)
      if (enable_dma) buf_len_read_which<=dma_buf_id;
@@ -139,7 +138,7 @@ module ldmx_daq(
    end
 
    reg empty, was_advance;
-   reg [8:0] nevents;
+   reg [5:0] nevents;
    wire        dma_done_with_buffer, dma_done_with_buffer_axi;
    SinglePulseDualClock spdc_dma_done_with_buffer(.i(dma_done_with_buffer),.o(dma_done_with_buffer_axi),.oclk(axi_clk));
 	
@@ -148,7 +147,7 @@ module ldmx_daq(
       nevents<=(w_buf_id-r_buf_id);
       was_advance<=advance_read;
       if (reset_daq_io) r_buf_id<=6'h0;
-      else if ((~advance_read && was_advance) || dma_done_with_buffer_axi) begin
+      else if (!empty && ((~advance_read && was_advance) || dma_done_with_buffer_axi)) begin
 	 if (page_size_link==2'h0) r_buf_id<=r_buf_id+6'h1; // simple sum...
 	 else if (page_size_link==2'h1) begin 
 	    r_buf_id[5]<=1'h0;
@@ -201,11 +200,9 @@ module ldmx_daq(
 
    reg [5:0]   r_buf_addr_overlay;
    reg [10:0]  axi_raddr_latch;
-   reg 	       enable_dma;
-   
          	
    always @(posedge dma_clk) begin
-      reset_clk_dma<=reset;
+      reset_clk_dma<=reset || reset_daq_io;
       enable_dma<=enable_dma_io;
       
             

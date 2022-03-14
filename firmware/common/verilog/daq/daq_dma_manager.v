@@ -10,12 +10,12 @@ module daq_dma_manager (
 			input clk,
 			input enable,
 			input [3:0]  bundle_trigcount_async, // how many readouts to bundle for an L1A
-			input [8:0]  nreadouts_available_async,
+			input [5:0]  nreadouts_available_async,
 			input [5:0]  r_buf_id, // what is the current read buffer base pointer
 			output reg [5:0] pick_buf_id,
-			input [9:0]  buf_len,
+			input [10:0]  buf_len,
 			input [7:0] fpga_id,
-			output reg [9:0] r_ptr,
+			output reg [10:0] r_ptr,
 			input [63:0] data_from_buffer,
 			output [63:0] dma_data,
 			output dma_valid,
@@ -32,7 +32,7 @@ module daq_dma_manager (
 
    localparam FormatVersion = 4'h2;
 
-   localparam HEADER_LEN = 9'h6; // actually the id of the last header word
+   localparam HEADER_LEN = 11'h6; // actually the id of the last header word
    
    reg [63:0] 			     header [6:0];
    reg [3:0] 			     bundle_trigcount;   
@@ -76,8 +76,8 @@ always @(posedge clk)
      if (r_ptr==HEADER_LEN) state<=ST_FIRST_BUFFER;
      else state<=ST_COPY_HEADER;     
   end else if (state==ST_COPY) begin
-     if (r_ptr[9:1]==(buf_len[9:1]+buf_len[0]) && on_last_buffer) state<=ST_DONE;
-	  else if (r_ptr[9:1]==(buf_len[9:1]+buf_len[0])) state<=ST_NEXT_BUFFER;
+     if (r_ptr[10:1]==(buf_len[10:1]+buf_len[0]) && on_last_buffer) state<=ST_DONE;
+	  else if (r_ptr[10:1]==(buf_len[10:1]+buf_len[0])) state<=ST_NEXT_BUFFER;
 	  else state<=ST_COPY;
   end else if (state==ST_FIRST_BUFFER && space_available) state<=ST_NEXT_BUFFER_WAIT;
   else if (state==ST_NEXT_BUFFER) state<=ST_NEXT_BUFFER_SPACE_WAIT;
@@ -109,31 +109,31 @@ always @(posedge clk) begin
 
    if (state==ST_IDLE) header[1]<=64'h0;
    else begin
-      if (state==ST_LEN_STORE && pick_trig_count==4'h0) header[1][15:0]<={4'h0,buf_len};
-      if (state==ST_LEN_STORE && pick_trig_count==4'h1) header[1][31:16]<={4'h0,buf_len};
-      if (state==ST_LEN_STORE && pick_trig_count==4'h2) header[1][47:32]<={4'h0,buf_len};
-      if (state==ST_LEN_STORE && pick_trig_count==4'h3) header[1][63:48]<={4'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'h0) header[1][15:0]<={5'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'h1) header[1][31:16]<={5'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'h2) header[1][47:32]<={5'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'h3) header[1][63:48]<={5'h0,buf_len};
    end
    if (state==ST_IDLE) header[2]<=64'h0;
    else begin
-      if (state==ST_LEN_STORE && pick_trig_count==4'h4) header[2][15:0]<={4'h0,buf_len};
-      if (state==ST_LEN_STORE && pick_trig_count==4'h5) header[2][31:16]<={4'h0,buf_len};
-      if (state==ST_LEN_STORE && pick_trig_count==4'h6) header[2][47:32]<={4'h0,buf_len};
-      if (state==ST_LEN_STORE && pick_trig_count==4'h7) header[2][63:48]<={4'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'h4) header[2][15:0]<={5'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'h5) header[2][31:16]<={5'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'h6) header[2][47:32]<={5'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'h7) header[2][63:48]<={5'h0,buf_len};
    end
    if (state==ST_IDLE) header[3]<=64'h0;
    else begin
-      if (state==ST_LEN_STORE && pick_trig_count==4'h8) header[3][15:0]<={4'h0,buf_len};
-      if (state==ST_LEN_STORE && pick_trig_count==4'h9) header[3][31:16]<={4'h0,buf_len};
-      if (state==ST_LEN_STORE && pick_trig_count==4'ha) header[3][47:32]<={4'h0,buf_len};
-      if (state==ST_LEN_STORE && pick_trig_count==4'hb) header[3][63:48]<={4'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'h8) header[3][15:0]<={5'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'h9) header[3][31:16]<={5'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'ha) header[3][47:32]<={5'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'hb) header[3][63:48]<={5'h0,buf_len};
    end
    if (state==ST_IDLE) header[4]<=64'h0;
    else begin
-      if (state==ST_LEN_STORE && pick_trig_count==4'hc) header[4][15:0]<={4'h0,buf_len};
-      if (state==ST_LEN_STORE && pick_trig_count==4'hd) header[4][31:16]<={4'h0,buf_len};
-      if (state==ST_LEN_STORE && pick_trig_count==4'he) header[4][47:32]<={4'h0,buf_len};
-      if (state==ST_LEN_STORE && pick_trig_count==4'hf) header[4][63:48]<={4'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'hc) header[4][15:0]<={5'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'hd) header[4][31:16]<={5'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'he) header[4][47:32]<={5'h0,buf_len};
+      if (state==ST_LEN_STORE && pick_trig_count==4'hf) header[4][63:48]<={5'h0,buf_len};
    end
 
    if (state==ST_IDLE) header[5]<=64'h0;
@@ -162,9 +162,9 @@ end
    end
 
    always @(posedge clk) begin
-      if (state==ST_IDLE || state==ST_NEXT_BUFFER || state==ST_FIRST_BUFFER) r_ptr<=9'h0;
-      else if (state==ST_COPY_HEADER) r_ptr<=r_ptr+9'h1;
-      else if (state==ST_COPY_HEADER || state==ST_COPY || state==ST_NEXT_BUFFER_WAIT || state==ST_NEXT_BUFFER_WAIT2) r_ptr<=r_ptr+9'h2;
+      if (state==ST_IDLE || state==ST_NEXT_BUFFER || state==ST_FIRST_BUFFER) r_ptr<=11'h0;
+      else if (state==ST_COPY_HEADER) r_ptr<=r_ptr+11'h1;
+      else if (state==ST_COPY_HEADER || state==ST_COPY || state==ST_NEXT_BUFFER_WAIT || state==ST_NEXT_BUFFER_WAIT2) r_ptr<=r_ptr+11'h2;
       else r_ptr<=r_ptr;
    end 
         
@@ -185,10 +185,13 @@ always @(posedge clk) begin
   else space_available<=space_available;
 end
 
-   reg [8:0] 			     nreadouts_available;
+   reg [5:0] nreadouts_available, nreadouts_available_validate;
 	     
 always @(posedge clk) begin
-   nreadouts_available<=nreadouts_available_async;
+   nreadouts_available_validate<=nreadouts_available_async;
+   if (nreadouts_available_validate==nreadouts_available_async) nreadouts_available<=nreadouts_available_validate;
+   else nreadouts_available<=nreadouts_available;
+   
    bundle_trigcount<=(bundle_trigcount_async==4'h0)?(4'h1):(bundle_trigcount_async);   
    ready_to_build<=(nreadouts_available>=bundle_trigcount);   
 end
