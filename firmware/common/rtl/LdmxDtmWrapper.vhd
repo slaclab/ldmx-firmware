@@ -195,11 +195,11 @@ begin
          TPD_G             => TPD_G,
          NUM_CLOCKS_G      => 2,
          BANDWIDTH_G       => "OPTIMIZED",
-         CLKIN_PERIOD_G    => 4.0,
-         DIVCLK_DIVIDE_G   => 1,
-         CLKFBOUT_MULT_F_G => 3.72,     -- 930Mhz
-         CLKOUT0_DIVIDE_G  => 5,        -- 186Mhz
-         CLKOUT1_DIVIDE_G  => 25        -- 37.2Mhz
+         CLKIN_PERIOD_G    => 8.0,
+         DIVCLK_DIVIDE_G   => 3,
+         CLKFBOUT_MULT_F_G => 31.25,    -- 930Mhz
+         CLKOUT0_DIVIDE_G  => 7,        -- 186Mhz
+         CLKOUT1_DIVIDE_G  => 35        -- 37.2Mhz
          )
       port map (
          clkIn     => locRefClkG,

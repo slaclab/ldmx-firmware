@@ -197,7 +197,7 @@ begin
          pgpTxRstOut     => pgpTxRst,                -- [out]
          pgpRxClkOut     => pgpRxClk,                -- [out]
          pgpRxRstOut     => pgpRxRst,                -- [out]
---         stableClkOut     => stableClkOut,      -- [out]
+         stableClkOut    => refClkOut,               -- [out]
          pgpRxIn         => pgpRxIn,                 -- [in]
          pgpRxOut        => pgpRxOut,                -- [out]
          pgpTxIn         => pgpTxIn,                 -- [in]
