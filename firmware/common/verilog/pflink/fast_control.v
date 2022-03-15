@@ -153,7 +153,7 @@ l1_header_fifo header_fifo(.bx_clk(clk_bx),
    always @(posedge axi_clk)
      if (!axi_rstr) axi_dout<=32'h0;
      else if (axi_raddr[7:2]==6'h0) axi_dout<=Control[axi_raddr[1:0]];
-     else if (axi_raddr[7:6]==2'h1) axi_dout<=Status[axi_raddr[1:0]];
+     else if (axi_raddr[7:6]==2'h1) axi_dout<=Status[axi_raddr[3:0]];
      else axi_dout<=32'h0;
 
    assign Status[0]=32'habcd0001;
