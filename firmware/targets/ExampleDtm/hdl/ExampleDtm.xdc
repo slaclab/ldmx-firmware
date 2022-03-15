@@ -39,6 +39,9 @@ create_clock -name locRefClk -period 4 [get_ports locRefClkP]
 create_clock -name pgpRxRecClk -period 8 [get_pins U_LdmxDtmWrapper/U_LdmxDtmPgp_1/U_Pgp2bGtx7FixedLatWrapper_1/Pgp2bGtx7Fixedlat_Inst/Gtx7Core_1/gtxe2_i/RXOUTCLK]
 create_generated_clock -name pgpRxRecClkMmcm [get_pins U_LdmxDtmWrapper/U_LdmxDtmPgp_1/U_Pgp2bGtx7FixedLatWrapper_1/RxClkMmcmGen.ClockManager7_1/PllGen.U_Pll/CLKOUT0]
 
+create_generated_clock -name pgpTxClk [get_pins U_LdmxDtmWrapper/U_LdmxDtmPgp_1/U_Pgp2bGtx7FixedLatWrapper_1/BUFDS_GTE2_0_GEN.IBUFDS_GTE2_0/ODIV2]
+
+
 create_generated_clock -name distClk [get_pins U_LdmxDtmWrapper/U_PLL/MmcmGen.U_Mmcm/CLKOUT0]
 create_generated_clock -name distDivClk [get_pins U_LdmxDtmWrapper/U_PLL/MmcmGen.U_Mmcm/CLKOUT1]
 
@@ -50,9 +53,11 @@ set_clock_groups -asynchronous \
 
 set_clock_groups -asynchronous \
     -group [get_clocks  distClk] \
-    -group [get_clocks  locRefClk] \
+    -group [get_clocks  pgpTxClk] \
+    -group [get_clocks  pgpRxRecClk] 
 
 set_clock_groups -asynchronous \
     -group [get_clocks  distDivClk] \
-    -group [get_clocks  locRefClk] \
+    -group [get_clocks  pgpTxClk] \
+    -group [get_clocks  pgpRxRecClk]    
 
