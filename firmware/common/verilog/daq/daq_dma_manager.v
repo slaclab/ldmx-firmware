@@ -37,7 +37,7 @@ module daq_dma_manager (
    reg [63:0] 			     header [6:0];
    reg [3:0] 			     bundle_trigcount;   
    reg 				     ready_to_build;   
-   reg [3:0] 			     state;
+   reg [3:0] 			     state, wasState;
 	wire [8:0]             buffer_space;
 
    reg [3:0] 			     pick_trig_count;
@@ -57,10 +57,13 @@ module daq_dma_manager (
    localparam ST_NEXT_BUFFER_WAIT2      = 4'hb;
    localparam ST_FIRST_BUFFER           = 4'hc;
    localparam ST_COPY                   = 4'hd;
+   localparam ST_DONEWAIT               = 4'he;
    localparam ST_DONE                   = 4'hf;
 
 	reg on_last_buffer;
 	reg space_available;
+   reg [3:0] st_counter;
+   
 
 always @(posedge clk)
   if (reset || !enable) state<=ST_IDLE;
@@ -86,10 +89,19 @@ always @(posedge clk)
   else if (state==ST_NEXT_BUFFER_SPACE && space_available) state<=ST_NEXT_BUFFER_WAIT;
   else if (state==ST_NEXT_BUFFER_WAIT) state<=ST_NEXT_BUFFER_WAIT2;
   else if (state==ST_NEXT_BUFFER_WAIT2) state<=ST_COPY;    
-  else if (state==ST_DONE) state<=ST_IDLE;    
+  else if (state==ST_DONE) state<=ST_DONEWAIT;
+  else if (state==ST_DONEWAIT && st_counter>4'h4) state<=ST_IDLE;    
   else begin
      state<=state;
   end
+
+   always @(posedge clk) begin
+      wasState<=state;
+      if (wasState!=state) st_counter<=4'h0;
+      else if (st_counter!=4'hf) st_counter<=st_counter+4'h1;
+      else st_counter<=st_counter;
+   end
+      
 
 always @(posedge clk)
   if (state==ST_IDLE) on_last_buffer<=1'h0;
@@ -179,17 +191,19 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) begin
-  if (state==ST_SPACE || state==ST_IDLE) space_available<=(buffer_space>9'd5); // need a header's worth of space
+  if (state==ST_SPACE || state==ST_IDLE) space_available<=(buffer_space>(HEADER_LEN+8)); // need a header's worth of space
   else if (state==ST_FIRST_BUFFER || state==ST_NEXT_BUFFER_SPACE) space_available<=(buffer_space>=buf_len);
   else if (state==ST_NEXT_BUFFER || state==ST_LEN_PREP) space_available<=1'h0;
   else space_available<=space_available;
 end
 
-   reg [5:0] nreadouts_available, nreadouts_available_validate;
+   reg [5:0] nreadouts_available, nreadouts_available_validate, nreadouts_available_validate2;
+   
 	     
 always @(posedge clk) begin
    nreadouts_available_validate<=nreadouts_available_async;
-   if (nreadouts_available_validate==nreadouts_available_async) nreadouts_available<=nreadouts_available_validate;
+   nreadouts_available_validate2<=nreadouts_available_validate;
+   if (nreadouts_available_validate==nreadouts_available_async && nreadouts_available_validate2==nreadouts_available_validate) nreadouts_available<=nreadouts_available_validate2;
    else nreadouts_available<=nreadouts_available;
    
    bundle_trigcount<=(bundle_trigcount_async==4'h0)?(4'h1):(bundle_trigcount_async);   
