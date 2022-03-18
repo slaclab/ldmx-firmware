@@ -231,7 +231,7 @@ begin
          TPD_G              => TPD_G,
          COMMON_TX_CLK_G    => false,
          COMMON_RX_CLK_G    => false,
-         WRITE_EN_G         => false,
+         WRITE_EN_G         => true,
          AXI_CLK_FREQ_G     => 125.0e6,              -- check this
          STATUS_CNT_WIDTH_G => 32,
          ERROR_CNT_WIDTH_G  => 16)
