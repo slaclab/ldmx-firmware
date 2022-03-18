@@ -177,7 +177,7 @@ begin
          PMA_RSV_G             => x"00018480",
          RX_OS_CFG_G           => "0000010000000",
          RXCDR_CFG_G           => x"03000023ff40200020",
---          RXDFEXYDEN_G            => RXDFEXYDEN_G,
+         RXDFEXYDEN_G          => '0',
          RX_DFE_KL_CFG2_G      => X"301148AC",
          STABLE_CLK_SRC_G      => "gtClk0Div2",
          TX_REFCLK_SRC_G       => "gtClk0",
