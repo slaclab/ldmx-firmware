@@ -149,6 +149,8 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 			.fc_stream_enc(fc_stream),
 			.tagdone(tagdone),
 			.evttag(evttag),
+			.external_l1a(trigger),
+			.external_spill(spill),
 			.reset(axilRst),
 			.axi_clk(axilClk),
 			.axi_wstr(fc_wstr),.axi_rstr(fc_rstr),

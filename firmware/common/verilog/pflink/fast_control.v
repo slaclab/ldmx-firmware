@@ -7,8 +7,10 @@ module fast_control(
     input 	      clk_bx,
 //    input 			clk_link,
     input 	      clk125,
-    input 	      clk_refd2,
+    input 	      clk_refd2, 
     input 	      tagdone,
+    input 	      external_l1a,
+    input 	      external_spill, 
     output reg [87:0] evttag,
     output reg [15:0] fc_stream_enc,
     input 	      reset,
@@ -44,26 +46,38 @@ module fast_control(
    assign DefaultCtlReg[0]=32'h0;
    assign DefaultCtlReg[1]=32'h0;
    assign DefaultCtlReg[2]={4'h0,4'h2,8'd20,4'h0,12'd45};
-   assign DefaultCtlReg[3]=32'h0;
+   assign DefaultCtlReg[3]={20'd1000,12'd320};
    
    wire [7:0]  calib_l1a_offset = Control[2][23:16];     
    wire [3:0]  calib_pulse_len = Control[2][27:24];
    wire [11:0] orb_length = Control[2][11:0];
+   wire [11:0] l1a_veto_len = Control[3][11:0];
+   wire [19:0] periodic_time = Control[3][31:12];
+   
+   
    wire        send_l1a_sw_io = Control[1][0];
    wire        send_link_reset_io = Control[1][1];
    wire        send_buffer_clear_io = Control[1][2];
    wire        send_calib_pulse_io = Control[1][3];
    wire        fifo_clear_io = Control[1][4];   
-   wire        newspill = Control[1][8];
-   
+   wire        newspill_io = Control[1][8];
+
+   wire        enable_external_l1a = Control[0][1];
+   wire        enable_external_spill = Control[0][0];
+   wire        enable_timer_l1a = Control[0][2];
+      
 
    wire        send_l1a_sw, send_link_reset, send_buffer_clear, send_calib_pulse;
-   reg 	       calib_l1a;
+   reg 	       calib_l1a, veto_l1a, timer_l1a;
    
    SinglePulseDualClock spdc_l1a_sw(.i(send_l1a_sw_io),.o(send_l1a_sw),.oclk(clk_bx));
    SinglePulseDualClock spdc_link_reset(.i(send_link_reset_io),.o(send_link_reset),.oclk(clk_bx));
    SinglePulseDualClock spdc_buffer_clear(.i(send_buffer_clear_io),.o(send_buffer_clear),.oclk(clk_bx));
    SinglePulseDualClock spdc_calib_pulse(.i(send_calib_pulse_io),.o(send_calib_pulse),.oclk(clk_bx));
+   SinglePulseDualClock spdc_l1a_sw(.i(send_l1a_sw_io),.o(send_l1a_sw),.oclk(clk_bx));
+   
+   SinglePulseDualClock spdc_l1a_ext(.i(external_l1a && enable_external_l1a),.o(send_l1a_ext),.oclk(clk_bx));
+
  
    reg [11:0]  bx_counter;
    
@@ -82,16 +96,46 @@ module fast_control(
       else calib_l1a_delay<=8'h0;
       calib_l1a<=(calib_l1a_delay==8'h1);
    end
+
+   reg [5:0] timer_prescale;
+   reg [19:0] timer_counter;
+      
+   always @(posedge clk_bx) begin
+      if (timer_prescale==6'd39 || fifo_reset) timer_prescale<=6'h0;
+      else timer_prescale<=timer_prescale+6'h1;
+
+      if (reset || !enable_timer_l1a) timer_counter<=20'h0;
+      else if (timer_counter==20'h0) timer_counter<=periodic_time;
+      else if (timer_prescale==6'h0) timer_counter<=timer_counter-20'h1;
+      else timer_counter<=timer_counter;
+
+      timer_l1a<=(timer_counter==20'h1) && (timer_prescale==6'h1); // single pulse at 40 MHz      
+   end
+   
+   reg [11:0] veto_downcounter;
+   reg [11:0] vetoed_counter;
+   
+   always @(posedge clk_bx) begin
+      veto_l1a<=fc_word[1] || (veto_downcounter!=12'h0);
+      if (fc_word[1]) veto_downcounter<=l1a_veto_len;
+      else if (veto_downcounter!=12'h0) veto_downcounter<=veto_downcounter-12'h1;
+      else veto_downcounter<=veto_downcounter;
+
+      if (fifo_clear) vetoed_counter<=12'h0;
+      else if (((send_l1a_sw)||(calib_l1a)||(timer_l1a)||(send_l1a_ext)) && veto_l1a) vetoed_counter<=vetoed_counter+12'h1;
+      else vetoed_counter<=vetoed_counter;
+            
+   end
 	
    reg [7:0] fc_word;
    always @(posedge clk_bx) begin
       fc_word[0]<=(bx_counter=='h0);
-      fc_word[1]<=(send_l1a_sw)||(calib_l1a);
+      fc_word[1]<=((send_l1a_sw)||(calib_l1a)||(timer_l1a)||(send_l1a_ext)) && !veto_l1a;
       fc_word[2]<=(send_link_reset);
       fc_word[3]<=(send_buffer_clear);
-      fc_word[4]<=Control[0][8]; // for debugging, quasi-static signals.
+      fc_word[4]<=1'h0; 
       fc_word[5]<=send_calib_pulse || (calib_pulse_ext!=4'h0);
-      fc_word[7:6]<=Control[0][11:10]; // for debugging, quasi-static signals.
+      fc_word[7:6]<=2'h0; 
    end
    
    wire [15:0] fc_word_enc_i;
@@ -112,9 +156,11 @@ module fast_control(
      evttag<={tag_evtid,tag_timeinspill,tag_spill,tag_bxid};
 
    wire        tagdone_40, newspill_40, fifo_clear;
+   
+   SinglePulseDualClock spdc_spill_ext(.i(external_spill && enable_external_spill),.o(send_l1a_sw),.oclk(clk_bx));
 
    SinglePulseDualClock spdc_done(.i(tagdone),.o(tagdone_40),.oclk(clk_bx));
-   SinglePulseDualClock spdc_spill(.i(newspill),.o(newspill_40),.oclk(clk_bx));   
+   SinglePulseDualClock spdc_spill(.i(newspill_io||enable_external_spill),.o(newspill_40),.oclk(clk_bx));   
    SinglePulseDualClock spdc_fifo_clear(.i(reset || fifo_clear_io),.o(fifo_clear),.oclk(clk_bx));   
       
 l1_header_fifo header_fifo(.bx_clk(clk_bx),
@@ -157,17 +203,18 @@ l1_header_fifo header_fifo(.bx_clk(clk_bx),
      else axi_dout<=32'h0;
 
    assign Status[0]=32'habcd0001;
-   assign Status[1]=32'h00000002;
+   assign Status[1]=32'h00000010;
 
+   clkRateTool clkm125(.reset_in(reset),.clk125(clk125),.clktest(clk125),.value(Status[2]));
+   clkRateTool clkmrefd2(.reset_in(reset),.clk125(clk125),.clktest(clk_refd2),.value(Status[3]));
+   
    assign Status[4]={4'h0,spill_count, 8'h0,header_occupancy};
    assign Status[5]=event_count;
    assign Status[6]=tag_evtid;
    assign Status[7]=tag_timeinspill;
    assign Status[8]={4'h0,tag_spill,4'h0,tag_bxid};
-   
-
-   clkRateTool clkm125(.reset_in(reset),.clk125(clk125),.clktest(clk125),.value(Status[2]));
-   clkRateTool clkmrefd2(.reset_in(reset),.clk125(clk125),.clktest(clk_refd2),.value(Status[3]));
+   assign Status[9]={20'h0,vetoed_counter};   
+  
    
    reg [2:0] wack_delay;
    always @(posedge axi_clk)
