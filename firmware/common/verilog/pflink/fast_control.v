@@ -155,10 +155,8 @@ module fast_control(
    always @(posedge axi_clk)
      evttag<={tag_evtid,tag_timeinspill,tag_spill,tag_bxid};
 
-   SinglePulseDualClock spdc_spill_ext(.i(external_spill && enable_external_spill),.o(send_l1a_sw),.oclk(clk_bx));
-
    SinglePulseDualClock spdc_done(.i(tagdone),.o(tagdone_40),.oclk(clk_bx));
-   SinglePulseDualClock spdc_spill(.i(newspill_io||enable_external_spill),.o(newspill_40),.oclk(clk_bx));   
+   SinglePulseDualClock spdc_spill(.i(newspill_io||(external_spill && enable_external_spill)),.o(newspill_40),.oclk(clk_bx));   
    SinglePulseDualClock spdc_fifo_clear(.i(reset || fifo_clear_io),.o(fifo_clear),.oclk(clk_bx));   
       
 l1_header_fifo header_fifo(.bx_clk(clk_bx),
