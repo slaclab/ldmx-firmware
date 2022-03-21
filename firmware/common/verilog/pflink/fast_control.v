@@ -67,6 +67,7 @@ module fast_control(
    wire        enable_timer_l1a = Control[0][2];
       
 
+   wire        tagdone_40, newspill_40, fifo_clear;   
    wire        send_l1a_sw, send_link_reset, send_buffer_clear, send_calib_pulse;
    reg 	       calib_l1a, veto_l1a, timer_l1a;
    
@@ -74,7 +75,6 @@ module fast_control(
    SinglePulseDualClock spdc_link_reset(.i(send_link_reset_io),.o(send_link_reset),.oclk(clk_bx));
    SinglePulseDualClock spdc_buffer_clear(.i(send_buffer_clear_io),.o(send_buffer_clear),.oclk(clk_bx));
    SinglePulseDualClock spdc_calib_pulse(.i(send_calib_pulse_io),.o(send_calib_pulse),.oclk(clk_bx));
-   SinglePulseDualClock spdc_l1a_sw(.i(send_l1a_sw_io),.o(send_l1a_sw),.oclk(clk_bx));
    
    SinglePulseDualClock spdc_l1a_ext(.i(external_l1a && enable_external_l1a),.o(send_l1a_ext),.oclk(clk_bx));
 
@@ -101,7 +101,7 @@ module fast_control(
    reg [19:0] timer_counter;
       
    always @(posedge clk_bx) begin
-      if (timer_prescale==6'd39 || fifo_reset) timer_prescale<=6'h0;
+      if (timer_prescale==6'd39 || fifo_clear) timer_prescale<=6'h0;
       else timer_prescale<=timer_prescale+6'h1;
 
       if (reset || !enable_timer_l1a) timer_counter<=20'h0;
@@ -155,8 +155,6 @@ module fast_control(
    always @(posedge axi_clk)
      evttag<={tag_evtid,tag_timeinspill,tag_spill,tag_bxid};
 
-   wire        tagdone_40, newspill_40, fifo_clear;
-   
    SinglePulseDualClock spdc_spill_ext(.i(external_spill && enable_external_spill),.o(send_l1a_sw),.oclk(clk_bx));
 
    SinglePulseDualClock spdc_done(.i(tagdone),.o(tagdone_40),.oclk(clk_bx));
