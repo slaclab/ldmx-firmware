@@ -158,8 +158,6 @@ begin
          gtRxP           => gtRxP,            -- [in]
          gtRxN           => gtRxN,            -- [in]
          refClkOut       => locRefClkG,       -- [out]
-         distClk         => distClk,          -- [out]
-         distClkRst      => distClkRst,       -- [out]
          l1a             => triggerIn,        -- [out]
          spill           => spillIn,          -- [out]
          busy            => busySync);        -- [in]
@@ -190,20 +188,51 @@ begin
 --          );
 
 --    -- PLL
+
+--    U_MMCM_IDELAY : entity surf.ClockManager7
+--       generic map(
+--          TPD_G              => TPD_G,
+--          TYPE_G             => "MMCM",
+--          INPUT_BUFG_G       => false,
+--          FB_BUFG_G          => true,    -- Without this, will never lock in simulation
+--          RST_IN_POLARITY_G  => '1',
+--          NUM_CLOCKS_G       => 1,
+--          -- MMCM attributes
+--          BANDWIDTH_G        => "OPTIMIZED",
+--          CLKIN_PERIOD_G     => 8.0,     -- 125 MHz
+--          DIVCLK_DIVIDE_G    => 1,       -- 125 MHz
+--          CLKFBOUT_MULT_F_G  => 8.0,     -- 1.0GHz =  125 MHz x 8
+--          CLKOUT0_DIVIDE_F_G => 5.0)     --  = 200 MHz = 1.0GHz/5
+--       port map(
+--          clkIn     => locRefClkG,
+--          rstIn     => '0',
+--          clkOut(0) => iDistClk,
+-- --         clkOut(1) => idelayClk,
+-- --         rstOut(0) => timingRst125,
+--          rstOut(0) => iDistClkRst,
+--          locked    => open);
+
+
+   
    U_PLL : entity surf.ClockManager7
       generic map (
-         TPD_G             => TPD_G,
-         NUM_CLOCKS_G      => 2,
-         BANDWIDTH_G       => "OPTIMIZED",
-         CLKIN_PERIOD_G    => 8.0,
-         DIVCLK_DIVIDE_G   => 3,
-         CLKFBOUT_MULT_F_G => 31.25,    -- 930Mhz
-         CLKOUT0_DIVIDE_G  => 7,        -- 186Mhz
-         CLKOUT1_DIVIDE_G  => 35        -- 37.2Mhz
+         TPD_G              => TPD_G,
+--         SIMULATION_G       => true,
+         FB_BUFG_G          => true,
+         INPUT_BUFG_G       => false,
+         TYPE_G             => "MMCM",
+         NUM_CLOCKS_G       => 2,
+         RST_IN_POLARITY_G  => '1',
+         BANDWIDTH_G        => "OPTIMIZED",
+         CLKIN_PERIOD_G     => 8.0,
+         DIVCLK_DIVIDE_G    => 3,
+         CLKFBOUT_MULT_F_G  => 31.25,   -- 930Mhz
+         CLKOUT0_DIVIDE_F_G => 7.0,     -- 186Mhz
+         CLKOUT1_DIVIDE_G   => 35       -- 37.2Mhz
          )
       port map (
-         clkIn     => locRefClkG,
-         rstIn     => axilClkRst,
+         clkIn     => sysClk125,
+         rstIn     => '0',
          clkOut(0) => idistClk,
          clkOut(1) => idistDivClk,
          rstOut(0) => idistClkRst,
@@ -213,23 +242,23 @@ begin
    -- Trigger Signal Processing
    -----------------------------------
 
-   U_SynchronizerEdge_1 : entity surf.SynchronizerEdge
+   U_SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk        => iDistDivClk,     -- [in]
-         rst        => iDistDivClkRst,  -- [in]
-         dataIn     => triggerIn,       -- [in]
-         risingEdge => triggerRise);    -- [out]
+         clk     => iDistDivClk,        -- [in]
+         rst     => iDistDivClkRst,     -- [in]
+         dataIn  => triggerIn,          -- [in]
+         dataOut => triggerRise);       -- [out]
 
-   U_SynchronizerEdge_2 : entity surf.SynchronizerEdge
+   U_SynchronizerOneShot_2 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk        => iDistDivClk,     -- [in]
-         rst        => iDistDivClkRst,  -- [in]
-         dataIn     => spillIn,         -- [in]
-         risingEdge => spillRise);      -- [out]
+         clk     => iDistDivClk,        -- [in]
+         rst     => iDistDivClkRst,     -- [in]
+         dataIn  => spillIn,            -- [in]
+         dataOut => spillRise);         -- [out]
 
 
    process (idistDivClk)

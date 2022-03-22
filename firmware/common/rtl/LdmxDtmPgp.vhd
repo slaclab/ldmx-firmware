@@ -59,8 +59,6 @@ entity LdmxDtmPgp is
       refClkOut : out sl;
 
       -- App IO
-      distClk    : out sl;
-      distClkRst : out sl;
       l1a        : out sl;
       spill      : out sl;
 
@@ -83,23 +81,71 @@ architecture rtl of LdmxDtmPgp is
    signal pgpRxOut : Pgp2bRxOutType := PGP2B_RX_OUT_INIT_C;
    signal locRxIn  : Pgp2bRxInType  := PGP2B_RX_IN_INIT_C;
 
-   signal locAxilReadMasters  : AxiLiteReadMasterArray(1 downto 0);
-   signal locAxilReadSlaves   : AxiLiteReadSlaveArray(1 downto 0);
-   signal locAxilWriteMasters : AxiLiteWriteMasterArray(1 downto 0);
-   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
+   signal locAxilReadMasters  : AxiLiteReadMasterArray(2 downto 0);
+   signal locAxilReadSlaves   : AxiLiteReadSlaveArray(2 downto 0);
+   signal locAxilWriteMasters : AxiLiteWriteMasterArray(2 downto 0);
+   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(2 downto 0);
+
+   signal spillTmp : sl;
+   signal l1aTmp   : sl;
 
    signal spillLoc : sl;
    signal l1aLoc   : sl;
 
+   signal spillRst : sl;
+   signal l1aRst   : sl;
+
+   signal spillCnt : slv(31 downto 0);
+   signal l1aCnt   : slv(31 downto 0);
+
+   signal writeRegister : slv(31 downto 0);
+
+   signal testSpill : sl;
+   signal testL1a   : sl;
+
+
 begin
+
+   U_ClockDivider_1 : entity surf.ClockDivider
+      generic map (
+         TPD_G         => TPD_G,
+         COUNT_WIDTH_G => 16)
+      port map (
+         clk        => pgpTxClk,         -- [in]
+         rst        => pgpTxRst,         -- [in]
+         highCount  => X"1000",          -- [in]
+         lowCount   => X"1000",          -- [in]
+         delayCount => (others => '0'),  -- [in]
+         divClk     => open,             -- [out]
+         preRise    => testSpill,        -- [out]
+         preFall    => open);            -- [out]
+
+   U_ClockDivider_2 : entity surf.ClockDivider
+      generic map (
+         TPD_G         => TPD_G,
+         COUNT_WIDTH_G => 16)
+      port map (
+         clk        => pgpTxClk,         -- [in]
+         rst        => pgpTxRst,         -- [in]
+         highCount  => X"0100",          -- [in]
+         lowCount   => X"0100",          -- [in]
+         delayCount => (others => '0'),  -- [in]
+         divClk     => open,             -- [out]
+         preRise    => testL1a,          -- [out]
+         preFall    => open);            -- [out]
+
+   locTxIn.opCode(0) <= testSpill;
+   locTxIn.opCode(1) <= testL1a;
+   locTxIn.opCodeEn  <= testSpill or testL1a;
+
 
    refClkOut <= pgpTxClk;
 
 
    locTxIn.locData(0) <= busy;
 
-   spillLoc <= pgpRxOut.opCodeEn and pgpRxOut.opCode(0);
-   l1aLoc   <= pgpRxOut.opCodeEn and pgpRxOut.opCode(1);
+   spillTmp <= pgpRxOut.opCodeEn and pgpRxOut.opCode(0);
+   l1aTmp   <= pgpRxOut.opCodeEn and pgpRxOut.opCode(1);
 
    U_RegisterVector_1 : entity surf.RegisterVector
       generic map (
@@ -108,8 +154,8 @@ begin
       port map (
          clk      => pgpRxClk,          -- [in]
          rst      => pgpRxRst,          -- [in]
-         sig_i(0) => spillLoc,          -- [in]
-         reg_o(0) => spill);            -- [out]
+         sig_i(0) => spillTmp,          -- [in]
+         reg_o(0) => spillLoc);         -- [out]
 
    U_RegisterVector_2 : entity surf.RegisterVector
       generic map (
@@ -118,14 +164,17 @@ begin
       port map (
          clk      => pgpRxClk,          -- [in]
          rst      => pgpRxRst,          -- [in]
-         sig_i(0) => l1aLoc,            -- [in]
-         reg_o(0) => l1a);              -- [out]
+         sig_i(0) => l1aTmp,            -- [in]
+         reg_o(0) => l1aLoc);           -- [out]
+
+   l1a   <= l1aLoc;
+   spill <= spillLoc;
 
    U_AxiCrossbar : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
-         NUM_MASTER_SLOTS_G => 2,
+         NUM_MASTER_SLOTS_G => 3,
          DEC_ERROR_RESP_G   => AXI_RESP_OK_C,
          MASTERS_CONFIG_G   => (
             0               => (
@@ -135,6 +184,10 @@ begin
 
             1               => (
                baseAddr     => AXIL_BASE_ADDR_G + x"1000",
+               addrBits     => 12,
+               connectivity => x"FFFF"),
+            2               => (
+               baseAddr     => AXIL_BASE_ADDR_G + x"2000",
                addrBits     => 12,
                connectivity => x"FFFF")
             )
@@ -149,6 +202,57 @@ begin
             mAxiWriteSlaves     => locAxilWriteSlaves,
             mAxiReadMasters     => locAxilReadMasters,
             mAxiReadSlaves      => locAxilReadSlaves);
+
+   U_SynchronizerOneShotCnt_1 : entity surf.SynchronizerOneShotCnt
+      generic map (
+         TPD_G          => TPD_G,
+         CNT_RST_EDGE_G => true,
+         CNT_WIDTH_G    => 32)
+      port map (
+         wrClk      => pgpRxClk,        -- [in]
+         wrRst      => pgpRxRst,        -- [in]
+         dataIn     => spillLoc,        -- [in]
+         rdClk      => axilClk,         -- [in]
+         rdRst      => axilRst,         -- [in]
+         rollOverEn => '0',             -- [in]
+         cntRst     => spillRst,        -- [in]
+         dataOut    => open,            -- [out]
+         cntOut     => spillCnt);       -- [out]
+
+   U_SynchronizerOneShotCnt_2 : entity surf.SynchronizerOneShotCnt
+      generic map (
+         TPD_G          => TPD_G,
+         CNT_RST_EDGE_G => true,
+         CNT_WIDTH_G    => 32)
+      port map (
+         wrClk      => pgpRxClk,        -- [in]
+         wrRst      => pgpRxRst,        -- [in]
+         dataIn     => spillLoc,        -- [in]
+         rdClk      => axilClk,         -- [in]
+         rdRst      => axilRst,         -- [in]
+         rollOverEn => '0',             -- [in]
+         cntRst     => l1aRst,          -- [in]
+         dataOut    => open,            -- [out]
+         cntOut     => l1aCnt);         -- [out]
+
+   U_AxiLiteRegs_1 : entity surf.AxiLiteRegs
+      generic map (
+         TPD_G           => TPD_G,
+         NUM_WRITE_REG_G => 1,
+         NUM_READ_REG_G  => 2)
+      port map (
+         axiClk           => axilClk,                 -- [in]
+         axiClkRst        => axilRst,                 -- [in]
+         axiReadMaster    => locAxilReadMasters(2),   -- [in]
+         axiReadSlave     => locAxilReadSlaves(2),    -- [out]
+         axiWriteMaster   => locAxilWriteMasters(2),  -- [in]
+         axiWriteSlave    => locAxilWriteSlaves(2),   -- [out]
+         writeRegister(0) => writeRegister,           -- [out]
+         readRegister(0)  => spillCnt,                -- [in]
+         readRegister(1)  => l1aCnt);                 -- [in]
+
+   l1aRst   <= writeRegister(0);
+   spillRst <= writeRegister(1);
 
    U_Pgp2bGtx7FixedLatWrapper_1 : entity surf.Pgp2bGtx7FixedLatWrapper
       generic map (
