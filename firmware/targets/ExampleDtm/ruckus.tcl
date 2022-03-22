@@ -9,7 +9,13 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 loadRuckusTcl $::env(TOP_DIR)/common/
 loadRuckusTcl $::env(TOP_DIR)/submodules/surf
 loadRuckusTcl $::env(TOP_DIR)/submodules/rce-gen3-fw-lib/DtmCore
+loadRuckusTcl $::env(TOP_DIR)/submodules/rce-gen3-fw-lib/DpmCore
 
 # Load target's source code and constraints
-loadSource      -dir  "$::DIR_PATH/hdl/"
+loadSource      -lib ldmx -dir "$::DIR_PATH/hdl/"
 loadConstraints -dir  "$::DIR_PATH/hdl/"
+
+loadSource       -lib ldmx -sim_only -dir "$::DIR_PATH/sim/"
+loadSource       -lib ldmx -sim_only -dir "$::DIR_PATH/../ExampleDpm/hdl/"
+
+set_property top {ExampleDtmTb} [get_filesets {sim_1}]

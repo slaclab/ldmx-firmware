@@ -21,9 +21,11 @@ library ldmx;
 
 entity ExampleDpm is
    generic (
-      TPD_G              : time                        := 1 ns;
-      BUILD_INFO_G       : BuildInfoType               := BUILD_INFO_DEFAULT_SLV_C;
-      HS_LINK_COUNT_G    : natural range 1 to 12       := 2);
+      TPD_G              : time                     := 1 ns;
+      BUILD_INFO_G       : BuildInfoType            := BUILD_INFO_DEFAULT_SLV_C;
+      SIM_MEM_PORT_NUM_G : natural range 0 to 65535 := 20000;
+      SIMULATION_G       : boolean                  := false;
+      HS_LINK_COUNT_G    : natural range 1 to 12    := 2);
    port (
 
       -- Debug
@@ -42,10 +44,10 @@ entity ExampleDpm is
       ethRefClkM : in  sl              := '0';
 
       -- RTM High Speed
-      dpmToRtmHsP : out slv(HS_LINK_COUNT_G-1 downto 0);
-      dpmToRtmHsM : out slv(HS_LINK_COUNT_G-1 downto 0);
-      rtmToDpmHsP : in  slv(HS_LINK_COUNT_G-1 downto 0);
-      rtmToDpmHsM : in  slv(HS_LINK_COUNT_G-1 downto 0);
+      dpmToRtmHsP : out slv(HS_LINK_COUNT_G-1 downto 0) := (others => '0');
+      dpmToRtmHsM : out slv(HS_LINK_COUNT_G-1 downto 0) := (others => '0');
+      rtmToDpmHsP : in  slv(HS_LINK_COUNT_G-1 downto 0) := (others => '0');
+      rtmToDpmHsM : in  slv(HS_LINK_COUNT_G-1 downto 0) := (others => '0');
 
       -- Reference Clocks
       locRefClkP : in sl;
@@ -78,9 +80,9 @@ architecture STRUCTURE of ExampleDpm is
    -------------------------------------------------------------------------------------------------
    -- AXI-Lite config
    -------------------------------------------------------------------------------------------------
-   constant AXIL_MASTER_SLOTS_C  : natural := 2;
-   constant AXIL_TIMING_INDEX_C  : integer := 0;
-   constant AXIL_LDMX_INDEX_C    : integer := 1;
+   constant AXIL_MASTER_SLOTS_C : natural := 2;
+   constant AXIL_TIMING_INDEX_C : integer := 0;
+   constant AXIL_LDMX_INDEX_C   : integer := 1;
 
    constant AXIL_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray := (
       -- Channel 0 = 0xA0000000 - 0xA000FFFF : DPM Timing Source
@@ -140,36 +142,38 @@ begin
       generic map (
          TPD_G              => TPD_G,
          BUILD_INFO_G       => BUILD_INFO_G,
+         SIMULATION_G       => SIMULATION_G,
+         SIM_MEM_PORT_NUM_G => SIM_MEM_PORT_NUM_G,
          ETH_TYPE_G         => "ZYNQ-GEM",
          RCE_DMA_MODE_G     => RCE_DMA_AXISV2_C)
       port map (
-         i2cSda             => i2cSda,               -- [inout]
-         i2cScl             => i2cScl,               -- [inout]
-         ethRxP             => ethRxP,               -- [in]
-         ethRxM             => ethRxM,               -- [in]
-         ethTxP             => ethTxP,               -- [out]
-         ethTxM             => ethTxM,               -- [out]
-         ethRefClkP         => ethRefClkP,           -- [in]
-         ethRefClkM         => ethRefClkM,           -- [in]
-         clkSelA            => clkSelA,              -- [out]
-         clkSelB            => clkSelB,              -- [out]
-         sysClk125          => sysClk125,            -- [out]
-         sysClk125Rst       => sysClk125Rst,         -- [out]
-         sysClk200          => sysClk200,            -- [out]
-         sysClk200Rst       => sysClk200Rst,         -- [out]
-         axiClk             => axilClk,              -- [out]
-         axiClkRst          => axilRst,              -- [out]
-         extAxilReadMaster  => dpmAxilReadMaster,    -- [out]
-         extAxilReadSlave   => dpmAxilReadSlave,     -- [in]
-         extAxilWriteMaster => dpmAxilWriteMaster,   -- [out]
-         extAxilWriteSlave  => dpmAxilWriteSlave,    -- [in]
-         dmaClk             => dmaClk,               -- [in]
-         dmaClkRst          => dmaRst,               -- [in]
-         dmaState           => open,                 -- [out]
-         dmaObMaster        => dmaObMaster,          -- [out]
-         dmaObSlave         => dmaObSlave,           -- [in]
-         dmaIbMaster        => dmaIbMaster,          -- [in]
-         dmaIbSlave         => dmaIbSlave);          -- [out]
+         i2cSda             => i2cSda,              -- [inout]
+         i2cScl             => i2cScl,              -- [inout]
+         ethRxP             => ethRxP,              -- [in]
+         ethRxM             => ethRxM,              -- [in]
+         ethTxP             => ethTxP,              -- [out]
+         ethTxM             => ethTxM,              -- [out]
+         ethRefClkP         => ethRefClkP,          -- [in]
+         ethRefClkM         => ethRefClkM,          -- [in]
+         clkSelA            => clkSelA,             -- [out]
+         clkSelB            => clkSelB,             -- [out]
+         sysClk125          => sysClk125,           -- [out]
+         sysClk125Rst       => sysClk125Rst,        -- [out]
+         sysClk200          => sysClk200,           -- [out]
+         sysClk200Rst       => sysClk200Rst,        -- [out]
+         axiClk             => axilClk,             -- [out]
+         axiClkRst          => axilRst,             -- [out]
+         extAxilReadMaster  => dpmAxilReadMaster,   -- [out]
+         extAxilReadSlave   => dpmAxilReadSlave,    -- [in]
+         extAxilWriteMaster => dpmAxilWriteMaster,  -- [out]
+         extAxilWriteSlave  => dpmAxilWriteSlave,   -- [in]
+         dmaClk             => dmaClk,              -- [in]
+         dmaClkRst          => dmaRst,              -- [in]
+         dmaState           => open,                -- [out]
+         dmaObMaster        => dmaObMaster,         -- [out]
+         dmaObSlave         => dmaObSlave,          -- [in]
+         dmaIbMaster        => dmaIbMaster,         -- [in]
+         dmaIbSlave         => dmaIbSlave);         -- [out]
 
    -------------------------------------
    -- AXI Lite Crossbar
@@ -224,13 +228,13 @@ begin
          FB_BUFG_G        => true,
          NUM_CLOCKS_G     => 1,
          BANDWIDTH_G      => "HIGH",
-         CLKIN_PERIOD_G   => 5.37,  -- 186Mhz
+         CLKIN_PERIOD_G   => 5.37,      -- 186Mhz
          DIVCLK_DIVIDE_G  => 1,
-         CLKFBOUT_MULT_G  => 5,     -- 930Mhz
+         CLKFBOUT_MULT_G  => 5,         -- 930Mhz
          CLKOUT0_DIVIDE_G => 5)
       port map (
          clkIn     => dtmRefClkG,
-         rstIn     => axilRst,
+         rstIn     => '0',
          clkOut(0) => distClk,
          rstOut(0) => distClkRst,
          locked    => distClkLocked);
@@ -264,9 +268,9 @@ begin
    -- LDMX Core
    --------------------------------------------------
 
-   U_LdmxDpmWrapper: entity ldmx.LdmxDpmWrapper
+   U_LdmxDpmWrapper : entity ldmx.LdmxDpmWrapper
       generic map (
-         TPD_G => TPD_G,
+         TPD_G           => TPD_G,
          HS_LINK_COUNT_G => HS_LINK_COUNT_G)
       port map (
          sysClk125       => sysClk125,
@@ -299,12 +303,12 @@ begin
          txData          => txData,
          txDataEn        => txDataEn,
          txReady         => txReady
-      );
+         );
 
-   dmaClk(2 downto 1)      <= (others=>sysClk200);
-   dmaRst(2 downto 1)      <= (others=>sysClk200Rst);
-   dmaObSlave(2 downto 1)  <= (others=>AXI_STREAM_SLAVE_INIT_C);
-   dmaIbMaster(2 downto 1) <= (others=>AXI_STREAM_MASTER_INIT_C);
+   dmaClk(2 downto 1)      <= (others => sysClk200);
+   dmaRst(2 downto 1)      <= (others => sysClk200Rst);
+   dmaObSlave(2 downto 1)  <= (others => AXI_STREAM_SLAVE_INIT_C);
+   dmaIbMaster(2 downto 1) <= (others => AXI_STREAM_MASTER_INIT_C);
 
    --------------------------------------------------
    -- Unused Top Level Signals
