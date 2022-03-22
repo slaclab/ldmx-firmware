@@ -22,9 +22,10 @@ library ldmx;
 
 entity ExampleDtm is
    generic (
-      TPD_G        : time          := 1 ns;
-      BUILD_INFO_G : BuildInfoType := BUILD_INFO_DEFAULT_SLV_C;
-      SIMULATION_G : boolean       := false);
+      TPD_G              : time                     := 1 ns;
+      BUILD_INFO_G       : BuildInfoType            := BUILD_INFO_DEFAULT_SLV_C;
+      SIM_MEM_PORT_NUM_G : natural range 0 to 65535 := 10000;
+      SIMULATION_G       : boolean                  := false);
    port (
 
       -- Debug
@@ -146,10 +147,11 @@ begin
    --------------------------------------------------
    U_DtmCore : entity rce_gen3_fw_lib.DtmCore
       generic map (
-         TPD_G          => TPD_G,
-         BUILD_INFO_G   => BUILD_INFO_G,
-         SIMULATION_G   => SIMULATION_G,
-         RCE_DMA_MODE_G => RCE_DMA_AXISV2_C)
+         TPD_G              => TPD_G,
+         BUILD_INFO_G       => BUILD_INFO_G,
+         SIMULATION_G       => SIMULATION_G,
+         SIM_MEM_PORT_NUM_G => SIM_MEM_PORT_NUM_G,
+         RCE_DMA_MODE_G     => RCE_DMA_AXISV2_C)
       port map (
          i2cSda             => i2cSda,
          i2cScl             => i2cScl,

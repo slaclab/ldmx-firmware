@@ -55,7 +55,7 @@ architecture sim of ExampleDtmTb is
 
 begin
 
-   rtmToDtmHsP <= dtmToRtmHsP;   
+   rtmToDtmHsP <= dtmToRtmHsP;
    rtmToDtmHsM <= dtmToRtmHsM;
 
    -- component instantiation
@@ -86,6 +86,25 @@ begin
       port map (
          clkP => locRefClkP,
          clkN => locRefClkM);
+
+   U_ExampleDpm_1 : entity ldmx.ExampleDpm
+      generic map (
+         TPD_G           => TPD_G,
+         BUILD_INFO_G    => BUILD_INFO_G,
+         HS_LINK_COUNT_G => 4)
+      port map (
+         dpmToRtmHsP => dpmToRtmHsP,          -- [out]
+         dpmToRtmHsM => dpmToRtmHsM,          -- [out]
+         rtmToDpmHsP => rtmToDpmHsP,          -- [in]
+         rtmToDpmHsM => rtmToDpmHsM,          -- [in]
+         locRefClkP  => locRefClkP,           -- [in]
+         locRefClkM  => locRefClkM,           -- [in]
+         dtmRefClkP  => dtmClkP(0),           -- [in]
+         dtmRefClkM  => dtmClkM(0),           -- [in]
+         dtmClkP     => dtmClkP(2 downto 1),  -- [in]
+         dtmClkM     => dtmClkM(2 downto 1),  -- [in]
+         dtmFbP      => dtmFbP(0),            -- [out]
+         dtmFbM      => dtmFbM(0));           -- [out]
 
 
 end architecture sim;
