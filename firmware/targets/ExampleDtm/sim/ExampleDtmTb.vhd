@@ -44,14 +44,14 @@ architecture sim of ExampleDtmTb is
    -- component ports
    signal locRefClkP  : sl;
    signal locRefClkM  : sl;
-   signal dtmToRtmHsP : sl := '0';        -- [out]
-   signal dtmToRtmHsM : sl := '0';        -- [out]
-   signal rtmToDtmHsP : sl := '0';        -- [in]
-   signal rtmToDtmHsM : sl := '0';        -- [in]
-   signal dpmClkP     : slv(2 downto 0);  -- [out]
-   signal dpmClkM     : slv(2 downto 0);  -- [out]
-   signal dpmFbP      : slv(7 downto 0);  -- [in]
-   signal dpmFbM      : slv(7 downto 0);  -- [in]
+   signal dtmToRtmHsP : sl              := '0';              -- [out]
+   signal dtmToRtmHsM : sl              := '0';              -- [out]
+   signal rtmToDtmHsP : sl              := '0';              -- [in]
+   signal rtmToDtmHsM : sl              := '0';              -- [in]
+   signal dpmClkP     : slv(2 downto 0) := (others => '0');  -- [out]
+   signal dpmClkM     : slv(2 downto 0) := (others => '0');  -- [out]
+   signal dpmFbP      : slv(7 downto 0) := (others => '0');  -- [in]
+   signal dpmFbM      : slv(7 downto 0) := (others => '0');  -- [in]
 
 begin
 
@@ -78,7 +78,7 @@ begin
 
    U_ClkRst_1 : entity surf.ClkRst
       generic map (
-         CLK_PERIOD_G      => 8 ns,
+         CLK_PERIOD_G      => 4 ns,
          CLK_DELAY_G       => 1 ns,
          RST_START_DELAY_G => 0 ns,
          RST_HOLD_TIME_G   => 5 us,
@@ -91,20 +91,17 @@ begin
       generic map (
          TPD_G           => TPD_G,
          BUILD_INFO_G    => BUILD_INFO_G,
-         HS_LINK_COUNT_G => 4)
+         SIMULATION_G    => SIMULATION_G,
+         HS_LINK_COUNT_G => 2)
       port map (
-         dpmToRtmHsP => dpmToRtmHsP,          -- [out]
-         dpmToRtmHsM => dpmToRtmHsM,          -- [out]
-         rtmToDpmHsP => rtmToDpmHsP,          -- [in]
-         rtmToDpmHsM => rtmToDpmHsM,          -- [in]
-         locRefClkP  => locRefClkP,           -- [in]
-         locRefClkM  => locRefClkM,           -- [in]
-         dtmRefClkP  => dtmClkP(0),           -- [in]
-         dtmRefClkM  => dtmClkM(0),           -- [in]
-         dtmClkP     => dtmClkP(2 downto 1),  -- [in]
-         dtmClkM     => dtmClkM(2 downto 1),  -- [in]
-         dtmFbP      => dtmFbP(0),            -- [out]
-         dtmFbM      => dtmFbM(0));           -- [out]
+         locRefClkP => locRefClkP,           -- [in]
+         locRefClkM => locRefClkM,           -- [in]
+         dtmRefClkP => dpmClkP(0),           -- [in]
+         dtmRefClkM => dpmClkM(0),           -- [in]
+         dtmClkP    => dpmClkP(2 downto 1),  -- [in]
+         dtmClkM    => dpmClkM(2 downto 1),  -- [in]
+         dtmFbP     => dpmFbP(0),            -- [out]
+         dtmFbM     => dpmFbM(0));           -- [out]
 
 
 end architecture sim;
