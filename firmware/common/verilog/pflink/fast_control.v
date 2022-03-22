@@ -40,7 +40,7 @@ module fast_control(
    reg [31:0] Control[NUM_CTL_WORDS-1:0];
    wire [31:0] DefaultCtlReg[NUM_CTL_WORDS-1:0];
 
-   parameter NUM_STS_WORDS = 9;
+   parameter NUM_STS_WORDS = 10;
    wire [31:0] Status[NUM_STS_WORDS-1:0];
 
    assign DefaultCtlReg[0]=32'h0;
@@ -66,7 +66,6 @@ module fast_control(
    wire        enable_external_spill = Control[0][0];
    wire        enable_timer_l1a = Control[0][2];
       
-
    wire        tagdone_40, newspill_40, fifo_clear;   
    wire        send_l1a_sw, send_link_reset, send_buffer_clear, send_calib_pulse;
    reg 	       calib_l1a, veto_l1a, timer_l1a;
