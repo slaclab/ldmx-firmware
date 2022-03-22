@@ -29,13 +29,13 @@ module olink(
 	     input 	       reset,
 	     input [1:0]       rx_n, rx_p,
 	     output [1:0]      tx_n, tx_p,
-//	     input [1:0]       refclk,
+	     input 	       refclk,
 
-         input qpll_lock,
-         input qpll_clkout, 
-         input qpll_refclkout, 
-         input qpll_refclklost,
-         output qpll_reset,
+             input 	       qpll_lock,
+             input 	       qpll_clkout, 
+             input 	       qpll_refclkout, 
+             input 	       qpll_refclklost,
+             output 	       qpll_reset,
 	 
 	     input [15:0]      tx_d,
 	     input [1:0]       tx_k,
@@ -61,7 +61,7 @@ module olink(
    wire [31:0] 			  DefaultCommand[NUM_CMD_WORDS-1:0];
    
    // readonly status starts at 0x40
-   localparam NUM_STS_WORDS = 5;
+   localparam NUM_STS_WORDS = 6;   
    wire [31:0] 			  Status[NUM_STS_WORDS-1:0];
    wire 			  write;
    wire 			  spy_rx_start;
@@ -70,13 +70,15 @@ module olink(
    assign counter_reset_io=Command[1][2];
    
 	
-   wire [7:0] 			  gtx_status;
+   wire [9:0] 			  gtx_status;
 
    wire [7:0] 			  gtx_ctl_pulse;
    assign gtx_ctl_pulse=Command[1][15:8];
    
    wire [3:0] 			  gtx_ctl_level;
    assign gtx_ctl_level=Command[0][3:0];
+
+   assign qpll_reset=gtx_ctl_pulse[7];
    
    
    reg 				  counter_reset_link;
@@ -97,7 +99,8 @@ module olink(
    
    assign is_ok = rx_nintable_i==2'b00 && gtx_status[4]==1'b1;
 	
-   assign gtx_status[0]=qpll_lock;
+   assign gtx_status[8]=qpll_refclklost;
+   assign gtx_status[9]=qpll_lock;
 
    reg 				  phase_by_two;	
    
@@ -159,9 +162,7 @@ always @(posedge clk_link) begin
 	spy_tx_buffer[spy_tx_ptr]<={tx_k,tx_d};
 end
 
-
 wire tx_out_clk, clk_tx_buf;
-wire rx_rec_clk, clk_rec;
 
   BUFH buf_ref(.I(tx_out_clk),.O(clk_tx_buf));
    assign clk_tx_raw=clk_tx_buf;
@@ -173,25 +174,24 @@ gt_pflink_init pflink(.sysclk_in(clk_125),
 		      .soft_reset_tx_in(gtx_ctl_pulse[1]),
 		      .soft_reset_rx_in(gtx_ctl_pulse[2]),
 		      .dont_reset_on_data_error_in(1'h1),
-		      .gt0_tx_fsm_reset_done_out(gtx_status[1]),
-		      .gt0_rx_fsm_reset_done_out(gtx_status[2]),
+		      .gt0_tx_fsm_reset_done_out(gtx_status[2]),
+		      .gt0_rx_fsm_reset_done_out(gtx_status[3]),
 		      .gt0_data_valid_in(1'h1),
 		      .gt0_tx_mmcm_lock_in(clk_link_lock),
 		      .gt0_tx_mmcm_reset_out(clk_tx_mmcm_reset),
 		      .gt0_rx_mmcm_lock_in(clk_link_lock),
 //output          gt0_rx_mmcm_reset_out,
 
-//    output          gt0_cpllfbclklost_out,
-//    .gt0_cplllock_out(gtx_status[0]),
-//    input           gt0_cplllockdetclk_in,
-//    .gt0_cpllreset_in(gtx_ctl_pulse[0]),
+		      .gt0_cpllfbclklost_out(gtx_status[1]),
+		      .gt0_cplllock_out(gtx_status[0]),
+		      .gt0_cplllockdetclk_in(clk_125),
+                      .gt0_cpllreset_in(gtx_ctl_pulse[0]),
     //------------------------ Channel - Clocking Ports ------------------------
-//    .gt0_gtrefclk0_in(refclk[0]),         .qpll_lock(qpll_lock), .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout), .qpll_refclklost(qpll_refclklost),
-
+		      .gt0_gtrefclk0_in(refclk),
 //    .gt0_gtrefclk1_in(refclk[1]),
-    .gt0_qplllock_in(qpll_lock),
-    .gt0_qpllrefclklost_in(qpll_refclklost),
-    .gt0_qpllreset_out(qpll_reset),
+//   .gt0_qplllock_in(qpll_lock),
+//    .gt0_qpllrefclklost_in(qpll_refclklost),
+//    .gt0_qpllreset_out(qpll_reset),
     .gt0_qplloutclk_in(qpll_clkout),
     .gt0_qplloutrefclk_in(qpll_refclkout),
     //-------------------------- Channel - DRP Ports  --------------------------
@@ -227,7 +227,7 @@ gt_pflink_init pflink(.sysclk_in(clk_125),
     .gt0_rxmonitorsel_in(2'h0),
     //------------- Receive Ports - RX Fabric Output Control Ports -------------
     .gt0_gtrxreset_in(gtx_ctl_pulse[4]),
-    .gt0_rxpmareset_in(gtx_ctl_pulse[5]),
+    .gt0_rxpmareset_in(1'h0),
     .gt0_rxresetdone_out(gtx_status[4]),
     //------------------- TX Initialization and Reset Ports --------------------
     .gt0_gttxreset_in(gtx_ctl_pulse[3]),
@@ -243,47 +243,55 @@ gt_pflink_init pflink(.sysclk_in(clk_125),
     .gt0_gtxtxp_out(tx_p[0]),
     //--------- Transmit Ports - TX Fabric Clock Output Control Ports ----------
     .gt0_txoutclk_out(tx_out_clk),
-    .gt0_txresetdone_out(gtx_status[3]),
+//    .gt0_txresetdone_out(gtx_status[3]),
     //--------------- Transmit Ports - TX Polarity Control Ports ---------------
     .gt0_txpolarity_in(gtx_ctl_level[1]),
     .gt0_rxpolarity_in(gtx_ctl_level[2])
+		      
 	     );
 	 
-clk_gtx_wrapper clkout(.clk_125(clk_125),.soft_reset(gtx_ctl_pulse[6]),.pll_lock_in(clk_link_lock),
-               .qpll_lock(qpll_lock), .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout), .qpll_refclklost(qpll_refclklost),
+clk_gtx_wrapper clkout(.clk_125(clk_125),.soft_reset(gtx_ctl_pulse[5]),.pll_lock_in(clk_link_lock),
+               .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout),
+//		       .qpll_lock(qpll_lock), .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout), .qpll_refclklost(qpll_refclklost),
 
-		       .clk_link(clk_link),//.cpll_reset_in(gtx_ctl_pulse[7]),.refclk(refclk[0]),
+		       .clk_link(clk_link),.cpll_reset_in(gtx_ctl_pulse[6]),.refclk(refclk), .cpll_lock(gtx_status[6]),
 		       .reset_done_out(gtx_status[5]),.tx_p(tx_p[1]),.tx_n(tx_n[1]));
-   
-assign DefaultCommand[2]={4'h7,3'h0,5'h08,4'h3,12'h0,3'h0,1'h0};
 
-   reg [31:0] data_out;
+   assign DefaultCommand[0]=32'h0;
+   assign DefaultCommand[1]=32'h0;   
+   assign DefaultCommand[2]={4'h7,3'h0,5'h08,4'h3,12'h0,3'h0,1'h0};
+   assign DefaultCommand[3]=32'h0;
 
-   genvar j1;
-   generate for (j1=0; j1<NUM_CMD_WORDS; j1=j1+1) begin: gen_j1
+   reg 	       reset_io;
+   always @(posedge axi_clk) reset_io<=reset;
+
+   genvar z; 
+   generate for (z=0; z<NUM_CMD_WORDS; z=z+1) begin: gen_write
       always @(posedge axi_clk) begin
-	 if (reset == 1) Command[j1]<=DefaultCommand[j1];
-	 else if ((write==1)&&(axi_waddr==(j1))) Command[j1] <= axi_din;
-	 else if (j1==1) Command[j1]<=32'h0; // automatically clear
-	 else Command[j1] <= Command[j1];
+	 if (reset_io == 1) Command[z] <= DefaultCommand[z];
+	 else if ((write == 1) && (axi_waddr == z)) Command[z] <= axi_din;
+	 else begin
+	    if (z==1) Command[z]<=32'h0;
+	    else Command[z] <= Command[z];
+	 end
       end
-   end endgenerate
+      
+   end endgenerate   
 
    always @(posedge axi_clk)
-     if (!axi_rstr) data_out<=32'h0;
-     else begin
-	if (axi_raddr[7:6]==2'h0 && axi_raddr[5:2]==4'h0) data_out<=Command[axi_raddr[1:0]];
-	if (axi_raddr[7:6]==2'h1 && axi_raddr[5:3]==3'h0) data_out<=Status[axi_raddr[2:0]];
-	if (axi_raddr[7:6]==2'h2) data_out<=spy_rx_buffer_r;
-	if (axi_raddr[7:6]==2'h3) data_out<=spy_tx_buffer_r;
-	else data_out<=32'h0;
-     end
+     if (!axi_rstr) axi_dout<=32'h0;
+     else if (axi_raddr[7:6]==2'h0 && axi_raddr[5:2]==4'h0) axi_dout<=Command[axi_raddr[1:0]];
+	 else if (axi_raddr[7:6]==2'h1 && axi_raddr[5:3]==3'h0) axi_dout<=Status[axi_raddr[2:0]];
+	 else if (axi_raddr[7:6]==2'h2) axi_dout<=spy_rx_buffer_r;
+	 else if (axi_raddr[7:6]==2'h3) axi_dout<=spy_tx_buffer_r;
+	 else axi_dout<=32'h0;
+	 
+   assign Status[0]={16'h0010,16'h0004};   
+   assign Status[1]={was_other_comma,was_comma,rx_v,was_ok, 1'h0,clk_link_lock, gtx_status};
 
-   assign Status[0]={clk_link_lock,was_other_comma,was_comma,rx_v,was_ok, gtx_status};
-
-   clkRateTool testA(.reset_in(reset),.clk125(clk_125),.clktest(clk_link),.value(Status[1]));
-   clkRateTool testB(.reset_in(reset),.clk125(clk_125),.clktest(rx_rec_clk),.value(Status[2]));
-   clkRateTool testK(.reset_in(reset),.clk125(clk_125),.clktest(was_comma),.value(Status[3]));
+   clkRateTool testA(.reset_in(reset),.clk125(clk_125),.clktest(clk_link),.value(Status[2][23:0])); assign Status[2][31:24]=8'h0;
+   assign Status[3]=32'h0;
+   clkRateTool testK(.reset_in(reset),.clk125(clk_125),.clktest(was_comma),.value(Status[4][23:0])); assign Status[4][31:24]=8'h0;
 
    reg [31:0] countBad;
 
@@ -292,7 +300,7 @@ assign DefaultCommand[2]={4'h7,3'h0,5'h08,4'h3,12'h0,3'h0,1'h0};
      else if (~was_ok) countBad<=countBad+32'h1;
      else countBad<=countBad;
    
-   assign Status[4]=countBad;
+   assign Status[5]=countBad;
 
 
    reg [2:0]  wack_delay;

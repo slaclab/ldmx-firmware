@@ -78,7 +78,17 @@ module gt_pflink_GT #
     parameter   PCS_RSVD_ATTR_IN         =   48'h000000000000
 )
 (
+     input cpllpd_in,
      input [2:0]  cpllrefclksel_in,
+    //------------------------------- CPLL Ports -------------------------------
+    output          cpllfbclklost_out,
+    output          cplllock_out,
+    input           cplllockdetclk_in,
+    output          cpllrefclklost_out,
+    input           cpllreset_in,
+    //------------------------ Channel - Clocking Ports ------------------------
+    input           gtrefclk0_in,
+    input           gtrefclk1_in,
     //-------------------------- Channel - DRP Ports  --------------------------
     input   [8:0]   drpaddr_in,
     input           drpclk_in,
@@ -502,14 +512,14 @@ wire            rxstartofseq_float_i;
         (
         
         //------------------------------- CPLL Ports -------------------------------
-        .CPLLFBCLKLOST                  (),
-        .CPLLLOCK                       (),
-        .CPLLLOCKDETCLK                 (tied_to_ground_i),
+        .CPLLFBCLKLOST                  (cpllfbclklost_out),
+        .CPLLLOCK                       (cplllock_out),
+        .CPLLLOCKDETCLK                 (cplllockdetclk_in),
         .CPLLLOCKEN                     (tied_to_vcc_i),
-        .CPLLPD                         (tied_to_vcc_i),
-        .CPLLREFCLKLOST                 (),
+        .CPLLPD                         (cpllpd_in),
+        .CPLLREFCLKLOST                 (cpllrefclklost_out),
         .CPLLREFCLKSEL                  (cpllrefclksel_in),
-        .CPLLRESET                      (tied_to_ground_i),
+        .CPLLRESET                      (cpllreset_in),
         .GTRSVD                         (16'b0000000000000000),
         .PCSRSVDIN                      (16'b0000000000000000),
         .PCSRSVDIN2                     (5'b00000),
@@ -523,8 +533,8 @@ wire            rxstartofseq_float_i;
         .GTGREFCLK                      (tied_to_ground_i),
         .GTNORTHREFCLK0                 (tied_to_ground_i),
         .GTNORTHREFCLK1                 (tied_to_ground_i),
-        .GTREFCLK0                      (tied_to_ground_i),
-        .GTREFCLK1                      (tied_to_ground_i),
+        .GTREFCLK0                      (gtrefclk0_in),
+        .GTREFCLK1                      (gtrefclk1_in),
         .GTSOUTHREFCLK0                 (tied_to_ground_i),
         .GTSOUTHREFCLK1                 (tied_to_ground_i),
         //-------------------------- Channel - DRP Ports  --------------------------
@@ -539,8 +549,8 @@ wire            rxstartofseq_float_i;
         .GTREFCLKMONITOR                (),
         .QPLLCLK                        (qpllclk_in),
         .QPLLREFCLK                     (qpllrefclk_in),
-        .RXSYSCLKSEL                    (2'b11),
-        .TXSYSCLKSEL                    (2'b11),
+        .RXSYSCLKSEL                    (2'b00),
+        .TXSYSCLKSEL                    (2'b00),
         //------------------------- Digital Monitor Ports --------------------------
         .DMONITOROUT                    (dmonitorout_out),
         //--------------- FPGA TX Interface Datapath Configuration  ----------------

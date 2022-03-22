@@ -72,6 +72,7 @@ module gt_pfclktx_core #
 (
     parameter EXAMPLE_SIM_GTRESET_SPEEDUP            = "TRUE",     // Simulation setting for GT SecureIP model
     parameter EXAMPLE_SIMULATION                     =  0,         // Set to 1 for simulation
+    parameter USE_BUFG                               =  1,         // Set to 1 for BUFG usage in cpll railing logic
     parameter STABLE_CLOCK_PERIOD                    = 8,         //Period of the stable clock driving this state-machine, unit is [ns]
     parameter EXAMPLE_USE_CHIPSCOPE                  =  0          // Set to 1 to use Chipscope to drive resets
 
@@ -83,12 +84,18 @@ input           dont_reset_on_data_error_in,
 output          gt0_tx_fsm_reset_done_out,
 output          gt0_rx_fsm_reset_done_out,
 input           gt0_data_valid_in,
-input           gt0_tx_mmcm_lock_in,
-output          gt0_tx_mmcm_reset_out,
 
     //_________________________________________________________________________
     //GT0  (X1Y5)
     //____________________________CHANNEL PORTS________________________________
+    //------------------------------- CPLL Ports -------------------------------
+    output          gt0_cpllfbclklost_out,
+    output          gt0_cplllock_out,
+    input           gt0_cplllockdetclk_in,
+    input           gt0_cpllreset_in,
+    //------------------------ Channel - Clocking Ports ------------------------
+    input           gt0_gtrefclk0_in,
+    input           gt0_gtrefclk1_in,
     //-------------------------- Channel - DRP Ports  --------------------------
     input   [8:0]   gt0_drpaddr_in,
     input           gt0_drpclk_in,
@@ -129,9 +136,6 @@ output          gt0_tx_mmcm_reset_out,
 
 
     //____________________________COMMON PORTS________________________________
-    input      gt0_qplllock_in,
-    input      gt0_qpllrefclklost_in,
-    output     gt0_qpllreset_out,
     input      gt0_qplloutclk_in,
     input      gt0_qplloutrefclk_in
 
@@ -143,13 +147,17 @@ output          gt0_tx_mmcm_reset_out,
 
 
     //Typical CDRLOCK Time is 50,000UI, as per DS183
-    localparam RX_CDRLOCK_TIME      = (EXAMPLE_SIMULATION == 1) ? 1000 : 100000/3.125;
+    localparam RX_CDRLOCK_TIME      = (EXAMPLE_SIMULATION == 1) ? 1000 : 100000/5;
        
     localparam integer   WAIT_TIME_CDRLOCK    = RX_CDRLOCK_TIME / STABLE_CLOCK_PERIOD;      
 
 //-------------------------- GT Wrapper Wires ------------------------------
     wire           gt0_rxpmaresetdone_i;
     wire           gt0_txpmaresetdone_i;
+    wire           gt0_cpllreset_i;
+    wire           gt0_cpllreset_t;
+    wire           gt0_cpllrefclklost_i;
+    wire           gt0_cplllock_i;
     wire           gt0_txresetdone_i;
     wire           gt0_txresetdone_ii;
     wire           gt0_rxresetdone_i;
@@ -179,18 +187,6 @@ output          gt0_tx_mmcm_reset_out,
 //------------------------------- Global Signals -----------------------------
     wire          tied_to_ground_i;
     wire          tied_to_vcc_i;
-    wire           gt0_txphaligndone_i;
-    wire           gt0_txdlysreset_i;
-    wire           gt0_txdlysresetdone_i;
-    wire           gt0_txphdlyreset_i;
-    wire           gt0_txphalignen_i;
-    wire           gt0_txdlyen_i;
-    wire           gt0_txphalign_i;
-    wire           gt0_txphinit_i;
-    wire           gt0_txphinitdone_i;
-    wire           gt0_run_tx_phalignment_i;
-    wire           gt0_rst_tx_phalignment_i;
-    wire           gt0_tx_phalignment_done_i;
 
     wire           gt0_txoutclk_i;
     wire           gt0_rxoutclk_i;
@@ -201,18 +197,6 @@ output          gt0_tx_mmcm_reset_out,
     integer  gt0_rx_cdrlock_counter= 0;
 
 
-
-//    --------------------------- TX Buffer Bypass Signals --------------------
-    wire   mstr0_txsyncallin_i;
-    wire  [0 : 0]        U0_TXDLYEN;
-    wire  [0 : 0]        U0_TXDLYSRESET;
-    wire  [0 : 0]        U0_TXDLYSRESETDONE;
-    wire  [0 : 0]        U0_TXPHINIT;
-    wire  [0 : 0]        U0_TXPHINITDONE;
-    wire  [0 : 0]        U0_TXPHALIGN;
-    wire  [0 : 0]        U0_TXPHALIGNDONE ;
-    wire                                 U0_run_tx_phalignment_i;
-    wire                                 U0_rst_tx_phalignment_i;
 
 
 
@@ -238,6 +222,7 @@ assign  tied_to_vcc_i                        =  1'b1;
 
     gt_pfclktx_multi_gt #
     (
+        .USE_BUFG                       (USE_BUFG),
         .WRAPPER_SIM_GTRESET_SPEEDUP    (EXAMPLE_SIM_GTRESET_SPEEDUP)
     )
     gt_pfclktx_i
@@ -247,6 +232,15 @@ assign  tied_to_vcc_i                        =  1'b1;
         //_____________________________________________________________________
         //GT0  (X1Y5)
 
+        //------------------------------- CPLL Ports -------------------------------
+        .gt0_cpllfbclklost_out          (gt0_cpllfbclklost_out), // output wire gt0_cpllfbclklost_out
+        .gt0_cplllock_out               (gt0_cplllock_i), // output wire gt0_cplllock_i
+        .gt0_cplllockdetclk_in          (gt0_cplllockdetclk_in), // input wire gt0_cplllockdetclk_in
+        .gt0_cpllrefclklost_out         (gt0_cpllrefclklost_i), // output wire gt0_cpllrefclklost_i
+        .gt0_cpllreset_in               (gt0_cpllreset_i), // input wire gt0_cpllreset_i
+        //------------------------ Channel - Clocking Ports ------------------------
+        .gt0_gtrefclk0_in               (gt0_gtrefclk0_in), // input wire gt0_gtrefclk0_in
+        .gt0_gtrefclk1_in               (gt0_gtrefclk1_in), // input wire gt0_gtrefclk1_in
         //-------------------------- Channel - DRP Ports  --------------------------
         .gt0_drpaddr_in                 (gt0_drpaddr_in), // input wire [8:0] gt0_drpaddr_in
         .gt0_drpclk_in                  (gt0_drpclk_in), // input wire gt0_drpclk_in
@@ -263,8 +257,6 @@ assign  tied_to_vcc_i                        =  1'b1;
         .gt0_eyescandataerror_out       (gt0_eyescandataerror_out), // output wire gt0_eyescandataerror_out
         .gt0_eyescantrigger_in          (gt0_eyescantrigger_in), // input wire gt0_eyescantrigger_in
         //------------------- Receive Ports - RX Equalizer Ports -------------------
-        .gt0_rxdfeagchold_in            (gt0_rxdfeagchold_i), // input wire gt0_rxdfeagchold_i
-        .gt0_rxdfelfhold_in             (gt0_rxdfelfhold_i), // input wire gt0_rxdfelfhold_i
         .gt0_rxmonitorout_out           (gt0_rxmonitorout_out), // output wire [6:0] gt0_rxmonitorout_out
         .gt0_rxmonitorsel_in            (gt0_rxmonitorsel_in), // input wire [1:0] gt0_rxmonitorsel_in
         //----------- Receive Ports - RX Initialization and Reset Ports ------------
@@ -275,16 +267,6 @@ assign  tied_to_vcc_i                        =  1'b1;
         //---------------- Transmit Ports - FPGA TX Interface Ports ----------------
         .gt0_txusrclk_in                (gt0_txusrclk_in), // input wire gt0_txusrclk_in
         .gt0_txusrclk2_in               (gt0_txusrclk2_in), // input wire gt0_txusrclk2_in
-        //---------------- Transmit Ports - TX Buffer Bypass Ports -----------------
-        .gt0_txdlyen_in                 (gt0_txdlyen_i), // input wire gt0_txdlyen_i
-        .gt0_txdlysreset_in             (gt0_txdlysreset_i), // input wire gt0_txdlysreset_i
-        .gt0_txdlysresetdone_out        (gt0_txdlysresetdone_i), // output wire gt0_txdlysresetdone_i
-        .gt0_txphalign_in               (gt0_txphalign_i), // input wire gt0_txphalign_i
-        .gt0_txphaligndone_out          (gt0_txphaligndone_i), // output wire gt0_txphaligndone_i
-        .gt0_txphalignen_in             (gt0_txphalignen_i), // input wire gt0_txphalignen_i
-        .gt0_txphdlyreset_in            (gt0_txphdlyreset_i), // input wire gt0_txphdlyreset_i
-        .gt0_txphinit_in                (gt0_txphinit_i), // input wire gt0_txphinit_i
-        .gt0_txphinitdone_out           (gt0_txphinitdone_i), // output wire gt0_txphinitdone_i
         //---------------- Transmit Ports - TX Data Path interface -----------------
         .gt0_txdata_in                  (gt0_txdata_in), // input wire [19:0] gt0_txdata_in
         //-------------- Transmit Ports - TX Driver and OOB signaling --------------
@@ -309,13 +291,14 @@ assign  tied_to_vcc_i                        =  1'b1;
 
 
 
+assign  gt0_cplllock_out                     =  gt0_cplllock_i;
 assign  gt0_txresetdone_out                  =  gt0_txresetdone_i;
 assign  gt0_txoutclk_out                     =  gt0_txoutclk_i;
-assign  gt0_qpllreset_out                    =  gt0_qpllreset_t;
 
 generate
 if (EXAMPLE_USE_CHIPSCOPE == 1) 
 begin : chipscope
+assign  gt0_cpllreset_i                      =  gt0_cpllreset_in || gt0_cpllreset_t;
 assign  gt0_gttxreset_i                      =  gt0_gttxreset_in || gt0_gttxreset_t;
 assign  gt0_gtrxreset_i                      =  gt0_gtrxreset_in || gt0_gtrxreset_t;
 assign  gt0_txuserrdy_i                      =  gt0_txuserrdy_in && gt0_txuserrdy_t;
@@ -325,6 +308,7 @@ endgenerate
 generate
 if (EXAMPLE_USE_CHIPSCOPE == 0) 
 begin : no_chipscope
+assign  gt0_cpllreset_i                      =  gt0_cpllreset_t;
 assign  gt0_gttxreset_i                      =  gt0_gttxreset_t;
 assign  gt0_gtrxreset_i                      =  gt0_gtrxreset_t;
 assign  gt0_txuserrdy_i                      =  gt0_txuserrdy_t;
@@ -338,9 +322,9 @@ gt_pfclktx_TX_STARTUP_FSM #
            .EXAMPLE_SIMULATION       (EXAMPLE_SIMULATION),
            .STABLE_CLOCK_PERIOD      (STABLE_CLOCK_PERIOD),           // Period of the stable clock driving this state-machine, unit is [ns]
            .RETRY_COUNTER_BITWIDTH   (8), 
-           .TX_QPLL_USED             ("TRUE"),                        // the TX and RX Reset FSMs must 
+           .TX_QPLL_USED             ("FALSE"),                       // the TX and RX Reset FSMs must
            .RX_QPLL_USED             ("FALSE"),                       // share these two generic values
-           .PHASE_ALIGNMENT_MANUAL   ("TRUE")               // Decision if a manual phase-alignment is necessary or the automatic 
+           .PHASE_ALIGNMENT_MANUAL   ("FALSE")               // Decision if a manual phase-alignment is necessary or the automatic 
                                                                      // is enough. For single-lane applications the automatic alignment is 
                                                                      // sufficient              
              ) 
@@ -349,21 +333,21 @@ gt0_txresetfsm_i
         .STABLE_CLOCK                   (sysclk_in),
         .TXUSERCLK                      (gt0_txusrclk_in),
         .SOFT_RESET                     (soft_reset_tx_in),
-        .QPLLREFCLKLOST                 (gt0_qpllrefclklost_in),
-        .CPLLREFCLKLOST                 (tied_to_ground_i),
-        .QPLLLOCK                       (gt0_qplllock_in),
-        .CPLLLOCK                       (tied_to_vcc_i),
+        .QPLLREFCLKLOST                 (tied_to_ground_i),
+        .CPLLREFCLKLOST                 (gt0_cpllrefclklost_i),
+        .QPLLLOCK                       (tied_to_vcc_i),
+        .CPLLLOCK                       (gt0_cplllock_i),
         .TXRESETDONE                    (gt0_txresetdone_i),
-        .MMCM_LOCK                      (gt0_tx_mmcm_lock_in),
+        .MMCM_LOCK                      (tied_to_vcc_i),
         .GTTXRESET                      (gt0_gttxreset_t),
-        .MMCM_RESET                     (gt0_tx_mmcm_reset_out),
-        .QPLL_RESET                     (gt0_qpllreset_t),
-        .CPLL_RESET                     (),
+        .MMCM_RESET                     (),
+        .QPLL_RESET                     (),
+        .CPLL_RESET                     (gt0_cpllreset_t),
         .TX_FSM_RESET_DONE              (gt0_tx_fsm_reset_done_out),
         .TXUSERRDY                      (gt0_txuserrdy_t),
-        .RUN_PHALIGNMENT                (gt0_run_tx_phalignment_i),
-        .RESET_PHALIGNMENT              (gt0_rst_tx_phalignment_i),
-        .PHALIGNMENT_DONE               (gt0_tx_phalignment_done_i),
+        .RUN_PHALIGNMENT                (),
+        .RESET_PHALIGNMENT              (),
+        .PHALIGNMENT_DONE               (tied_to_vcc_i),
         .RETRY_COUNTER                  ()
            );
 
@@ -374,31 +358,6 @@ assign gt0_gtrxreset_t = tied_to_vcc_i;
 
 
 
-
-
-//   --------------------------- TX Buffer Bypass Logic --------------------
-//   The TX SYNC Module drives the ports needed to Bypass the TX Buffer.
-//   Include the TX SYNC module in your own design if TX Buffer is bypassed.
-
-
-//Auto
-assign  gt0_txphdlyreset_i                   =  tied_to_ground_i;
-assign  gt0_txphalignen_i                    =  tied_to_ground_i;
-assign  gt0_txdlyen_i                        =  tied_to_ground_i;
-assign  gt0_txphalign_i                      =  tied_to_ground_i;
-assign  gt0_txphinit_i                       =  tied_to_ground_i;
-
-gt_pfclktx_AUTO_PHASE_ALIGN 
-gt0_tx_auto_phase_align_i    
-     ( 
-        .STABLE_CLOCK                   (sysclk_in),
-        .RUN_PHALIGNMENT                (gt0_run_tx_phalignment_i),
-        .PHASE_ALIGNMENT_DONE           (gt0_tx_phalignment_done_i),
-        .PHALIGNDONE                    (gt0_txphaligndone_i),
-        .DLYSRESET                      (gt0_txdlysreset_i),
-        .DLYSRESETDONE                  (gt0_txdlysresetdone_i),
-        .RECCLKSTABLE                   (tied_to_vcc_i)
-     );
 
 
 

@@ -25,7 +25,7 @@ entity ExampleDpm is
       BUILD_INFO_G       : BuildInfoType            := BUILD_INFO_DEFAULT_SLV_C;
       SIM_MEM_PORT_NUM_G : natural range 0 to 65535 := 20000;
       SIMULATION_G       : boolean                  := false;
-      HS_LINK_COUNT_G    : natural range 1 to 12    := 4);
+      HS_LINK_COUNT_G    : natural range 1 to 12    := 2);
    port (
 
       -- Debug

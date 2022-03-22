@@ -72,6 +72,7 @@
     // Simulation attributes
     parameter   WRAPPER_SIM_GTRESET_SPEEDUP    =   "FALSE",     // Set to "TRUE" to speed up sim reset
     parameter   RX_DFE_KL_CFG2_IN              =   32'h301148AC,
+    parameter   USE_BUFG                       =   0, // set to 1 if you want to use BUFG for cpll railing logic
     parameter   PMA_RSV_IN                     =   32'h00018480
 )
 (
@@ -79,6 +80,15 @@
     //_________________________________________________________________________
     //GT0  (X0Y4)
     //____________________________CHANNEL PORTS________________________________
+    //------------------------------- CPLL Ports -------------------------------
+    output          gt0_cpllfbclklost_out,
+    output          gt0_cplllock_out,
+    input           gt0_cplllockdetclk_in,
+    output          gt0_cpllrefclklost_out,
+    input           gt0_cpllreset_in,
+    //------------------------ Channel - Clocking Ports ------------------------
+    input           gt0_gtrefclk0_in,
+    input           gt0_gtrefclk1_in,
     //-------------------------- Channel - DRP Ports  --------------------------
     input   [8:0]   gt0_drpaddr_in,
     input           gt0_drpclk_in,
@@ -198,6 +208,8 @@ wire            gt0_qpllrefclk_i;
 
 wire            gt0_cpllreset_i;
 wire            gt0_cpllpd_i;
+wire            cpll_reset0_i;
+wire            cpll_pd0_i;
          
 //********************************* Main Body of Code**************************
 
@@ -227,7 +239,17 @@ wire            gt0_cpllpd_i;
     )
 gt0_gt_pflink_i
     (
+        .cpllpd_in(gt0_cpllpd_i),
         .cpllrefclksel_in(3'b001),
+        //------------------------------- CPLL Ports -------------------------------
+        .cpllfbclklost_out              (gt0_cpllfbclklost_out),
+        .cplllock_out                   (gt0_cplllock_out),
+        .cplllockdetclk_in              (gt0_cplllockdetclk_in),
+        .cpllrefclklost_out             (gt0_cpllrefclklost_out),
+        .cpllreset_in                   (gt0_cpllreset_i),
+        //------------------------ Channel - Clocking Ports ------------------------
+        .gtrefclk0_in                   (gt0_gtrefclk0_in),
+        .gtrefclk1_in                   (gt0_gtrefclk1_in),
         //-------------------------- Channel - DRP Ports  --------------------------
         .drpaddr_in                     (gt0_drpaddr_in),
         .drpclk_in                      (gt0_drpclk_in),
@@ -312,5 +334,20 @@ gt0_gt_pflink_i
 
     );
 
+ gt_pflink_cpll_railing #
+   (
+        .USE_BUFG(USE_BUFG)
+   )
+  cpll_railing0_i
+   (
+        .cpll_reset_out(cpll_reset0_i),
+        .cpll_pd_out(cpll_pd0_i),
+        .refclk_out(),
+        .refclk_in(gt0_gtrefclk0_in)
+);
+
+
+assign gt0_cpllreset_i = cpll_reset0_i || gt0_cpllreset_in; 
+assign gt0_cpllpd_i = cpll_pd0_i ; 
 endmodule
 
