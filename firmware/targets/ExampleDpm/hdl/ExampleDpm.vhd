@@ -44,10 +44,10 @@ entity ExampleDpm is
       ethRefClkM : in  sl              := '0';
 
       -- RTM High Speed
-      dpmToRtmHsP : out slv(HS_LINK_COUNT_G-1 downto 0);
-      dpmToRtmHsM : out slv(HS_LINK_COUNT_G-1 downto 0);
-      rtmToDpmHsP : in  slv(HS_LINK_COUNT_G-1 downto 0);
-      rtmToDpmHsM : in  slv(HS_LINK_COUNT_G-1 downto 0);
+      dpmToRtmHsP : out slv(HS_LINK_COUNT_G-1 downto 0) := (others => '0');
+      dpmToRtmHsM : out slv(HS_LINK_COUNT_G-1 downto 0) := (others => '0');
+      rtmToDpmHsP : in  slv(HS_LINK_COUNT_G-1 downto 0) := (others => '0');
+      rtmToDpmHsM : in  slv(HS_LINK_COUNT_G-1 downto 0) := (others => '0');
 
       -- Reference Clocks
       locRefClkP : in sl;
@@ -234,7 +234,7 @@ begin
          CLKOUT0_DIVIDE_G => 5)
       port map (
          clkIn     => dtmRefClkG,
-         rstIn     => axilRst,
+         rstIn     => '0',
          clkOut(0) => distClk,
          rstOut(0) => distClkRst,
          locked    => distClkLocked);
