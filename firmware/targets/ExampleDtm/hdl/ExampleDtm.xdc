@@ -54,10 +54,12 @@ set_clock_groups -asynchronous \
 set_clock_groups -asynchronous \
     -group [get_clocks  distClk] \
     -group [get_clocks  pgpTxClk] \
-    -group [get_clocks  pgpRxRecClk] 
+    -group [get_clocks  pgpRxRecClk] \
+    -group [get_clocks  clk125]
 
 set_clock_groups -asynchronous \
     -group [get_clocks  distDivClk] \
     -group [get_clocks  pgpTxClk] \
-    -group [get_clocks  pgpRxRecClk]    
+    -group [get_clocks  pgpRxRecClk] \
+    -group [get_clocks  clk125]
 
