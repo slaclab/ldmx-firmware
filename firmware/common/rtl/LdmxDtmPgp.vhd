@@ -227,7 +227,7 @@ begin
       port map (
          wrClk      => pgpRxClk,        -- [in]
          wrRst      => pgpRxRst,        -- [in]
-         dataIn     => spillLoc,        -- [in]
+         dataIn     => l1aLoc,        -- [in]
          rdClk      => axilClk,         -- [in]
          rdRst      => axilRst,         -- [in]
          rollOverEn => '0',             -- [in]
