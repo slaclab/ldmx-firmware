@@ -394,6 +394,11 @@ begin
          elsif axiReadMaster.araddr(11 downto 0) = x"02C" then
             v.axiReadSlave.rdata := txDataCntSync;
 
+         elsif axiReadMaster.araddr(11 downto 0) = x"030" then
+            v.axiReadSlave.rdata(0)  := distClkLocked;
+            v.axiReadSlave.rdata(1)  := intReset;      
+
+
          end if;
 
          -- Send Axi Response
