@@ -292,8 +292,8 @@ clk_gtx_wrapper clkout(.clk_125(clk_125),.soft_reset(gtx_ctl_pulse[5]),.pll_lock
    assign Status[0]={16'h0010,16'h0004};   
    assign Status[1]={was_other_comma,was_comma,rx_v,was_ok, 1'h0,clk_link_lock, gtx_status};
 
-   clkRateTool testA(.reset_in(reset),.clk125(clk_125),.clktest(clk_link),.value(Status[2][23:0])); assign Status[2][31:24]=8'h0;
-   assign Status[3]=32'h0;
+   clkRateTool testA(.reset_in(reset),.clk125(clk_125),.clktest(clk_tx_raw),.value(Status[2][23:0])); assign Status[2][31:24]=8'h0;
+   clkRateTool testB(.reset_in(reset),.clk125(clk_125),.clktest(clk_link),.value(Status[3][23:0])); assign Status[3][31:24]=8'h0;
    clkRateTool testK(.reset_in(reset),.clk125(clk_125),.clktest(was_comma),.value(Status[4][23:0])); assign Status[4][31:24]=8'h0;
    clkRateTool testDTM1(.reset_in(reset),.clk125(clk_125),.clktest(clk_dtm_fast),.value(Status[6][23:0])); assign Status[6][31:24]=8'h0;
    clkRateTool testDTM2(.reset_in(reset),.clk125(clk_125),.clktest(clk_dtm_slow),.value(Status[7][23:0])); assign Status[7][31:24]=8'h0;
