@@ -20,6 +20,9 @@
 //////////////////////////////////////////////////////////////////////////////////
 module olink(
 	     input 	       clk_125,
+
+	     input 	       clk_dtm_fast,
+	     input 	       clk_dtm_slow,
 	     
 	     output 	       clk_tx_raw,
 	     output 	       clk_tx_mmcm_reset,
@@ -61,7 +64,7 @@ module olink(
    wire [31:0] 			  DefaultCommand[NUM_CMD_WORDS-1:0];
    
    // readonly status starts at 0x40
-   localparam NUM_STS_WORDS = 6;   
+   localparam NUM_STS_WORDS = 8;   
    wire [31:0] 			  Status[NUM_STS_WORDS-1:0];
    wire 			  write;
    wire 			  spy_rx_start;
@@ -292,6 +295,8 @@ clk_gtx_wrapper clkout(.clk_125(clk_125),.soft_reset(gtx_ctl_pulse[5]),.pll_lock
    clkRateTool testA(.reset_in(reset),.clk125(clk_125),.clktest(clk_link),.value(Status[2][23:0])); assign Status[2][31:24]=8'h0;
    assign Status[3]=32'h0;
    clkRateTool testK(.reset_in(reset),.clk125(clk_125),.clktest(was_comma),.value(Status[4][23:0])); assign Status[4][31:24]=8'h0;
+   clkRateTool testDTM1(.reset_in(reset),.clk125(clk_125),.clktest(clk_dtm_fast),.value(Status[6][23:0])); assign Status[6][31:24]=8'h0;
+   clkRateTool testDTM2(.reset_in(reset),.clk125(clk_125),.clktest(clk_dtm_slow),.value(Status[7][23:0])); assign Status[7][31:24]=8'h0;
 
    reg [31:0] countBad;
 

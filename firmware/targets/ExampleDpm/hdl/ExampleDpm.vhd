@@ -296,6 +296,7 @@ begin
          dpmToRtmHsM     => dpmToRtmHsM,
          rtmToDpmHsP     => rtmToDpmHsP,
          rtmToDpmHsM     => rtmToDpmHsM,
+         distClk         => distClk,
          distDivClk      => distDivClk,
          distDivClkRst   => distDivClkRst,
          rxData          => rxData,

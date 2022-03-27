@@ -10,7 +10,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
                  dmaObMaster_tValid, dmaObMaster_tData, dmaObMaster_tStrb, dmaObMaster_tKeep, dmaObMaster_tLast, dmaObMaster_tDest,
                  dmaObMaster_tId, dmaObMaster_tUser, dmaObSlave_tReady, dmaIbMaster_tValid, dmaIbMaster_tData, dmaIbMaster_tStrb,
                  dmaIbMaster_tKeep, dmaIbMaster_tLast, dmaIbMaster_tDest, dmaIbMaster_tId, dmaIbMaster_tUser, dmaIbSlave_tReady, dpmToRtmHsP,
-                 dpmToRtmHsM, rtmToDpmHsP, rtmToDpmHsM, distDivClk, distDivClkRst, trigger, spill, busy);
+                 dpmToRtmHsM, rtmToDpmHsP, rtmToDpmHsM, distClk, distDivClk, distDivClkRst, trigger, spill, busy);
 
    // Clocks and Resets
    input  wire          sysClk125;
@@ -75,6 +75,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    input  wire [1:0]    rtmToDpmHsM;
 
    // COB Timing Interface
+   input  wire          distClk;
    input  wire          distDivClk;
    input  wire          distDivClkRst;
    input  wire          trigger;
@@ -227,6 +228,8 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 		.clk_tx_mmcm_reset(mmcm_reset),
 		.clk_link_lock(olink_clk_locked),
 		.clk_link(clk_link),
+		.clk_dtm_fast(distClk),
+		.clk_dtm_slow(distDivClk),
 		.qpll_lock(qpll_lock), .qpll_clkout(qpll_clkout), .qpll_refclkout(qpll_refclkout), .qpll_refclklost(qpll_refclklost),
 		.qpll_reset(qpll_reset),
 		.rx_n(rtmToDpmHsM[1:0]),

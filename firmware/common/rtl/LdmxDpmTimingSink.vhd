@@ -296,7 +296,7 @@ begin
    end process;
 
    -- Async
-   process (axiClkRst, axiReadMaster, axiWriteMaster, r, statusErrorCnt, statusIdleCnt, rxDataCntSync, txDataCntSync) is
+   process (axiClkRst, axiReadMaster, axiWriteMaster, r, statusErrorCnt, statusIdleCnt, rxDataCntSync, txDataCntSync, distClkLocked, intReset) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin

@@ -70,6 +70,7 @@ entity LdmxDpmWrapper is
       rtmToDpmHsM : in  slv(HS_LINK_COUNT_G-1 downto 0);
 
       -- COB Timing Interface
+      distClk       : in sl;
       distDivClk    : in sl;
       distDivClkRst : in sl;
       rxData        : in  slv(9 downto 0);
@@ -148,6 +149,7 @@ architecture rtl of LdmxDpmWrapper is
          rtmToDpmHsM : in  slv(HS_LINK_COUNT_G-1 downto 0);
 
          -- COB Timing Interface
+         distClk       : in sl;
          distDivClk    : in sl;
          distDivClkRst : in sl;
          trigger       : in sl;
@@ -215,6 +217,7 @@ begin
          dpmToRtmHsM              => dpmToRtmHsM,
          rtmToDpmHsP              => rtmToDpmHsP,
          rtmToDpmHsM              => rtmToDpmHsM,
+         distClk                  => distClk,
          distDivClk               => distDivClk,
          distDivClkRst            => distDivClkRst,
          trigger                  => trigger,

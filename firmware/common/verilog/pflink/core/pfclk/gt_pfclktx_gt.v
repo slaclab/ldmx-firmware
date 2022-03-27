@@ -419,8 +419,8 @@ wire            rxstartofseq_float_i;
 
            //--------------------------CPLL Attributes----------------------------
             .CPLL_CFG                               (24'hBC07DC),
-            .CPLL_FBDIV                             (5),
-            .CPLL_FBDIV_45                          (5),
+            .CPLL_FBDIV                             (5),  // 5 for 125 -> 39.0625 MHz, 4 for 186 -> 37.5 MHz
+            .CPLL_FBDIV_45                          (5),  // 5 for 125 -> 39.0625 MHz, 4 for 186 -> 37.5 MHz
             .CPLL_INIT_CFG                          (24'h00001E),
             .CPLL_LOCK_CFG                          (16'h01E8),
             .CPLL_REFCLK_DIV                        (2),
