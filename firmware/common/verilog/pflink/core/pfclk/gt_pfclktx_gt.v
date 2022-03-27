@@ -423,7 +423,7 @@ wire            rxstartofseq_float_i;
             .CPLL_FBDIV_45                          (4),  // 5 for 125 -> 39.0625 MHz, 4 for 186 -> 37.5 MHz
             .CPLL_INIT_CFG                          (24'h00001E),
             .CPLL_LOCK_CFG                          (16'h01E8),
-            .CPLL_REFCLK_DIV                        (2),
+            .CPLL_REFCLK_DIV                        (1),  // 2 for 250 -> 39.0625 MHz, 1 for 186 -> 37.5 MHz
             .RXOUT_DIV                              (2),
             .TXOUT_DIV                              (2),
             .SATA_CPLL_CFG                          ("VCO_3000MHZ"),
