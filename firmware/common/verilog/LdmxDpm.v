@@ -187,7 +187,8 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
    gt_pfclktx_common qpll
 (
  .QPLLREFCLKSEL_IN(3'b001),
- .GTREFCLK0_IN(locRefClk),
+// .GTREFCLK0_IN(locRefClk),
+ .GTREFCLK0_IN(dtmRefClkG),
  .GTREFCLK1_IN(1'h0),
  .QPLLLOCK_OUT(qpll_lock),
  .QPLLLOCKDETCLK_IN(sysClk125),
@@ -236,7 +237,8 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 		.rx_p(rtmToDpmHsP[1:0]),
 		.tx_n(dpmToRtmHsM[1:0]),
 		.tx_p(dpmToRtmHsP[1:0]),
-  	        .refclk(locRefClk),
+//  	        .refclk(locRefClk),
+  	        .refclk(dtmRefClkG),
 		.tx_d(data_to_link),
 		.tx_k(k_to_link),
 		.rx_d(data_from_link),

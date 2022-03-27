@@ -87,7 +87,7 @@ module gt_pfclktx_common #
 
 
 //***************************** Parameter Declarations ************************
-    localparam QPLL_FBDIV_TOP =  100;
+    localparam QPLL_FBDIV_TOP =  64; // 100 for 125 base clock, 64 for 186 base clock
 
     localparam QPLL_FBDIV_IN  =  (QPLL_FBDIV_TOP == 16)  ? 10'b0000100000 : 
 				(QPLL_FBDIV_TOP == 20)  ? 10'b0000110000 :
@@ -146,7 +146,7 @@ wire    [63:0]  tied_to_vcc_vec_i;
             .QPLL_INIT_CFG                          (24'h000006),
             .QPLL_LOCK_CFG                          (16'h21E8),
             .QPLL_LPF                               (4'b1111),
-            .QPLL_REFCLK_DIV                        (4)
+            .QPLL_REFCLK_DIV                        (4) // shouldn't this be 2?
 
     )
     gtxe2_common_i
