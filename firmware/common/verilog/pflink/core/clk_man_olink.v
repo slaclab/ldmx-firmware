@@ -138,7 +138,7 @@ wire clk_in2_clk_man_olink;
     .CLKOUT1_PHASE        (0.000),
     .CLKOUT1_DUTY_CYCLE   (0.500),
     .CLKOUT1_USE_FINE_PS  ("FALSE"),
-    .CLKIN1_PERIOD        (2.688))
+    .CLKIN1_PERIOD        (5.376))
   mmcm_adv_inst
     // Output clocks
    (
