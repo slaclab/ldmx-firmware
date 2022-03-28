@@ -24,13 +24,13 @@ set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks locRefClk] \
     -group [get_clocks -include_generated_clocks ethRefClkP] \
     -group [get_clocks -include_generated_clocks dtmRefClk] \
-
-
-set_clock_groups -asynchronous \
-    -group [get_clocks -include_generated_clocks fclk0] \
-    -group [get_clocks -include_generated_clocks locRefClk] \
-    -group [get_clocks -include_generated_clocks ethRefClkP] \
     -group [get_clocks -include_generated_clocks dtmDistClk]
+
+#set_clock_groups -asynchronous \
+#    -group [get_clocks -include_generated_clocks fclk0] \
+#    -group [get_clocks -include_generated_clocks locRefClk] \
+#    -group [get_clocks -include_generated_clocks ethRefClkP] \
+#    -group [get_clocks -include_generated_clocks dtmDistClk]
 
 #set_clock_groups -asynchronous \
 #    -group [get_clocks pgpClk] \
