@@ -78,6 +78,8 @@ architecture STRUCTURE of LdmxDtmTimingSource is
    signal intTxReady       : sl;
    signal txCount          : slv(31 downto 0);
    signal txCountSync      : slv(31 downto 0);
+   signal clkCount          : slv(31 downto 0);
+   signal clkCountSync      : slv(31 downto 0);
    signal intRxData        : Slv10Array(7 downto 0);
    signal intRxDataEn      : slv(7 downto 0);
    signal rxCount          : Slv32Array(7 downto 0);
@@ -228,6 +230,17 @@ begin
       end if;
    end process;
 
+   process (distDivClk)
+   begin
+      if rising_edge(distDivClk) then
+         if distDivClkRst = '1' then
+            clkCount <= (others => '0') after TPD_G;
+         else
+            clkCount <= clkCount + 1 after TPD_G;
+         end if;
+      end if;
+   end process;
+
    -- Tx data count sync
    U_TxDataCntSync : entity surf.SynchronizerFifo
       generic map (
@@ -242,6 +255,21 @@ begin
             rd_en  => '1',
             valid  => open,
             dout   => txCountSync
+            );
+   -- Tx data count sync
+   U_ClkDataCntSync : entity surf.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 32
+         ) port map (
+            rst    => axiClkRst,
+            wr_clk => distClk,
+            wr_en  => '1',
+            din    => clkCount,
+            rd_clk => axiClk,
+            rd_en  => '1',
+            valid  => open,
+            dout   => clkCountSync
             );
 
    ----------------------------------------
@@ -323,7 +351,7 @@ begin
    end process;
 
 -- Async
-   process (axiClkRst, axiReadMaster, axiWriteMaster, r, fbStatusErrorCnt, fbStatusIdleCnt, rxCountSync, txCountSync) is
+   process (axiClkRst, axiReadMaster, axiWriteMaster, r, fbStatusErrorCnt, fbStatusIdleCnt, rxCountSync, txCountSync, clkCountSync, txReady) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
@@ -390,6 +418,7 @@ begin
          -- FB Delay configuration, one per FIFO, 0x1xx
          if axiReadMaster.araddr(11 downto 8) = x"1" then
             v.axiReadSlave.rdata(4 downto 0) := r.fbCfgDelay(conv_integer(axiReadMaster.araddr(4 downto 2)));
+            v.axiReadSlave.rdata(16) := txReady;
 
          -- Feedback status, 0x2xx
          elsif axiReadMaster.araddr(11 downto 8) = x"2" then
@@ -414,8 +443,8 @@ begin
             v.axiReadSlave.rdata := txCountSync;
 
             -- Tx Data B Count, 0x418
-            --elsif axiReadMaster.araddr(11 downto 0) = x"418" then
-            --v.axiReadSlave.rdata := txCountSync(1);
+         elsif axiReadMaster.araddr(11 downto 0) = x"418" then
+            v.axiReadSlave.rdata := clkCountSync;
 
             -- Counter Reset, 0x41C
 
