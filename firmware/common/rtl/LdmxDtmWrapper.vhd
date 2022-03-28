@@ -258,8 +258,7 @@ begin
          clk     => iDistClk,        -- [in]
          rst     => iDistClkRst,     -- [in]
          dataIn  => spillIn,         -- [in]
-         dataOut => spillRise)       -- [out]
-
+         dataOut => spillRise);      -- [out]
 
    process (idistClk)
    begin
