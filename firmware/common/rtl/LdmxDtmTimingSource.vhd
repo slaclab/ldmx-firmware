@@ -204,8 +204,8 @@ begin
       generic map (
          TPD_G => TPD_G
          ) port map (
-            distClk    => distDivClk,
-            distClkRst => distDivClkRst,
+            distClk    => distClk,
+            distClkRst => distClkRst,
             txData     => intTxData,
             txDataEn   => intTxDataEn,
             txReady    => intTxReady,
@@ -351,7 +351,7 @@ begin
    end process;
 
 -- Async
-   process (axiClkRst, axiReadMaster, axiWriteMaster, r, fbStatusErrorCnt, fbStatusIdleCnt, rxCountSync, txCountSync, clkCountSync, txReady) is
+   process (axiClkRst, axiReadMaster, axiWriteMaster, r, fbStatusErrorCnt, fbStatusIdleCnt, rxCountSync, txCountSync, clkCountSync, intTxReady) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
@@ -418,7 +418,7 @@ begin
          -- FB Delay configuration, one per FIFO, 0x1xx
          if axiReadMaster.araddr(11 downto 8) = x"1" then
             v.axiReadSlave.rdata(4 downto 0) := r.fbCfgDelay(conv_integer(axiReadMaster.araddr(4 downto 2)));
-            v.axiReadSlave.rdata(16) := txReady;
+            v.axiReadSlave.rdata(16) := intTxReady;
 
          -- Feedback status, 0x2xx
          elsif axiReadMaster.araddr(11 downto 8) = x"2" then

@@ -312,6 +312,8 @@ begin
          plSpareM        => plSpareM,
          distClk         => distClk,
          distClkRst      => distClkRst,
+         distDivClk      => distDivClk,
+         distDivClkRst   => distDivClkRst,
          txData          => txData,
          txDataEn        => txDataEn,
          txReady         => txReady,

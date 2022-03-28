@@ -246,8 +246,8 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => iDistDivClk,        -- [in]
-         rst     => iDistDivClkRst,     -- [in]
+         clk     => idistDivClk,        -- [in]
+         rst     => idistDivClkRst,     -- [in]
          dataIn  => triggerIn,          -- [in]
          dataOut => triggerRise);       -- [out]
 
@@ -255,8 +255,8 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => iDistDivClk,        -- [in]
-         rst     => iDistDivClkRst,     -- [in]
+         clk     => idistDivClk,        -- [in]
+         rst     => idistDivClkRst,     -- [in]
          dataIn  => spillIn,            -- [in]
          dataOut => spillRise);         -- [out]
 
