@@ -261,8 +261,8 @@ begin
             );
 
    -- Mux TX Data
-   intTxDataEn <= sycTxDataEn or intRxEcho;
-   intTxData   <= synTxData when syncTxDataEn = '1' else
+   intTxDataEn <= synTxDataEn or intRxEcho;
+   intTxData   <= synTxData when synTxDataEn = '1' else
                   intRxData when intRxEcho = '1' else
                   (others => '0');
 
