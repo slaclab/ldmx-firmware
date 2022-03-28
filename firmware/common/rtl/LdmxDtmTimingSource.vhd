@@ -202,8 +202,8 @@ begin
       generic map (
          TPD_G => TPD_G
          ) port map (
-            distClk    => distDivClk,
-            distClkRst => distDivClkRst,
+            distClk    => distClk,
+            distClkRst => distClkRst,
             txData     => intTxData,
             txDataEn   => intTxDataEn,
             txReady    => intTxReady,
@@ -217,10 +217,10 @@ begin
          I  => dpmClk(2)
          );
 
-   process (distDivClk)
+   process (distClk)
    begin
-      if rising_edge(distDivClk) then
-         if distDivClkRst = '1' or countReset = '1' then
+      if rising_edge(distClk) then
+         if distClkRst = '1' or countReset = '1' then
             txCount <= (others => '0') after TPD_G;
          elsif intTxDataEn = '1' and intTxReady = '1' then
             txCount <= txCount + 1 after TPD_G;

@@ -213,7 +213,7 @@ begin
 --          locked    => open);
 
 
-   
+
    U_PLL : entity surf.ClockManager7
       generic map (
          TPD_G              => TPD_G,
@@ -246,25 +246,25 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => iDistDivClk,        -- [in]
-         rst     => iDistDivClkRst,     -- [in]
-         dataIn  => triggerIn,          -- [in]
-         dataOut => triggerRise);       -- [out]
+         clk     => iDistClk,        -- [in]
+         rst     => iDistClkRst,     -- [in]
+         dataIn  => triggerIn,       -- [in]
+         dataOut => triggerRise);    -- [out]
 
    U_SynchronizerOneShot_2 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => iDistDivClk,        -- [in]
-         rst     => iDistDivClkRst,     -- [in]
-         dataIn  => spillIn,            -- [in]
-         dataOut => spillRise);         -- [out]
+         clk     => iDistClk,        -- [in]
+         rst     => iDistClkRst,     -- [in]
+         dataIn  => spillIn,         -- [in]
+         dataOut => spillRise)       -- [out]
 
 
-   process (idistDivClk)
+   process (idistClk)
    begin
-      if rising_edge(idistDivClk) then
-         if idistDivClkRst = '1' then
+      if rising_edge(idistClk) then
+         if idistClkRst = '1' then
             triggerArm <= '0'             after TPD_G;
             spillArm   <= '0'             after TPD_G;
             txData     <= (others => '0') after TPD_G;
@@ -298,10 +298,10 @@ begin
    dpmFbEn <= "00000001";
 
    U_FbGen : for i in 0 to 7 generate
-      process (idistDivClk)
+      process (idistClk)
       begin
-         if rising_edge(idistDivClk) then
-            if idistDivClkRst = '1' then
+         if rising_edge(idistClk) then
+            if idistClkRst = '1' then
                dpmBusy(i) <= '0' after TPD_G;
             elsif rxDataEn(i) = '1' then
                dpmBusy(i) <= rxData(i)(0) after TPD_G;
@@ -310,10 +310,10 @@ begin
       end process;
    end generate;
 
-   process (idistDivClk)
+   process (idistClk)
    begin
-      if rising_edge(idistDivClk) then
-         if idistDivClkRst = '1' then
+      if rising_edge(idistClk) then
+         if idistClkRst = '1' then
             busyOut    <= '0' after TPD_G;
             busyOutReg <= '0' after TPD_G;
          else

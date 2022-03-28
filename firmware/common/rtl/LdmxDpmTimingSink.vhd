@@ -53,6 +53,8 @@ entity LdmxDpmTimingSink is
       dtmFbM  : out sl;
 
       -- Clock and reset
+      distClk       : in  sl;
+      distClkRst    : in  sl;
       distDivClk    : out sl;
       distDivClkRst : out sl;
       distClkLocked : in  sl;
@@ -79,6 +81,8 @@ architecture STRUCTURE of LdmxDpmTimingSink is
    signal rxDataCntSync  : Slv32Array(1 downto 0);
    signal intTxData      : slv(9 downto 0);
    signal intTxDataEn    : sl;
+   signal synTxData      : slv(9 downto 0);
+   signal synTxDataEn    : sl;
    signal txDataCnt      : slv(31 downto 0);
    signal txDataCntSync  : slv(31 downto 0);
    signal dtmFb          : sl;
@@ -114,10 +118,6 @@ architecture STRUCTURE of LdmxDpmTimingSink is
    attribute IODELAY_GROUP of U_DpmTimingDlyCntrl : label is IODELAY_GROUP_G;
 
 begin
-
-   -- Clock and reset out
-   rxData     <= intRxData;
-   rxDataEn   <= intRxDataEn;
 
    ----------------------------------------
    -- Delay Control
@@ -178,8 +178,8 @@ begin
          IODELAY_GROUP_G => IODELAY_GROUP_G
          ) port map (
             serialData     => dtmClk,
-            distClk        => idistDivClk,
-            distClkRst     => idistDivClkRst,
+            distClk        => distClk,
+            distClkRst     => distClkRst,
             rxData         => intRxData,
             rxDataEn       => intRxDataEn,
             configClk      => axiClk,
@@ -192,10 +192,10 @@ begin
    statusIdleCnt(1)  <= (others=>'0');
    statusErrorCnt(1) <= (others=>'0');
 
-   process (idistDivClk)
+   process (distClk)
    begin
-      if rising_edge(idistDivClk) then
-         if idistDivClkRst = '1' or countReset = '1' then
+      if rising_edge(distClk) then
+         if distClkRst = '1' or countReset = '1' then
             rxDataCnt <= (others => '0') after TPD_G;
          elsif intRxDataEn = '1' then
             rxDataCnt <= rxDataCnt + 1 after TPD_G;
@@ -221,6 +221,22 @@ begin
 
    rxDataCntSync(1) <= (others=>'0');
 
+   -- Rx data sync
+   U_RxDataSync : entity surf.SynchronizerFifo
+      generic map (
+         TPD_G         => TPD_G,
+         DATA_WIDTH_G  => 10
+         ) port map (
+            rst    => distClkRst,
+            wr_clk => distClk,
+            wr_en  => intRxDataEn,
+            din    => intRxData,
+            rd_clk => idistDivClk,
+            rd_en  => '1',
+            valid  => rxDataEn,
+            dout   => rxData
+            );
+
    ----------------------------------------
    -- Feedback Output
    ----------------------------------------
@@ -228,9 +244,25 @@ begin
    -- Determine Echo
    intRxEcho <= '1' when intRxDataEn = '1' and intRxData(9 downto 8) = "01" else '0';
 
+   -- Tx data sync
+   U_TxDataSync : entity surf.SynchronizerFifo
+      generic map (
+         TPD_G         => TPD_G,
+         DATA_WIDTH_G  => 10
+         ) port map (
+            rst    => idistDivClkRst,
+            wr_clk => idistDivClk,
+            wr_en  => txDataEn,
+            din    => txData,
+            rd_clk => distClk,
+            rd_en  => '1',
+            valid  => synTxDataEn,
+            dout   => synTxData
+            );
+
    -- Mux TX Data
-   intTxDataEn <= txDataEn or intRxEcho;
-   intTxData   <= txData when txDataEn = '1' else
+   intTxDataEn <= sycTxDataEn or intRxEcho;
+   intTxData   <= synTxData when syncTxDataEn = '1' else
                   intRxData when intRxEcho = '1' else
                   (others => '0');
 
@@ -239,8 +271,8 @@ begin
       generic map (
          TPD_G => TPD_G
          ) port map (
-            distClk    => idistDivClk,
-            distClkRst => idistDivClkRst,
+            distClk    => distClk,
+            distClkRst => distClkRst,
             txData     => intTxData,
             txDataEn   => intTxDataEn,
             txReady    => txReady,
@@ -255,10 +287,10 @@ begin
          I  => dtmFb
          );
 
-   process (idistDivClk)
+   process (distClk)
    begin
-      if rising_edge(idistDivClk) then
-         if idistDivClkRst = '1' or countReset = '1' then
+      if rising_edge(distClk) then
+         if distClkRst = '1' or countReset = '1' then
             txDataCnt <= (others => '0') after TPD_G;
          elsif intTxDataEn = '1' then
             txDataCnt <= txDataCnt + 1 after TPD_G;
@@ -273,7 +305,7 @@ begin
          DATA_WIDTH_G  => 32
          ) port map (
             rst    => axiClkRst,
-            wr_clk => idistDivClk,
+            wr_clk => distClk,
             wr_en  => '1',
             din    => txDataCnt,
             rd_clk => axiClk,

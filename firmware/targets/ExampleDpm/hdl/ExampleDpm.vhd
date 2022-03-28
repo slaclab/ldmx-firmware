@@ -255,6 +255,8 @@ begin
          dtmClkM        => dtmClkM,
          dtmFbP         => dtmFbP,
          dtmFbM         => dtmFbM,
+         distClk        => distClk,
+         distClkRst     => distClkRst,
          distDivClk     => distDivClk,
          distDivClkRst  => distDivClkRst,
          distClkLocked  => distClkLocked,
