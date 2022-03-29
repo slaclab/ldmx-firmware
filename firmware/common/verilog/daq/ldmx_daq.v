@@ -77,8 +77,7 @@ module ldmx_daq(
    assign enable_dma_io=Command[0][4];
    assign fpga_id=Command[0][15:8];
    assign l1a_bundle_factor=Command[0][19:16];
-   
-   
+      
    assign reset_daq_io=Command[1][0] || reset_io;
    assign advance_read=Command[1][1];
    assign advance_tag=Command[1][2];   
