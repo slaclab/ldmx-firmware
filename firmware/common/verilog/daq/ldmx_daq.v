@@ -173,9 +173,7 @@ module ldmx_daq(
       else if (nevents<=busy_off) busy<=1'h0;
       else if (nevents>=busy_on) busy<=1'h1;
       else busy<=busy;
-   end
-      
-      
+   end      
 	
    always @(posedge clk_link) begin
       page_size_link<=page_size_io;

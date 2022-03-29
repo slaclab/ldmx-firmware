@@ -10,7 +10,8 @@ module fast_control(
     input 	      clk_refd2, 
     input 	      tagdone,
     input 	      external_l1a,
-    input 	      external_spill, 
+    input 	      external_spill,
+    input 	      daq_busy,
     output reg [87:0] evttag,
     output reg [15:0] fc_stream_enc,
     input 	      reset,
@@ -43,7 +44,7 @@ module fast_control(
    parameter NUM_STS_WORDS = 10;
    wire [31:0] Status[NUM_STS_WORDS-1:0];
 
-   assign DefaultCtlReg[0]=32'h0;
+   assign DefaultCtlReg[0]=32'h08; // enable veto on busy
    assign DefaultCtlReg[1]=32'h0;
    assign DefaultCtlReg[2]={4'h0,4'h2,8'd20,4'h0,12'd45};
    assign DefaultCtlReg[3]={20'd1000,12'd320};
@@ -65,6 +66,8 @@ module fast_control(
    wire        enable_external_l1a = Control[0][1];
    wire        enable_external_spill = Control[0][0];
    wire        enable_timer_l1a = Control[0][2];
+   wire        enable_veto_busy = Control[0][3];
+   
       
    wire        tagdone_40, newspill_40, fifo_clear;   
    wire        send_l1a_sw, send_link_reset, send_buffer_clear, send_calib_pulse;
@@ -77,7 +80,8 @@ module fast_control(
    
    SinglePulseDualClock spdc_l1a_ext(.i(external_l1a && enable_external_l1a),.o(send_l1a_ext),.oclk(clk_bx));
 
- 
+   reg 	       busy_40;   
+   
    reg [11:0]  bx_counter;
    
    always @(posedge clk_bx) begin
@@ -112,16 +116,17 @@ module fast_control(
    end
    
    reg [11:0] veto_downcounter;
-   reg [11:0] vetoed_counter;
+   reg [15:0] vetoed_counter;
    
    always @(posedge clk_bx) begin
-      veto_l1a<=fc_word[1] || (veto_downcounter!=12'h0);
+      busy_40<=daq_busy;      
+      veto_l1a<=fc_word[1] || (veto_downcounter!=12'h0) || (busy_40 && enable_veto_busy);
       if (fc_word[1]) veto_downcounter<=l1a_veto_len;
       else if (veto_downcounter!=12'h0) veto_downcounter<=veto_downcounter-12'h1;
       else veto_downcounter<=veto_downcounter;
 
-      if (fifo_clear) vetoed_counter<=12'h0;
-      else if (((send_l1a_sw)||(calib_l1a)||(timer_l1a)||(send_l1a_ext)) && veto_l1a) vetoed_counter<=vetoed_counter+12'h1;
+      if (fifo_clear) vetoed_counter<=16'h0;
+      else if (((send_l1a_sw)||(calib_l1a)||(timer_l1a)||(send_l1a_ext)) && veto_l1a) vetoed_counter<=vetoed_counter+16'h1;
       else vetoed_counter<=vetoed_counter;
             
    end
@@ -208,7 +213,7 @@ l1_header_fifo header_fifo(.bx_clk(clk_bx),
    assign Status[6]=tag_evtid;
    assign Status[7]=tag_timeinspill;
    assign Status[8]={4'h0,tag_spill,4'h0,tag_bxid};
-   assign Status[9]={20'h0,vetoed_counter};   
+   assign Status[9]={2'h0,busy_40,veto_l1a,12'h0,vetoed_counter};   
   
    
    reg [2:0] wack_delay;
