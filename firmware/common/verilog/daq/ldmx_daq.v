@@ -171,7 +171,7 @@ module ldmx_daq(
    always @(posedge axi_clk) begin
       if (empty) busy<=1'h0;
       else if (nevents<=busy_off) busy<=1'h0;
-      else if (nevent>=busy_on) busy<=1'h1;
+      else if (nevents>=busy_on) busy<=1'h1;
       else busy<=busy;
    end
       
