@@ -23,8 +23,9 @@ module ldmx_daq(
 		input [31:0]  link_data,
 		input [3:0]   link_is_k,
 		input 	      link_valid,
-		input         bx_clk,
+		input 	      bx_clk,
 		input [87:0]  evttag,
+		output reg    busy,
 		output 	      tagdone,
 		input 	      reset,
 		input 	      dma_clk,
@@ -53,6 +54,7 @@ module ldmx_daq(
    // Command registers
    localparam NUM_CMD_WORDS = 8;
    reg [31:0] Command[NUM_CMD_WORDS-1:0];
+   wire [31:0] DefaultCommand[NUM_CMD_WORDS-1:0];
 
    // Status registers
    localparam NUM_STS_WORDS = 8;
@@ -86,6 +88,14 @@ module ldmx_daq(
       
    localparam MAX_LOG2_BUFCOUNT = 6-1;
       
+   wire [MAX_LOG2_BUFCOUNT:0] busy_on, busy_off;
+
+   assign busy_on=Command[2][MAX_LOG2_BUFCOUNT:0];
+   assign busy_off=Command[2][MAX_LOG2_BUFCOUNT+16:0+16];
+
+   assign DefaultCommand[2]={16'd20,16'd50}; // busy at 50, back off at 20
+      
+
    reg [MAX_LOG2_BUFCOUNT:0] w_buf_id, next_w_buf_id;
    reg [MAX_LOG2_BUFCOUNT:0] r_buf_id;
    wire [MAX_LOG2_BUFCOUNT:0] dma_buf_id;   
@@ -156,7 +166,16 @@ module ldmx_daq(
 	    r_buf_id[3:0]<=r_buf_id[3:0]+4'h1; // only incrementing the lower bits
 	 end	
       end else r_buf_id<=r_buf_id;
+   end // always @ (posedge axi_clk)
+
+   always @(posedge axi_clk) begin
+      if (empty) busy<=1'h0;
+      else if (nevents<=busy_off) busy<=1'h0;
+      else if (nevent>=busy_on) busy<=1'h1;
+      else busy<=busy;
    end
+      
+      
 	
    always @(posedge clk_link) begin
       page_size_link<=page_size_io;
@@ -247,7 +266,7 @@ module ldmx_daq(
    genvar z; 
    generate for (z=0; z<NUM_CMD_WORDS; z=z+1) begin: gen_write
       always @(posedge axi_clk) begin
-	 if (reset_io == 1) Command[z] <= 32'h0;
+	 if (reset_io == 1) Command[z] <= DefaultCommand[z];
 	 else if ((write == 1) && (axi_waddr == z)) Command[z] <= axi_din;
 	 else begin
 	    if (z==1) Command[z]<=32'h0;
@@ -290,8 +309,5 @@ module ldmx_daq(
      else rack_delay<={rack_delay[2:0],axi_rstr};
    assign axi_rack=rack_delay[3];
    	
-
-	
-
-
+       
 endmodule

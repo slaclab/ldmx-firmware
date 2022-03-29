@@ -253,6 +253,9 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 		.axi_dout(gt_dout[31:0])
 		);
 
+   wire        daq_busy;
+   
+   
 ldmx_daq theDAQ(.clk_link(clk_link),
 		.link_data(data_from_link),
 		.link_is_k(k_from_link),
@@ -260,6 +263,7 @@ ldmx_daq theDAQ(.clk_link(clk_link),
 		.bx_clk(clk_bx),
 		.evttag(evttag),
 		.tagdone(tagdone),
+		.busy(daq_busy),
 		.reset(sysClk125Rst),
 		.dma_clk(dmaClk),
 		.dma_ready(dmaIbSlave_tReady),
@@ -328,12 +332,8 @@ ldmx_daq theDAQ(.clk_link(clk_link),
    reg ibusy;
 
    always @(posedge distDivClk) begin
-    if (distDivClkRst) begin
-       ibusy <= 1'h0;
-    end else begin
-       ibusy <= trigger | spill;
-    end
-  end
+       ibusy <= daq_busy;
+   end
 
   assign busy = ibusy;
 
