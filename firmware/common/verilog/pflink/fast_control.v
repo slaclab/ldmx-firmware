@@ -54,13 +54,13 @@ module fast_control(
    wire [11:0] orb_length = Control[2][11:0];
    wire [11:0] l1a_veto_len = Control[3][11:0];
    wire [19:0] periodic_time = Control[3][31:12];
-   
-   
+      
    wire        send_l1a_sw_io = Control[1][0];
    wire        send_link_reset_io = Control[1][1];
    wire        send_buffer_clear_io = Control[1][2];
    wire        send_calib_pulse_io = Control[1][3];
-   wire        fifo_clear_io = Control[1][4];   
+   wire        fifo_clear_io = Control[1][4];
+   wire        tag_done_sw  = Control[1][5];
    wire        newspill_io = Control[1][8];
 
    wire        enable_external_l1a = Control[0][1];
@@ -156,28 +156,39 @@ module fast_control(
    wire [11:0] tag_spill;
    wire [11:0] tag_bxid;
 
+   reg [7:0]  max_header_occupancy;
+   reg [7:0]  fifo_clear_long;
+     
+   
    always @(posedge axi_clk)
      evttag<={tag_evtid,tag_timeinspill,tag_spill,tag_bxid};
 
-   SinglePulseDualClock spdc_done(.i(tagdone),.o(tagdone_40),.oclk(clk_bx));
+   SinglePulseDualClock spdc_done(.i(tagdone || tagdone_sw),.o(tagdone_40),.oclk(clk_bx));
    SinglePulseDualClock spdc_spill(.i(newspill_io||(external_spill && enable_external_spill)),.o(newspill_40),.oclk(clk_bx));   
    SinglePulseDualClock spdc_fifo_clear(.i(reset || fifo_clear_io),.o(fifo_clear),.oclk(clk_bx));   
-      
-l1_header_fifo header_fifo(.bx_clk(clk_bx),
-			   .reset(fifo_clear),
-			   .l1a(fc_word[1]),
-			   .newspill(newspill_40),
-			   .clk125(clk125),
-			   .advance(tagdone_40),
-			   .bxid(bx_counter),
-			   .occupancy(header_occupancy),
-			   .evtid(event_count),
-			   .spill(spill_count),
-			   .tag_evtid(tag_evtid),
-			   .tag_timeinspill(tag_timeinspill),
-			   .tag_spill(tag_spill),
-			   .tag_bxid(tag_bxid)
-			   );
+
+   
+   l1_header_fifo header_fifo(.bx_clk(clk_bx),
+			      .reset(fifo_clear),
+			      .l1a(fc_word[1]),
+			      .newspill(newspill_40),
+			      .clk125(clk125),
+			      .advance(tagdone_40),
+			      .bxid(bx_counter),
+			      .occupancy(header_occupancy),
+			      .evtid(event_count),
+			      .spill(spill_count),
+			      .tag_evtid(tag_evtid),
+			      .tag_timeinspill(tag_timeinspill),
+			      .tag_spill(tag_spill),
+			      .tag_bxid(tag_bxid)
+			      );
+   always @(posedge clk_bx) begin
+      fifo_clear_long<={fifo_clear_long[6:0],fifo_clear};           
+      if (fifo_clear_long!=8'h0) max_header_occupancy<=8'h0;
+      else if (header_occupancy>max_header_occupancy) max_header_occupancy<=header_occupancy;
+      else max_header_occupancy<=max_header_occupancy;
+   end
    
    
    reg 	       reset_io;
@@ -208,7 +219,7 @@ l1_header_fifo header_fifo(.bx_clk(clk_bx),
    clkRateTool clkm125(.reset_in(reset),.clk125(clk125),.clktest(clk125),.value(Status[2]));
    clkRateTool clkmrefd2(.reset_in(reset),.clk125(clk125),.clktest(clk_refd2),.value(Status[3]));
    
-   assign Status[4]={4'h0,spill_count, 8'h0,header_occupancy};
+   assign Status[4]={4'h0,spill_count,max_header_occupancy,header_occupancy};
    assign Status[5]=event_count;
    assign Status[6]=tag_evtid;
    assign Status[7]=tag_timeinspill;
