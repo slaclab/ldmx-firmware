@@ -63,7 +63,7 @@ module fast_control(
    wire        send_buffer_clear_io = Control[1][2];
    wire        send_calib_pulse_io = Control[1][3];
    wire        fifo_clear_io = Control[1][4];
-   wire        tag_done_sw  = Control[1][5];
+   wire        tagdone_sw  = Control[1][5];
    wire        newspill_io = Control[1][8];
 
    wire        enable_external_l1a = Control[0][1];
