@@ -220,7 +220,7 @@ module fast_control(
 
    always @(posedge axi_clk)
      if (!axi_rstr) axi_dout<=32'h0;
-     else if (axi_raddr[7:2]==6'h0) axi_dout<=Control[axi_raddr[2:0]];
+     else if (axi_raddr[7:6]==2'h0) axi_dout<=Control[axi_raddr[2:0]];
      else if (axi_raddr[7:6]==2'h1) axi_dout<=Status[axi_raddr[3:0]];
      else axi_dout<=32'h0;
 
