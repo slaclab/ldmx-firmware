@@ -37,7 +37,7 @@ module fast_control(
    wire write;
 	
    // Control registers
-   parameter NUM_CTL_WORDS = 4;
+   parameter NUM_CTL_WORDS = 5;
    reg [31:0] Control[NUM_CTL_WORDS-1:0];
    wire [31:0] DefaultCtlReg[NUM_CTL_WORDS-1:0];
 
@@ -48,12 +48,15 @@ module fast_control(
    assign DefaultCtlReg[1]=32'h0;
    assign DefaultCtlReg[2]={4'h0,4'h2,8'd20,4'h0,12'd45};
    assign DefaultCtlReg[3]={20'd1000,12'd320};
-   
+   assign DefaultCtlReg[4]={12'h0,8'h1,4'h0,8'h3}; // most-conservative choice, based on 15 sample readout -> ok->busy at 3, busy->ok at 1
+      
    wire [7:0]  calib_l1a_offset = Control[2][23:16];     
    wire [3:0]  calib_pulse_len = Control[2][27:24];
    wire [11:0] orb_length = Control[2][11:0];
    wire [11:0] l1a_veto_len = Control[3][11:0];
    wire [19:0] periodic_time = Control[3][31:12];
+   wire [7:0]  occupancy_busy = Control[4][7:0];
+   wire [7:0]  occupancy_ready = Control[4][19:12];   
       
    wire        send_l1a_sw_io = Control[1][0];
    wire        send_link_reset_io = Control[1][1];
@@ -67,7 +70,7 @@ module fast_control(
    wire        enable_external_spill = Control[0][0];
    wire        enable_timer_l1a = Control[0][2];
    wire        enable_veto_busy = Control[0][3];
-   
+   wire        enable_veto_occupancy = Control[0][4];   
       
    wire        tagdone_40, newspill_40, fifo_clear;   
    wire        send_l1a_sw, send_link_reset, send_buffer_clear, send_calib_pulse;
@@ -114,13 +117,16 @@ module fast_control(
 
       timer_l1a<=(timer_counter==20'h1) && (timer_prescale==6'h1); // single pulse at 40 MHz      
    end
+
+   wire [7:0] header_occupancy;
+   reg busy_occupancy;
    
    reg [11:0] veto_downcounter;
    reg [15:0] vetoed_counter;
    
    always @(posedge clk_bx) begin
       busy_40<=daq_busy;      
-      veto_l1a<=fc_word[1] || (veto_downcounter!=12'h0) || (busy_40 && enable_veto_busy);
+      veto_l1a<=fc_word[1] || (veto_downcounter!=12'h0) || (busy_40 && enable_veto_busy) || (busy_occupancy && enable_veto_occupancy);
       if (fc_word[1]) veto_downcounter<=l1a_veto_len;
       else if (veto_downcounter!=12'h0) veto_downcounter<=veto_downcounter-12'h1;
       else veto_downcounter<=veto_downcounter;
@@ -148,7 +154,6 @@ module fast_control(
    
    always @(posedge clk_bx) fc_stream_enc<=fc_word_enc_i;
 
-   wire [7:0] header_occupancy;
    wire [31:0] event_count;
    wire [11:0] spill_count;
    wire [31:0] tag_evtid;
@@ -183,14 +188,20 @@ module fast_control(
 			      .tag_spill(tag_spill),
 			      .tag_bxid(tag_bxid)
 			      );
+
+
    always @(posedge clk_bx) begin
       fifo_clear_long<={fifo_clear_long[6:0],fifo_clear};           
       if (fifo_clear_long!=8'h0) max_header_occupancy<=8'h0;
       else if (header_occupancy>max_header_occupancy) max_header_occupancy<=header_occupancy;
       else max_header_occupancy<=max_header_occupancy;
+
+      if (fifo_clear_long!=8'h0) busy_occupancy<=1'h0;
+      else if (header_occupancy>=occupancy_busy) busy_occupancy<=1'h1;
+      else if (header_occupancy<=occupancy_ready) busy_occupancy<=1'h0;
+      else busy_occupancy<=busy_occupancy;
    end
-   
-   
+      
    reg 	       reset_io;
    always @(posedge axi_clk) reset_io<=reset;
 
@@ -214,7 +225,7 @@ module fast_control(
      else axi_dout<=32'h0;
 
    assign Status[0]=32'habcd0001;
-   assign Status[1]=32'h00000010;
+   assign Status[1]=32'h00000111;
 
    clkRateTool clkm125(.reset_in(reset),.clk125(clk125),.clktest(clk125),.value(Status[2]));
    clkRateTool clkmrefd2(.reset_in(reset),.clk125(clk125),.clktest(clk_refd2),.value(Status[3]));
@@ -224,7 +235,7 @@ module fast_control(
    assign Status[6]=tag_evtid;
    assign Status[7]=tag_timeinspill;
    assign Status[8]={4'h0,tag_spill,4'h0,tag_bxid};
-   assign Status[9]={2'h0,busy_40,veto_l1a,12'h0,vetoed_counter};   
+   assign Status[9]={1'h0,busy_occupancy,busy_40,veto_l1a,12'h0,vetoed_counter};   
   
    
    reg [2:0] wack_delay;
