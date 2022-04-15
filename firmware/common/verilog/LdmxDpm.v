@@ -141,7 +141,7 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 
    wire tagdone;
    wire [87:0] evttag;
-  
+   wire        daq_busy, fc_busy;  
    
   fast_control fc_block(
 			.clk_bx(clk_bx),
@@ -152,7 +152,8 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 			.evttag(evttag),
 			.external_l1a(trigger),
 			.external_spill(spill),
-			.daq_busy(busy),
+			.daq_busy(daq_busy),
+			.fc_busy(fc_busy),
 			.reset(axilRst),
 			.axi_clk(axilClk),
 			.axi_wstr(fc_wstr),.axi_rstr(fc_rstr),
@@ -254,8 +255,6 @@ module LdmxDpm ( sysClk125, sysClk125Rst, sysClk200, sysClk200Rst, locRefClkP, l
 		.axi_dout(gt_dout[31:0])
 		);
 
-   wire        daq_busy;
-   
    
 ldmx_daq theDAQ(.clk_link(clk_link),
 		.link_data(data_from_link),
@@ -333,7 +332,7 @@ ldmx_daq theDAQ(.clk_link(clk_link),
    reg ibusy;
 
    always @(posedge distDivClk) begin
-       ibusy <= daq_busy;
+       ibusy <= daq_busy || fc_busy;
    end
 
   assign busy = ibusy;

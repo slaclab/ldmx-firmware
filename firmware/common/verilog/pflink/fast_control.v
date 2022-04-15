@@ -12,6 +12,7 @@ module fast_control(
     input 	      external_l1a,
     input 	      external_spill,
     input 	      daq_busy,
+    output 	      fc_busy,
     output reg [87:0] evttag,
     output reg [15:0] fc_stream_enc,
     input 	      reset,
@@ -70,8 +71,9 @@ module fast_control(
    wire        enable_external_spill = Control[0][0];
    wire        enable_timer_l1a = Control[0][2];
    wire        enable_veto_busy = Control[0][3];
-   wire        enable_veto_occupancy = Control[0][4];   
-      
+   wire        enable_veto_occupancy = Control[0][4];
+   wire        force_busy = Control[0][5];
+         
    wire        tagdone_40, newspill_40, fifo_clear;   
    wire        send_l1a_sw, send_link_reset, send_buffer_clear, send_calib_pulse;
    reg 	       calib_l1a, veto_l1a, timer_l1a;
@@ -123,9 +125,13 @@ module fast_control(
    
    reg [11:0] veto_downcounter;
    reg [15:0] vetoed_counter;
+   reg 	      busy_fc_i;
+
+   assign fc_busy=busy_fc_i;   
    
    always @(posedge clk_bx) begin
-      busy_40<=daq_busy;      
+      busy_40<=daq_busy;
+      busy_fc_i<=(busy_occupancy && enable_veto_occupancy) || force_busy;      
       veto_l1a<=fc_word[1] || (veto_downcounter!=12'h0) || (busy_40 && enable_veto_busy) || (busy_occupancy && enable_veto_occupancy);
       if (fc_word[1]) veto_downcounter<=l1a_veto_len;
       else if (veto_downcounter!=12'h0) veto_downcounter<=veto_downcounter-12'h1;
