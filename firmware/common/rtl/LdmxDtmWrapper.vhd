@@ -87,9 +87,8 @@ end LdmxDtmWrapper;
 architecture STRUCTURE of LdmxDtmWrapper is
 
 
-   signal busyOut        : sl;
-   signal busyOutReg     : sl;
-   signal busySync       : sl;
+   signal busyOutReg     : slv(7 downto 0);
+   signal busySync       : slv(7 downto 0);
    signal dpmFbEn        : slv(7 downto 0);
    signal dpmBusy        : slv(7 downto 0);
    signal triggerIn      : sl;
@@ -302,36 +301,19 @@ begin
          if rising_edge(idistClk) then
             if idistClkRst = '1' then
                dpmBusy(i) <= '0' after TPD_G;
+               busyOutReg(i) <= '0' after TPD_G;
             elsif rxDataEn(i) = '1' then
                dpmBusy(i) <= rxData(i)(0) after TPD_G;
+               busyOutReg(i) <= dpmBusy(i) after TPD_G;
             end if;
          end if;
       end process;
    end generate;
 
-   process (idistClk)
-   begin
-      if rising_edge(idistClk) then
-         if idistClkRst = '1' then
-            busyOut    <= '0' after TPD_G;
-            busyOutReg <= '0' after TPD_G;
-         else
-
-            if (dpmBusy and dpmFbEn) = 0 then
-               busyOut <= '0' after TPD_G;
-            else
-               busyOut <= '1' after TPD_G;
-            end if;
-
-            busyOutReg <= busyOut after TPD_G;
-         --busyOutReg <= not busyOutReg after TPD_G;
-         end if;
-      end if;
-   end process;
-
-   U_Synchronizer_1 : entity surf.Synchronizer
+   U_Synchronizer_1 : entity surf.SynchronizerVector
       generic map (
-         TPD_G => TPD_G)
+         TPD_G => TPD_G,
+         WIDTH_G => 8)
       port map (
          clk     => locRefClkG,         -- [in]
          rst     => '0',                -- [in]

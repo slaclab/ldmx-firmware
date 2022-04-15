@@ -62,7 +62,7 @@ entity LdmxDtmPgp is
       l1a        : out sl;
       spill      : out sl;
 
-      busy : in sl);
+      busy : in slv(7 downto 0));
 
 
 end entity LdmxDtmPgp;
@@ -141,8 +141,7 @@ begin
 
    refClkOut <= pgpTxClk;
 
-
-   locTxIn.locData(0) <= busy;
+   locTxIn.locData <= busy;
 
    spillTmp <= pgpRxOut.opCodeEn and pgpRxOut.opCode(0);
    l1aTmp   <= pgpRxOut.opCodeEn and pgpRxOut.opCode(1);

@@ -11,7 +11,7 @@ export RUCKUS_DIR = $(abspath $(PWD)/../../submodules/ruckus)
 
 export RUCKUS_QUIET_FLAG = 1
 
-export PRJ_VERSION = 0x00000013
+export PRJ_VERSION = 0x00000020
 
 #export GIT_BYPASS = 1
 
