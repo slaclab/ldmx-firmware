@@ -6,28 +6,29 @@
  (d) transmits data from daq buffer, releasing buffers one by one as they are transmitted
  */
 module daq_dma_manager (
-         input reset,
-			input clk,
-			input enable,
-			input [3:0]  bundle_trigcount_async, // how many readouts to bundle for an L1A
-			input [5:0]  nreadouts_available_async,
-			input [5:0]  r_buf_id, // what is the current read buffer base pointer
-			output reg [5:0] pick_buf_id,
-			input [10:0]  buf_len,
-			input [7:0] fpga_id,
-			output reg [10:0] r_ptr,
-			input [63:0] data_from_buffer,
-			output [63:0] dma_data,
-			output dma_valid,
-			output dma_last,
-			output reg done_with_buffer,
-			input dma_ready, 
-			output reg [11:0] status,
-			input [11:0] tag_bxid,
-			input [11:0] tag_spill,
-			input [31:0] tag_time_in_spill,
-			input [31:0] tag_evtid,
-			input [31:0] tag_runinfo
+         input 		   reset,
+	 input 		   clk,
+	 input 		   enable,
+	 input [3:0] 	   bundle_trigcount_async, // how many readouts to bundle for an L1A
+	 input [5:0] 	   nreadouts_available_async,
+	 input [5:0] 	   r_buf_id, // what is the current read buffer base pointer
+	 output reg [5:0]  pick_buf_id,
+	 input [10:0] 	   buf_len,
+	 input [7:0] 	   fpga_id,
+	 output reg [10:0] r_ptr,
+	 input [63:0] 	   data_from_buffer,
+	 output [63:0] 	   dma_data,
+	 output 	   dma_valid,
+	 output 	   dma_last,
+	 output reg 	   done_with_buffer,
+	 input 		   dma_ready, 
+	 output reg [11:0] status,
+	 output reg 	   done_with_tag,
+	 input [11:0] 	   tag_bxid,
+	 input [11:0] 	   tag_spill,
+	 input [31:0] 	   tag_time_in_spill,
+	 input [31:0] 	   tag_evtid,
+	 input [31:0] 	   tag_runinfo
 			);
 
    localparam FormatVersion = 4'h2;
@@ -170,6 +171,7 @@ end
 
       fifo_we<=(state==ST_COPY_HEADER || state==ST_COPY || state==ST_NEXT_BUFFER || state==ST_DONE);
       lastSample<=(state==ST_DONE);
+      done_with_tag<=(state==ST_DONE);      
       done_with_buffer<=(state==ST_NEXT_BUFFER || state==ST_DONE);
    end
 

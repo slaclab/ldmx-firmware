@@ -189,6 +189,8 @@ module ldmx_daq(
    reg 	       reset_clk_dma;
    wire [10:0] dma_ptr;
    wire [11:0] dma_status;
+   wire        dma_tagdone;
+   
 
    daq_dma_manager daq_dma(.reset(reset_clk_dma),
 			   .enable(enable_dma),
@@ -206,6 +208,7 @@ module ldmx_daq(
 			   .dma_last(dma_done),
 			   .done_with_buffer(dma_done_with_buffer),
 			   .dma_ready(dma_ready),
+			   .done_with_tag(dma_tagdone),
 			   .status(dma_status),
 			   .tag_bxid(evttag[11:0]),
 			   .tag_spill(evttag[23:12]),
@@ -239,7 +242,8 @@ module ldmx_daq(
    wire [14:0] read_addr;
    assign read_addr[14:11]=r_buf_addr_overlay[5:2];
    assign read_addr[10:9]=(enable_dma)?(r_buf_addr_overlay[1:0]|dma_ptr[10:9]):(r_buf_addr_overlay[1:0]|axi_raddr_latch[10:9]);
-   assign read_addr[8:0]=(enable_dma)?(dma_ptr[8:0]):(axi_raddr_latch[8:0]);   
+   assign read_addr[8:0]=(enable_dma)?(dma_ptr[8:0]):(axi_raddr_latch[8:0]);
+   
 	
    daq_buffer buffer(
 		     .clka(clk_link),
@@ -252,7 +256,7 @@ module ldmx_daq(
 		     .doutb64(read_data_64));
    
 
-   SinglePulseDualClock spdc_tagdone(.i(dma_done&&enable_dma || advance_tag),.o(tagdone),.oclk(bx_clk));   
+   SinglePulseDualClock spdc_tagdone(.i(dma_tagdone&&enable_dma || advance_tag),.o(tagdone),.oclk(bx_clk));   
    
   //=========================================================================
    // axi interface.
