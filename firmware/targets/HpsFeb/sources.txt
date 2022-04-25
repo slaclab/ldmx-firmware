@@ -1,0 +1,5 @@
+vhdl work Version.vhd
+vhdl work rtl/XilCoresPkg.vhd
+vhdl work rtl/Feb.vhd
+vhdl work rtl/FebSemWrapper.vhd
+
