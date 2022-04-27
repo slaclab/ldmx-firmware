@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : Feb.vhd
+-- File       : HpsFeb.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-08-22
@@ -26,35 +26,29 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
-use surf.SsiPkg.all;
-use surf.SsiCmdMasterPkg.all;
-use surf.I2cPkg.all;
-use surf.ClockManager7Pkg.all;
-use surf.Pgp2bPkg.all;
+
+library ldmx;
+use ldmx.AdcReadoutPkg.all;
+use ldmx.HpsPkg.all;
+use ldmx.HpsFebConfigPkg.all;
 
 
-library hps_daq;
-use hps_daq.AdcReadoutPkg.all;
-use hps_daq.XilCoresPkg.all;
-use hps_daq.HpsPkg.all;
-use hps_daq.FebConfigPkg.all;
-use surf.AxiMicronP30Pkg.all;
-
-entity Feb is
+entity HpsFeb is
 
    generic (
       TPD_G                 : time                        := 1 ns;
       BUILD_INFO_G          : BuildInfoType               := BUILD_INFO_DEFAULT_SLV_C;
       SIMULATION_G          : boolean                     := false;
-      ROGUE_TCP_SIM_G       : boolean                     := false;
-      ROGUE_TCP_CTRL_PORT_G : integer range 1024 to 49151 := 9000;
-      ROGUE_TCP_DATA_PORT_G : integer range 1024 to 49141 := 9100;
-      DATA_PGP_CFG_G        : DataPgpCfgType              := DATA_2500_S;
-      PACK_APV_DATA_G       : boolean                     := true);
+      ROGUE_SIM_EN_G        : boolean                     := false;
+      ROGUE_SIM_SIMEBAND_G  : boolean                     := false;
+      ROGUE_SIM_CTRL_PORT_G : integer range 1024 to 49151 := 9000;
+      ROGUE_SIM_DATA_PORT_G : integer range 1024 to 49141 := 9100;
+      HYBRIDS_G             : integer                     := 1;
+      APVS_PER_HYBRID_G                                   := 5);
    port (
       -- GTP Reference Clocks
-      gtRefClk125P : in sl;
-      gtRefClk125N : in sl;
+      gtRefClk186P : in sl;
+      gtRefClk186N : in sl;
       gtRefClk250P : in sl;
       gtRefClk250N : in sl;
 
@@ -64,31 +58,25 @@ entity Feb is
       sysGtRxP : in  sl;
       sysGtRxN : in  sl;
 
-      dataGtTxP : out slv(3 downto 0);
-      dataGtTxN : out slv(3 downto 0);
-      dataGtRxP : in  slv(3 downto 0);
-      dataGtRxN : in  slv(3 downto 0);
-
-      -- Loop recovered daq clk back
-      daqClk125P : out sl;
-      daqClk125N : out sl;
-      daqRefClkP : in  sl;
-      daqRefClkN : in  sl;
+      dataGtTxP : out sl;
+      dataGtTxN : out sl;
+      dataGtRxP : in  sl;
+      dataGtRxN : in  sl;
 
       -- ADC Data Interface
-      adcClkP  : out slv(3 downto 0);   -- 41 MHz clock to ADC
-      adcClkN  : out slv(3 downto 0);
-      adcFClkP : in  slv(3 downto 0);
-      adcFClkN : in  slv(3 downto 0);
-      adcDClkP : in  slv(3 downto 0);
-      adcDClkN : in  slv(3 downto 0);
-      adcDataP : in  slv5Array(3 downto 0);
-      adcDataN : in  slv5Array(3 downto 0);
+      adcClkP  : out slv(HYBRIDS_G-1 downto 0);   -- 37 MHz clock to ADC
+      adcClkN  : out slv(HYBRIDS_G-1 downto 0);
+      adcFClkP : in  slv(HYBRIDS_G-1 downto 0);
+      adcFClkN : in  slv(HYBRIDS_G-1 downto 0);
+      adcDClkP : in  slv(HYBRIDS_G-1 downto 0);
+      adcDClkN : in  slv(HYBRIDS_G-1 downto 0);
+      adcDataP : in  slv5Array(HYBRIDS_G-1 downto 0);
+      adcDataN : in  slv5Array(HYBRIDS_G-1 downto 0);
 
       -- ADC Config Interface
-      adcCsb  : out   slv(3 downto 0);
-      adcSclk : out   slv(3 downto 0);
-      adcSdio : inout slv(3 downto 0);
+      adcCsb  : out   slv(HYBRIDS_G-1 downto 0);
+      adcSclk : out   slv(HYBRIDS_G-1 downto 0);
+      adcSdio : inout slv(HYBRIDS_G-1 downto 0);
 
       -- Amp I2C Interface
       ampI2cScl : inout sl;
@@ -105,17 +93,17 @@ entity Feb is
       boardSpiCsL  : out slv(4 downto 0);
 
       -- Hybrid power control
-      hyPwrEn : out slv(3 downto 0);
+      hyPwrEn : out slv(HYBRIDS_G-1 downto 0);
 
       -- Interface to Hybrids
-      hyClkP      : out slv(3 downto 0);
-      hyClkN      : out slv(3 downto 0);
-      hyTrgP      : out slv(3 downto 0);
-      hyTrgN      : out slv(3 downto 0);
-      hyRstL      : out slv(3 downto 0);
-      hyI2cScl    : out slv(3 downto 0);
-      hyI2cSdaOut : out slv(3 downto 0);
-      hyI2cSdaIn  : in  slv(3 downto 0);
+      hyClkP      : out slv(HYBRIDS_G-1 downto 0);
+      hyClkN      : out slv(HYBRIDS_G-1 downto 0);
+      hyTrgP      : out slv(HYBRIDS_G-1 downto 0);
+      hyTrgN      : out slv(HYBRIDS_G-1 downto 0);
+      hyRstL      : out slv(HYBRIDS_G-1 downto 0);
+      hyI2cScl    : out slv(HYBRIDS_G-1 downto 0);
+      hyI2cSdaOut : out slv(HYBRIDS_G-1 downto 0);
+      hyI2cSdaIn  : in  slv(HYBRIDS_G-1 downto 0);
 
       -- XADC Interface
       vAuxP : in slv(15 downto 0);
@@ -134,56 +122,16 @@ entity Feb is
 
       );
 
-end entity Feb;
+end entity HpsFeb;
 
-architecture rtl of Feb is
-
-   attribute keep_hierarchy        : string;
-   attribute keep_hierarchy of rtl : architecture is "yes";
-
-   -------------------------------------------------------------------------------------------------
-   -- Define all possible Data Clock MMCM configurations
-   -------------------------------------------------------------------------------------------------
-   -- 250 MHz data clock
-   constant MMCM_CFG_ARRAY_C : ClockManager7CfgArray := (
-      DataPgpCfgType'pos(DATA_5000_S)            => (  -- 250 MHz Data clock
-         makeClockManager7Cfg(CLKFBOUT_MULT_F_G  => 5.0,
-                              CLKOUT0_DIVIDE_F_G => 6.0,
-                              CLKOUT0_RST_HOLD_G => 16,
-                              CLKOUT1_DIVIDE_G   => 4,
-                              CLKOUT1_RST_HOLD_G => 16)),
-      -- 200 Mhz data clock
-      DataPgpCfgType'pos(DATA_4000_S)            => (  -- 200 MHz Data clock
-         makeClockManager7Cfg(CLKFBOUT_MULT_F_G  => 5.0,
-                              CLKOUT0_DIVIDE_F_G => 6.0,
-                              CLKOUT0_RST_HOLD_G => 16,
-                              CLKOUT1_DIVIDE_G   => 5,
-                              CLKOUT1_RST_HOLD_G => 20)),
-      -- 156.25 Mhz data clock
-      DataPgpCfgType'pos(DATA_3125_S)            => (  -- 156.25 MHz Data clk
-         makeClockManager7Cfg(CLKFBOUT_MULT_F_G  => 5.0,
-                              CLKOUT0_DIVIDE_F_G => 6.0,
-                              CLKOUT0_RST_HOLD_G => 16,
-                              CLKOUT1_DIVIDE_G   => 8,
-                              CLKOUT1_RST_HOLD_G => 40)),
-      -- 125 Mhz data clock
-      DataPgpCfgType'pos(DATA_2500_S)            => (  -- 125 MHz Data clock
-         makeClockManager7Cfg(CLKFBOUT_MULT_F_G  => 5.0,
-                              CLKOUT0_DIVIDE_F_G => 6.0,
-                              CLKOUT0_RST_HOLD_G => 16,
-                              CLKOUT1_DIVIDE_G   => 10,
-                              CLKOUT1_RST_HOLD_G => 32)));
-
-
-   -- Select data clock MMCM settings
-   constant DATA_MMCM_CFG_C : ClockManager7CfgType := MMCM_CFG_ARRAY_C(DataPgpCfgType'pos(DATA_PGP_CFG_G));
+architecture rtl of HpsFeb is
 
 
    -------------------------------------------------------------------------------------------------
    -- Clock Signals
    -------------------------------------------------------------------------------------------------
-   signal gtRefClk125  : sl;
-   signal gtRefClk125G : sl;
+   signal gtRefClk186  : sl;
+   signal gtRefClk186G : sl;
    signal gtRefClk250  : sl;
    signal daqRefClk    : sl;
    signal daqRefClkG   : sl;
@@ -194,8 +142,8 @@ architecture rtl of Feb is
    signal semClk        : sl;
    signal semClkRst     : sl;
 
-   signal daqClk125     : sl;
-   signal daqClk125Rst  : sl;
+   signal daqClk186     : sl;
+   signal daqClk186Rst  : sl;
    signal daqOpCode     : slv(7 downto 0);
    signal daqOpCodeEn   : sl;
    signal clk250MmcmRst : sl;
@@ -218,7 +166,7 @@ architecture rtl of Feb is
    -- AXI Signals
    -------------------------------------------------------------------------------------------------
 
-   constant NUM_AXI_MASTERS_C : natural := 5;
+   constant NUM_AXI_MASTERS_C : natural := 4;
 
    constant FEB_CORE_AXI_INDEX_C : natural := 0;
    constant VERSION_AXI_INDEX_C  : natural := 1;
@@ -248,11 +196,11 @@ architecture rtl of Feb is
       PROM_AXI_INDEX_C     => (
          baseAddr          => PROM_AXI_BASE_ADDR_C,
          addrBits          => 12,
-         connectivity      => X"0001"),
-      SEM_AXI_INDEX_C      => (
-         baseAddr          => SEM_AXI_BASE_ADDR_C,
-         addrBits          => 8,
          connectivity      => X"0001"));
+--       SEM_AXI_INDEX_C      => (
+--          baseAddr          => SEM_AXI_BASE_ADDR_C,
+--          addrBits          => 8,
+--          connectivity      => X"0001"));
 
    signal extAxilWriteMaster : AxiLiteWriteMasterType;
    signal extAxilWriteSlave  : AxiLiteWriteSlaveType;
@@ -265,34 +213,29 @@ architecture rtl of Feb is
    signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
 
    -------------------------------------------------------------------------------------------------
-   -- PROM Streaming interface
-   -------------------------------------------------------------------------------------------------
-
-   -------------------------------------------------------------------------------------------------
-   -- SEM Streaming interface
-   -------------------------------------------------------------------------------------------------
-   signal semRxAxisMaster : AxiStreamMasterType;
-   signal semRxAxisSlave  : AxiStreamSlaveType;
-   signal semTxAxisMaster : AxiStreamMasterType;
-   signal semTxAxisSlave  : AxiStreamSlaveType;
-
-   -------------------------------------------------------------------------------------------------
    -- Data Streams
    -------------------------------------------------------------------------------------------------
-   signal hybridDataAxisMasters : AxiStreamQuadMasterArray(3 downto 0);
-   signal hybridDataAxisSlaves  : AxiStreamQuadSlaveArray(3 downto 0);
-   signal hybridDataAxisCtrl    : AxiStreamQuadCtrlArray(3 downto 0);
-   signal syncStatuses          : slv5Array(3 downto 0);
+   signal dataClk : sl;
+   signal dataRst : sl;
 
+   signal hybridDataAxisMasters : AxiStreamQuadMasterArray(HYBRIDS_G-1 downto 0);
+   signal hybridDataAxisSlaves  : AxiStreamQuadSlaveArray(HYBRIDS_G-1 downto 0);
+   signal hybridDataAxisCtrl    : AxiStreamQuadCtrlArray(HYBRIDS_G-1 downto 0);
+   signal syncStatuses          : slv8Array(HYBRIDS_G-1 downto 0);
+
+   signal eventAxisMaster : AxiStreamMasterType;
+   signal eventAxisSlave  : AxiStreamSlaveType;
+   signal eventAxisCtrl   : AxiStreamCtrlType;
+   
    -------------------------------------------------------------------------------------------------
    -- Shifted Clocks
    -------------------------------------------------------------------------------------------------
-   signal adcClkOut   : slv(3 downto 0);
-   signal hyClkOut    : slv(3 downto 0);
-   signal hyTrgOut    : slv(3 downto 0);
-   signal hyRstOutL   : slv(3 downto 0);
-   signal hyPwrEnInt  : slv(3 downto 0);
-   signal hyPwrEnIntL : slv(3 downto 0);
+   signal adcClkOut   : slv(HYBRIDS_G-1 downto 0);
+   signal hyClkOut    : slv(HYBRIDS_G-1 downto 0);
+   signal hyTrgOut    : slv(HYBRIDS_G-1 downto 0);
+   signal hyRstOutL   : slv(HYBRIDS_G-1 downto 0);
+   signal hyPwrEnInt  : slv(HYBRIDS_G-1 downto 0);
+   signal hyPwrEnIntL : slv(HYBRIDS_G-1 downto 0);
 
    -------------------------------------------------------------------------------------------------
    -- Board I2C Signals
@@ -303,29 +246,23 @@ architecture rtl of Feb is
    -------------------------------------------------------------------------------------------------
    -- Hybrid I2c Signals
    -------------------------------------------------------------------------------------------------
-   signal hyI2cIn  : i2c_in_array(3 downto 0);
-   signal hyI2cOut : i2c_out_array(3 downto 0);
+   signal hyI2cIn  : i2c_in_array(HYBRIDS_G-1 downto 0);
+   signal hyI2cOut : i2c_out_array(HYBRIDS_G-1 downto 0);
 
    -------------------------------------------------------------------------------------------------
    -- AdcReadout Signals
    -------------------------------------------------------------------------------------------------
-   signal adcChips : AdcChipOutArray(3 downto 0);
+   signal adcChips : AdcChipOutArray(HYBRIDS_G-1 downto 0);
 
    signal sysRxLink  : sl;
    signal sysTxLink  : sl;
-   signal dataTxLink : slv(3 downto 0);
+   signal dataTxLink : sl);
 
-   -------------------------------------------------------------------------------------------------
-   -- Flash prom local io records
-   -------------------------------------------------------------------------------------------------
-   signal flashIn    : AxiMicronP30InType;
-   signal flashOut   : AxiMicronP30OutType;
-   signal flashInOut : AxiMicronP30InOutType;
 
    signal ledEn   : sl;
    signal ledsInt : slv(7 downto 0);
 
-   signal febConfig : FebConfigType;
+   signal febConfig : HpsFebConfigType;
 
    signal bootSck : sl;
 
@@ -333,49 +270,8 @@ begin
 
    leds <= ledsInt when ledEn = '1' else (others => '0');
 
-   -------------------------------------------------------------------------------------------------
-   -- Bring in gt reference clocks
-   -------------------------------------------------------------------------------------------------
-   IBUFDS_GTE2_GTREFCLK125 : IBUFDS_GTE2
-      port map (
-         I   => gtRefClk125P,
-         IB  => gtRefClk125N,
-         CEB => '0',
-         O   => gtRefClk125);
 
-   IBUFDS_GTE2_GTREFCLK250 : IBUFDS_GTE2
-      port map (
-         I   => gtRefClk250P,
-         IB  => gtRefClk250N,
-         CEB => '0',
-         O   => gtRefClk250);
 
-   GTREFCLK125_BUFG : BUFG
-      port map (
-         I => gtRefClk125,
-         O => gtRefClk125G);
-
-   IBUFDS_GTE2_DAQREFCLK : IBUFDS_GTE2
-      port map (
-         I   => daqRefClkP,
-         IB  => daqRefClkN,
-         CEB => '0',
-         O   => daqRefClk);
-
-   DAQREFCLK_BUFG : BUFG
-      port map (
-         I => daqRefClk,
-         O => daqRefClkG);
-
-   PwrUpRst_1 : entity surf.PwrUpRst
-      generic map (
-         TPD_G          => TPD_G,
-         SIM_SPEEDUP_G  => SIMULATION_G,
-         IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '1')
-      port map (
-         clk    => gtRefClk125G,
-         rstOut => powerOnReset);
 
    -------------------------------------------------------------------------------------------------
    -- Create global clocks from gt ref clocks
@@ -515,66 +411,51 @@ begin
    -------------------------------------------------------------------------------------------------
    -- PGP Interface 
    -------------------------------------------------------------------------------------------------
-   FebPgp_1 : entity hps_daq.FebPgp
+   U_HpsFebPgp_1: entity work.HpsFebPgp
       generic map (
-         TPD_G                 => TPD_G,
-         ROGUE_TCP_SIM_G       => ROGUE_TCP_SIM_G,
-         ROGUE_TCP_CTRL_PORT_G => ROGUE_TCP_CTRL_PORT_G,
-         ROGUE_TCP_DATA_PORT_G => ROGUE_TCP_DATA_PORT_G,
-         AXI_BASE_ADDR_G       => PGP_AXI_BASE_ADDR_C,
-         TX_CLK_SRC_G          => "GTREF125",
-         RX_REC_CLK_MMCM_G     => false,
-         DATA_PGP_LINE_RATE_G  => DATA_PGP_LINE_RATES_C(DataPgpCfgType'pos(DATA_PGP_CFG_G)))
+         TPD_G             => TPD_G,
+         ROGUE_SIM_G       => ROGUE_SIM_G,
+         ROGUE_CTRL_PORT_G => ROGUE_CTRL_PORT_G,
+         ROGUE_DATA_PORT_G => ROGUE_DATA_PORT_G,
+         AXI_BASE_ADDR_G   => AXI_BASE_ADDR_G)
       port map (
-         stableClk             => axiClk,
-         gtRefClk125           => gtRefClk125,
-         gtRefClk125G          => gtRefClk125G,
-         gtRefClk250           => gtRefClk250,
-         daqRefClk             => daqRefClk,
-         daqRefClkG            => daqRefClkG,
-         ctrlGtTxP             => sysGtTxP,
-         ctrlGtTxN             => sysGtTxN,
-         ctrlGtRxP             => sysGtRxP,
-         ctrlGtRxN             => sysGtRxN,
-         dataGtTxP             => dataGtTxP,
-         dataGtTxN             => dataGtTxN,
-         dataGtRxP             => dataGtRxP,
-         dataGtRxN             => dataGtRxN,
-         ctrlTxLink            => ledsInt(6),
-         ctrlRxLink            => ledsInt(7),
-         dataTxLink            => open,
-         ctrlRxRecClk          => daqClk125,
-         ctrlRxRecClkRst       => daqClk125Rst,
-         ctrlRxOpcode          => daqOpCode,
-         ctrlRxOpcodeEn        => daqOpCodeEn,
-         axilClk               => axiClk,
-         axilClkRst            => axiRst,
-         mAxilReadMaster       => extAxilReadMaster,
-         mAxilReadSlave        => extAxilReadSlave,
-         mAxilWriteMaster      => extAxilWriteMaster,
-         mAxilWriteSlave       => extAxilWriteSlave,
-         semTxAxisMaster       => semTxAxisMaster,
-         semTxAxisSlave        => semTxAxisSlave,
-         semRxAxisMaster       => semRxAxisMaster,
-         semRxAxisSlave        => semRxAxisSlave,
+         gtRefClk186P     => gtRefClk186P,      -- [in]
+         gtRefClk186N     => gtRefClk186N,      -- [in]
+         gtRefClk250P     => gtRefClk250P,      -- [in]
+         gtRefClk250N     => gtRefClk250N,      -- [in]
+         gtRefClk125      => gtRefClk125,       -- [out]
+         gtRefRst125      => gtRefRst125,       -- [out]
+         ctrlGtTxP        => ctrlGtTxP,         -- [out]
+         ctrlGtTxN        => ctrlGtTxN,         -- [out]
+         ctrlGtRxP        => ctrlGtRxP,         -- [in]
+         ctrlGtRxN        => ctrlGtRxN,         -- [in]
+         dataGtTxP        => dataGtTxP,         -- [out]
+         dataGtTxN        => dataGtTxN,         -- [out]
+         dataGtRxP        => dataGtRxP,         -- [in]
+         dataGtRxN        => dataGtRxN,         -- [in]
+         ctrlTxLink       => ledsInt(6),        -- [out]
+         ctrlRxLink       => ledsInt(7),        -- [out]
+         dataTxLink       => open,        -- [out]
+         distClk          => daqClk,           -- [out]
+         distRst          => daqRst,           -- [out]
+         distRxFcWord     => daqOpCode,      -- [out]
+         distRxFcValid    => daqOpCodeValid,     -- [out]
+         axilClk          => axilClk,           -- [in]
+         axilClkRst       => axilClkRst,        -- [in]
+         mAxilReadMaster  => extAxilReadMaster,   -- [out]
+         mAxilReadSlave   => extAxilReadSlave,    -- [in]
+         mAxilWriteMaster => extAxilWriteMaster,  -- [out]
+         mAxilWriteSlave  => extAxilWriteSlave,   -- [in]
          sAxilReadMaster       => locAxilReadMasters(PGP_AXI_INDEX_C),
          sAxilReadSlave        => locAxilReadSlaves(PGP_AXI_INDEX_C),
          sAxilWriteMaster      => locAxilWriteMasters(PGP_AXI_INDEX_C),
          sAxilWriteSlave       => locAxilWriteSlaves(PGP_AXI_INDEX_C),
-         clk250                => clk250,
-         clk250Rst             => clk250Rst,
-         dataClk               => pgpDataClk,
-         dataClkRst            => pgpDataClkRst,
-         hybridDataAxisMasters => hybridDataAxisMasters,
-         hybridDataAxisSlaves  => hybridDataAxisSlaves,
-         hybridDataAxisCtrl    => hybridDataAxisCtrl,
-         syncStatuses          => syncStatuses);
-
-   REC_CLK_OUT_BUF_DIFF : entity surf.ClkOutBufDiff
-      port map (
-         clkIn   => daqClk125,
-         clkOutP => daqClk125P,
-         clkOutN => daqClk125N);
+         dataClk          => dataClk,           -- [in]
+         dataRst          => dataRst,           -- [in]
+         dataAxisMaster   => dataAxisMaster,    -- [in]
+         dataAxisSlave    => dataAxisSlave,     -- [out]
+         dataAxisCtrl     => dataAxisCtrl);     -- [out]
+   
 
 
    -------------------------------------------------------------------------------------------------
@@ -626,62 +507,53 @@ begin
    hyPwrEn <= hyPwrEnInt;
    FebCore_1 : entity hps_daq.FebCore
       generic map (
-         TPD_G           => TPD_G,
-         SIMULATION_G    => SIMULATION_G,
-         HYBRIDS_G       => 4,
-         PACK_APV_DATA_G => PACK_APV_DATA_G,
-         AXI_BASE_ADDR_G => FEB_CORE_AXI_BASE_ADDR_C)
+         TPD_G             => TPD_G,
+         SIMULATION_G      => SIMULATION_G,
+         HYBRIDS_G         => HYBRIDS_G,
+         APVS_PER_HYBRID_G => APVS_PER_HYBRID_G,
+         AXI_BASE_ADDR_G   => FEB_CORE_AXI_BASE_ADDR_C)
       port map (
-         daqClk125             => daqClk125,
-         daqClk125Rst          => daqClk125Rst,
-         opCode                => daqOpCode,
-         opCodeEn              => daqOpCodeEn,
-         dataClk               => pgpDataClk,
-         dataClkRst            => pgpDataClkRst,
-         clk250                => clk250,
-         clk250Rst             => clk250Rst,
-         axiClk                => axiClk,
-         axiRst                => axiRst,
-         extAxiWriteMaster     => locAxilWriteMasters(FEB_CORE_AXI_INDEX_C),
-         extAxiWriteSlave      => locAxilWriteSlaves(FEB_CORE_AXI_INDEX_C),
-         extAxiReadMaster      => locAxilReadMasters(FEB_CORE_AXI_INDEX_C),
-         extAxiReadSlave       => locAxilReadSlaves(FEB_CORE_AXI_INDEX_C),
-         febConfigOut          => febConfig,
-         adcChips              => adcChips,
-         adcClkOut             => adcClkOut,
-         adcCsb                => adcCsb,
-         adcSclk               => adcSclk,
-         adcSdio               => adcSdio,
-         ampI2cScl             => ampI2cScl,
-         ampI2cSda             => ampI2cSda,
-         boardI2cIn            => boardI2cIn,
-         boardI2cOut           => boardI2cOut,
-         boardSpiSclk          => boardSpiSclk,
-         boardSpiSdi           => boardSpiSdi,
-         boardSpiSdo           => boardSpiSdo,
-         boardSpiCsL           => boardSpiCsL,
-         hyPwrEn               => hyPwrEnInt,
-         hyClkOut              => hyClkOut,
-         hyTrgOut              => hyTrgOut,
-         hyRstOutL             => hyRstOutL,
-         hyI2cIn               => hyI2cIn,
-         hyI2cOut              => hyI2cOut,
-         vAuxP                 => vAuxP,
-         vAuxN                 => vAuxN,
-         vPIn                  => vPIn,
-         vNIn                  => vNIn,
-         powerGood             => powerGood,
-         ledEn                 => ledEn,
-         hybridDataAxisMasters => hybridDataAxisMasters,
-         hybridDataAxisSlaves  => hybridDataAxisSlaves,
-         hybridDataAxisCtrl    => hybridDataAxisCtrl,
-         syncStatuses          => syncStatuses);
-
+         daqClk             => daqClk,
+         daqRst             => daqRst,
+         daqOpCode          => daqOpCode,
+         daqOpCodeEn        => daqOpCodeEn,
+         axilClk            => axilClk,
+         axilRst            => axilRst,
+         extAxilWriteMaster => locAxilWriteMasters(FEB_CORE_AXI_INDEX_C),
+         extAxilWriteSlave  => locAxilWriteSlaves(FEB_CORE_AXI_INDEX_C),
+         extAxilReadMaster  => locAxilReadMasters(FEB_CORE_AXI_INDEX_C),
+         extAxilReadSlave   => locAxilReadSlaves(FEB_CORE_AXI_INDEX_C),
+         adcChips           => adcChips,
+         adcClkOut          => adcClkOut,
+         eventAxisMaster    => eventAxisMaster,
+         eventAxisSlave     => eventAxisSlave,
+         eventAxisCtrl      => eventAxisCtrl,
+         adcCsb             => adcCsb,
+         adcSclk            => adcSclk,
+         adcSdio            => adcSdio,
+         ampI2cScl          => ampI2cScl,
+         ampI2cSda          => ampI2cSda,
+         boardI2cIn         => boardI2cIn,
+         boardI2cOut        => boardI2cOut,
+         boardSpiSclk       => boardSpiSclk,
+         boardSpiSdi        => boardSpiSdi,
+         boardSpiSdo        => boardSpiSdo,
+         boardSpiCsL        => boardSpiCsL,
+         hyPwrEn            => hyPwrEnInt,
+         hyClkOut           => hyClkOut,
+         hyTrgOut           => hyTrgOut,
+         hyRstOutL          => hyRstOutL,
+         hyI2cIn            => hyI2cIn,
+         hyI2cOut           => hyI2cOut,
+         vAuxP              => vAuxP,
+         vAuxN              => vAuxN,
+         powerGood          => powerGood,
+         ledEn              => ledEn);
 
    -------------------------------------------------------------------------------------------------
    -- IO Buffers for Shifted hybrid and ADC clocks, and triggers
    -------------------------------------------------------------------------------------------------
-   DIFF_BUFF_GEN : for i in 3 downto 0 generate
+   DIFF_BUFF_GEN : for i in HYBRIDS_G-1 downto 0 generate
       hyRstL(i)      <= hyRstOutL(i) when hyPwrEnInt(i) = '1' else 'Z';
       hyPwrEnIntL(i) <= not hyPwrEnInt(i);
 
@@ -729,7 +601,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Hybrid Axi Crossbars and attached devices
    -------------------------------------------------------------------------------------------------
-   HY_AXI_GEN : for i in 3 downto 0 generate
+   HY_AXI_GEN : for i in HYBRIDS_G-1 downto 0 generate
 
       -- IO Assignment to records
       adcChips(i).fClkP <= adcFClkP(i);
@@ -790,28 +662,5 @@ begin
          USRDONEO  => '1',              -- 1-bit input: User DONE pin output control
          USRDONETS => '1');             -- 1-bit input: User DONE 3-state enable output
 
-   -------------------------------------------------------------------------------------------------
-   -- SEM
-   -------------------------------------------------------------------------------------------------
-   FebSemWrapper_1 : entity hps_daq.FebSemWrapper
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         semClk          => semClk,
-         semClkRst       => semClkRst,
-         axilClk         => axiClk,
-         axilRst         => axiRst,
-         axilReadMaster  => locAxilReadMasters(SEM_AXI_INDEX_C),
-         axilReadSlave   => locAxilReadSlaves(SEM_AXI_INDEX_C),
-         axilWriteMaster => locAxilWriteMasters(SEM_AXI_INDEX_C),
-         axilWriteSlave  => locAxilWriteSlaves(SEM_AXI_INDEX_C),
-         febConfig       => febConfig,
-         fpgaReload      => fpgaReload,
-         fpgaReloadAddr  => fpgaReloadAddr,
-         axisClk         => axiClk,
-         axisRst         => axiRst,
-         semTxAxisMaster => semTxAxisMaster,
-         semTxAxisSlave  => semTxAxisSlave,
-         semRxAxisMaster => semRxAxisMaster,
-         semRxAxisSlave  => semRxAxisSlave);
+
 end architecture rtl;
