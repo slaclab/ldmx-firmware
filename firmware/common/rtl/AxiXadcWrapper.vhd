@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-03-24
--- Last update: 2014-03-24
+-- Last update: 2022-04-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,8 +21,8 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-library hps_daq;
-use hps_daq.XilCoresPkg.all;
+library ldmx;
+use ldmx.XilCoresPkg.all;
 
 entity AxiXadcWrapper is
    

@@ -78,6 +78,13 @@ library surf;
 use surf.StdRtlPkg.all;
 
 entity PhaseShiftMmcm is
+   generic (
+      TPD_G           : time                 := 1 ns;
+      NUM_OUTCLOCKS_G : integer range 1 to 6 := 4;
+      CLKIN_PERIOD_G  : real                 := 24.0;
+      DIVCLK_DIVIDE_G : integer              := 1;
+      CLKFBOUT_MULT_G : integer              := 24,
+      CLKOUT_DIVIDE_G : integer              := 24);
    port (                               -- Clock in ports
       clk41    : in  sl;
       -- Clock out ports
@@ -103,8 +110,8 @@ architecture rtl of PhaseShiftMmcm is
    signal clkFbOut  : sl;
    signal clkFbBufg : sl;
 
-   signal clkOutMmcm : slv(3 downto 0);
-   
+   signal clkOutMmcm : slv(5 downto 0);
+
 begin
 
 
@@ -119,27 +126,35 @@ begin
        CLKOUT4_CASCADE      => false,
        COMPENSATION         => "ZHOLD",
        STARTUP_WAIT         => false,
-       DIVCLK_DIVIDE        => 1,
-       CLKFBOUT_MULT_F      => 24.000,
+       DIVCLK_DIVIDE        => DIVCLK_DIVIDE_G,
+       CLKFBOUT_MULT_F      => real(CLKFBOUT_MULT_G),
        CLKFBOUT_PHASE       => 0.000,
        CLKFBOUT_USE_FINE_PS => false,
-       CLKOUT0_DIVIDE_F     => 24.000,
+       CLKOUT0_DIVIDE_F     => real(CLKOUT_DIVIDE_G),
        CLKOUT0_PHASE        => 0.000,
        CLKOUT0_DUTY_CYCLE   => 0.500,
        CLKOUT0_USE_FINE_PS  => false,
-       CLKOUT1_DIVIDE       => 24,
+       CLKOUT1_DIVIDE       => CLKOUT_DIVIDE_G,
        CLKOUT1_PHASE        => 0.000,
        CLKOUT1_DUTY_CYCLE   => 0.500,
        CLKOUT1_USE_FINE_PS  => false,
-       CLKOUT2_DIVIDE       => 24,
+       CLKOUT2_DIVIDE       => CLKOUT_DIVIDE_G,
        CLKOUT2_PHASE        => 0.000,
        CLKOUT2_DUTY_CYCLE   => 0.500,
        CLKOUT2_USE_FINE_PS  => false,
-       CLKOUT3_DIVIDE       => 24,
+       CLKOUT3_DIVIDE       => CLKOUT_DIVIDE_G,
        CLKOUT3_PHASE        => 0.000,
        CLKOUT3_DUTY_CYCLE   => 0.500,
        CLKOUT3_USE_FINE_PS  => false,
-       CLKIN1_PERIOD        => 24.0,
+       CLKOUT4_DIVIDE       => CLKOUT_DIVIDE_G,
+       CLKOUT4_PHASE        => 0.000,
+       CLKOUT4_DUTY_CYCLE   => 0.500,
+       CLKOUT4_USE_FINE_PS  => false,
+       CLKOUT5_DIVIDE       => CLKOUT_DIVIDE_G,
+       CLKOUT5_PHASE        => 0.000,
+       CLKOUT5_DUTY_CYCLE   => 0.500,
+       CLKOUT5_USE_FINE_PS  => false,
+       CLKIN1_PERIOD        => CLKIN_PERIOD_G,
        REF_JITTER1          => 0.010)
       port map
       -- Output clocks
@@ -154,8 +169,8 @@ begin
          CLKOUT2B     => open,
          CLKOUT3      => clkOutMmcm(3),
          CLKOUT3B     => open,
-         CLKOUT4      => open,
-         CLKOUT5      => open,
+         CLKOUT4      => clkOutMmcm(4),
+         CLKOUT5      => clkOutMmcm(5),
          CLKOUT6      => open,
          -- Input clock control
          CLKFBIN      => clkFbBufg,
@@ -191,12 +206,12 @@ begin
       (I => clkFbOut,
        O => clkFbBufg);
 
-   BUFG_GEN : for i in 3 downto 0 generate
+   BUFG_GEN : for i in NUM_OUTCLOCKS_G-1 downto 0 generate
       clkout1_buf : BUFGCE
          port map
          (O  => clkOut(i),
           CE => outputEn(i),
           I  => clkOutMmcm(i));
    end generate BUFG_GEN;
-   
+
 end rtl;

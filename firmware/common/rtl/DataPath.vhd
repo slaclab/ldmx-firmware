@@ -27,12 +27,12 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
-use hps_daq.DataPathPkg.all;
-use hps_daq.AdcReadoutPkg.all;
-use hps_daq.RceConfigPkg.all;
-use hps_daq.FebConfigPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
+use ldmx.DataPathPkg.all;
+use ldmx.AdcReadoutPkg.all;
+use ldmx.RceConfigPkg.all;
+use ldmx.FebConfigPkg.all;
 
 entity DataPath is
    generic (
@@ -311,7 +311,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Extract statuses and ADC Samples from incomming VC Frames
    -------------------------------------------------------------------------------------------------
-   HybridStatusDeframer_1 : entity hps_daq.HybridStatusDeframer
+   HybridStatusDeframer_1 : entity ldmx.HybridStatusDeframer
       generic map (
          TPD_G             => TPD_G,
          APVS_PER_HYBRID_G => APVS_PER_HYBRID_G)
@@ -330,7 +330,7 @@ begin
    -------------------------------------------------------------------------------------------------
 --    hybridApvDataAxisSlave <= hybridApvDataAxisSlaveLoc;
 --    hybridApvDataAxisCtrl  <= hybridApvDataAxisCtrlLoc;
---    SsiFrameLogger_Packed : entity hps_daq.SsiFrameLogger
+--    SsiFrameLogger_Packed : entity ldmx.SsiFrameLogger
 --       generic map (
 --          TPD_G            => TPD_G,
 --          MEMORY_TYPE_G        => "block",
@@ -349,7 +349,7 @@ begin
 --          sAxisSlave     => hybridApvDataAxisSlaveLoc,
 --          sAxisCtrl      => hybridApvDataAxisCtrlLoc);
 
---    SsiErrorFilter_1 : entity hps_daq.SsiErrorFilter
+--    SsiErrorFilter_1 : entity ldmx.SsiErrorFilter
 --       generic map (
 --          TPD_G         => TPD_G,
 --          FRAME_SIZE_G  => 129,
@@ -387,7 +387,7 @@ begin
       hybridApvDataAxisSlave          <= unpackedHybridApvDataAxisSlave;
    end generate NO_UNPACK_APV_GEN;
 
---   SsiFrameLogger_Unpacked : entity hps_daq.SsiFrameLogger
+--   SsiFrameLogger_Unpacked : entity ldmx.SsiFrameLogger
 --      generic map (
 --         TPD_G            => TPD_G,
 --         MEMORY_TYPE_G        => "block",
@@ -409,7 +409,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Demultiplex the APV frames into a separate stream per APV
    -------------------------------------------------------------------------------------------------
-   ApvFrameDemux_1 : entity hps_daq.ApvFrameDemux
+   ApvFrameDemux_1 : entity ldmx.ApvFrameDemux
       generic map (
          TPD_G      => TPD_G,
          NUM_APVS_G => APVS_PER_HYBRID_G)
@@ -452,7 +452,7 @@ begin
 
       -- Each trigger produces 6 APV frames from each APV
       -- Group the data from all 6 frames by channel
-      ApvDataFormatter_1 : entity hps_daq.ApvDataFormatter
+      ApvDataFormatter_1 : entity ldmx.ApvDataFormatter
          generic map (
             TPD_G           => TPD_G,
             APV_NUM_G       => i,
@@ -479,7 +479,7 @@ begin
       -- Remove channels whose adc samples don't meet the thresholds
       ----------------------------------------------------------------------------------------------
       THRESHOLD_GEN : if (THRESHOLD_EN_G) generate
-         Threshold_1 : entity hps_daq.Threshold
+         Threshold_1 : entity ldmx.Threshold
             generic map (
                TPD_G => TPD_G)
             port map (

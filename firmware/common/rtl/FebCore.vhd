@@ -124,76 +124,66 @@ architecture rtl of FebCore is
    constant AXI_CROSSBAR_NUM_SLAVES_C : natural := 1;
 
    -- Module AXI Addresses
-   constant AXI_CONFIG_REGS_INDEX_C          : natural := 0;
-   constant AXI_HYBRID_CLOCK_0_PHASE_INDEX_C : natural := 1;
-   constant AXI_HYBRID_CLOCK_1_PHASE_INDEX_C : natural := 2;
-   constant AXI_ADC_CLOCK_0_PHASE_INDEX_C    : natural := 3;
-   constant AXI_ADC_CLOCK_1_PHASE_INDEX_C    : natural := 4;
-   constant AXI_BOARD_I2C_INDEX_C            : natural := 5;
-   constant AXI_BOARD_SPI_INDEX_C            : natural := 6;
-   constant AXI_XADC_INDEX_C                 : natural := 7;
-   constant AXI_DAQ_TIMING_INDEX_C           : natural := 8;
-   constant AXI_AMP_I2C_INDEX_C              : natural := 9;
-   constant AXI_EB_INDEX_C                   : natural := 10;
-   constant AXI_HYBRID_IO_INDEX_C            : natural := 11;
-   constant AXI_HYBRID_DATA_INDEX_C          : natural := 12;
+   constant AXI_CONFIG_REGS_INDEX_C        : natural := 0;
+   constant AXI_HYBRID_CLOCK_PHASE_INDEX_C : natural := 1;
+   constant AXI_ADC_CLOCK_PHASE_INDEX_C    : natural := 2;
+   constant AXI_BOARD_I2C_INDEX_C          : natural := 3;
+   constant AXI_BOARD_SPI_INDEX_C          : natural := 4;
+   constant AXI_XADC_INDEX_C               : natural := 5;
+   constant AXI_DAQ_TIMING_INDEX_C         : natural := 6;
+   constant AXI_AMP_I2C_INDEX_C            : natural := 7;
+   constant AXI_EB_INDEX_C                 : natural := 8;
+   constant AXI_HYBRID_IO_INDEX_C          : natural := 9;
+   constant AXI_HYBRID_DATA_INDEX_C        : natural := 10;
 
 
-   constant MAIN_XBAR_NUM_MASTERS_C : natural := 13;
+   constant MAIN_XBAR_NUM_MASTERS_C : natural := 11;
 
    constant MAIN_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(MAIN_XBAR_NUM_MASTERS_C-1 downto 0) := (
-      AXI_CONFIG_REGS_INDEX_C          => (    -- General Configuration Registers
-         baseAddr                      => AXI_BASE_ADDR_G + X"0000",
-         addrBits                      => 8,   -- to 00FF
-         connectivity                  => X"0001"),
-      AXI_HYBRID_CLOCK_0_PHASE_INDEX_C => (    -- Hybrid (APV) Clock Phase Adjustment
-         baseAddr                      => AXI_BASE_ADDR_G + X"1000",
-         addrBits                      => 12,  -- to 01FF
-         connectivity                  => X"0001"),
-      AXI_HYBRID_CLOCK_1_PHASE_INDEX_C => (    -- Hybrid (APV) Clock Phase Adjustment
-         baseAddr                      => AXI_BASE_ADDR_G + X"2000",
-         addrBits                      => 12,  -- to 01FF
-         connectivity                  => X"0001"),
-      AXI_ADC_CLOCK_0_PHASE_INDEX_C    => (    -- ADC Clock Phase Adjustment
-         baseAddr                      => AXI_BASE_ADDR_G + X"3000",
-         addrBits                      => 12,  -- to 02FF
-         connectivity                  => X"0001"),
-      AXI_ADC_CLOCK_1_PHASE_INDEX_C    => (    -- ADC Clock Phase Adjustment
-         baseAddr                      => AXI_BASE_ADDR_G + X"4000",
-         addrBits                      => 12,  -- to 02FF
-         connectivity                  => X"0001"),
-      AXI_BOARD_I2C_INDEX_C            => (    -- Board I2C Interface
-         baseAddr                      => AXI_BASE_ADDR_G + X"5000",
-         addrBits                      => 12,  -- 3FFF
-         connectivity                  => X"0003"),
-      AXI_BOARD_SPI_INDEX_C            => (    -- Board SPI Interface
-         baseAddr                      => AXI_BASE_ADDR_G + X"6000",
-         addrBits                      => 12,  -- 9FFF
-         connectivity                  => X"0003"),
-      AXI_XADC_INDEX_C                 => (
-         baseAddr                      => AXI_BASE_ADDR_G + X"7000",
-         addrBits                      => 12,  -- to 4FFF
-         connectivity                  => X"0003"),
-      AXI_DAQ_TIMING_INDEX_C           => (
-         baseAddr                      => AXI_BASE_ADDR_G + X"8000",
-         addrBits                      => 8,
-         connectivity                  => X"0001"),
-      AXI_AMP_I2C_INDEX_C              => (
-         baseAddr                      => AXI_BASE_ADDR_G + X"9000",
-         addrBits                      => 8,
-         connectivity                  => X"0001"),
-      AXI_EB_INDEX_C                   => (
-         baseAddr                      => AXI_BASE_ADDR_G + X"A000",
-         addrBits                      => 8,
-         connectivity                  => X"0001"),
-      AXI_HYBRID_IO_INDEX_C            => (
-         baseAddr                      => AXI_BASE_ADDR_G + X"00100000",
-         addrBits                      => 20,
-         connectivity                  => X"0001"),
-      AXI_HYBRID_DATA_INDEX_C          => (
-         baseAddr                      => AXI_BASE_ADDR_G + X"01000000",
-         addrBits                      => 24,
-         connectivity                  => X"0001"));
+      AXI_CONFIG_REGS_INDEX_C        => (    -- General Configuration Registers
+         baseAddr                    => AXI_BASE_ADDR_G + X"0000",
+         addrBits                    => 8,   -- to 00FF
+         connectivity                => X"0001"),
+      AXI_HYBRID_CLOCK_PHASE_INDEX_C => (    -- Hybrid (APV) Clock Phase Adjustment
+         baseAddr                    => AXI_BASE_ADDR_G + X"1000",
+         addrBits                    => 12,  -- to 01FF
+         connectivity                => X"0001"),
+      AXI_ADC_CLOCK_PHASE_INDEX_C    => (    -- ADC Clock Phase Adjustment
+         baseAddr                    => AXI_BASE_ADDR_G + X"2000",
+         addrBits                    => 12,  -- to 02FF
+         connectivity                => X"0001"),
+      AXI_BOARD_I2C_INDEX_C          => (    -- Board I2C Interface
+         baseAddr                    => AXI_BASE_ADDR_G + X"3000",
+         addrBits                    => 12,  -- 3FFF
+         connectivity                => X"0003"),
+      AXI_BOARD_SPI_INDEX_C          => (    -- Board SPI Interface
+         baseAddr                    => AXI_BASE_ADDR_G + X"4000",
+         addrBits                    => 12,  -- 9FFF
+         connectivity                => X"0003"),
+      AXI_XADC_INDEX_C               => (
+         baseAddr                    => AXI_BASE_ADDR_G + X"5000",
+         addrBits                    => 12,  -- to 4FFF
+         connectivity                => X"0003"),
+      AXI_DAQ_TIMING_INDEX_C         => (
+         baseAddr                    => AXI_BASE_ADDR_G + X"6000",
+         addrBits                    => 8,
+         connectivity                => X"0001"),
+      AXI_AMP_I2C_INDEX_C            => (
+         baseAddr                    => AXI_BASE_ADDR_G + X"7000",
+         addrBits                    => 8,
+         connectivity                => X"0001"),
+      AXI_EB_INDEX_C                 => (
+         baseAddr                    => AXI_BASE_ADDR_G + X"8000",
+         addrBits                    => 8,
+         connectivity                => X"0001"),
+      AXI_HYBRID_IO_INDEX_C          => (
+         baseAddr                    => AXI_BASE_ADDR_G + X"00100000",
+         addrBits                    => 20,
+         connectivity                => X"0001"),
+      AXI_HYBRID_DATA_INDEX_C        => (
+         baseAddr                    => AXI_BASE_ADDR_G + X"01000000",
+         addrBits                    => 24,
+         connectivity                => X"0001"));
 
    signal mainAxilWriteMasters : AxiLiteWriteMasterArray(MAIN_XBAR_NUM_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
    signal mainAxilWriteSlaves  : AxiLiteWriteSlaveArray(MAIN_XBAR_NUM_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
@@ -354,9 +344,9 @@ begin
          mAxiReadSlaves      => mainAxilReadSlaves);
 
    -------------------------------------------------------------------------------------------------
-   -- Generate 41 MHz clock from 125 MHz recovered clock
-   -- Use Pgp opcodes to to control phase alignment
-   -- Also use opcodes for triggers and resets
+   -- Generate APV clock from distributed DAQ clock
+   -- Use Pgp FC bus to to control phase alignment
+   -- Also use FC bus for triggers and resets
    -------------------------------------------------------------------------------------------------
    DaqTiming_1 : entity hps_daq.DaqTiming
       generic map (
@@ -400,128 +390,45 @@ begin
    -- Hybrid Clocks Phase Shift
    -------------------------------------------------------------------------------------------------
    -- Need output endable for hybrid clocks gated by hybrid power
-   U_ClockManagerUltraScale_1 : entity surf.ClockManagerUltraScale
+   U_ClockPhaseShifter_HYBRIDS : entity ldmx.ClockPhaseShifter
       generic map (
-         TPD_G              => TPD_G,
-         SIMULATION_G       => SIMULATION_G,
-         TYPE_G             => "MMCM",
-         INPUT_BUFG_G       => false,
-         FB_BUFG_G          => true,
-         RST_IN_POLARITY_G  => '1',
-         NUM_CLOCKS_G       => 4,
-         BANDWIDTH_G        => "OPTIMIZED",
-         CLKIN_PERIOD_G     => 26.667,
-         DIVCLK_DIVIDE_G    => 1,
-         CLKFBOUT_MULT_F_G  => 32.0,
-         CLKOUT0_DIVIDE_F_G => 32.0,
-         CLKOUT1_DIVIDE_G   => 32,
-         CLKOUT2_DIVIDE_G   => 32,
-         CLKOUT3_DIVIDE_G   => 32)
+         TPD_G           => TPD_G,
+         NUM_OUTCLOCKS_G => NUM_OUTCLOCKS_G,
+         CLKIN_PERIOD_G  => 26.923,
+         DIVCLK_DIVIDE_G => 1,
+         CLKFBOUT_MULT_G => 38,
+         CLKOUT_DIVIDE_G => 38)
       port map (
-         clkIn           => daqClkDiv3,                                              -- [in]
-         rstIn           => daqClkDiv3Rst,                                           -- [in]
-         clkOut          => hyClk(3 downto 0),                                       -- [out]
-         rstOut          => hyClkRst(3 downto 0),                                    -- [out]
-         axilClk         => axilClk,                                                 -- [in]
-         axilRst         => axilRst,                                                 -- [in]
-         axilReadMaster  => mainAxilReadMasters(AXI_HYBRID_CLOCK_0_PHASE_INDEX_C),   -- [in]
-         axilReadSlave   => mainAxilReadSlaves(AXI_HYBRID_CLOCK_0_PHASE_INDEX_C),    -- [out]
-         axilWriteMaster => mainAxilWriteMasters(AXI_HYBRID_CLOCK_0_PHASE_INDEX_C),  -- [in]
-         axilWriteSlave  => mainAxilWriteSlaves(AXI_HYBRID_CLOCK_0_PHASE_INDEX_C));  -- [out]
+         axiClk         => axiClk,                                                -- [in]
+         axiRst         => axiRst,                                                -- [in]
+         axiReadMaster  => mainAxilReadMasters(AXI_HYBRID_CLOCK_PHASE_INDEX_C),   -- [in]
+         axiReadSlave   => mainAxilReadSlaves(AXI_HYBRID_CLOCK_PHASE_INDEX_C),    -- [out]
+         axiWriteMaster => mainAxilWriteMasters(AXI_HYBRID_CLOCK_PHASE_INDEX_C),  -- [in]
+         axiWriteSlave  => mainAxilWriteSlaves(AXI_HYBRID_CLOCK_PHASE_INDEX_C),   -- [out]
+         refClk         => daqClkDiv3,                                            -- [in]
+         refClkRst      => dacClkdiv3Rst,                                         -- [in]
+         clkOut         => hyClk,                                                 -- [out]
+         rstOut         => hyClkRst);                                             -- [out]
 
-   U_ClockManagerUltraScale_2 : entity surf.ClockManagerUltraScale
+   U_ClockPhaseShifter_ADCS : entity ldmx.ClockPhaseShifter
       generic map (
-         TPD_G              => TPD_G,
-         SIMULATION_G       => SIMULATION_G,
-         TYPE_G             => "MMCM",
-         INPUT_BUFG_G       => false,
-         FB_BUFG_G          => true,
-         RST_IN_POLARITY_G  => '1',
-         NUM_CLOCKS_G       => 4,
-         BANDWIDTH_G        => "OPTIMIZED",
-         CLKIN_PERIOD_G     => 26.667,
-         DIVCLK_DIVIDE_G    => 1,
-         CLKFBOUT_MULT_F_G  => 32.0,
-         CLKOUT0_DIVIDE_F_G => 32.0,
-         CLKOUT1_DIVIDE_G   => 32,
-         CLKOUT2_DIVIDE_G   => 32,
-         CLKOUT3_DIVIDE_G   => 32)
+         TPD_G           => TPD_G,
+         NUM_OUTCLOCKS_G => NUM_OUTCLOCKS_G,
+         CLKIN_PERIOD_G  => 26.923,
+         DIVCLK_DIVIDE_G => 1,
+         CLKFBOUT_MULT_G => 38,
+         CLKOUT_DIVIDE_G => 38)
       port map (
-         clkIn           => daqClkDiv3,                                              -- [in]
-         rstIn           => daqClkDiv3Rst,                                           -- [in]
-         clkOut          => hyClk(7 downto 4),                                       -- [out]
-         rstOut          => hyClkRst(7 downto 4),                                    -- [out]
-         axilClk         => axilClk,                                                 -- [in]
-         axilRst         => axilRst,                                                 -- [in]
-         axilReadMaster  => mainAxilReadMasters(AXI_HYBRID_CLOCK_1_PHASE_INDEX_C),   -- [in]
-         axilReadSlave   => mainAxilReadSlaves(AXI_HYBRID_CLOCK_1_PHASE_INDEX_C),    -- [out]
-         axilWriteMaster => mainAxilWriteMasters(AXI_HYBRID_CLOCK_1_PHASE_INDEX_C),  -- [in]
-         axilWriteSlave  => mainAxilWriteSlaves(AXI_HYBRID_CLOCK_1_PHASE_INDEX_C));  -- [out]
-
-
-   hyClkOut <= hyClk(HYBRIDS_G-1 downto 0);
-
-   -------------------------------------------------------------------------------------------------
-   -- ADC Clocks Phase Shift
-   -------------------------------------------------------------------------------------------------
-   U_ClockManagerUltraScale_3 : entity surf.ClockManagerUltraScale
-      generic map (
-         TPD_G              => TPD_G,
-         SIMULATION_G       => SIMULATION_G,
-         TYPE_G             => "MMCM",
-         INPUT_BUFG_G       => false,
-         FB_BUFG_G          => true,
-         RST_IN_POLARITY_G  => '1',
-         NUM_CLOCKS_G       => 4,
-         BANDWIDTH_G        => "OPTIMIZED",
-         CLKIN_PERIOD_G     => 26.667,
-         DIVCLK_DIVIDE_G    => 1,
-         CLKFBOUT_MULT_F_G  => 32.0,
-         CLKOUT0_DIVIDE_F_G => 32.0,
-         CLKOUT1_DIVIDE_G   => 32,
-         CLKOUT2_DIVIDE_G   => 32,
-         CLKOUT3_DIVIDE_G   => 32)
-      port map (
-         clkIn           => daqClkDiv3,                                           -- [in]
-         rstIn           => daqClkDiv3Rst,                                        -- [in]
-         clkOut          => adcClk(3 downto 0),                                   -- [out]
-         rstOut          => adcClkRst(3 downto 0),                                -- [out]
-         axilClk         => axilClk,                                              -- [in]
-         axilRst         => axilRst,                                              -- [in]
-         axilReadMaster  => mainAxilReadMasters(AXI_ADC_CLOCK_0_PHASE_INDEX_C),   -- [in]
-         axilReadSlave   => mainAxilReadSlaves(AXI_ADC_CLOCK_0_PHASE_INDEX_C),    -- [out]
-         axilWriteMaster => mainAxilWriteMasters(AXI_ADC_CLOCK_0_PHASE_INDEX_C),  -- [in]
-         axilWriteSlave  => mainAxilWriteSlaves(AXI_ADC_CLOCK_0_PHASE_INDEX_C));  -- [out]
-
-   U_ClockManagerUltraScale_4 : entity surf.ClockManagerUltraScale
-      generic map (
-         TPD_G              => TPD_G,
-         SIMULATION_G       => SIMULATION_G,
-         TYPE_G             => "MMCM",
-         INPUT_BUFG_G       => false,
-         FB_BUFG_G          => true,
-         RST_IN_POLARITY_G  => '1',
-         NUM_CLOCKS_G       => 4,
-         BANDWIDTH_G        => "OPTIMIZED",
-         CLKIN_PERIOD_G     => 26.667,
-         DIVCLK_DIVIDE_G    => 1,
-         CLKFBOUT_MULT_F_G  => 32.0,
-         CLKOUT0_DIVIDE_F_G => 32.0,
-         CLKOUT1_DIVIDE_G   => 32,
-         CLKOUT2_DIVIDE_G   => 32,
-         CLKOUT3_DIVIDE_G   => 32)
-      port map (
-         clkIn           => daqClkDiv3,                                           -- [in]
-         rstIn           => daqClkDiv3Rst,                                        -- [in]
-         clkOut          => adcClk(7 downto 4),                                   -- [out]
-         rstOut          => adcClkRst(7 downto 4),                                -- [out]
-         axilClk         => axilClk,                                              -- [in]
-         axilRst         => axilRst,                                              -- [in]
-         axilReadMaster  => mainAxilReadMasters(AXI_ADC_CLOCK_1_PHASE_INDEX_C),   -- [in]
-         axilReadSlave   => mainAxilReadSlaves(AXI_ADC_CLOCK_1_PHASE_INDEX_C),    -- [out]
-         axilWriteMaster => mainAxilWriteMasters(AXI_ADC_CLOCK_1_PHASE_INDEX_C),  -- [in]
-         axilWriteSlave  => mainAxilWriteSlaves(AXI_ADC_CLOCK_1_PHASE_INDEX_C));  -- [out]
-
+         axiClk         => axiClk,                                             -- [in]
+         axiRst         => axiRst,                                             -- [in]
+         axiReadMaster  => mainAxilReadMasters(AXI_ADC_CLOCK_PHASE_INDEX_C),   -- [in]
+         axiReadSlave   => mainAxilReadSlaves(AXI_ADC_CLOCK_PHASE_INDEX_C),    -- [out]
+         axiWriteMaster => mainAxilWriteMasters(AXI_ADC_CLOCK_PHASE_INDEX_C),  -- [in]
+         axiWriteSlave  => mainAxilWriteSlaves(AXI_ADC_CLOCK_PHASE_INDEX_C),   -- [out]
+         refClk         => daqClkDiv3,                                         -- [in]
+         refClkRst      => dacClkdiv3Rst,                                      -- [in]
+         clkOut         => adcClk,                                             -- [out]
+         rstOut         => adcClkRst);                                         -- [out]
 
    adcClkOut <= adcClk(HYBRIDS_G-1 downto 0);
 
@@ -759,7 +666,7 @@ begin
       HybridDataCore_1 : entity hps_daq.HybridDataCore
          generic map (
             TPD_G             => TPD_G,
-            AXIL_BASE_ADDR_G => HYBRID_DATA_XBAR_CFG_C(i).baseAddr,
+            AXIL_BASE_ADDR_G  => HYBRID_DATA_XBAR_CFG_C(i).baseAddr,
             HYBRID_NUM_G      => i,
             APVS_PER_HYBRID_G => APVS_PER_HYBRID_G)
          port map (

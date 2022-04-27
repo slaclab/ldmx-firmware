@@ -1,4 +1,4 @@
--------------------------------------------------------------------------------
+ -------------------------------------------------------------------------------
 -- Title      : RceCore
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
@@ -30,10 +30,10 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 
-library hps_daq;
-use hps_daq.DataPathPkg.all;
-use hps_daq.RceConfigPkg.all;
-use hps_daq.HpsPkg.all;
+library ldmx;
+use ldmx.DataPathPkg.all;
+use ldmx.RceConfigPkg.all;
+use ldmx.HpsPkg.all;
 
 entity RceCore is
 
@@ -189,7 +189,7 @@ begin
          mAxiReadMasters     => locAxiReadMasters,
          mAxiReadSlaves      => locAxiReadSlaves);
 
-   RceConfig_1 : entity hps_daq.RceConfig
+   RceConfig_1 : entity ldmx.RceConfig
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -205,7 +205,7 @@ begin
 
    DATA_PATHS : for i in HYBRIDS_G-1 downto 0 generate
 
-      DataPath_1 : entity hps_daq.DataPath
+      DataPath_1 : entity ldmx.DataPath
          generic map (
             TPD_G             => TPD_G,
             AXI_BASE_ADDR_G   => getDataPathAxiBase(i),
@@ -236,7 +236,7 @@ begin
             dataRdEn                   => dataPathIn(i)(APVS_PER_HYBRID_G-1 downto 0));
    end generate DATA_PATHS;
 
-   EventBuilder_1 : entity hps_daq.EventBuilder
+   EventBuilder_1 : entity ldmx.EventBuilder
       generic map (
          TPD_G             => TPD_G,
          HYBRIDS_G         => HYBRIDS_G,

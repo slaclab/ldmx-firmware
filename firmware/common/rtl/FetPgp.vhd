@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2019-11-20
+-- Last update: 2022-04-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,8 +38,8 @@ use surf.SsiPkg.all;
 use surf.SsiCmdMasterPkg.all;
 
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
 
 entity FetPgp is
    generic (

@@ -26,9 +26,9 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
-use hps_daq.RceConfigPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
+use ldmx.RceConfigPkg.all;
 
 entity RceConfig is
    generic (

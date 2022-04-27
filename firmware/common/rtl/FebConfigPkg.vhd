@@ -22,8 +22,8 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
 
 package FebConfigPkg is
 

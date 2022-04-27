@@ -28,10 +28,10 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
-use hps_daq.AdcReadoutPkg.all;
-use hps_daq.FebConfigPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
+use ldmx.AdcReadoutPkg.all;
+use ldmx.FebConfigPkg.all;
 
 entity AdcFramer is
 

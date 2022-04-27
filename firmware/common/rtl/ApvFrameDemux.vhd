@@ -21,8 +21,8 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
 
 entity ApvFrameDemux is
 

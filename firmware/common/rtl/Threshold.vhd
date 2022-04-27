@@ -28,9 +28,9 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-library hps_daq;
-use hps_daq.DataPathPkg.all;
-use hps_daq.FebConfigPkg.all;
+library ldmx;
+use ldmx.DataPathPkg.all;
+use ldmx.FebConfigPkg.all;
 
 entity Threshold is
    generic (

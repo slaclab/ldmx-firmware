@@ -26,10 +26,10 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
-use hps_daq.DataPathPkg.all;
-use hps_daq.FebConfigPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
+use ldmx.DataPathPkg.all;
+use ldmx.FebConfigPkg.all;
 
 entity HybridDataCore is
    generic (
@@ -114,7 +114,7 @@ begin
    -------------------------------------------------------------------------------------------------
    GEN_PIPELINE : for i in APVS_PER_HYBRID_G-1 downto 0 generate
 
-      U_ApvDataPipeline_1 : entity hps_daq.ApvDataPipeline
+      U_ApvDataPipeline_1 : entity ldmx.ApvDataPipeline
          generic map (
             TPD_G            => TPD_G,
             AXIL_BASE_ADDR_G => XBAR_CFG_C(i+1).baseAddr,
@@ -149,7 +149,7 @@ begin
 -------------------------------------------------------------------------------------------------
 -- Monitor sync status and output on separate stream
 -------------------------------------------------------------------------------------------------
-   HybridStatusFramer_1 : entity hps_daq.HybridStatusFramer
+   HybridStatusFramer_1 : entity ldmx.HybridStatusFramer
       generic map (
          TPD_G             => TPD_G,
          HYBRID_NUM_G      => HYBRID_NUM_G,

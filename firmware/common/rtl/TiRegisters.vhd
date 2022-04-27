@@ -24,9 +24,9 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-library hps_daq;
-use hps_daq.JlabTiPkg.all;
-use hps_daq.HpsTiPkg.all;
+library ldmx;
+use ldmx.JlabTiPkg.all;
+use ldmx.HpsTiPkg.all;
 
 entity TiRegisters is
    generic (

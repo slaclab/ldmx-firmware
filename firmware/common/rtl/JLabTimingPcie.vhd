@@ -29,8 +29,8 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 
-library hps_daq;
-use hps_daq.HpsTiPkg.all;
+library ldmx;
+use ldmx.HpsTiPkg.all;
 
 entity JlabTimingPcie is
 
@@ -463,7 +463,7 @@ begin
 
 
    -- Trigger filter to create BUSY
-   TriggerFilter_1 : entity hps_daq.TriggerFilter
+   TriggerFilter_1 : entity ldmx.TriggerFilter
       generic map (
          TPD_G             => TPD_G,
          CLK_PERIOD_G      => 8.0E-9,

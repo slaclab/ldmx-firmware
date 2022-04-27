@@ -26,10 +26,10 @@ use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-
-library hps_daq;
-use hps_daq.AdcReadoutPkg.all;
 use surf.AxiLitePkg.all;
+
+library ldmx;
+use ldmx.AdcReadoutPkg.all;
 
 library UNISIM;
 use UNISIM.vcomponents.all;
@@ -345,7 +345,7 @@ begin
          IB => adc.fClkN,
          O  => adcFramePad);
 
-   U_FRAME_DESERIALIZER : entity hps_daq.AdcDeserializer
+   U_FRAME_DESERIALIZER : entity ldmx.AdcDeserializer
       generic map (
          TPD_G           => TPD_G,
          IODELAY_GROUP_G => IODELAY_GROUP_G)
@@ -375,7 +375,7 @@ begin
             IB => adc.chN(i),
             O  => adcDataPad(i));
 
-      U_DATA_DESERIALIZER : entity hps_daq.AdcDeserializer
+      U_DATA_DESERIALIZER : entity ldmx.AdcDeserializer
          generic map (
             TPD_G           => TPD_G,
             IODELAY_GROUP_G => IODELAY_GROUP_G)

@@ -27,7 +27,7 @@ use surf.Pgp2bPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 
-library hps_daq; 
+library ldmx; 
 
 entity HpsDataPgpArray is
    generic (
@@ -109,7 +109,7 @@ begin
 
    -- 3 Units
    U_PgpGen : for i in HYBRIDS_G-1 downto 0 generate
-      U_PgpLane : entity hps_daq.HpsDataPgpLane
+      U_PgpLane : entity ldmx.HpsDataPgpLane
          generic map (
             TPD_G                => TPD_G,
             SIMULATION_G         => SIMULATION_G,

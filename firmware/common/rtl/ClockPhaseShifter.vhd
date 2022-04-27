@@ -29,7 +29,12 @@ use unisim.vcomponents.all;
 
 entity ClockPhaseShifter is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G           : time                 := 1 ns;
+      NUM_OUTCLOCKS_G : integer range 1 to 6 := 4;
+      CLKIN_PERIOD_G  : real                 := 24.0;
+      DIVCLK_DIVIDE_G : integer              := 1;
+      CLKFBOUT_MULT_G : integer              := 24,
+      CLKOUT_DIVIDE_G : integer              := 24);
    port (
       axiClk : in sl;
       axiRst : in sl;
@@ -41,9 +46,9 @@ entity ClockPhaseShifter is
 
       refClk    : in  sl;
       refClkRst : in  sl;               -- Figure out what to do with this
-      clkOut    : out slv(3 downto 0);
-      outputEn  : in  slv(3 downto 0) := (others => '1');
-      rstOut    : out slv(3 downto 0)
+      clkOut    : out slv(NUM_OUTCLOCKS_G-1 downto 0);
+      outputEn  : in  slv(NUM_OUTCLOCKS_G-1 downto 0) := (others => '1');
+      rstOut    : out slv(NUM_OUTCLOCKS_G-1 downto 0)
       );
 end ClockPhaseShifter;
 
@@ -76,7 +81,7 @@ architecture rtl of ClockPhaseShifter is
    signal refClkRstFall : sl;
    signal clkOutInt     : slv(3 downto 0);
 
-   
+
 begin
 
    -- Synchronize refClkRst to axiClk
@@ -165,7 +170,7 @@ begin
 
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
-      
+
    end process comb;
 
    seq : process (axiClk) is
@@ -194,6 +199,13 @@ begin
 
    -- MMCM Created by coregen
    CLOCK_SHIFTER_MMCM : entity hps_daq.PhaseShiftMmcm
+      port map (
+         TPD_G           => TPD_G,
+         NUM_OUTCLOCKS_G => NUM_OUTCLOCKS_G,
+         CLKIN_PERIOD_G  => CLKIN_PERIOD_G,
+         DIVCLK_DIVIDE_G => DIVCLK_DIVIDE_G,
+         CLKFBOUT_MULT_G => CLKFBOUT_MULT_G
+         CLKOUT_DIVIDE_G => CLKOUT_DIVIDE_G)
       port map(
          clk41    => refClk,
          -- Output clocks

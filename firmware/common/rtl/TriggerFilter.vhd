@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-03-01
--- Last update: 2019-11-20
+-- Last update: 2022-04-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,10 +26,10 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
-use hps_daq.DataPathPkg.all;
-use hps_daq.RceConfigPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
+use ldmx.DataPathPkg.all;
+use ldmx.RceConfigPkg.all;
 
 entity TriggerFilter is
 

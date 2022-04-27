@@ -28,7 +28,7 @@ use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Gtx7CfgPkg.all;
 
-library hps_daq; 
+library ldmx; 
 
 entity HpsCtrlPgpArray is
    generic (
@@ -254,7 +254,7 @@ begin
    -- Might have more then 1 data VC
    -- If so, combine onto signle dataDma stream
    U_PgpGen : for i in 0 to NUM_LINKS_G-1 generate
-      U_PgpLane : entity hps_daq.HpsCtrlPgpLane
+      U_PgpLane : entity ldmx.HpsCtrlPgpLane
          generic map (
             TPD_G               => TPD_G,
             SIMULATION_G        => SIMULATION_G,

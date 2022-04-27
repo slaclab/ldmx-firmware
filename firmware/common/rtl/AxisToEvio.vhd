@@ -24,8 +24,8 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
 
 entity AxisToEvio is
    generic (

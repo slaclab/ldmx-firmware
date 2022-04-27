@@ -27,9 +27,9 @@ use surf.AxiStreamPkg.all;
 library rce_gen3_fw_lib;
 use rce_gen3_fw_lib.RceG3Pkg.all;
 
-library hps_daq;
-use hps_daq.HpsTiPkg.all;
-use hps_daq.HpsPkg.all;
+library ldmx;
+use ldmx.HpsTiPkg.all;
+use ldmx.HpsPkg.all;
 
 entity TiDataSend is
    generic (

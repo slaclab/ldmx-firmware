@@ -28,9 +28,9 @@ use surf.AxiStreamPkg.all;
 library rce_gen3_fw_lib;
 use rce_gen3_fw_lib.RceG3Pkg.all;
 
-library hps_daq;
-use hps_daq.JlabTiPkg.all;
-use hps_daq.HpsTiPkg.all;
+library ldmx;
+use ldmx.JlabTiPkg.all;
+use ldmx.HpsTiPkg.all;
 
 entity TrigDist is
    generic (
@@ -153,7 +153,7 @@ begin
    end generate;
 
    -- TI
-   U_JlabTi : entity hps_daq.JlabTi
+   U_JlabTi : entity ldmx.JlabTi
       generic map (
          TPD_G => TPD_G
          )
@@ -201,7 +201,7 @@ begin
 
 
    -- TI Data
-   U_TiDataSend : entity hps_daq.TiDataSend
+   U_TiDataSend : entity ldmx.TiDataSend
       generic map (
          TPD_G => TPD_G
          )
@@ -221,7 +221,7 @@ begin
          syncSentCount => syncSentCount
          );
 
-   TriggerFilter_1 : entity hps_daq.TriggerFilter
+   TriggerFilter_1 : entity ldmx.TriggerFilter
       generic map (
          TPD_G             => TPD_G,
          CLK_PERIOD_G      => 8.0E-9,
@@ -445,7 +445,7 @@ begin
 
 
    -- TI Registers
-   U_TiReg : entity hps_daq.TiRegisters
+   U_TiReg : entity ldmx.TiRegisters
       generic map (
          TPD_G => TPD_G
          ) port map (

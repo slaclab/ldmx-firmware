@@ -18,9 +18,9 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
-use hps_daq.FebConfigPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
+use ldmx.FebConfigPkg.all;
 
 entity FebConfig is
    generic (

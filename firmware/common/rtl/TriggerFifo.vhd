@@ -25,8 +25,8 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library hps_daq;
-use hps_daq.HpsTiPkg.all;
+library ldmx;
+use ldmx.HpsTiPkg.all;
 
 entity TriggerFifo is
 

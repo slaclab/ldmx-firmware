@@ -31,9 +31,9 @@ use surf.AxiStreamPkg.all;
 library rce_gen3_fw_lib;
 use rce_gen3_fw_lib.RceG3Pkg.all;
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
-use hps_daq.HpsTiPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
+use ldmx.HpsTiPkg.all;
 
 entity TiDataRx is
    generic (

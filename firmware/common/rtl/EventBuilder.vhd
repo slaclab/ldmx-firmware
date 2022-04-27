@@ -30,10 +30,10 @@ use surf.AxiLitePkg.all;
 use surf.SsiPkg.all;
 
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
-use hps_daq.DataPathPkg.all;
-use hps_daq.FebConfigPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
+use ldmx.DataPathPkg.all;
+use ldmx.FebConfigPkg.all;
 
 entity EventBuilder is
 

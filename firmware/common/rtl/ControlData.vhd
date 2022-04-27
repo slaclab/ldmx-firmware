@@ -30,9 +30,9 @@ use surf.SsiPkg.all;
 library rce_gen3_fw_lib;
 use rce_gen3_fw_lib.RceG3Pkg.all;
 
-library hps_daq;
-use hps_daq.HpsTiPkg.all;
-use hps_daq.HpsPkg.all;
+library ldmx;
+use ldmx.HpsTiPkg.all;
+use ldmx.HpsPkg.all;
 
 entity ControlData is
    generic (
@@ -257,7 +257,7 @@ begin
    ----------------------------------------
    -- Trigger Data
    ----------------------------------------
-   U_TiDataRx : entity hps_daq.TiDataRx
+   U_TiDataRx : entity ldmx.TiDataRx
       generic map (
          TPD_G  => TPD_G
       ) port map (
@@ -287,7 +287,7 @@ begin
          txReady      => txReady
       );
 
-   U_DataBank : entity hps_daq.DataBankBuilder
+   U_DataBank : entity ldmx.DataBankBuilder
       generic map (
          TPD_G   => TPD_G,
          DATA_EN => false

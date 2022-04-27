@@ -25,8 +25,8 @@ use UNISIM.vcomponents.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library hps_daq;
-use hps_daq.FebConfigPkg.all;
+library ldmx;
+use ldmx.FebConfigPkg.all;
 
 entity TrigControl is
    generic (

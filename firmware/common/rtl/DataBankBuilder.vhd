@@ -33,8 +33,8 @@ use surf.SsiPkg.all;
 library rce_gen3_fw_lib;
 use rce_gen3_fw_lib.RceG3Pkg.all;
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
 
 entity DataBankBuilder is
    generic (
@@ -175,7 +175,7 @@ begin
    dataHeader(7 downto 0)   <= irocId;
 
    -- EVIO conversion & FIFO for events
-   U_DataEvio : entity hps_daq.AxisToEvio
+   U_DataEvio : entity ldmx.AxisToEvio
       generic map (
          TPD_G             => TPD_G,
          IB_CASCADE_SIZE_G => 12

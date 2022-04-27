@@ -1,5 +1,5 @@
--------------------------------------------------------------------------------
--- Title         : HPS TI Package
+HPS         : -------------------------------------------------------------------------------
+-- Title TI Package
 -- File          : HpsTiPkg.vhd
 -- Author        : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created       : 08/21/2014
