@@ -20,8 +20,8 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library hps_daq;
-use hps_daq.MmcmPhaseShiftPkg.all;
+library ldmx;
+use ldmx.MmcmPhaseShiftPkg.all;
 use surf.AxiLitePkg.all;
 
 library unisim;
@@ -33,7 +33,7 @@ entity ClockPhaseShifter is
       NUM_OUTCLOCKS_G : integer range 1 to 6 := 4;
       CLKIN_PERIOD_G  : real                 := 24.0;
       DIVCLK_DIVIDE_G : integer              := 1;
-      CLKFBOUT_MULT_G : integer              := 24,
+      CLKFBOUT_MULT_G : integer              := 24;
       CLKOUT_DIVIDE_G : integer              := 24);
    port (
       axiClk : in sl;
@@ -79,7 +79,7 @@ architecture rtl of ClockPhaseShifter is
 
    signal mmcmRst       : sl;
    signal refClkRstFall : sl;
-   signal clkOutInt     : slv(3 downto 0);
+   signal clkOutInt     : slv(NUM_OUTCLOCKS_G-1 downto 0);
 
 
 begin
@@ -181,7 +181,7 @@ begin
    end process seq;
 
 
-   MMCM_PHASE_SHIFT_CTR : entity hps_daq.MmcmPhaseShiftCtrl
+   MMCM_PHASE_SHIFT_CTR : entity ldmx.MmcmPhaseShiftCtrl
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -198,16 +198,16 @@ begin
 
 
    -- MMCM Created by coregen
-   CLOCK_SHIFTER_MMCM : entity hps_daq.PhaseShiftMmcm
-      port map (
+   CLOCK_SHIFTER_MMCM : entity ldmx.PhaseShiftMmcm
+      generic map (
          TPD_G           => TPD_G,
          NUM_OUTCLOCKS_G => NUM_OUTCLOCKS_G,
          CLKIN_PERIOD_G  => CLKIN_PERIOD_G,
          DIVCLK_DIVIDE_G => DIVCLK_DIVIDE_G,
-         CLKFBOUT_MULT_G => CLKFBOUT_MULT_G
+         CLKFBOUT_MULT_G => CLKFBOUT_MULT_G,
          CLKOUT_DIVIDE_G => CLKOUT_DIVIDE_G)
       port map(
-         clk41    => refClk,
+         clkIn    => refClk,
          -- Output clocks
          clkOut   => clkOutInt,
          outputEn => outputEn,
@@ -223,7 +223,7 @@ begin
          locked   => drpOut.locked,
          rst      => mmcmRst);          --drpIn.rst);
 
-   RST_GEN : for i in 3 downto 0 generate
+   RST_GEN : for i in NUM_OUTCLOCKS_G-1 downto 0 generate
       RstSync_1 : entity surf.RstSync
          generic map (
             TPD_G           => TPD_G,

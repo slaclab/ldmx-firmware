@@ -83,13 +83,13 @@ entity PhaseShiftMmcm is
       NUM_OUTCLOCKS_G : integer range 1 to 6 := 4;
       CLKIN_PERIOD_G  : real                 := 24.0;
       DIVCLK_DIVIDE_G : integer              := 1;
-      CLKFBOUT_MULT_G : integer              := 24,
+      CLKFBOUT_MULT_G : integer              := 24;
       CLKOUT_DIVIDE_G : integer              := 24);
    port (                               -- Clock in ports
-      clk41    : in  sl;
+      clkIn    : in  sl;
       -- Clock out ports
-      clkOut   : out slv(3 downto 0);
-      outputEn : in  slv(3 downto 0) := (others => '1');
+      clkOut   : out slv(NUM_OUTCLOCKS_G-1 downto 0);
+      outputEn : in  slv(NUM_OUTCLOCKS_G-1 downto 0) := (others => '1');
 
       -- Dynamic reconfiguration ports
       daddr : in  slv(6 downto 0);
@@ -174,7 +174,7 @@ begin
          CLKOUT6      => open,
          -- Input clock control
          CLKFBIN      => clkFbBufg,
-         CLKIN1       => clk41,
+         CLKIN1       => clkIn,
          CLKIN2       => '0',
          -- Tied to always select the primary input clock
          CLKINSEL     => '1',

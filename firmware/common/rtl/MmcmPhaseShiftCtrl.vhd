@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2014-04-15
+-- Last update: 2022-04-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,8 +23,8 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library hps_daq;
-use hps_daq.MmcmPhaseShiftPkg.all;
+library ldmx;
+use ldmx.MmcmPhaseShiftPkg.all;
 
 entity MmcmPhaseShiftCtrl is
    generic (
