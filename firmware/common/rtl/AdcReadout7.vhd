@@ -27,6 +27,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
 
 library ldmx;
 use ldmx.AdcReadoutPkg.all;
@@ -58,7 +59,10 @@ entity AdcReadout7 is
       adc : in AdcChipOutType;
 
       -- Deserialized ADC Data
-      readout : out AdcReadoutType);
+      adcStreamClk : in  sl;
+      adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
+      (others => axiStreamMasterInit(ADC_READOUT_AXIS_CFG_C)));
+
 end AdcReadout7;
 
 -- Define architecture
@@ -76,7 +80,8 @@ architecture rtl of AdcReadout7 is
       dataDelaySet  : slv(4 downto 0);
       frameDelay    : slv(4 downto 0);
       frameDelaySet : sl;
-      readout       : AdcReadoutArray(1 downto 0);
+      readoutDebug0 : Slv16Array(7 downto 0);
+      readoutDebug1 : Slv16Array(7 downto 0);
    end record;
 
    constant AXI_REG_INIT_C : AxiRegType := (
@@ -86,7 +91,8 @@ architecture rtl of AdcReadout7 is
       dataDelaySet  => (others => '1'),
       frameDelay    => "00101",
       frameDelaySet => '1',
-      readout       => (others => ADC_READOUT_INIT_C));
+      readoutDebug0 => (others => (others => '0')),
+      readoutDebug1 => (others => (others => '0')));
 
    signal lockedSync      : sl;
    signal lockedFallCount : slv(15 downto 0);
@@ -123,17 +129,20 @@ architecture rtl of AdcReadout7 is
    signal adcBitClkR     : sl;
    signal adcBitRst      : sl;
 
-   signal adcFramePad   : sl;
-   signal adcFrame      : slv(13 downto 0);
-   signal adcDataPad    : slv(NUM_CHANNELS_G-1 downto 0);
-   signal adcData       : Slv14Array(NUM_CHANNELS_G-1 downto 0);
-   signal fifoDataValid : slv(1 downto 0);
-   signal fifoDataEmpty : slv(1 downto 0);
+   signal adcFramePad : sl;
+   signal adcFrame    : slv(13 downto 0);
+   signal adcDataPad  : slv(NUM_CHANNELS_G-1 downto 0);
+   signal adcData     : Slv14Array(NUM_CHANNELS_G-1 downto 0);
+
+   signal fifoDataValid : sl;
    signal fifoDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
    signal fifoDataIn    : slv(NUM_CHANNELS_G*16-1 downto 0);
+   signal fifoDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
 
-   signal dummy      : slv(63 downto 0);
-   signal readoutInt : AdcReadoutType;
+   signal debugDataValid : sl;
+   signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
+   signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
+
 
 begin
    -------------------------------------------------------------------------------------------------
@@ -171,8 +180,8 @@ begin
    -------------------------------------------------------------------------------------------------
    -- AXI Interface
    -------------------------------------------------------------------------------------------------
-   axiComb : process (axiR, axiReadMaster, axiRst, axiWriteMaster, lockedFallCount, lockedSync,
-                      readoutInt) is
+   axiComb : process (axiR, axiReadMaster, axiRst, axiWriteMaster, debugDataTmp, debugDataValid,
+                      lockedFallCount, lockedSync) is
       variable v         : AxiRegType;
       variable axiStatus : AxiLiteStatusType;
       variable axiResp   : slv(1 downto 0);
@@ -182,9 +191,9 @@ begin
       v.dataDelaySet  := (others => '0');
       v.frameDelaySet := '0';
 
-      if (readoutInt.valid = '1') then
-         v.readout(0) := readoutInt;
-         v.readout(1) := axiR.readout(0);
+      if (debugDataValid = '1') then
+         v.readoutDebug0(NUM_CHANNELS_G-1 downto 0) := debugDataTmp;
+         v.readoutDebug1 := axiR.readoutDebug0;
       end if;
 
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
@@ -239,29 +248,29 @@ begin
 
             -- Debug registers. Output the last 2 words received
             when X"80" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readout(0).data(0);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readout(1).data(0);
+               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(0);
+               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(0);
             when X"84" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readout(0).data(1);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readout(1).data(1);
+               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(1);
+               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(1);
             when X"88" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readout(0).data(2);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readout(1).data(2);
+               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(2);
+               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(2);
             when X"8C" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readout(0).data(3);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readout(1).data(3);
+               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(3);
+               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(3);
             when X"90" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readout(0).data(4);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readout(1).data(4);
+               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(4);
+               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(4);
             when X"94" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readout(0).data(5);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readout(1).data(5);
+               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(5);
+               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(5);
             when X"98" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readout(0).data(6);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readout(1).data(6);
+               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(6);
+               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(6);
             when X"9C" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readout(0).data(7);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readout(1).data(7);
+               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(7);
+               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(7);
             when others =>
                null;
          end case;
@@ -422,7 +431,6 @@ begin
       ----------------------------------------------------------------------------------------------
       -- Look for Frame rising edges and write data to fifos
       ----------------------------------------------------------------------------------------------
-      v.fifoWrEn := '1';                -- Always write data
       for i in NUM_CHANNELS_G-1 downto 0 loop
          if (adcR.locked = '1' and adcFrame = "11111110000000") then
             -- Locked, output adc data
@@ -446,124 +454,18 @@ begin
       end if;
    end process adcSeq;
 
-   readoutInt.valid <= fifoDataValid(0);
-   readout_glue : for i in NUM_CHANNELS_G-1 downto 0 generate
-      fifoDataIn(i*16+15 downto i*16) <= adcR.fifoWrData(i);
-      readoutInt.data(i)              <= fifoDataOut(i*16+15 downto i*16);
+   -- Flatten fifoWrData onto fifoDataIn for FIFO
+   -- Regroup fifoDataOut by channel into fifoDataTmp
+   -- Format fifoDataTmp into AxiStream channels
+   glue : for i in NUM_CHANNELS_G-1 downto 0 generate
+      fifoDataIn(i*16+15 downto i*16)  <= adcR.fifoWrData(i);
+      fifoDataTmp(i)                   <= fifoDataOut(i*16+15 downto i*16);
+      debugDataTmp(i)                  <= debugDataOut(i*16+15 downto i*16);
+      adcStreams(i).tdata(15 downto 0) <= fifoDataTmp(i);
+      adcStreams(i).tDest              <= toSlv(i, 8);
+      adcStreams(i).tValid             <= fifoDataValid;
    end generate;
 
-   readout <= readoutInt;
---   fifoDataValid <= not fifoDataEmpty;
-
---   IN_FIFO_0 : IN_FIFO
---      generic map (
---         ALMOST_EMPTY_VALUE => 1,                   -- Almost empty offset (1-2)
---         ALMOST_FULL_VALUE  => 1,                   -- Almost full offset (1-2)
---         ARRAY_MODE         => "ARRAY_MODE_4_X_4",  -- ARRAY_MODE_4_X_8, ARRAY_MODE_4_X_4
---         SYNCHRONOUS_MODE   => "FALSE"              -- Clock synchronous (FALSE)
---         )
---      port map (
---         -- FIFO Status Flags: 1-bit (each) output: Flags and other FIFO status outputs
---         ALMOSTEMPTY    => open,                    -- 1-bit output: Almost empty
---         ALMOSTFULL     => open,                    -- 1-bit output: Almost full
---         EMPTY          => fifoDataEmpty(0),        -- 1-bit output: Empty
---         FULL           => open,                    -- 1-bit output: Full
---         -- Q0-Q9: 8-bit (each) output: FIFO Outputs
---         Q0(3 downto 0) => fifoDataOut(3 downto 0),
---         Q0(7 downto 4) => dummy(3 downto 0),
---         Q1(3 downto 0) => fifoDataOut(7 downto 4),
---         Q1(7 downto 4) => dummy(7 downto 4),
---         Q2(3 downto 0) => fifoDataOut(11 downto 8),
---         Q2(7 downto 4) => dummy(11 downto 8),
---         Q3(3 downto 0) => fifoDataOut(15 downto 12),
---         Q3(7 downto 4) => dummy(15 downto 12),
---         Q4(3 downto 0) => fifoDataOut(19 downto 16),
---         Q4(7 downto 4) => dummy(19 downto 16),
---         Q5(3 downto 0) => fifoDataOut(23 downto 20),
---         Q5(7 downto 4) => fifoDataOut(43 downto 40),
---         Q6(3 downto 0) => fifoDataOut(27 downto 24),
---         Q6(7 downto 4) => fifoDataOut(47 downto 44),
---         Q7(3 downto 0) => fifoDataOut(31 downto 28),
---         Q7(7 downto 4) => dummy(23 downto 20),
---         Q8(3 downto 0) => fifoDataOut(35 downto 32),
---         Q8(7 downto 4) => dummy(27 downto 24),
---         Q9(3 downto 0) => fifoDataOut(39 downto 36),
---         Q9(7 downto 4) => dummy(31 downto 28),
-
---         -- D0-D9: 4-bit (each) input: FIFO inputs
---         D0             => fifoDataIn(3 downto 0),
---         D1             => fifoDataIn(7 downto 4),
---         D2             => fifoDataIn(11 downto 8),
---         D3             => fifoDataIn(15 downto 12),
---         D4             => fifoDataIn(19 downto 16),
---         D5(3 downto 0) => fifoDataIn(23 downto 20),
---         D5(7 downto 4) => fifoDataIn(43 downto 40),
---         D6(3 downto 0) => fifoDataIn(27 downto 24),
---         D6(7 downto 4) => fifoDataIn(47 downto 44),
---         D7             => fifoDataIn(31 downto 28),
---         D8             => fifoDataIn(35 downto 32),
---         D9             => fifoDataIn(39 downto 36),
---         -- FIFO Control Signals: 1-bit (each) input: Clocks, Resets and Enables
---         RDCLK          => axiClk,            -- 1-bit input: Read clock
---         RDEN           => fifoDataValid(0),  -- 1-bit input: Read enable
---         RESET          => adcBitRst,         -- 1-bit input: Reset
---         WRCLK          => adcBitClkR,        -- 1-bit input: Write clock
---         WREN           => adcR.fifoWrEn      -- 1-bit input: Write enable
---         );
-
---   IN_FIFO_1 : IN_FIFO
---      generic map (
---         ALMOST_EMPTY_VALUE => 1,                   -- Almost empty offset (1-2)
---         ALMOST_FULL_VALUE  => 1,                   -- Almost full offset (1-2)
---         ARRAY_MODE         => "ARRAY_MODE_4_X_4",  -- ARRAY_MODE_4_X_8, ARRAY_MODE_4_X_4
---         SYNCHRONOUS_MODE   => "FALSE"              -- Clock synchronous (FALSE)
---         )
---      port map (
---         -- FIFO Status Flags: 1-bit (each) output: Flags and other FIFO status outputs
---         ALMOSTEMPTY    => open,                    -- 1-bit output: Almost empty
---         ALMOSTFULL     => open,                    -- 1-bit output: Almost full
---         EMPTY          => fifoDataEmpty(1),        -- 1-bit output: Empty
---         FULL           => open,                    -- 1-bit output: Full
---         -- Q0-Q9: 8-bit (each) output: FIFO Outputs
---         Q0(3 downto 0) => fifoDataOut(51 downto 48),
---         Q0(7 downto 4) => dummy(35 downto 32),
---         Q1(3 downto 0) => fifoDataOut(55 downto 52),
---         Q1(7 downto 4) => dummy(39 downto 36),
---         Q2(3 downto 0) => fifoDataOut(59 downto 56),
---         Q2(7 downto 4) => dummy(43 downto 40),
---         Q3(3 downto 0) => fifoDataOut(63 downto 60),
---         Q3(7 downto 4) => dummy(47 downto 44),
---         Q4(3 downto 0) => fifoDataOut(67 downto 64),
---         Q4(7 downto 4) => dummy(51 downto 48),
---         Q5(3 downto 0) => fifoDataOut(71 downto 68),
---         Q5(7 downto 4) => dummy(55 downto 52),
---         Q6(3 downto 0) => fifoDataOut(75 downto 72),
---         Q6(7 downto 4) => dummy(59 downto 56),
---         Q7(3 downto 0) => fifoDataOut(79 downto 76),
---         Q7(7 downto 4) => dummy(63 downto 60),
---         Q8             => open,
---         Q9             => open,
-
---         -- D0-D9: 4-bit (each) input: FIFO inputs
---         D0             => fifoDataIn(51 downto 48),
---         D1             => fifoDataIn(55 downto 52),
---         D2             => fifoDataIn(59 downto 56),
---         D3             => fifoDataIn(63 downto 60),
---         D4             => fifoDataIn(67 downto 64),
---         D5(3 downto 0) => fifoDataIn(71 downto 68),
---         D5(7 downto 4) => (others => '0'),
---         D6(3 downto 0) => fifoDataIn(75 downto 72),
---         D6(7 downto 4) => (others => '0'),
---         D7             => fifoDataIn(79 downto 76),
---         D8             => (others => '0'),
---         D9             => (others => '0'),
---         -- FIFO Control Signals: 1-bit (each) input: Clocks, Resets and Enables
---         RDCLK          => axiClk,            -- 1-bit input: Read clock
---         RDEN           => fifoDataValid(1),  -- 1-bit input: Read enable
---         RESET          => adcBitRst,         -- 1-bit input: Reset
---         WRCLK          => adcBitClkR,        -- 1-bit input: Write clock
---         WREN           => adcR.fifoWrEn      -- 1-bit input: Write enable
---         );
 
    U_DataFifo : entity surf.SynchronizerFifo
       generic map (
@@ -575,12 +477,30 @@ begin
       port map (
          rst    => adcBitRst,
          wr_clk => adcBitClkR,
-         wr_en  => adcR.fifoWrEn,
+         wr_en  => '1',
          din    => fifoDataIn,
          rd_clk => axiClk,
-         rd_en  => fifoDataValid(0),
-         valid  => fifoDataValid(0),
+         rd_en  => fifoDataValid,
+         valid  => fifoDataValid,
          dout   => fifoDataOut);
+
+   U_DataFifoDebug : entity surf.SynchronizerFifo
+      generic map (
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => NUM_CHANNELS_G*16,
+         ADDR_WIDTH_G  => 4,
+         INIT_G        => "0")
+      port map (
+         rst    => adcBitRst,
+         wr_clk => adcBitClkR,
+         wr_en  => '1',                 --Always write data
+         din    => fifoDataIn,
+         rd_clk => axiClk,
+         rd_en  => debugDataValid,
+         valid  => debugDataValid,
+         dout   => debugDataOut);
+
 
 end rtl;
 

@@ -20,6 +20,7 @@ use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 package AdcReadoutPkg is
 
@@ -34,6 +35,16 @@ package AdcReadoutPkg is
   end record AdcChipOutType;
 
   type AdcChipOutArray is array (natural range <>) of AdcChipOutType;
+
+   constant ADC_READOUT_AXIS_CFG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 2,
+      TDEST_BITS_C  => 0,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_FIXED_C,
+      TUSER_BITS_C  => 0,
+      TUSER_MODE_C  => TUSER_NONE_C);
+  
 
 
 end package AdcReadoutPkg;
