@@ -86,7 +86,7 @@ architecture rtl of EventBuilder is
       runTime                : slv(31 downto 0);
       rollover               : sl;
       apvNum                 : integer range 0 to APVS_PER_HYBRID_G-1;
-      hybridNum              : integer range 0 to HYBRIDS_G-1;
+      hybridNum              : integer range 0 to HYBRIDS_G;
       allValid               : sl;
       anyValid               : sl;
       allHead                : sl;

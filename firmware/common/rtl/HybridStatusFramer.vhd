@@ -138,33 +138,18 @@ begin
       ----------------------------------------------------------------------------------------------
       axiSlaveWaitTxn(axilEp, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
-      axiSlaveRegisterR(axilEp, X"00", 0, r.hybridInfo.syncStatus(0));
-      axiSlaveRegisterR(axilEp, X"00", 1, r.hybridInfo.syncStatus(1));
-      axiSlaveRegisterR(axilEp, X"00", 2, r.hybridInfo.syncStatus(2));
-      axiSlaveRegisterR(axilEp, X"00", 3, r.hybridInfo.syncStatus(3));
-      axiSlaveRegisterR(axilEp, X"00", 4, r.hybridInfo.syncStatus(4));
-      axiSlaveRegisterR(axilEp, X"00", 5, r.hybridInfo.syncStatus(5));
+      for i in APVS_PER_HYBRID_G-1 downto 0 loop
+         axiSlaveRegisterR(axilEp, X"00", i, r.hybridInfo.syncStatus(i));
+      end loop;
 
-      axiSlaveRegisterR(axilEp, X"10", 0, syncBase(index(0)));
-      axiSlaveRegisterR(axilEp, X"10", 16, syncPeak(index(0)));
-      axiSlaveRegisterR(axilEp, X"14", 0, syncBase(index(1)));
-      axiSlaveRegisterR(axilEp, X"14", 16, syncPeak(index(1)));
-      axiSlaveRegisterR(axilEp, X"18", 0, syncBase(index(2)));
-      axiSlaveRegisterR(axilEp, X"18", 16, syncPeak(index(2)));
-      axiSlaveRegisterR(axilEp, X"1C", 0, syncBase(index(3)));
-      axiSlaveRegisterR(axilEp, X"1C", 16, syncPeak(index(3)));
-      axiSlaveRegisterR(axilEp, X"20", 0, syncBase(index(4)));
-      axiSlaveRegisterR(axilEp, X"20", 16, syncPeak(index(4)));
-      axiSlaveRegisterR(axilEp, X"24", 0, syncBase(index(5)));
-      axiSlaveRegisterR(axilEp, X"24", 16, syncPeak(index(5)));
+      for i in APVS_PER_HYBRID_G-1 downto 0 loop
+         axiSlaveRegisterR(axilEp, X"10"+toSlv(i*4, 8), 0, syncBase(index(i)));
+         axiSlaveRegisterR(axilEp, X"10"+toSlv(i*4, 8), 16, syncPeak(index(i)));
+      end loop;
 
-
-      axiSlaveRegisterR(axilEp, X"30", 0, frameCount(index(0)));
-      axiSlaveRegisterR(axilEp, X"34", 0, frameCount(index(1)));
-      axiSlaveRegisterR(axilEp, X"38", 0, frameCount(index(2)));
-      axiSlaveRegisterR(axilEp, X"3C", 0, frameCount(index(3)));
-      axiSlaveRegisterR(axilEp, X"40", 0, frameCount(index(4)));
-      axiSlaveRegisterR(axilEp, X"4C", 0, frameCount(index(5)));
+      for i in APVS_PER_HYBRID_G-1 downto 0 loop
+         axiSlaveRegisterR(axilEp, X"30"+toSlv(i*4, 8), 0, frameCount(index(i)));
+      end loop;
 
       freeze := '0';
       axiRdDetect(axilEp, X"50", freeze);
@@ -172,32 +157,18 @@ begin
          v.pulseStream := pulseStream;
       end if;
 
-      axiSlaveRegisterR(axilEp, X"60", 0, r.pulseStream(index(0)));
-      axiSlaveRegisterR(axilEp, X"68", 0, r.pulseStream(index(1)));
-      axiSlaveRegisterR(axilEp, X"70", 0, r.pulseStream(index(2)));
-      axiSlaveRegisterR(axilEp, X"78", 0, r.pulseStream(index(3)));
-      axiSlaveRegisterR(axilEp, X"80", 0, r.pulseStream(index(4)));
-      axiSlaveRegisterR(axilEp, X"88", 0, r.pulseStream(index(5)));
+      for i in APVS_PER_HYBRID_G-1 downto 0 loop
+         axiSlaveRegisterR(axilEp, X"60"+toSlv(i*4, 8), 0, r.pulseStream(index(i)));
+      end loop;
 
-      axiSlaveRegisterR(axilEp, X"90", 0, lostSyncCount(index(0)));
-      axiSlaveRegisterR(axilEp, X"94", 0, lostSyncCount(index(1)));
-      axiSlaveRegisterR(axilEp, X"98", 0, lostSyncCount(index(2)));
-      axiSlaveRegisterR(axilEp, X"9C", 0, lostSyncCount(index(3)));
-      axiSlaveRegisterR(axilEp, X"A0", 0, lostSyncCount(index(4)));
-      axiSlaveRegisterR(axilEp, X"A4", 0, lostSyncCount(index(5)));
+      for i in APVS_PER_HYBRID_G-1 downto 0 loop
+         axiSlaveRegisterR(axilEp, X"90"+toSlv(i*4, 8), 0, lostSyncCount(index(i)));
+      end loop;
 
-      axiSlaveRegisterR(axilEp, X"B0", 0, minSamples(index(0)));
-      axiSlaveRegisterR(axilEp, X"B0", 16, maxSamples(index(0)));
-      axiSlaveRegisterR(axilEp, X"B4", 0, minSamples(index(1)));
-      axiSlaveRegisterR(axilEp, X"B4", 16, maxSamples(index(1)));
-      axiSlaveRegisterR(axilEp, X"B8", 0, minSamples(index(2)));
-      axiSlaveRegisterR(axilEp, X"B8", 16, maxSamples(index(2)));
-      axiSlaveRegisterR(axilEp, X"BC", 0, minSamples(index(3)));
-      axiSlaveRegisterR(axilEp, X"BC", 16, maxSamples(index(3)));
-      axiSlaveRegisterR(axilEp, X"C0", 0, minSamples(index(4)));
-      axiSlaveRegisterR(axilEp, X"C0", 16, maxSamples(index(4)));
-      axiSlaveRegisterR(axilEp, X"C4", 0, minSamples(index(5)));
-      axiSlaveRegisterR(axilEp, X"C4", 16, maxSamples(index(5)));
+      for i in APVS_PER_HYBRID_G-1 downto 0 loop
+         axiSlaveRegisterR(axilEp, X"B0"+toSlv(i*4, 8), 0, minSamples(index(i)));
+         axiSlaveRegisterR(axilEp, X"B0"+toSlv(i*4, 8), 16, maxSamples(index(i)));
+      end loop;
 
       v.countReset := '0';
       axiSlaveRegister(axilEp, X"D0", 0, v.countReset);
@@ -213,9 +184,9 @@ begin
 
       rin <= v;
 
-      axiReadSlave    <= r.axiReadSlave;
-      axiWriteSlave   <= r.axiWriteSlave;
-      countReset      <= r.countReset;
+      axiReadSlave  <= r.axiReadSlave;
+      axiWriteSlave <= r.axiWriteSlave;
+      countReset    <= r.countReset;
 
    end process comb;
 

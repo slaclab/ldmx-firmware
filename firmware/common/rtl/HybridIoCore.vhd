@@ -16,9 +16,10 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.I2cPkg.all;
-use surf.Ad9249Pkg.all;
+--use surf.Ad9249Pkg.all;
 
-library hps_daq;
+library ldmx;
+use ldmx.AdcReadoutPkg.all;
 
 entity HybridIoCore is
 
@@ -41,7 +42,7 @@ entity HybridIoCore is
 
       -- External Interface to ADC Readout
       adcClkRst : in sl;
-      adcChip   : in Ad9249SerialGroupType;
+      adcChip   : in AdcChipOutType;
 
       -- AdcReadout
       adcReadoutStreams : out AxiStreamMasterArray(APVS_PER_HYBRID_G-1 downto 0);
@@ -180,46 +181,43 @@ begin
    -------------------------------------------------------------------------------------------------
    -- ADC Readout
    -------------------------------------------------------------------------------------------------
-   AdcReadout_1 : entity surf.Ad9249ReadoutGroup2
+   AdcReadout_1 : entity ldmx.AdcReadout7
       generic map (
-         TPD_G          => TPD_G,
-         SIMULATION_G   => SIMULATION_G,
-         SIM_DEVICE_G   => "ULTRASCALE_PLUS",
-         NUM_CHANNELS_G => APVS_PER_HYBRID_G)
+         TPD_G           => TPD_G,
+         SIMULATION_G    => SIMULATION_G,
+         NUM_CHANNELS_G  => APVS_PER_HYBRID_G,
+         IODELAY_GROUP_G => IODELAY_GROUP_G)
       port map (
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilWriteMaster => mAxiWriteMasters(AXI_ADC_READOUT_INDEX_C),
-         axilWriteSlave  => mAxiWriteSlaves(AXI_ADC_READOUT_INDEX_C),
-         axilReadMaster  => mAxiReadMasters(AXI_ADC_READOUT_INDEX_C),
-         axilReadSlave   => mAxiReadSlaves(AXI_ADC_READOUT_INDEX_C),
-         adcClkRst       => adcClkRst,
-         adcSerial       => adcChip,
-         adcStreamClk    => axilClk,
-         adcStreams      => adcReadoutStreams);
+         axiClk         => axilClk,
+         axiRst         => axilRst,
+         axiWriteMaster => mAxiWriteMasters(AXI_ADC_READOUT_INDEX_C),
+         axiWriteSlave  => mAxiWriteSlaves(AXI_ADC_READOUT_INDEX_C),
+         axiReadMaster  => mAxiReadMasters(AXI_ADC_READOUT_INDEX_C),
+         axiReadSlave   => mAxiReadSlaves(AXI_ADC_READOUT_INDEX_C),
+         adcClkRst      => adcClkRst,
+         adc            => adcChip,
+         adcStreamClk   => axilClk,
+         adcStreams     => adcReadoutStreams);
 
    ----------------------------------------------------------------------------------------------
    -- AdcConfig Module
    ----------------------------------------------------------------------------------------------
    -- This is wrong, need 1 of these for every 2 hybrids
-   U_Ad9249Config_1 : entity surf.Ad9249Config
+   U_AdcConfig_1 : entity ldmx.AdcConfig
       generic map (
-         TPD_G             => TPD_G,
-         NUM_CHIPS_G       => 1,
-         SCLK_PERIOD_G     => 1.0e-6,
-         AXIL_CLK_PERIOD_G => 8.0e-9)
+         TPD_G             => TPD_G)
       port map (
-         axilClk         => axilClk,                                   -- [in]
-         axilRst         => axilRst,                                   -- [in]
-         axilReadMaster  => mAxiReadMasters(AXI_ADC_CONFIG_INDEX_C),   -- [in]
-         axilReadSlave   => mAxiReadSlaves(AXI_ADC_CONFIG_INDEX_C),    -- [out]
-         axilWriteMaster => mAxiWriteMasters(AXI_ADC_CONFIG_INDEX_C),  -- [in]
-         axilWriteSlave  => mAxiWriteSlaves(AXI_ADC_CONFIG_INDEX_C),   -- [out]
-         adcPdwn         => open,                                      -- [out]
-         adcSclk         => adcSclk,                                   -- [out]
-         adcSdio         => adcSdio,                                   -- [inout]
-         adcCsb(0)       => adcCsb,                                    -- [out]
-         adcCsb(1)       => dummy);
+         axiClk         => axilClk,                                   -- [in]
+         axiRst         => axilRst,                                   -- [in]
+         axiReadMaster  => mAxiReadMasters(AXI_ADC_CONFIG_INDEX_C),   -- [in]
+         axiReadSlave   => mAxiReadSlaves(AXI_ADC_CONFIG_INDEX_C),    -- [out]
+         axiWriteMaster => mAxiWriteMasters(AXI_ADC_CONFIG_INDEX_C),  -- [in]
+         axiWriteSlave  => mAxiWriteSlaves(AXI_ADC_CONFIG_INDEX_C),   -- [out]
+--         adcPdwn        => open,                                      -- [out]
+         adcSclk        => adcSclk,                                   -- [out]
+         adcSdio        => adcSdio,                                   -- [inout]
+         adcCsb         => adcCsb);                                   -- [out]
+
 
 
    ----------------------------------------------------------------------------------------------
@@ -243,7 +241,7 @@ begin
          i2cRegMasterOut => i2cRegMastersOut(0));
 
    -- Axi Bridge for ADS1115
-   Ads1115AxiBridge_1 : entity hps_daq.Ads1115AxiBridge
+   Ads1115AxiBridge_1 : entity ldmx.Ads1115AxiBridge
       generic map (
          TPD_G          => TPD_G,
          I2C_DEV_ADDR_C => "1001000")

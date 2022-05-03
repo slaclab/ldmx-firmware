@@ -19,13 +19,14 @@ use surf.I2cPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
-use surf.Ad9249Pkg.all;
+--use surf.Ad9249Pkg.all;
 
 
-library hps_daq;
-use hps_daq.FebConfigPkg.all;
-use hps_daq.HpsPkg.all;
-use hps_daq.DataPathPkg.all;
+library ldmx;
+use ldmx.FebConfigPkg.all;
+use ldmx.HpsPkg.all;
+use ldmx.DataPathPkg.all;
+use ldmx.AdcReadoutPkg.all;
 
 entity FebCore is
 
@@ -40,8 +41,8 @@ entity FebCore is
       -- Recovered Clock and Opcode Interface
       daqClk      : in sl;
       daqRst      : in sl;
-      daqOpCode   : in slv(7 downto 0);
-      daqOpCodeEn : in sl;
+      daqFcWord   : in slv(7 downto 0);
+      daqFcValid : in sl;
 
       -- Axi Clock and Reset
       axilClk : in sl;
@@ -54,7 +55,7 @@ entity FebCore is
       extAxilReadSlave   : out AxiLiteReadSlaveType;
 
       -- ADC Data Interface 
-      adcChips  : in  Ad9249SerialGroupArray(HYBRIDS_G-1 downto 0);
+      adcChips  : in  AdcChipOutArray(HYBRIDS_G-1 downto 0);
       adcClkOut : out slv(HYBRIDS_G-1 downto 0);
 
       -- Processed event data stream
@@ -94,6 +95,8 @@ entity FebCore is
       hyI2cOut : out i2c_out_array(HYBRIDS_G-1 downto 0);
 
       -- XADC Interface
+      vPIn : in sl;
+      vNIn : in sl;
       vAuxP : in slv(15 downto 0);
       vAuxN : in slv(15 downto 0);
 
@@ -112,11 +115,11 @@ architecture rtl of FebCore is
    -------------------------------------------------------------------------------------------------
    -- Recovered Clock & Opcode Signals
    -------------------------------------------------------------------------------------------------
-   signal daqClkLost    : sl;
-   signal daqClkDiv3    : sl;
-   signal daqClkDiv3Rst : sl;
-   signal daqTrigger    : sl;
-   signal hySoftRst     : slv(HYBRIDS_G-1 downto 0);
+   signal daqClkLost   : sl;
+   signal daqClkDiv    : sl;
+   signal daqClkDivRst : sl;
+   signal daqTrigger   : sl;
+   signal hySoftRst    : slv(HYBRIDS_G-1 downto 0);
 
    -------------------------------------------------------------------------------------------------
    -- AXI Crossbar configuration and signals
@@ -213,10 +216,10 @@ architecture rtl of FebCore is
    -------------------------------------------------------------------------------------------------
    -- Hybrid and ADC Shifted Clocks and thier resets
    -------------------------------------------------------------------------------------------------
-   signal hyClk     : slv(7 downto 0) := (others => '0');
-   signal hyClkRst  : slv(7 downto 0) := (others => '0');
-   signal adcClk    : slv(7 downto 0) := (others => '0');
-   signal adcClkRst : slv(7 downto 0) := (others => '0');
+   signal hyClk     : slv(HYBRIDS_G-1 downto 0) := (others => '0');
+   signal hyClkRst  : slv(HYBRIDS_G-1 downto 0) := (others => '0');
+   signal adcClk    : slv(HYBRIDS_G-1 downto 0) := (others => '0');
+   signal adcClkRst : slv(HYBRIDS_G-1 downto 0) := (others => '0');
 
    signal hyRstL : slv(HYBRIDS_G-1 downto 0);
 
@@ -278,7 +281,7 @@ architecture rtl of FebCore is
    signal triggerFifoData  : slv(63 downto 0);
    signal triggerFifoRdEn  : sl;
 
-   signal daqOpCodeLong : slv(9 downto 0);
+   signal daqFcWordLong : slv(9 downto 0);
 
    -------------------------------------------------------------------------------------------------
    -- Data path outputs
@@ -305,15 +308,15 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Create trigger FIFO
    -------------------------------------------------------------------------------------------------
-   daqOpCodeLong <= "00" & daqOpCode;
-   U_TriggerFifo_1 : entity hps_daq.TriggerFifo
+   daqFcWordLong <= "00" & daqFcWord;
+   U_TriggerFifo_1 : entity ldmx.TriggerFifo
       generic map (
          TPD_G => TPD_G)
       port map (
          distClk    => daqClk,            -- [in]
          distClkRst => daqRst,            -- [in]
-         rxData     => daqOpCodeLong,     -- [in]
-         rxDataEn   => daqOpCodeEn,       -- [in]
+         rxData     => daqFcWordLong,     -- [in]
+         rxDataEn   => daqFcValid,       -- [in]
          sysClk     => axilClk,           -- [in]
          sysRst     => axilRst,           -- [in]
          trigger    => trigger,           -- [out]
@@ -348,17 +351,18 @@ begin
    -- Use Pgp FC bus to to control phase alignment
    -- Also use FC bus for triggers and resets
    -------------------------------------------------------------------------------------------------
-   DaqTiming_1 : entity hps_daq.DaqTiming
+   DaqTiming_1 : entity ldmx.DaqTiming
       generic map (
-         TPD_G     => TPD_G,
-         HYBRIDS_G => HYBRIDS_G)
+         TPD_G         => TPD_G,
+         DAQ_CLK_DIV_G => 5,
+         HYBRIDS_G     => HYBRIDS_G)
       port map (
          daqClk         => daqClk,
          daqRst         => daqRst,
-         opCode         => daqOpCode,
-         opCodeEn       => daqOpCodeEn,
-         daqClkDiv3     => daqClkDiv3,
-         daqClkDiv3Rst  => daqClkDiv3Rst,
+         daqFcWord      => daqFcWord,
+         daqFcValid     => daqFcValid,
+         daqClkDiv     => daqClkDiv,
+         daqClkDivRst  => daqClkDivRst,
          daqTrigger     => daqTrigger,
          hySoftRst      => hySoftRst,
          axiClk         => axilClk,
@@ -371,7 +375,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- General configuration Registers
    -------------------------------------------------------------------------------------------------
-   FebConfig_1 : entity hps_daq.FebConfig
+   FebConfig_1 : entity ldmx.FebConfig
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -393,40 +397,40 @@ begin
    U_ClockPhaseShifter_HYBRIDS : entity ldmx.ClockPhaseShifter
       generic map (
          TPD_G           => TPD_G,
-         NUM_OUTCLOCKS_G => NUM_OUTCLOCKS_G,
+         NUM_OUTCLOCKS_G => HYBRIDS_G,
          CLKIN_PERIOD_G  => 26.923,
          DIVCLK_DIVIDE_G => 1,
-         CLKFBOUT_MULT_G => 38,
-         CLKOUT_DIVIDE_G => 38)
+         CLKFBOUT_MULT_G => 27,
+         CLKOUT_DIVIDE_G => 27)
       port map (
-         axiClk         => axiClk,                                                -- [in]
-         axiRst         => axiRst,                                                -- [in]
+         axiClk         => axilClk,                                                -- [in]
+         axiRst         => axilRst,                                                -- [in]
          axiReadMaster  => mainAxilReadMasters(AXI_HYBRID_CLOCK_PHASE_INDEX_C),   -- [in]
          axiReadSlave   => mainAxilReadSlaves(AXI_HYBRID_CLOCK_PHASE_INDEX_C),    -- [out]
          axiWriteMaster => mainAxilWriteMasters(AXI_HYBRID_CLOCK_PHASE_INDEX_C),  -- [in]
          axiWriteSlave  => mainAxilWriteSlaves(AXI_HYBRID_CLOCK_PHASE_INDEX_C),   -- [out]
-         refClk         => daqClkDiv3,                                            -- [in]
-         refClkRst      => dacClkdiv3Rst,                                         -- [in]
+         refClk         => daqClkDiv,                                             -- [in]
+         refClkRst      => daqClkDivRst,                                         -- [in]
          clkOut         => hyClk,                                                 -- [out]
          rstOut         => hyClkRst);                                             -- [out]
 
    U_ClockPhaseShifter_ADCS : entity ldmx.ClockPhaseShifter
       generic map (
          TPD_G           => TPD_G,
-         NUM_OUTCLOCKS_G => NUM_OUTCLOCKS_G,
+         NUM_OUTCLOCKS_G => HYBRIDS_G,
          CLKIN_PERIOD_G  => 26.923,
          DIVCLK_DIVIDE_G => 1,
-         CLKFBOUT_MULT_G => 38,
-         CLKOUT_DIVIDE_G => 38)
+         CLKFBOUT_MULT_G => 27,
+         CLKOUT_DIVIDE_G => 27)
       port map (
-         axiClk         => axiClk,                                             -- [in]
-         axiRst         => axiRst,                                             -- [in]
+         axiClk         => axilClk,                                             -- [in]
+         axiRst         => axilRst,                                             -- [in]
          axiReadMaster  => mainAxilReadMasters(AXI_ADC_CLOCK_PHASE_INDEX_C),   -- [in]
          axiReadSlave   => mainAxilReadSlaves(AXI_ADC_CLOCK_PHASE_INDEX_C),    -- [out]
          axiWriteMaster => mainAxilWriteMasters(AXI_ADC_CLOCK_PHASE_INDEX_C),  -- [in]
          axiWriteSlave  => mainAxilWriteSlaves(AXI_ADC_CLOCK_PHASE_INDEX_C),   -- [out]
-         refClk         => daqClkDiv3,                                         -- [in]
-         refClkRst      => dacClkdiv3Rst,                                      -- [in]
+         refClk         => daqClkDiv,                                          -- [in]
+         refClkRst      => daqClkDivRst,                                      -- [in]
          clkOut         => adcClk,                                             -- [out]
          rstOut         => adcClkRst);                                         -- [out]
 
@@ -489,69 +493,69 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Hybrid Voltage Trim SPI Interface
    -------------------------------------------------------------------------------------------------
---    Ad5144SpiAxiBridge_1 : entity hps_daq.Ad5144SpiAxiBridge
---       generic map (
---          TPD_G             => TPD_G,
---          NUM_CHIPS_G       => 5,
---          AXI_CLK_PERIOD_G  => 8.0E-9,
---          SPI_SCLK_PERIOD_G => ite(SIMULATION_G, 0.28E-7, 10.0E-6))  -- 10 us SPI SCLK Period
---       port map (
---          axiClk         => axilClk,
---          axiRst         => axilRst,
---          axiReadMaster  => mainAxilReadMasters(AXI_BOARD_SPI_INDEX_C),
---          axiReadSlave   => mainAxilReadSlaves(AXI_BOARD_SPI_INDEX_C),
---          axiWriteMaster => mainAxilWriteMasters(AXI_BOARD_SPI_INDEX_C),
---          axiWriteSlave  => mainAxilWriteSlaves(AXI_BOARD_SPI_INDEX_C),
---          spiCsL         => boardSpiCsL,
---          spiSclk        => boardSpiSclk,
---          spiSdi         => boardSpiSdi,
---          spiSdo         => boardSpiSdo);
+   Ad5144SpiAxiBridge_1 : entity ldmx.Ad5144SpiAxiBridge
+      generic map (
+         TPD_G             => TPD_G,
+         NUM_CHIPS_G       => 5,
+         AXI_CLK_PERIOD_G  => 8.0E-9,
+         SPI_SCLK_PERIOD_G => ite(SIMULATION_G, 0.28E-7, 10.0E-6))  -- 10 us SPI SCLK Period
+      port map (
+         axiClk         => axilClk,
+         axiRst         => axilRst,
+         axiReadMaster  => mainAxilReadMasters(AXI_BOARD_SPI_INDEX_C),
+         axiReadSlave   => mainAxilReadSlaves(AXI_BOARD_SPI_INDEX_C),
+         axiWriteMaster => mainAxilWriteMasters(AXI_BOARD_SPI_INDEX_C),
+         axiWriteSlave  => mainAxilWriteSlaves(AXI_BOARD_SPI_INDEX_C),
+         spiCsL         => boardSpiCsL,
+         spiSclk        => boardSpiSclk,
+         spiSdi         => boardSpiSdi,
+         spiSdo         => boardSpiSdo);
 
    -------------------------------------------------------------------------------------------------
    -- XADC Core
    -------------------------------------------------------------------------------------------------
---    U_XadcSimpleCore_1 : entity surf.XadcSimpleCore
---       generic map (
---          TPD_G                    => TPD_G,
---          SEQUENCER_MODE_G         => "CONTINUOUS",
---          SAMPLING_MODE_G          => "CONTINUOUS",
---          MUX_EN_G                 => false,
---          ADCCLK_RATIO_G           => 5,
---          SAMPLE_AVG_G             => "00",
---          COEF_AVG_EN_G            => true,
---          OVERTEMP_AUTO_SHDN_G     => true,
---          OVERTEMP_ALM_EN_G        => true,
---          OVERTEMP_LIMIT_G         => 80.0,
---          OVERTEMP_RESET_G         => 30.0,
---          TEMP_ALM_EN_G            => false,
---          TEMP_UPPER_G             => 70.0,
---          TEMP_LOWER_G             => 0.0,
---          VCCINT_ALM_EN_G          => false,
---          VCCAUX_ALM_EN_G          => false,
---          VCCBRAM_ALM_EN_G         => false,
---          ADC_OFFSET_CORR_EN_G     => false,
---          ADC_GAIN_CORR_EN_G       => true,
---          SUPPLY_OFFSET_CORR_EN_G  => false,
---          SUPPLY_GAIN_CORR_EN_G    => true,
---          SEQ_XADC_CAL_SEL_EN_G    => false,
---          SEQ_TEMPERATURE_SEL_EN_G => true,
---          SEQ_VCCINT_SEL_EN_G      => true,
---          SEQ_VCCAUX_SEL_EN_G      => true,
---          SEQ_VCCBRAM_SEL_EN_G     => true,
---          SEQ_VAUX_SEL_EN_G        => (others => true))               -- All AUX voltages on
---       port map (
---          axilClk         => axilClk,                                 -- [in]
---          axilRst         => axilRst,                                 -- [in]
---          axilReadMaster  => mainAxilReadMasters(AXI_XADC_INDEX_C),   -- [in]
---          axilReadSlave   => mainAxilReadSlaves(AXI_XADC_INDEX_C),    -- [out]
---          axilWriteMaster => mainAxilWriteMasters(AXI_XADC_INDEX_C),  -- [in]
---          axilWriteSlave  => mainAxilWriteSlaves(AXI_XADC_INDEX_C),   -- [out]
---          vpIn            => vpIn,                                    -- [in]
---          vnIn            => vnIn,                                    -- [in]
---          vAuxP           => vAuxP,                                   -- [in]
---          vAuxN           => vAuxN,                                   -- [in]
---          alm             => open,                                    -- [out]
---          ot              => open);                                   -- [out]
+   U_XadcSimpleCore_1 : entity surf.XadcSimpleCore
+      generic map (
+         TPD_G                    => TPD_G,
+         SEQUENCER_MODE_G         => "CONTINUOUS",
+         SAMPLING_MODE_G          => "CONTINUOUS",
+         MUX_EN_G                 => false,
+         ADCCLK_RATIO_G           => 5,
+         SAMPLE_AVG_G             => "00",
+         COEF_AVG_EN_G            => true,
+         OVERTEMP_AUTO_SHDN_G     => true,
+         OVERTEMP_ALM_EN_G        => true,
+         OVERTEMP_LIMIT_G         => 80.0,
+         OVERTEMP_RESET_G         => 30.0,
+         TEMP_ALM_EN_G            => false,
+         TEMP_UPPER_G             => 70.0,
+         TEMP_LOWER_G             => 0.0,
+         VCCINT_ALM_EN_G          => false,
+         VCCAUX_ALM_EN_G          => false,
+         VCCBRAM_ALM_EN_G         => false,
+         ADC_OFFSET_CORR_EN_G     => false,
+         ADC_GAIN_CORR_EN_G       => true,
+         SUPPLY_OFFSET_CORR_EN_G  => false,
+         SUPPLY_GAIN_CORR_EN_G    => true,
+         SEQ_XADC_CAL_SEL_EN_G    => false,
+         SEQ_TEMPERATURE_SEL_EN_G => true,
+         SEQ_VCCINT_SEL_EN_G      => true,
+         SEQ_VCCAUX_SEL_EN_G      => true,
+         SEQ_VCCBRAM_SEL_EN_G     => true,
+         SEQ_VAUX_SEL_EN_G        => (others => true))               -- All AUX voltages on
+      port map (
+         axilClk         => axilClk,                                 -- [in]
+         axilRst         => axilRst,                                 -- [in]
+         axilReadMaster  => mainAxilReadMasters(AXI_XADC_INDEX_C),   -- [in]
+         axilReadSlave   => mainAxilReadSlaves(AXI_XADC_INDEX_C),    -- [out]
+         axilWriteMaster => mainAxilWriteMasters(AXI_XADC_INDEX_C),  -- [in]
+         axilWriteSlave  => mainAxilWriteSlaves(AXI_XADC_INDEX_C),   -- [out]
+         vpIn            => vpIn,                                    -- [in]
+         vnIn            => vnIn,                                    -- [in]
+         vAuxP           => vAuxP,                                   -- [in]
+         vAuxN           => vAuxN,                                   -- [in]
+         alm             => open,                                    -- [out]
+         ot              => open);                                   -- [out]
 
 
 
@@ -620,7 +624,7 @@ begin
       ----------------------------------------------------------------------------------------------
       -- Generate triggers that are synced to each hybrid clock
       ----------------------------------------------------------------------------------------------
-      TrigControl_1 : entity hps_daq.TrigControl
+      TrigControl_1 : entity ldmx.TrigControl
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -636,7 +640,7 @@ begin
       -------------------------------------------------------------------------------------------------
       -- Hybrid IO Core
       -------------------------------------------------------------------------------------------------
-      HybridIoCore_1 : entity hps_daq.HybridIoCore
+      HybridIoCore_1 : entity ldmx.HybridIoCore
          generic map (
             TPD_G             => TPD_G,
             SIMULATION_G      => SIMULATION_G,
@@ -663,7 +667,7 @@ begin
       ----------------------------------------------------------------------------------------------
       -- Hybrid Data core
       ----------------------------------------------------------------------------------------------
-      HybridDataCore_1 : entity hps_daq.HybridDataCore
+      HybridDataCore_1 : entity ldmx.HybridDataCore
          generic map (
             TPD_G             => TPD_G,
             AXIL_BASE_ADDR_G  => HYBRID_DATA_XBAR_CFG_C(i).baseAddr,
@@ -683,7 +687,7 @@ begin
             dataRdEn          => dataPathIn(i)(APVS_PER_HYBRID_G-1 downto 0));
    end generate;
 
-   EventBuilder_1 : entity hps_daq.EventBuilder
+   EventBuilder_1 : entity ldmx.EventBuilder
       generic map (
          TPD_G             => TPD_G,
          HYBRIDS_G         => HYBRIDS_G,
