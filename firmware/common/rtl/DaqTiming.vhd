@@ -30,17 +30,18 @@ use ldmx.HpsPkg.all;
 entity DaqTiming is
 
    generic (
-      TPD_G     : time    := 1 ns;
-      HYBRIDS_G : integer := 4);
+      TPD_G         : time    := 1 ns;
+      DAQ_CLK_DIV_G : integer := 3;
+      HYBRIDS_G     : integer := 4);
    port (
-      daqClk        : in  sl;
-      daqRst        : in  sl;
-      opCode        : in  slv(7 downto 0);
-      opCodeEn      : in  sl;
-      daqClkDiv3    : out sl;
-      daqClkDiv3Rst : out sl;
-      daqTrigger    : out sl;
-      hySoftRst     : out slv(HYBRIDS_G-1 downto 0);
+      daqClk       : in  sl;
+      daqRst       : in  sl;
+      daqFcWord    : in  slv(7 downto 0);
+      daqFcValid   : in  sl;
+      daqClkDiv    : out sl;
+      daqClkDivRst : out sl;
+      daqTrigger   : out sl;
+      hySoftRst    : out slv(HYBRIDS_G-1 downto 0);
 
       -- Axi inteface
       axiClk         : in  sl;
@@ -56,10 +57,10 @@ architecture rtl of DaqTiming is
 
 
    type RegType is record
-      counter        : slv(1 downto 0);
+      counter        : integer range 0 to DAQ_CLK_DIV_G-1;
       triggerLatch   : sl;
       daqClkLost     : sl;
-      daqClkDiv3     : sl;
+      daqClkDiv      : sl;
       daqTrigger     : sl;
       daqAligned     : sl;
       hySoftRst      : slv(HYBRIDS_G-1 downto 0);
@@ -71,10 +72,10 @@ architecture rtl of DaqTiming is
 
    -- Timing comes up already enabled so that ADC can be read before sync is established
    constant REG_INIT_C : RegType := (
-      counter        => (others => '0'),
+      counter        => 0,
       triggerLatch   => '0',
       daqClkLost     => '1',
-      daqClkDiv3     => '0',
+      daqClkDiv      => '0',
       daqTrigger     => '0',
       daqAligned     => '0',
       hySoftRst      => (others => '0'),
@@ -86,7 +87,7 @@ architecture rtl of DaqTiming is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal daqClkDiv3Int : sl;
+   signal daqClkDivInt : sl;
 
    -------------------------------------------------------------------------------------------------
    -- AXI signals
@@ -113,40 +114,45 @@ architecture rtl of DaqTiming is
 
 begin
 
-   comb : process (opCode, opCodeEn, r) is
+   comb : process (daqFcValid, daqFcWord, r) is
       variable v : RegType;
    begin
       v := r;
 
       v.daqClkLost := '0';
       v.counter    := r.counter + 1;
-      v.daqClkDiv3 := '1';
+      v.daqClkDiv  := '1';
 
-      -- Assert trigger only on falling edge of daqClkDiv3
+      -- Assert trigger only on falling edge of daqClkDiv
       -- to allow enough setup time for shfited hybrid clocks to see it.
-      if (r.counter = "10" or (opCodeEn = '1' and opCode = DAQ_CLK_ALIGN_CODE_C)) then
-         v.counter        := "00";
-         v.daqClkDiv3     := '0';
+      if (r.counter = DAQ_CLK_DIV_G-1 or (daqFcValid = '1' and daqFcWord = DAQ_CLK_ALIGN_CODE_C)) then
+         v.counter        := 0;
+         v.daqClkDiv      := '0';
          v.daqTrigger     := r.triggerLatch;
          v.hySoftRst      := r.hySoftRstLatch;
          v.triggerLatch   := '0';
          v.hySoftRstLatch := (others => '0');
       end if;
 
-      if (opCodeEn = '1' and opCode = DAQ_CLK_ALIGN_CODE_C) then
+      -- Terrible hack
+      if (r.counter = 3 and DAQ_CLK_DIV_G = 5) then
+         v.daqClkDiv := '0';
+      end if;
+
+      if (daqFcValid = '1' and daqFcWord = DAQ_CLK_ALIGN_CODE_C) then
          v.daqAligned := '1';
          v.alignCount := r.alignCount + 1;
          v.daqClkLost := '1';
       end if;
 
       -- Trigger Opcode
-      if (opCodeEn = '1' and opCode = DAQ_TRIGGER_CODE_C) then
+      if (daqFcValid = '1' and daqFcWord = DAQ_TRIGGER_CODE_C) then
          v.triggerLatch := '1';
          v.triggerCount := r.triggerCount + 1;
       end if;
 
 
-      if (opCodeEn = '1' and opCode = DAQ_APV_RESET101_C) then
+      if (daqFcValid = '1' and daqFcWord = DAQ_APV_RESET101_C) then
          v.hySoftRstLatch := (others => '1');
          v.hySoftRstCount := r.hySoftRstCount + 1;
       end if;
@@ -175,22 +181,22 @@ begin
    -- Drive divided clock onto a BUFG
    BUFG_CLK41_RAW : BUFG
       port map (
-         I => r.daqClkDiv3,
-         O => daqClkDiv3Int);
+         I => r.daqClkDiv,
+         O => daqClkDivInt);
 
-   daqClkDiv3 <= daqClkDiv3Int;
+   daqClkDiv <= daqClkDivInt;
 
    -- Provide a reset signal for downstream MMCMs
-   RstSync_daqClkDiv3Rst : entity surf.RstSync
+   RstSync_daqClkDivRst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => '1',
          OUT_POLARITY_G  => '1',
          RELEASE_DELAY_G => 5)
       port map (
-         clk      => daqClkDiv3Int,
+         clk      => daqClkDivInt,
          asyncRst => r.daqClkLost,
-         syncRst  => daqClkDiv3Rst);
+         syncRst  => daqClkDivRst);
 
    -------------------------------------------------------------------------------------------------
    -- AXI logic
