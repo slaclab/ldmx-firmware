@@ -22,9 +22,9 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
-use hps_daq.FebConfigPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
+use ldmx.FebConfigPkg.all;
 
 entity FebModelWrapper is
 
@@ -104,7 +104,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Board model
    -------------------------------------------------------------------------------------------------
-   U_FrontEndBoardModel_1 : entity hps_daq.FrontEndBoardModel
+   U_FrontEndBoardModel_1 : entity ldmx.FrontEndBoardModel
       generic map (
          TPD_G          => TPD_G,
          CLK_0_PERIOD_G => 8 ns,
@@ -149,7 +149,7 @@ begin
    daqRefClkP <= daqClk125P;
    daqRefClkN <= daqClk125N;
 
-   U_Feb_1 : entity hps_daq.Feb
+   U_Feb_1 : entity ldmx.Feb
       generic map (
          TPD_G                 => TPD_G,
          BUILD_INFO_G          => BUILD_INFO_G,

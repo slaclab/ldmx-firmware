@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-21
--- Last update: 2019-11-20
+-- Last update: 2022-04-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Pgp2bPkg.all;
 
-library hps_daq;
+library ldmx;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -85,7 +85,7 @@ begin
    end generate clks;
 
    -- component instantiation
-   DUT : entity hps_daq.Pgp2bPipe
+   DUT : entity ldmx.Pgp2bPipe
       generic map (
          TPD_G                      => TPD_G,
          MEMORY_TYPE_G              => MEMORY_TYPE_G,

@@ -17,9 +17,9 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.i2cPkg.all;
 
-library hps_daq;
-use hps_daq.FebConfigPkg.all;
-use hps_daq.HpsPkg.all;
+library ldmx;
+use ldmx.FebConfigPkg.all;
+use ldmx.HpsPkg.all;
 ----------------------------------------------------------------------------------------------------
 
 entity FrontEndBoardModel is
@@ -167,7 +167,7 @@ begin
 
    -- ampPdB ports are pulled up on the board      
    ampPdB <= (others => (others => 'H'));
-   U_Tca6424a_1 : entity hps_daq.Tca6424a
+   U_Tca6424a_1 : entity ldmx.Tca6424a
       generic map (
          TPD_G  => TPD_G,
          ADDR_G => '0')
@@ -204,7 +204,7 @@ begin
    HYBRIDS_GEN : for i in HYBRIDS_G-1 downto 0 generate
 
       -- Digipots to control hybrid trimming
-      HY_PWR_AD5144 : entity hps_daq.Ad5144
+      HY_PWR_AD5144 : entity ldmx.Ad5144
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -238,7 +238,7 @@ begin
 
       -- LTC2991 for voltage and current
       -- Hybrd Power Monitoring
-      Ltc2991_1 : entity hps_daq.Ltc2991
+      Ltc2991_1 : entity ldmx.Ltc2991
          generic map (
             TPD_G             => TPD_G,
             ADDR_G            => BOARD_I2C_ADDRS_C(i),
@@ -261,7 +261,7 @@ begin
       hyI2cSdaIn(i)  <= to_x01z(hyI2cSdaBus(i));
 
       -- Instantiate hybrids
-      Hybrid_1 : entity hps_daq.Hybrid
+      Hybrid_1 : entity ldmx.Hybrid
          generic map (
             TPD_G         => TPD_G,
             HYBRID_TYPE_G => HYBRID_TYPE_G)
@@ -294,7 +294,7 @@ begin
       adcSdio(i) <= 'H';
       adcCsb(i)  <= 'H';
 
-      Ad9252_1 : entity hps_daq.Ad9252
+      Ad9252_1 : entity ldmx.Ad9252
          generic map (
             TPD_G        => TPD_G,
             CLK_PERIOD_G => 24 ns)
@@ -327,7 +327,7 @@ begin
    boardSpiSdo <= 'H';
 
    -- One more AD5144 for main power trimming
-   MAIN_PWR_AD5144 : entity hps_daq.Ad5144
+   MAIN_PWR_AD5144 : entity ldmx.Ad5144
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -337,7 +337,7 @@ begin
          sdo   => boardSpiSdo,
          rout  => open);
 
-   Ltc2991_v125 : entity hps_daq.Ltc2991
+   Ltc2991_v125 : entity ldmx.Ltc2991
       generic map (
          TPD_G             => TPD_G,
          ADDR_G            => BOARD_I2C_ADDRS_C(4),

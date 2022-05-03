@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-14
--- Last update: 2015-02-02
+-- Last update: 2022-04-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,8 +23,8 @@ library surf;
 use surf.StdRtlPkg.all;
 
 
-library hps_daq;
-use hps_daq.HpsPkg.all;
+library ldmx;
+use ldmx.HpsPkg.all;
 
 entity Hybrid is
    
@@ -54,7 +54,7 @@ architecture behavioral of Hybrid is
 begin
 
    APV25_GEN : for i in 0 to 4 generate
-      Apv25_Inst : entity hps_daq.Apv25
+      Apv25_Inst : entity ldmx.Apv25
          generic map (
             TPD_G  => TPD_G,
             ADDR_G => ("01" & toSlv(i, 3)))
@@ -73,7 +73,7 @@ begin
    v125Div <= v125 / 1.0;
 
    NEW_HYBRID_GEN : if (HYBRID_TYPE_G = NEW_HYBRID_C) generate
-      Ads1115_1 : entity hps_daq.Ads1115
+      Ads1115_1 : entity ldmx.Ads1115
          generic map (
             TPD_G  => TPD_G,
             ADDR_G => '0')
@@ -87,7 +87,7 @@ begin
    end generate NEW_HYBRID_GEN;
 
    OLD_HYBRID_GEN : if (HYBRID_TYPE_G = OLD_HYBRID_C) generate
-      Ads7924_1 : entity hps_daq.Ads7924
+      Ads7924_1 : entity ldmx.Ads7924
          generic map (
             TPD_G  => TPD_G,
             AVDD_G => 2.5,

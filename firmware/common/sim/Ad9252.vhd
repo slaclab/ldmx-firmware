@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-14
--- Last update: 2019-03-13
+-- Last update: 2022-04-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ use surf.TextUtilPkg.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
-library hps_daq; 
+library ldmx; 
 
 
 entity Ad9252 is
@@ -531,7 +531,7 @@ begin
    -- Output
    -------------------------------------------------------------------------------------------------
    DATA_SERIALIZER_GEN : for i in 7 downto 0 generate
-      Ad9252Serializer_1 : entity hps_daq.Ad9252Serializer
+      Ad9252Serializer_1 : entity ldmx.Ad9252Serializer
          port map (
             clk    => dClk,
             clkDiv => fClk,
