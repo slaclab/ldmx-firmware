@@ -43,14 +43,14 @@ entity AdcReadout7 is
       IODELAY_GROUP_G : string);
    port (
       -- Master system clock, 125Mhz
-      axiClk : in sl;
-      axiRst : in sl;
+      axilClk : in sl;
+      axilRst : in sl;
 
-      -- Axi Interface
-      axiWriteMaster : in  AxiLiteWriteMasterType;
-      axiWriteSlave  : out AxiLiteWriteSlaveType;
-      axiReadMaster  : in  AxiLiteReadMasterType;
-      axiReadSlave   : out AxiLiteReadSlaveType;
+      -- Axil Interface
+      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType;
+      axilReadMaster  : in  AxiLiteReadMasterType;
+      axilReadSlave   : out AxiLiteReadSlaveType;
 
       -- Reset for adc deserializer
       adcClkRst : in sl;
@@ -60,8 +60,7 @@ entity AdcReadout7 is
 
       -- Deserialized ADC Data
       adcStreamClk : in  sl;
-      adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
-      (others => axiStreamMasterInit(ADC_READOUT_AXIS_CFG_C)));
+      adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) := (others => axiStreamMasterInit(ADC_READOUT_AXIS_CFG_C)));
 
 end AdcReadout7;
 
@@ -71,9 +70,9 @@ architecture rtl of AdcReadout7 is
    -------------------------------------------------------------------------------------------------
    -- AXI Registers
    -------------------------------------------------------------------------------------------------
-   type AxiRegType is record
-      axiWriteSlave : AxiLiteWriteSlaveType;
-      axiReadSlave  : AxiLiteReadSlaveType;
+   type AxilRegType is record
+      axilWriteSlave : AxiLiteWriteSlaveType;
+      axilReadSlave  : AxiLiteReadSlaveType;
 
       -- Deserializer configuration registers
       dataDelay     : slv5Array(4 downto 0);
@@ -84,21 +83,21 @@ architecture rtl of AdcReadout7 is
       readoutDebug1 : Slv16Array(7 downto 0);
    end record;
 
-   constant AXI_REG_INIT_C : AxiRegType := (
-      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-      axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      dataDelay     => (others => "00101"),  -- Default delay of 10 taps
-      dataDelaySet  => (others => '1'),
-      frameDelay    => "00101",
-      frameDelaySet => '1',
-      readoutDebug0 => (others => (others => '0')),
-      readoutDebug1 => (others => (others => '0')));
+   constant AXIL_REG_INIT_C : AxilRegType := (
+      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      dataDelay      => (others => "00101"),  -- Default delay of 10 taps
+      dataDelaySet   => (others => '1'),
+      frameDelay     => "00101",
+      frameDelaySet  => '1',
+      readoutDebug0  => (others => (others => '0')),
+      readoutDebug1  => (others => (others => '0')));
 
    signal lockedSync      : sl;
    signal lockedFallCount : slv(15 downto 0);
 
-   signal axiR   : AxiRegType := AXI_REG_INIT_C;
-   signal axiRin : AxiRegType;
+   signal axilR   : AxilRegType := AXIL_REG_INIT_C;
+   signal axilRin : AxilRegType;
 
    -------------------------------------------------------------------------------------------------
    -- ADC Readout Clocked Registers
@@ -146,7 +145,7 @@ architecture rtl of AdcReadout7 is
 
 begin
    -------------------------------------------------------------------------------------------------
-   -- Synchronize adcR.locked across to axi clock domain and count falling edges on it
+   -- Synchronize adcR.locked across to axil clock domain and count falling edges on it
    -------------------------------------------------------------------------------------------------
 
    SynchronizerOneShotCnt_1 : entity surf.SynchronizerOneShotCnt
@@ -159,142 +158,142 @@ begin
       port map (
          dataIn     => adcR.locked,
          rollOverEn => '0',
-         cntRst     => axiRst,
+         cntRst     => axilRst,
          dataOut    => open,
          cntOut     => lockedFallCount,
          wrClk      => adcBitClkR,
          wrRst      => adcBitRst,
-         rdClk      => axiClk,
-         rdRst      => axiRst);
+         rdClk      => axilClk,
+         rdRst      => axilRst);
 
    Synchronizer_1 : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2)
       port map (
-         clk     => axiClk,
-         rst     => axiRst,
+         clk     => axilClk,
+         rst     => axilRst,
          dataIn  => adcR.locked,
          dataOut => lockedSync);
 
    -------------------------------------------------------------------------------------------------
-   -- AXI Interface
+   -- AXIL Interface
    -------------------------------------------------------------------------------------------------
-   axiComb : process (axiR, axiReadMaster, axiRst, axiWriteMaster, debugDataTmp, debugDataValid,
-                      lockedFallCount, lockedSync) is
-      variable v         : AxiRegType;
+   axilComb : process (axilR, axilReadMaster, axilRst, axilWriteMaster, debugDataTmp, debugDataValid,
+                       lockedFallCount, lockedSync) is
+      variable v         : AxilRegType;
       variable axiStatus : AxiLiteStatusType;
       variable axiResp   : slv(1 downto 0);
    begin
-      v := axiR;
+      v := axilR;
 
       v.dataDelaySet  := (others => '0');
       v.frameDelaySet := '0';
 
       if (debugDataValid = '1') then
          v.readoutDebug0(NUM_CHANNELS_G-1 downto 0) := debugDataTmp;
-         v.readoutDebug1 := axiR.readoutDebug0;
+         v.readoutDebug1                            := axilR.readoutDebug0;
       end if;
 
-      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
+      axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus);
 
       if (axiStatus.writeEnable = '1') then
          -- Decode address and perform write
-         case (axiWriteMaster.awaddr(7 downto 0)) is
+         case (axilWriteMaster.awaddr(7 downto 0)) is
             when X"00" =>
-               v.dataDelay(0)    := axiWriteMaster.wdata(4 downto 0);
+               v.dataDelay(0)    := axilWriteMaster.wdata(4 downto 0);
                v.dataDelaySet(0) := '1';
             when X"04" =>
-               v.dataDelay(1)    := axiWriteMaster.wdata(4 downto 0);
+               v.dataDelay(1)    := axilWriteMaster.wdata(4 downto 0);
                v.dataDelaySet(1) := '1';
             when X"08" =>
-               v.dataDelay(2)    := axiWriteMaster.wdata(4 downto 0);
+               v.dataDelay(2)    := axilWriteMaster.wdata(4 downto 0);
                v.dataDelaySet(2) := '1';
             when X"0C" =>
-               v.dataDelay(3)    := axiWriteMaster.wdata(4 downto 0);
+               v.dataDelay(3)    := axilWriteMaster.wdata(4 downto 0);
                v.dataDelaySet(3) := '1';
             when X"10" =>
-               v.dataDelay(4)    := axiWriteMaster.wdata(4 downto 0);
+               v.dataDelay(4)    := axilWriteMaster.wdata(4 downto 0);
                v.dataDelaySet(4) := '1';
             when X"20" =>
-               v.frameDelay    := axiWriteMaster.wdata(4 downto 0);
+               v.frameDelay    := axilWriteMaster.wdata(4 downto 0);
                v.frameDelaySet := '1';
             when others => null;
          end case;
 
-         -- Send Axi response
-         axiSlaveWriteResponse(v.axiWriteSlave);
+         -- Send Axil response
+         axiSlaveWriteResponse(v.axilWriteSlave);
       end if;
 
       if (axiStatus.readEnable = '1') then
          -- Decode address and assign read data
-         v.axiReadSlave.rdata := (others => '0');
-         case (axiReadMaster.araddr(7 downto 0)) is
+         v.axilReadSlave.rdata := (others => '0');
+         case (axilReadMaster.araddr(7 downto 0)) is
             when X"00" =>
-               v.axiReadSlave.rdata(4 downto 0) := axiR.dataDelay(0);
+               v.axilReadSlave.rdata(4 downto 0) := axilR.dataDelay(0);
             when X"04" =>
-               v.axiReadSlave.rdata(4 downto 0) := axiR.dataDelay(1);
+               v.axilReadSlave.rdata(4 downto 0) := axilR.dataDelay(1);
             when X"08" =>
-               v.axiReadSlave.rdata(4 downto 0) := axiR.dataDelay(2);
+               v.axilReadSlave.rdata(4 downto 0) := axilR.dataDelay(2);
             when X"0C" =>
-               v.axiReadSlave.rdata(4 downto 0) := axiR.dataDelay(3);
+               v.axilReadSlave.rdata(4 downto 0) := axilR.dataDelay(3);
             when X"10" =>
-               v.axiReadSlave.rdata(4 downto 0) := axiR.dataDelay(4);
+               v.axilReadSlave.rdata(4 downto 0) := axilR.dataDelay(4);
             when X"20" =>
-               v.axiReadSlave.rdata(4 downto 0) := axiR.frameDelay;
+               v.axilReadSlave.rdata(4 downto 0) := axilR.frameDelay;
             when X"30" =>
-               v.axiReadSlave.rdata(16)          := lockedSync;
-               v.axiReadSlave.rdata(15 downto 0) := lockedFallCount;
+               v.axilReadSlave.rdata(16)          := lockedSync;
+               v.axilReadSlave.rdata(15 downto 0) := lockedFallCount;
 
             -- Debug registers. Output the last 2 words received
             when X"80" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(0);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(0);
+               v.axilReadSlave.rdata(15 downto 0)  := axilR.readoutDebug0(0);
+               v.axilReadSlave.rdata(31 downto 16) := axilR.readoutDebug1(0);
             when X"84" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(1);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(1);
+               v.axilReadSlave.rdata(15 downto 0)  := axilR.readoutDebug0(1);
+               v.axilReadSlave.rdata(31 downto 16) := axilR.readoutDebug1(1);
             when X"88" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(2);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(2);
+               v.axilReadSlave.rdata(15 downto 0)  := axilR.readoutDebug0(2);
+               v.axilReadSlave.rdata(31 downto 16) := axilR.readoutDebug1(2);
             when X"8C" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(3);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(3);
+               v.axilReadSlave.rdata(15 downto 0)  := axilR.readoutDebug0(3);
+               v.axilReadSlave.rdata(31 downto 16) := axilR.readoutDebug1(3);
             when X"90" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(4);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(4);
+               v.axilReadSlave.rdata(15 downto 0)  := axilR.readoutDebug0(4);
+               v.axilReadSlave.rdata(31 downto 16) := axilR.readoutDebug1(4);
             when X"94" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(5);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(5);
+               v.axilReadSlave.rdata(15 downto 0)  := axilR.readoutDebug0(5);
+               v.axilReadSlave.rdata(31 downto 16) := axilR.readoutDebug1(5);
             when X"98" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(6);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(6);
+               v.axilReadSlave.rdata(15 downto 0)  := axilR.readoutDebug0(6);
+               v.axilReadSlave.rdata(31 downto 16) := axilR.readoutDebug1(6);
             when X"9C" =>
-               v.axiReadSlave.rdata(15 downto 0)  := axiR.readoutDebug0(7);
-               v.axiReadSlave.rdata(31 downto 16) := axiR.readoutDebug1(7);
+               v.axilReadSlave.rdata(15 downto 0)  := axilR.readoutDebug0(7);
+               v.axilReadSlave.rdata(31 downto 16) := axilR.readoutDebug1(7);
             when others =>
                null;
          end case;
 
-         -- Send Axi Response
-         axiSlaveReadResponse(v.axiReadSlave);
+         -- Send Axil Response
+         axiSlaveReadResponse(v.axilReadSlave);
       end if;
 
-      if (axiRst = '1') then
-         v := AXI_REG_INIT_C;
+      if (axilRst = '1') then
+         v := AXIL_REG_INIT_C;
       end if;
 
-      axiRin        <= v;
-      axiWriteSlave <= axiR.axiWriteSlave;
-      axiReadSlave  <= axiR.axiReadSlave;
+      axilRin        <= v;
+      axilWriteSlave <= axilR.axilWriteSlave;
+      axilReadSlave  <= axilR.axilReadSlave;
 
    end process;
 
-   axiSeq : process (axiClk) is
+   axilSeq : process (axilClk) is
    begin
-      if (rising_edge(axiClk)) then
-         axiR <= axiRin after TPD_G;
+      if (rising_edge(axilClk)) then
+         axilR <= axilRin after TPD_G;
       end if;
-   end process axiSeq;
+   end process axilSeq;
 
 
 
@@ -364,9 +363,9 @@ begin
          clkR     => adcBitClkR,
          rst      => adcBitRst,
          slip     => adcR.slip,
-         sysClk   => axiClk,
-         delay    => axiR.frameDelay,
-         set      => axiR.frameDelaySet,
+         sysClk   => axilClk,
+         delay    => axilR.frameDelay,
+         set      => axilR.frameDelaySet,
          iData    => adcFramePad,
          oData    => adcFrame);
 
@@ -394,9 +393,9 @@ begin
             clkR     => adcBitClkR,
             rst      => adcBitRst,
             slip     => adcR.slip,
-            sysClk   => axiClk,
-            delay    => axiR.dataDelay(i),
-            set      => axiR.dataDelaySet(i),
+            sysClk   => axilClk,
+            delay    => axilR.dataDelay(i),
+            set      => axilR.dataDelaySet(i),
             iData    => adcDataPad(i),
             oData    => adcData(i));
    end generate;
@@ -479,7 +478,7 @@ begin
          wr_clk => adcBitClkR,
          wr_en  => '1',
          din    => fifoDataIn,
-         rd_clk => axiClk,
+         rd_clk => axilClk,
          rd_en  => fifoDataValid,
          valid  => fifoDataValid,
          dout   => fifoDataOut);
@@ -496,7 +495,7 @@ begin
          wr_clk => adcBitClkR,
          wr_en  => '1',                 --Always write data
          din    => fifoDataIn,
-         rd_clk => axiClk,
+         rd_clk => axilClk,
          rd_en  => debugDataValid,
          valid  => debugDataValid,
          dout   => debugDataOut);
