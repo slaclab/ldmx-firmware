@@ -171,7 +171,7 @@ begin
          TPD_G           => TPD_G,
          HYBRID_NUM_G    => HYBRID_NUM_G,
          APV_NUM_G       => APV_NUM_G,
-         AXI_DEBUG_EN_G  => true,
+         AXI_DEBUG_EN_G  => false,
          AXI_BASE_ADDR_G => XBAR_CFG_C(0).baseAddr)
       port map (
          sysClk             => sysClk,

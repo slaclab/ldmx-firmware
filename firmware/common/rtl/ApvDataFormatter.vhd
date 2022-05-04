@@ -291,31 +291,31 @@ begin
             if (apvFrameAxisMaster.tValid = '1' and ssiGetUserSof(APV_DATA_SSI_CONFIG_C, apvFrameAxisMaster) = '1') then
 
                v.sofIn     := r.sofIn + 1;
-               v.gotApvSof := '1';
+--                v.gotApvSof := '1';
 
-               -- Save last 8 frame counts
-               v.lastSofApvFrame(0) := apvFrameAxisMaster.tData(15 downto 0);
-               v.lastTxnCount(0)    := X"0001";
-               for i in 0 to 6 loop
-                  v.lastSofApvFrame(i+1) := r.lastSofApvFrame(i);
-                  v.lastTxnCount(i+1)    := r.lastTxnCount(i);
-               end loop;
+--                -- Save last 8 frame counts
+--                v.lastSofApvFrame(0) := apvFrameAxisMaster.tData(15 downto 0);
+--                v.lastTxnCount(0)    := X"0001";
+--                for i in 0 to 6 loop
+--                   v.lastSofApvFrame(i+1) := r.lastSofApvFrame(i);
+--                   v.lastTxnCount(i+1)    := r.lastTxnCount(i);
+--                end loop;
 
 
-               if (r.gotApvSof = '1') then
-                  if (apvFrameAxisMaster.tData(12 downto 9) - (r.lastSofApvFrame(0)(12 downto 9) + 1) /= 0) then
-                     v.insertCount              := apvFrameAxisMaster.tData(12 downto 9) - (r.lastSofApvFrame(0)(12 downto 9) + 1);
-                     v.rxState                  := INSERT_S;
-                     v.apvFrameAxisSlave.tReady := '0';
-                     v.sofData                  := apvFrameAxisMaster.tData(15 downto 0);
-                     v.sgInAxisMaster.tValid    := '0';
+--                if (r.gotApvSof = '1') then
+--                   if (apvFrameAxisMaster.tData(12 downto 9) - (r.lastSofApvFrame(0)(12 downto 9) + 1) /= 0) then
+--                      v.insertCount              := apvFrameAxisMaster.tData(12 downto 9) - (r.lastSofApvFrame(0)(12 downto 9) + 1);
+--                      v.rxState                  := INSERT_S;
+--                      v.apvFrameAxisSlave.tReady := '0';
+--                      v.sofData                  := apvFrameAxisMaster.tData(15 downto 0);
+--                      v.sgInAxisMaster.tValid    := '0';
 
-                     v.insertedFrames(conv_integer(v.insertCount)) := r.insertedFrames(conv_integer(v.insertCount)) + 1;
+--                      v.insertedFrames(conv_integer(v.insertCount)) := r.insertedFrames(conv_integer(v.insertCount)) + 1;
 
-                  else
-                     v.insertedFrames(0) := r.insertedFrames(0) + 1;
-                  end if;
-               end if;
+--                   else
+--                      v.insertedFrames(0) := r.insertedFrames(0) + 1;
+--                   end if;
+--                end if;
             end if;
 
          when INSERT_S =>
