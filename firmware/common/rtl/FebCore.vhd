@@ -33,6 +33,7 @@ entity FebCore is
    generic (
       TPD_G             : time                 := 1 ns;
       SIMULATION_G      : boolean              := false;
+      FPGA_ARCH_G       : string               := "artix-us+";
       HYBRIDS_G         : integer range 1 to 8 := 8;
       APVS_PER_HYBRID_G : integer range 1 to 8 := 6;
       AXI_BASE_ADDR_G   : slv(31 downto 0)     := X"00000000");  -- 21 bits of address space used
@@ -644,6 +645,7 @@ begin
          generic map (
             TPD_G             => TPD_G,
             SIMULATION_G      => SIMULATION_G,
+            FPGA_ARCH_G       => FPGA_ARCH_G,
             APVS_PER_HYBRID_G => APVS_PER_HYBRID_G,
             AXI_BASE_ADDR_G   => HYBRID_IO_XBAR_CFG_C(i).baseAddr,
             IODELAY_GROUP_G   => ite((i = 0 or i = 1), "IDELAYCTRL0", "IDELAYCTRL1"))

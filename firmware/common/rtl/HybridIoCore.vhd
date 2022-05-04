@@ -26,6 +26,7 @@ entity HybridIoCore is
    generic (
       TPD_G             : time                 := 1 ns;
       SIMULATION_G      : boolean              := false;
+      FPGA_ARCH_G       : string               := "artix-us+";
       APVS_PER_HYBRID_G : integer range 4 to 6 := 4;
       AXI_BASE_ADDR_G   : slv(31 downto 0)     := X"00100000";
       IODELAY_GROUP_G   : string               := "IDELAYCTRL0");
@@ -181,23 +182,24 @@ begin
    -------------------------------------------------------------------------------------------------
    -- ADC Readout
    -------------------------------------------------------------------------------------------------
-   AdcReadout_1 : entity ldmx.AdcReadout7
+   AdcReadout_1 : entity ldmx.AdcReadout
       generic map (
          TPD_G           => TPD_G,
          SIMULATION_G    => SIMULATION_G,
+         FPGA_ARCH_G     => FPGA_ARCH_G,
          NUM_CHANNELS_G  => APVS_PER_HYBRID_G,
          IODELAY_GROUP_G => IODELAY_GROUP_G)
       port map (
-         axiClk         => axilClk,
-         axiRst         => axilRst,
-         axiWriteMaster => mAxiWriteMasters(AXI_ADC_READOUT_INDEX_C),
-         axiWriteSlave  => mAxiWriteSlaves(AXI_ADC_READOUT_INDEX_C),
-         axiReadMaster  => mAxiReadMasters(AXI_ADC_READOUT_INDEX_C),
-         axiReadSlave   => mAxiReadSlaves(AXI_ADC_READOUT_INDEX_C),
-         adcClkRst      => adcClkRst,
-         adc            => adcChip,
-         adcStreamClk   => axilClk,
-         adcStreams     => adcReadoutStreams);
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilWriteMaster => mAxiWriteMasters(AXI_ADC_READOUT_INDEX_C),
+         axilWriteSlave  => mAxiWriteSlaves(AXI_ADC_READOUT_INDEX_C),
+         axilReadMaster  => mAxiReadMasters(AXI_ADC_READOUT_INDEX_C),
+         axilReadSlave   => mAxiReadSlaves(AXI_ADC_READOUT_INDEX_C),
+         adcClkRst       => adcClkRst,
+         adc             => adcChip,
+         adcStreamClk    => axilClk,
+         adcStreams      => adcReadoutStreams);
 
    ----------------------------------------------------------------------------------------------
    -- AdcConfig Module

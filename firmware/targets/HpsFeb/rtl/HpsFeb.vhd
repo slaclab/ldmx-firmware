@@ -469,6 +469,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          SIMULATION_G      => SIMULATION_G,
+         FPGA_ARCH_G       => "artix-7",
          HYBRIDS_G         => HYBRIDS_G,
          APVS_PER_HYBRID_G => APVS_PER_HYBRID_G,
          AXI_BASE_ADDR_G   => FEB_CORE_AXI_BASE_ADDR_C)
