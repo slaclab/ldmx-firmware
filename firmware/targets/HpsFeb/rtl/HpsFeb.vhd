@@ -44,7 +44,7 @@ entity HpsFeb is
       ROGUE_SIM_SIMEBAND_G  : boolean                     := false;
       ROGUE_SIM_CTRL_PORT_G : integer range 1024 to 49151 := 9000;
       ROGUE_SIM_DATA_PORT_G : integer range 1024 to 49141 := 9100;
-      HYBRIDS_G             : integer                     := 1;
+      HYBRIDS_G             : integer                     := 4;
       APVS_PER_HYBRID_G     : integer                     := 5);
    port (
       -- GTP Reference Clocks
