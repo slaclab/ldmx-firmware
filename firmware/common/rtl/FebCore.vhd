@@ -40,9 +40,9 @@ entity FebCore is
 
    port (
       -- Recovered Clock and Opcode Interface
-      daqClk      : in sl;
-      daqRst      : in sl;
-      daqFcWord   : in slv(7 downto 0);
+      daqClk     : in sl;
+      daqRst     : in sl;
+      daqFcWord  : in slv(7 downto 0);
       daqFcValid : in sl;
 
       -- Axi Clock and Reset
@@ -96,8 +96,8 @@ entity FebCore is
       hyI2cOut : out i2c_out_array(HYBRIDS_G-1 downto 0);
 
       -- XADC Interface
-      vPIn : in sl;
-      vNIn : in sl;
+      vPIn  : in sl;
+      vNIn  : in sl;
       vAuxP : in slv(15 downto 0);
       vAuxN : in slv(15 downto 0);
 
@@ -317,7 +317,7 @@ begin
          distClk    => daqClk,            -- [in]
          distClkRst => daqRst,            -- [in]
          rxData     => daqFcWordLong,     -- [in]
-         rxDataEn   => daqFcValid,       -- [in]
+         rxDataEn   => daqFcValid,        -- [in]
          sysClk     => axilClk,           -- [in]
          sysRst     => axilRst,           -- [in]
          trigger    => trigger,           -- [out]
@@ -362,8 +362,8 @@ begin
          daqRst         => daqRst,
          daqFcWord      => daqFcWord,
          daqFcValid     => daqFcValid,
-         daqClkDiv     => daqClkDiv,
-         daqClkDivRst  => daqClkDivRst,
+         daqClkDiv      => daqClkDiv,
+         daqClkDivRst   => daqClkDivRst,
          daqTrigger     => daqTrigger,
          hySoftRst      => hySoftRst,
          axiClk         => axilClk,
@@ -404,14 +404,14 @@ begin
          CLKFBOUT_MULT_G => 27,
          CLKOUT_DIVIDE_G => 27)
       port map (
-         axiClk         => axilClk,                                                -- [in]
-         axiRst         => axilRst,                                                -- [in]
+         axiClk         => axilClk,                                               -- [in]
+         axiRst         => axilRst,                                               -- [in]
          axiReadMaster  => mainAxilReadMasters(AXI_HYBRID_CLOCK_PHASE_INDEX_C),   -- [in]
          axiReadSlave   => mainAxilReadSlaves(AXI_HYBRID_CLOCK_PHASE_INDEX_C),    -- [out]
          axiWriteMaster => mainAxilWriteMasters(AXI_HYBRID_CLOCK_PHASE_INDEX_C),  -- [in]
          axiWriteSlave  => mainAxilWriteSlaves(AXI_HYBRID_CLOCK_PHASE_INDEX_C),   -- [out]
          refClk         => daqClkDiv,                                             -- [in]
-         refClkRst      => daqClkDivRst,                                         -- [in]
+         refClkRst      => daqClkDivRst,                                          -- [in]
          clkOut         => hyClk,                                                 -- [out]
          rstOut         => hyClkRst);                                             -- [out]
 
@@ -424,14 +424,14 @@ begin
          CLKFBOUT_MULT_G => 27,
          CLKOUT_DIVIDE_G => 27)
       port map (
-         axiClk         => axilClk,                                             -- [in]
-         axiRst         => axilRst,                                             -- [in]
+         axiClk         => axilClk,                                            -- [in]
+         axiRst         => axilRst,                                            -- [in]
          axiReadMaster  => mainAxilReadMasters(AXI_ADC_CLOCK_PHASE_INDEX_C),   -- [in]
          axiReadSlave   => mainAxilReadSlaves(AXI_ADC_CLOCK_PHASE_INDEX_C),    -- [out]
          axiWriteMaster => mainAxilWriteMasters(AXI_ADC_CLOCK_PHASE_INDEX_C),  -- [in]
          axiWriteSlave  => mainAxilWriteSlaves(AXI_ADC_CLOCK_PHASE_INDEX_C),   -- [out]
          refClk         => daqClkDiv,                                          -- [in]
-         refClkRst      => daqClkDivRst,                                      -- [in]
+         refClkRst      => daqClkDivRst,                                       -- [in]
          clkOut         => adcClk,                                             -- [out]
          rstOut         => adcClkRst);                                         -- [out]
 

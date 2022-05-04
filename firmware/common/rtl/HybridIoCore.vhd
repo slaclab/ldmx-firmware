@@ -207,7 +207,7 @@ begin
    -- This is wrong, need 1 of these for every 2 hybrids
    U_AdcConfig_1 : entity ldmx.AdcConfig
       generic map (
-         TPD_G             => TPD_G)
+         TPD_G => TPD_G)
       port map (
          axiClk         => axilClk,                                   -- [in]
          axiRst         => axilRst,                                   -- [in]
