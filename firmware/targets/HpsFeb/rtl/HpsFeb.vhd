@@ -31,8 +31,8 @@ use surf.I2cPkg.all;
 library ldmx;
 use ldmx.AdcReadoutPkg.all;
 use ldmx.HpsPkg.all;
-use ldmx.FebConfigPkg.all;
-
+--use ldmx.FebConfigPkg.all;
+use ldmx.HpsFebHwPkg.all;
 
 entity HpsFeb is
 
@@ -59,10 +59,10 @@ entity HpsFeb is
       ctrlGtRxP : in  sl;
       ctrlGtRxN : in  sl;
 
-      dataGtTxP : out sl;
-      dataGtTxN : out sl;
-      dataGtRxP : in  sl;
-      dataGtRxN : in  sl;
+--       dataGtTxP : out sl;
+--       dataGtTxN : out sl;
+--       dataGtRxP : in  sl;
+--       dataGtRxN : in  sl;
 
       -- ADC Data Interface
       adcClkP  : out slv(HYBRIDS_G-1 downto 0);  -- 37 MHz clock to ADC
@@ -141,60 +141,48 @@ architecture rtl of HpsFeb is
    signal gtRefClk125G : sl;
    signal gtRefRst125  : sl;
 
-   signal clk200    : sl;
-   signal clk200Rst : sl;
+   signal clk200 : sl;
+   signal rst200 : sl;
 
-   signal daqClk     : sl;
-   signal daqRst     : sl;
-   signal daqFcWord  : slv(7 downto 0);
-   signal daqFcValid : sl;
+   signal daqClk185   : sl;
+   signal daqRst185   : sl;
+   signal daqFcWord   : slv(7 downto 0);
+   signal daqFcValid  : sl;
+   signal daqClk37    : sl;
+   signal daqClk37Rst : sl;
+
 
    signal fpgaReload     : sl;
    signal fpgaReloadAddr : slv(31 downto 0);
 
-   attribute IODELAY_GROUP                 : string;
-   attribute IODELAY_GROUP of IDELAYCTRL_0 : label is "IDELAYCTRL0";
-   attribute IODELAY_GROUP of IDELAYCTRL_1 : label is "IDELAYCTRL1";
 
    -------------------------------------------------------------------------------------------------
    -- AXI Signals
    -------------------------------------------------------------------------------------------------
-
-   constant NUM_AXI_MASTERS_C : natural := 4;
+   constant NUM_AXI_MASTERS_C : natural := 3;
 
    constant FEB_CORE_AXI_INDEX_C : natural := 0;
-   constant VERSION_AXI_INDEX_C  : natural := 1;
+   constant FEB_HW_AXI_INDEX_C   : natural := 1;
    constant PGP_AXI_INDEX_C      : natural := 2;
-   constant PROM_AXI_INDEX_C     : natural := 3;
-   constant SEM_AXI_INDEX_C      : natural := 4;
 
    constant FEB_CORE_AXI_BASE_ADDR_C : slv(31 downto 0) := X"00000000";
-   constant VERSION_AXI_BASE_ADDR_C  : slv(31 downto 0) := X"00200000";
-   constant PGP_AXI_BASE_ADDR_C      : slv(31 downto 0) := X"00210000";
-   constant PROM_AXI_BASE_ADDR_C     : slv(31 downto 0) := X"00800000";
-   constant SEM_AXI_BASE_ADDR_C      : slv(31 downto 0) := X"00801000";
+   constant FEB_HW_AXI_BASE_ADDR_C   : slv(31 downto 0) := X"10000000";
+   constant PGP_AXI_BASE_ADDR_C      : slv(31 downto 0) := X"20000000";
+
 
    constant MAIN_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
       FEB_CORE_AXI_INDEX_C => (         -- Front End IO Core
          baseAddr          => FEB_CORE_AXI_BASE_ADDR_C,
-         addrBits          => 21,
+         addrBits          => 28,
          connectivity      => X"0001"),
-      VERSION_AXI_INDEX_C  => (
-         baseAddr          => VERSION_AXI_BASE_ADDR_C,
-         addrBits          => 12,
+      FEB_HW_AXI_INDEX_C   => (         -- Front End IO Core
+         baseAddr          => FEB_HW_AXI_BASE_ADDR_C,
+         addrBits          => 20,
          connectivity      => X"0001"),
       PGP_AXI_INDEX_C      => (
          baseAddr          => PGP_AXI_BASE_ADDR_C,
          addrBits          => 14,
-         connectivity      => X"0001"),
-      PROM_AXI_INDEX_C     => (
-         baseAddr          => PROM_AXI_BASE_ADDR_C,
-         addrBits          => 12,
          connectivity      => X"0001"));
---       SEM_AXI_INDEX_C      => (
---          baseAddr          => SEM_AXI_BASE_ADDR_C,
---          addrBits          => 8,
---          connectivity      => X"0001"));
 
    signal extAxilWriteMaster : AxiLiteWriteMasterType;
    signal extAxilWriteSlave  : AxiLiteWriteSlaveType;
@@ -219,18 +207,12 @@ architecture rtl of HpsFeb is
    -------------------------------------------------------------------------------------------------
    -- Shifted Clocks
    -------------------------------------------------------------------------------------------------
-   signal adcClkOut   : slv(HYBRIDS_G-1 downto 0);
-   signal hyClkOut    : slv(HYBRIDS_G-1 downto 0);
-   signal hyTrgOut    : slv(HYBRIDS_G-1 downto 0);
-   signal hyRstOutL   : slv(HYBRIDS_G-1 downto 0);
-   signal hyPwrEnInt  : slv(HYBRIDS_G-1 downto 0);
-   signal hyPwrEnIntL : slv(HYBRIDS_G-1 downto 0);
-
-   -------------------------------------------------------------------------------------------------
-   -- Board I2C Signals
-   -------------------------------------------------------------------------------------------------
-   signal boardI2cIn  : i2c_in_type;
-   signal boardI2cOut : i2c_out_type;
+   signal hyClk      : slv(HYBRIDS_G-1 downto 0);
+   signal hyClkRst   : slv(HYBRIDS_G-1 downto 0);
+   signal hyTrgOut   : slv(HYBRIDS_G-1 downto 0);
+   signal hyRstOutL  : slv(HYBRIDS_G-1 downto 0);
+   signal hyPwrEnInt : slv(HYBRIDS_G-1 downto 0);
+   signal hyPwrEnL   : slv(HYBRIDS_G-1 downto 0);
 
    -------------------------------------------------------------------------------------------------
    -- Hybrid I2c Signals
@@ -241,7 +223,11 @@ architecture rtl of HpsFeb is
    -------------------------------------------------------------------------------------------------
    -- AdcReadout Signals
    -------------------------------------------------------------------------------------------------
-   signal adcChips : AdcChipOutArray(HYBRIDS_G-1 downto 0);
+   signal adcChips          : AdcChipOutArray(HYBRIDS_G-1 downto 0);
+   -------------------------------------------------------------------------------------------------
+   -- AdcReadout Signals
+   -------------------------------------------------------------------------------------------------
+   signal adcReadoutStreams : AdcStreamArray;
 
    signal sysRxLink  : sl;
    signal sysTxLink  : sl;
@@ -251,9 +237,8 @@ architecture rtl of HpsFeb is
    signal ledEn   : sl;
    signal ledsInt : slv(7 downto 0);
 
-   signal febConfig : FebConfigType;
 
-   signal bootSck : sl;
+
 
 begin
 
@@ -288,7 +273,7 @@ begin
          clkOut(0) => axilClk,
          clkOut(1) => clk200,
          rstOut(0) => axilRst,
-         rstOut(1) => clk200Rst);
+         rstOut(1) => rst200);
 
 
 
@@ -320,11 +305,11 @@ begin
          PERIOD_IN_G  => 8.0E-9,
          PERIOD_OUT_G => 0.8)
       port map (
-         clk => daqClk,
-         rst => daqRst,
+         clk => daqClk185,
+         rst => daqRst185,
          o   => ledsInt(2));
 
-   ledsInt(3) <= daqRst;
+   ledsInt(3) <= daqRst185;
 
 --   ledsInt(2) <= '0';
 
@@ -353,20 +338,8 @@ begin
 --         clk => hyClkOut(0),
 --         rst => '0',
 --         o   => ledsInt(7));
-   -------------------------------------------------------------------------------------------------
-   -- 2 IDELAYCTRL Instances Needed
-   -------------------------------------------------------------------------------------------------
-   IDELAYCTRL_0 : IDELAYCTRL
-      port map (
-         RDY    => open,
-         REFCLK => clk200,
-         RST    => clk200Rst);
 
-   IDELAYCTRL_1 : IDELAYCTRL
-      port map (
-         RDY    => open,
-         REFCLK => clk200,
-         RST    => clk200Rst);
+
 
    -------------------------------------------------------------------------------------------------
    -- PGP Interface 
@@ -389,15 +362,15 @@ begin
          ctrlGtTxN        => ctrlGtTxN,                             -- [out]
          ctrlGtRxP        => ctrlGtRxP,                             -- [in]
          ctrlGtRxN        => ctrlGtRxN,                             -- [in]
-         dataGtTxP        => dataGtTxP,                             -- [out]
-         dataGtTxN        => dataGtTxN,                             -- [out]
-         dataGtRxP        => dataGtRxP,                             -- [in]
-         dataGtRxN        => dataGtRxN,                             -- [in]
+--          dataGtTxP        => dataGtTxP,                             -- [out]
+--          dataGtTxN        => dataGtTxN,                             -- [out]
+--          dataGtRxP        => dataGtRxP,                             -- [in]
+--          dataGtRxN        => dataGtRxN,                             -- [in]
          ctrlTxLink       => ledsInt(6),                            -- [out]
          ctrlRxLink       => ledsInt(7),                            -- [out]
          dataTxLink       => open,                                  -- [out]
-         daqClk           => daqClk,                                -- [out]
-         daqRst           => daqRst,                                -- [out]
+         daqClk           => daqClk185,                             -- [out]
+         daqRst           => daqRst185,                             -- [out]
          daqRxFcWord      => daqFcWord,                             -- [out]
          daqRxFcValid     => daqFcValid,                            -- [out]
          axilClk          => axilClk,                               -- [in]
@@ -439,191 +412,116 @@ begin
          mAxiReadMasters     => locAxilReadMasters,
          mAxiReadSlaves      => locAxilReadSlaves);
 
-   -------------------------------------------------------------------------------------------------
-   -- Put version info on AXI Bus
-   -------------------------------------------------------------------------------------------------
-   AxiVersion_1 : entity surf.AxiVersion
-      generic map (
-         TPD_G           => TPD_G,
-         BUILD_INFO_G    => BUILD_INFO_G,
-         DEVICE_ID_G     => X"FEB00000",
-         EN_DEVICE_DNA_G => true,
-         EN_DS2411_G     => false,
-         EN_ICAP_G       => false)
-      port map (
-         axiClk         => axilClk,
-         axiRst         => axilRst,
-         axiReadMaster  => locAxilReadMasters(VERSION_AXI_INDEX_C),
-         axiReadSlave   => locAxilReadSlaves(VERSION_AXI_INDEX_C),
-         axiWriteMaster => locAxilWriteMasters(VERSION_AXI_INDEX_C),
-         axiWriteSlave  => locAxilWriteSlaves(VERSION_AXI_INDEX_C),
-         fpgaReload     => fpgaReload,
-         fpgaReloadAddr => fpgaReloadAddr,
-         fdSerSdio      => open);
+
 
    -------------------------------------------------------------------------------------------------
-   -- HPS Front End Core
+   -- Front End Core
    -------------------------------------------------------------------------------------------------
    hyPwrEn <= hyPwrEnInt;
-   FebCore_1 : entity ldmx.FebCore
+   U_FebCore_1 : entity ldmx.FebCore
       generic map (
          TPD_G             => TPD_G,
          SIMULATION_G      => SIMULATION_G,
-         FPGA_ARCH_G       => "artix-7",
          HYBRIDS_G         => HYBRIDS_G,
          APVS_PER_HYBRID_G => APVS_PER_HYBRID_G,
-         AXI_BASE_ADDR_G   => FEB_CORE_AXI_BASE_ADDR_C)
+         AXI_BASE_ADDR_G   => MAIN_XBAR_CFG_C(FEB_CORE_AXI_INDEX_C).baseAddr)
       port map (
-         daqClk             => daqClk,
-         daqRst             => daqRst,
-         daqFcWord          => daqFcWord,
-         daqFcvalid         => daqFcValid,
-         axilClk            => axilClk,
-         axilRst            => axilRst,
-         extAxilWriteMaster => locAxilWriteMasters(FEB_CORE_AXI_INDEX_C),
-         extAxilWriteSlave  => locAxilWriteSlaves(FEB_CORE_AXI_INDEX_C),
-         extAxilReadMaster  => locAxilReadMasters(FEB_CORE_AXI_INDEX_C),
-         extAxilReadSlave   => locAxilReadSlaves(FEB_CORE_AXI_INDEX_C),
-         adcChips           => adcChips,
-         adcClkOut          => adcClkOut,
-         eventAxisMaster    => eventAxisMaster,
-         eventAxisSlave     => eventAxisSlave,
-         eventAxisCtrl      => eventAxisCtrl,
-         adcCsb             => adcCsb,
-         adcSclk            => adcSclk,
-         adcSdio            => adcSdio,
-         ampI2cScl          => ampI2cScl,
-         ampI2cSda          => ampI2cSda,
-         boardI2cIn         => boardI2cIn,
-         boardI2cOut        => boardI2cOut,
-         boardSpiSclk       => boardSpiSclk,
-         boardSpiSdi        => boardSpiSdi,
-         boardSpiSdo        => boardSpiSdo,
-         boardSpiCsL        => boardSpiCsL,
-         hyPwrEn            => hyPwrEnInt,
-         hyClkOut           => hyClkOut,
-         hyTrgOut           => hyTrgOut,
-         hyRstOutL          => hyRstOutL,
-         hyI2cIn            => hyI2cIn,
-         hyI2cOut           => hyI2cOut,
-         vPIn               => vPIn,
-         vNIn               => vNIn,
-         vAuxP              => vAuxP,
-         vAuxN              => vAuxN,
-         powerGood          => powerGood,
-         ledEn              => ledEn);
+         daqClk185         => daqClk185,                                  -- [in]
+         daqRst185         => daqRst185,                                  -- [in]
+         daqFcWord         => daqFcWord,                                  -- [in]
+         daqFcValid        => daqFcValid,                                 -- [in]
+         axilClk           => axilClk,                                    -- [in]
+         axilRst           => axilRst,                                    -- [in]
+         sAxilWriteMaster  => locAxilWriteMasters(FEB_CORE_AXI_INDEX_C),  -- [in]
+         sAxilWriteSlave   => locAxilWriteSlaves(FEB_CORE_AXI_INDEX_C),   -- [out]
+         sAxilReadMaster   => locAxilReadMasters(FEB_CORE_AXI_INDEX_C),   -- [in]
+         sAxilReadSlave    => locAxilReadSlaves(FEB_CORE_AXI_INDEX_C),    -- [out]
+         eventAxisMaster   => eventAxisMaster,                            -- [out]
+         eventAxisSlave    => eventAxisSlave,                             -- [in]
+         eventAxisCtrl     => eventAxisCtrl,                              -- [in]
+         hyPwrEn           => hyPwrEnInt,                                 -- [out]
+         hyTrgOut          => hyTrgOut,                                   -- [out]
+         hyRstOutL         => hyRstOutL,                                  -- [out]
+         hyI2cIn           => hyI2cIn,                                    -- [in]
+         hyI2cOut          => hyI2cOut,                                   -- [out]
+         daqClk37          => daqClk37,                                   -- [out]
+         daqClk37Rst       => daqClk37Rst,                                -- [out]
+         hyClk             => hyClk,                                      -- [in]
+         hyClkRst          => hyClkRst,                                   -- [in]
+         adcReadoutStreams => adcReadoutStreams);                         -- [in]
 
-   -------------------------------------------------------------------------------------------------
-   -- IO Buffers for Shifted hybrid and ADC clocks, and triggers
-   -------------------------------------------------------------------------------------------------
-   DIFF_BUFF_GEN : for i in HYBRIDS_G-1 downto 0 generate
-      hyRstL(i)      <= hyRstOutL(i) when hyPwrEnInt(i) = '1' else 'Z';
-      hyPwrEnIntL(i) <= not hyPwrEnInt(i);
 
-      HY_TRG_BUFF_DIFF : OBUFTDS
-         port map (
-            I  => hyTrgOut(i),
-            T  => hyPwrEnIntL(i),
-            O  => hyTrgP(i),
-            OB => hyTrgN(i));
-
-      HY_CLK_OUT_BUF_DIFF : entity surf.ClkOutBufDiff
-         port map (
-            outEnL  => hyPwrEnIntL(i),
-            clkIn   => hyClkOut(i),
-            clkOutP => hyClkP(i),
-            clkOutN => hyClkN(i));
-
-      ADC_CLK_OUT_BUF_DIFF : entity surf.ClkOutBufDiff
-         port map (
-            clkIn   => adcClkOut(i),
-            clkOutP => adcClkP(i),
-            clkOutN => adcClkN(i));
-   end generate;
 
 
 
    -------------------------------------------------------------------------------------------------
-   -- Board I2C Buffers
+   -- HW
    -------------------------------------------------------------------------------------------------
-   BOARD_SDA_IOBUFT : IOBUF
-      port map (
-         I  => boardI2cOut.sda,
-         O  => boardI2cIn.sda,
-         IO => boardI2cSda,
-         T  => boardI2cOut.sdaoen);
-
-   BOARD_SCL_IOBUFT : IOBUF
-      port map (
-         I  => boardI2cOut.scl,
-         O  => boardI2cIn.scl,
-         IO => boardI2cScl,
-         T  => boardI2cOut.scloen);
-
-
-   -------------------------------------------------------------------------------------------------
-   -- Hybrid Axi Crossbars and attached devices
-   -------------------------------------------------------------------------------------------------
-   HY_AXI_GEN : for i in HYBRIDS_G-1 downto 0 generate
-
-      -- IO Assignment to records
-      adcChips(i).fClkP <= adcFClkP(i);
-      adcChips(i).fClkN <= adcFClkN(i);
-      adcChips(i).dClkP <= adcDClkP(i);
-      adcChips(i).dClkN <= adcDClkN(i);
-      adcChips(i).chP   <= "000" & adcDataP(i);
-      adcChips(i).chN   <= "000" & adcDataN(i);
-
-      -- Board has special I2C buffers needed to drive APV25 I2C, so do this wierd thing
-      -- Output enable signals are active high
-      hyI2cIn(i).scl <= hyI2cOut(i).scl when hyI2cOut(i).scloen = '1' else '1';
-      hyI2cIn(i).sda <= to_x01z(hyI2cSdaIn(i));
-      hyI2cSdaOut(i) <= hyI2cOut(i).sdaoen;
-      hyI2cScl(i)    <= hyI2cOut(i).scloen;
-
-   end generate HY_AXI_GEN;
-
-   -------------------------------------------------------------------------------------------------
-   -- FLASH Interface
-   -------------------------------------------------------------------------------------------------
-   U_SpiProm : entity surf.AxiMicronN25QCore
+   U_HpsFebHw_1 : entity ldmx.HpsFebHw
       generic map (
-         TPD_G          => TPD_G,
-         AXI_CLK_FREQ_G => 125.0E+6,
-         SPI_CLK_FREQ_G => (125.0E+6/12.0))
+         TPD_G             => TPD_G,
+         SIMULATION_G      => SIMULATION_G,
+         HYBRIDS_G         => HYBRIDS_G,
+         APVS_PER_HYBRID_G => APVS_PER_HYBRID_G,
+         AXI_BASE_ADDR_G   => MAIN_XBAR_CFG_C(FEB_HW_AXI_INDEX_C).baseAddr)
       port map (
-         -- FLASH Memory Ports
-         csL            => bootCsL,
-         sck            => bootSck,
-         mosi           => bootMosi,
-         miso           => bootMiso,
-         -- AXI-Lite Register Interface
-         axiReadMaster  => locAxilReadMasters(PROM_AXI_INDEX_C),
-         axiReadSlave   => locAxilReadSlaves(PROM_AXI_INDEX_C),
-         axiWriteMaster => locAxilWriteMasters(PROM_AXI_INDEX_C),
-         axiWriteSlave  => locAxilWriteSlaves(PROM_AXI_INDEX_C),
-         -- Clocks and Resets
-         axiClk         => axilClk,
-         axiRst         => axilRst);
+         adcClkP           => adcClkP,                                  -- [out]
+         adcClkN           => adcClkN,                                  -- [out]
+         adcFClkP          => adcFClkP,                                 -- [in]
+         adcFClkN          => adcFClkN,                                 -- [in]
+         adcDClkP          => adcDClkP,                                 -- [in]
+         adcDClkN          => adcDClkN,                                 -- [in]
+         adcDataP          => adcDataP,                                 -- [in]
+         adcDataN          => adcDataN,                                 -- [in]
+         adcCsb            => adcCsb,                                   -- [out]
+         adcSclk           => adcSclk,                                  -- [out]
+         adcSdio           => adcSdio,                                  -- [inout]
+         ampI2cScl         => ampI2cScl,                                -- [inout]
+         ampI2cSda         => ampI2cSda,                                -- [inout]
+         boardI2cScl       => boardI2cScl,                              -- [inout]
+         boardI2cSda       => boardI2cSda,                              -- [inout]
+         boardSpiSclk      => boardSpiSclk,                             -- [out]
+         boardSpiSdi       => boardSpiSdi,                              -- [out]
+         boardSpiSdo       => boardSpiSdo,                              -- [in]
+         boardSpiCsL       => boardSpiCsL,                              -- [out]
+         hyClkP            => hyClkP,                                   -- [out]
+         hyClkN            => hyClkN,                                   -- [out]
+         hyTrgP            => hyTrgP,                                   -- [out]
+         hyTrgN            => hyTrgN,                                   -- [out]
+         hyRstL            => hyRstL,                                   -- [out]
+         hyI2cScl          => hyI2cScl,                                 -- [out]
+         hyI2cSdaOut       => hyI2cSdaOut,                              -- [out]
+         hyI2cSdaIn        => hyI2cSdaIn,                               -- [in]
+         vPIn              => vPIn,                                     -- [in]
+         vNIn              => vNIn,                                     -- [in]
+         vAuxP             => vAuxP,                                    -- [in]
+         vAuxN             => vAuxN,                                    -- [in]
+         powerGood         => powerGood,                                -- [in]
+         leds              => leds,                                     -- [out]
+         bootCsL           => bootCsL,                                  -- [out]
+         bootMosi          => bootMosi,                                 -- [out]
+         bootMiso          => bootMiso,                                 -- [in]
+         clk200            => clk200,                                   -- [in]
+         rst200            => rst200,                                   -- [in]
+         axilClk           => axilClk,                                  -- [in]
+         axilRst           => axilRst,                                  -- [in]
+         sAxilWriteMaster  => locAxilWriteMasters(FEB_HW_AXI_INDEX_C),  -- [in]
+         sAxilWriteSlave   => locAxilWriteSlaves(FEB_HW_AXI_INDEX_C),   -- [out]
+         sAxilReadMaster   => locAxilReadMasters(FEB_HW_AXI_INDEX_C),   -- [in]
+         sAxilReadSlave    => locAxilReadSlaves(FEB_HW_AXI_INDEX_C),    -- [out]
+         hyPwrEn           => hyPwrEnInt,                               -- [in]
+         hyTrgOut          => hyTrgOut,                                 -- [in]
+         hyRstOutL         => hyRstOutL,                                -- [in]
+         hyI2cIn           => hyI2cIn,                                  -- [in]
+         hyI2cOut          => hyI2cOut,                                 -- [out]
+         adcReadoutStreams => adcReadoutStreams,                        -- [out]
+         daqClk37          => daqClk37,                                 -- [in]
+         daqClk37Rst       => daqClk37Rst,                              -- [in]
+         hyClk             => hyClk,
+         hyClkRst          => hyClkRst);
 
-   -----------------------------------------------------
-   -- Using the STARTUPE2 to access the FPGA's CCLK port
-   -----------------------------------------------------
-   U_STARTUPE2 : STARTUPE2
-      port map (
-         CFGCLK    => open,             -- 1-bit output: Configuration main clock output
-         CFGMCLK   => open,  -- 1-bit output: Configuration internal oscillator clock output
-         EOS       => open,  -- 1-bit output: Active high output signal indicating the End Of Startup.
-         PREQ      => open,             -- 1-bit output: PROGRAM request to fabric output
-         CLK       => '0',              -- 1-bit input: User start-up clock input
-         GSR       => '0',  -- 1-bit input: Global Set/Reset input (GSR cannot be used for the port name)
-         GTS       => '0',  -- 1-bit input: Global 3-state input (GTS cannot be used for the port name)
-         KEYCLEARB => '0',  -- 1-bit input: Clear AES Decrypter Key input from Battery-Backed RAM (BBRAM)
-         PACK      => '0',              -- 1-bit input: PROGRAM acknowledge input
-         USRCCLKO  => bootSck,          -- 1-bit input: User CCLK input
-         USRCCLKTS => '0',              -- 1-bit input: User CCLK 3-state enable input
-         USRDONEO  => '1',              -- 1-bit input: User DONE pin output control
-         USRDONETS => '1');             -- 1-bit input: User DONE 3-state enable output
+
+
 
 
 end architecture rtl;

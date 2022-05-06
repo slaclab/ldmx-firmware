@@ -172,7 +172,7 @@ begin
          HYBRID_NUM_G    => HYBRID_NUM_G,
          APV_NUM_G       => APV_NUM_G,
          AXI_DEBUG_EN_G  => false,
-         AXI_BASE_ADDR_G => XBAR_CFG_C(0).baseAddr)
+         AXI_BASE_ADDR_G => XBAR_CFG_C(0).baseAddr)  -- 8 address bits
       port map (
          sysClk             => sysClk,
          sysRst             => sysRst,
@@ -196,7 +196,7 @@ begin
    THRESHOLD_GEN : if (THRESHOLD_EN_G) generate
       Threshold_1 : entity ldmx.Threshold
          generic map (
-            TPD_G => TPD_G)
+            TPD_G => TPD_G)             -- 9 address bits
          port map (
             sysClk         => sysClk,
             sysRst         => sysRst,

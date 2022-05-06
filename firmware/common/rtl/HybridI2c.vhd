@@ -16,21 +16,15 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.I2cPkg.all;
---use surf.Ad9249Pkg.all;
 
 library ldmx;
-use ldmx.AdcReadoutPkg.all;
 
-entity HybridIoCore is
+entity HybridI2c is
 
    generic (
       TPD_G             : time                 := 1 ns;
       SIMULATION_G      : boolean              := false;
-      FPGA_ARCH_G       : string               := "artix-us+";
-      APVS_PER_HYBRID_G : integer range 4 to 6 := 4;
-      AXI_BASE_ADDR_G   : slv(31 downto 0)     := X"00100000";
-      IODELAY_GROUP_G   : string               := "IDELAYCTRL0");
-
+      AXIL_BASE_ADDR_G   : slv(31 downto 0)     := X"00100000");
    port (
       axilClk : in sl;
       axilRst : in sl;
@@ -41,59 +35,37 @@ entity HybridIoCore is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
-      -- External Interface to ADC Readout
-      adcClkRst : in sl;
-      adcChip   : in AdcChipOutType;
-
-      -- AdcReadout
-      adcReadoutStreams : out AxiStreamMasterArray(APVS_PER_HYBRID_G-1 downto 0);
-
-      -- External Adc Config Interface
-      adcSclk : out   sl;
-      adcSdio : inout sl;
-      adcCsb  : out   sl;
-
       -- External Hybrid I2C Interface
       hyI2cIn  : in  i2c_in_type;
       hyI2cOut : out i2c_out_type
       );
 
-end entity HybridIoCore;
+end entity HybridI2c;
 
-architecture rtl of HybridIoCore is
-   attribute keep_hierarchy        : string;
-   attribute keep_hierarchy of rtl : architecture is "yes";
+architecture rtl of HybridI2c is
 
    -------------------------------------------------------------------------------------------------
    -- Axi Crossbar Constants and signals
    -------------------------------------------------------------------------------------------------
-   constant AXI_ADC_READOUT_INDEX_C : natural := 0;
-   constant AXI_ADC_CONFIG_INDEX_C  : natural := 1;
-   constant AXI_HYBRID_I2C_INDEX_C  : natural := 2;
-   constant AXI_ADS1115_INDEX_C     : natural := 3;
+   constant AXI_NUM_MASTERS_C : natural := 2;
+   
+   constant AXI_HYBRID_I2C_INDEX_C  : natural := 0;
+   constant AXI_ADS1115_INDEX_C     : natural := 1;
 
    constant AXI_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray := (
-      AXI_ADC_READOUT_INDEX_C => (                           -- Adc Readout Config       
-         baseAddr             => AXI_BASE_ADDR_G + X"0000",  -- to X"00FF"
-         addrBits             => 8,
-         connectivity         => X"0001"),
-      AXI_ADC_CONFIG_INDEX_C  => (                           -- Adc Config         
-         baseAddr             => AXI_BASE_ADDR_G + X"0400",  -- to X"07FF"
-         addrBits             => 10,
-         connectivity         => X"0001"),
       AXI_HYBRID_I2C_INDEX_C  => (                           -- APV I2C  
-         baseAddr             => AXI_BASE_ADDR_G + X"8000",  -- to X"9FFF"
+         baseAddr             => AXIL_BASE_ADDR_G + X"8000",  -- to X"9FFF"
          addrBits             => 13,
          connectivity         => X"0001"),
       AXI_ADS1115_INDEX_C     => (                           -- ADS1115 I2C
-         baseAddr             => AXI_BASE_ADDR_G + X"A000",  -- to X"A07F"
+         baseAddr             => AXIL_BASE_ADDR_G + X"A000",  -- to X"A07F"
          addrBits             => 8,
          connectivity         => X"0001"));
 
-   signal mAxiWriteMasters : AxiLiteWriteMasterArray(3 downto 0);
-   signal mAxiWriteSlaves  : AxiLiteWriteSlaveArray(3 downto 0);
-   signal mAxiReadMasters  : AxiLiteReadMasterArray(3 downto 0);
-   signal mAxiReadSlaves   : AxiLiteReadSlaveArray(3 downto 0);
+   signal locAxilWriteMasters : AxiLiteWriteMasterArray(AXI_NUM_MASTERS_C-1 downto 0);
+   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(AXI_NUM_MASTERS_C-1 downto 0);
+   signal locAxilReadMasters  : AxiLiteReadMasterArray(AXI_NUM_MASTERS_C-1 downto 0);
+   signal locAxilReadSlaves   : AxiLiteReadSlaveArray(AXI_NUM_MASTERS_C-1 downto 0);
 
    -------------------------------------------------------------------------------------------------
    -- Reg Master I2C Bridge Constants and signals
@@ -134,7 +106,7 @@ architecture rtl of HybridIoCore is
          addrSize    => 8,
          endianness  => '0',
          repeatStart => '0'),
-      5              => (               -- APV4
+      5              => (               -- APV5
          i2cAddress  => "0000110001",
          i2cTenbit   => '0',
          dataSize    => 8,
@@ -154,7 +126,6 @@ architecture rtl of HybridIoCore is
    signal i2cRegMasterIn   : I2cRegMasterInType;
    signal i2cRegMasterOut  : I2cRegMasterOutType;
 
-   signal dummy : sl;
 
 begin
 
@@ -165,7 +136,7 @@ begin
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
-         NUM_MASTER_SLOTS_G => 4,
+         NUM_MASTER_SLOTS_G => AXI_NUM_MASTERS_C,
          MASTERS_CONFIG_G   => AXI_MASTERS_CONFIG_C)
       port map (
          axiClk              => axilClk,
@@ -174,52 +145,10 @@ begin
          sAxiWriteSlaves(0)  => axilWriteSlave,
          sAxiReadMasters(0)  => axilReadMaster,
          sAxiReadSlaves(0)   => axilReadSlave,
-         mAxiWriteMasters    => mAxiWriteMasters,
-         mAxiWriteSlaves     => mAxiWriteSlaves,
-         mAxiReadMasters     => mAxiReadMasters,
-         mAxiReadSlaves      => mAxiReadSlaves);
-
-   -------------------------------------------------------------------------------------------------
-   -- ADC Readout
-   -------------------------------------------------------------------------------------------------
-   AdcReadout_1 : entity ldmx.AdcReadout
-      generic map (
-         TPD_G           => TPD_G,
-         SIMULATION_G    => SIMULATION_G,
-         FPGA_ARCH_G     => FPGA_ARCH_G,
-         NUM_CHANNELS_G  => APVS_PER_HYBRID_G,
-         IODELAY_GROUP_G => IODELAY_GROUP_G)
-      port map (
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilWriteMaster => mAxiWriteMasters(AXI_ADC_READOUT_INDEX_C),
-         axilWriteSlave  => mAxiWriteSlaves(AXI_ADC_READOUT_INDEX_C),
-         axilReadMaster  => mAxiReadMasters(AXI_ADC_READOUT_INDEX_C),
-         axilReadSlave   => mAxiReadSlaves(AXI_ADC_READOUT_INDEX_C),
-         adcClkRst       => adcClkRst,
-         adc             => adcChip,
-         adcStreamClk    => axilClk,
-         adcStreams      => adcReadoutStreams);
-
-   ----------------------------------------------------------------------------------------------
-   -- AdcConfig Module
-   ----------------------------------------------------------------------------------------------
-   -- This is wrong, need 1 of these for every 2 hybrids
-   U_AdcConfig_1 : entity ldmx.AdcConfig
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         axiClk         => axilClk,                                   -- [in]
-         axiRst         => axilRst,                                   -- [in]
-         axiReadMaster  => mAxiReadMasters(AXI_ADC_CONFIG_INDEX_C),   -- [in]
-         axiReadSlave   => mAxiReadSlaves(AXI_ADC_CONFIG_INDEX_C),    -- [out]
-         axiWriteMaster => mAxiWriteMasters(AXI_ADC_CONFIG_INDEX_C),  -- [in]
-         axiWriteSlave  => mAxiWriteSlaves(AXI_ADC_CONFIG_INDEX_C),   -- [out]
---         adcPdwn        => open,                                      -- [out]
-         adcSclk        => adcSclk,                                   -- [out]
-         adcSdio        => adcSdio,                                   -- [inout]
-         adcCsb         => adcCsb);                                   -- [out]
-
+         mAxiWriteMasters    => locAxilWriteMasters,
+         mAxiWriteSlaves     => locAxilWriteSlaves,
+         mAxiReadMasters     => locAxilReadMasters,
+         mAxiReadSlaves      => locAxilReadSlaves);
 
 
    ----------------------------------------------------------------------------------------------
@@ -235,10 +164,10 @@ begin
       port map (
          axiClk          => axilClk,
          axiRst          => axilRst,
-         axiReadMaster   => mAxiReadMasters(AXI_HYBRID_I2C_INDEX_C),
-         axiReadSlave    => mAxiReadSlaves(AXI_HYBRID_I2C_INDEX_C),
-         axiWriteMaster  => mAxiWriteMasters(AXI_HYBRID_I2C_INDEX_C),
-         axiWriteSlave   => mAxiWriteSlaves(AXI_HYBRID_I2C_INDEX_C),
+         axiReadMaster   => locAxilReadMasters(AXI_HYBRID_I2C_INDEX_C),
+         axiReadSlave    => locAxilReadSlaves(AXI_HYBRID_I2C_INDEX_C),
+         axiWriteMaster  => locAxilWriteMasters(AXI_HYBRID_I2C_INDEX_C),
+         axiWriteSlave   => locAxilWriteSlaves(AXI_HYBRID_I2C_INDEX_C),
          i2cRegMasterIn  => i2cRegMastersIn(0),
          i2cRegMasterOut => i2cRegMastersOut(0));
 
@@ -250,10 +179,10 @@ begin
       port map (
          axiClk          => axilClk,
          axiRst          => axilRst,
-         axiReadMaster   => mAxiReadMasters(AXI_ADS1115_INDEX_C),
-         axiReadSlave    => mAxiReadSlaves(AXI_ADS1115_INDEX_C),
-         axiWriteMaster  => mAxiWriteMasters(AXI_ADS1115_INDEX_C),
-         axiWriteSlave   => mAxiWriteSlaves(AXI_ADS1115_INDEX_C),
+         axiReadMaster   => locAxilReadMasters(AXI_ADS1115_INDEX_C),
+         axiReadSlave    => locAxilReadSlaves(AXI_ADS1115_INDEX_C),
+         axiWriteMaster  => locAxilWriteMasters(AXI_ADS1115_INDEX_C),
+         axiWriteSlave   => locAxilWriteSlaves(AXI_ADS1115_INDEX_C),
          i2cRegMasterIn  => i2cRegMastersIn(1),
          i2cRegMasterOut => i2cRegMastersOut(1));
 

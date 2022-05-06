@@ -24,9 +24,6 @@ package HpsPkg is
    constant DAQ_TRIGGER_CODE_C   : slv(7 downto 0) := "01011010";  -- 0x5A
    constant DAQ_APV_RESET101_C   : slv(7 downto 0) := "00011111";  -- 0x1F
 
-   constant EVENT_FRAME_TYPE_C         : slv(7 downto 0) := X"01";
-   constant POWER_MONITOR_FRAME_TYPE_C : slv(7 downto 0) := X"02";
-
    constant APV_DATA_SSI_CONFIG_C      : AxiStreamConfigType := ssiAxiStreamConfig(2, TKEEP_COMP_C);
    constant HYBRID_STATUS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(2, TKEEP_COMP_C);
 
@@ -96,6 +93,10 @@ package HpsPkg is
       data  => (others => X"0000"));
 
    type AdcReadoutArray is array (natural range <>) of AdcReadoutType;
+
+   type AdcStreamArray is array (7 downto 0) of AxiStreamMasterArray(7 downto 0);
+
+   constant ADC_STREAM_ARRAY_INIT_C : AdcStreamArray := (others => (others => AXI_STREAM_MASTER_INIT_C));
 
 
 end package HpsPkg;

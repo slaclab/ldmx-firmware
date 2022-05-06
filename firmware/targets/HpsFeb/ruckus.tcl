@@ -12,7 +12,7 @@ loadRuckusTcl $::env(TOP_DIR)/common
 # Load target's source code and constraints
 loadIpCore      -path "$::DIR_PATH/xil_cores/FebSem/FebSem.xci"
 #loadIpCore      -path "$::TOP_DIR/common/HpsDaq/xil_cores/AxiXadcCore/AxiXadcCore.xci"
-loadSource -lib ldmx      -dir  "$::DIR_PATH/rtl/"
+loadSource -lib ldmx      -dir  "$::DIR_PATH/rtl/" -fileType "VHDL 2008"
 loadSource -lib ldmx      -sim_only -dir "$::DIR_PATH/sim/"
 loadConstraints -dir  "$::DIR_PATH/rtl/"
 

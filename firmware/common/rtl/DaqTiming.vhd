@@ -34,12 +34,12 @@ entity DaqTiming is
       DAQ_CLK_DIV_G : integer := 3;
       HYBRIDS_G     : integer := 4);
    port (
-      daqClk       : in  sl;
-      daqRst       : in  sl;
+      daqClk185       : in  sl;
+      daqRst185       : in  sl;
       daqFcWord    : in  slv(7 downto 0);
       daqFcValid   : in  sl;
-      daqClkDiv    : out sl;
-      daqClkDivRst : out sl;
+      daqClk37    : out sl;
+      daqClk37Rst : out sl;
       daqTrigger   : out sl;
       hySoftRst    : out slv(HYBRIDS_G-1 downto 0);
 
@@ -60,7 +60,7 @@ architecture rtl of DaqTiming is
       counter        : integer range 0 to DAQ_CLK_DIV_G-1;
       triggerLatch   : sl;
       daqClkLost     : sl;
-      daqClkDiv      : sl;
+      daqClk37      : sl;
       daqTrigger     : sl;
       daqAligned     : sl;
       hySoftRst      : slv(HYBRIDS_G-1 downto 0);
@@ -75,7 +75,7 @@ architecture rtl of DaqTiming is
       counter        => 0,
       triggerLatch   => '0',
       daqClkLost     => '1',
-      daqClkDiv      => '0',
+      daqClk37      => '0',
       daqTrigger     => '0',
       daqAligned     => '0',
       hySoftRst      => (others => '0'),
@@ -87,7 +87,7 @@ architecture rtl of DaqTiming is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal daqClkDivInt : sl;
+   signal daqClk37Int : sl;
 
    -------------------------------------------------------------------------------------------------
    -- AXI signals
@@ -121,13 +121,13 @@ begin
 
       v.daqClkLost := '0';
       v.counter    := r.counter + 1;
-      v.daqClkDiv  := '1';
+      v.daqClk37  := '1';
 
-      -- Assert trigger only on falling edge of daqClkDiv
+      -- Assert trigger only on falling edge of daqClk37
       -- to allow enough setup time for shfited hybrid clocks to see it.
       if (r.counter = DAQ_CLK_DIV_G-1 or (daqFcValid = '1' and daqFcWord = DAQ_CLK_ALIGN_CODE_C)) then
          v.counter        := 0;
-         v.daqClkDiv      := '0';
+         v.daqClk37      := '0';
          v.daqTrigger     := r.triggerLatch;
          v.hySoftRst      := r.hySoftRstLatch;
          v.triggerLatch   := '0';
@@ -136,7 +136,7 @@ begin
 
       -- Terrible hack
       if (r.counter = 3 and DAQ_CLK_DIV_G = 5) then
-         v.daqClkDiv := '0';
+         v.daqClk37 := '0';
       end if;
 
       if (daqFcValid = '1' and daqFcWord = DAQ_CLK_ALIGN_CODE_C) then
@@ -168,11 +168,11 @@ begin
    end process comb;
 
    -- Have to use async reset since recovered clk125 can drop out
-   seq : process (daqClk, daqRst) is
+   seq : process (daqClk185, daqRst185) is
    begin
-      if (daqRst = '1') then
+      if (daqRst185 = '1') then
          r <= REG_INIT_C after TPD_G;
-      elsif (rising_edge(daqClk)) then
+      elsif (rising_edge(daqClk185)) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -181,22 +181,22 @@ begin
    -- Drive divided clock onto a BUFG
    BUFG_CLK41_RAW : BUFG
       port map (
-         I => r.daqClkDiv,
-         O => daqClkDivInt);
+         I => r.daqClk37,
+         O => daqClk37Int);
 
-   daqClkDiv <= daqClkDivInt;
+   daqClk37 <= daqClk37Int;
 
    -- Provide a reset signal for downstream MMCMs
-   RstSync_daqClkDivRst : entity surf.RstSync
+   RstSync_daqClk37Rst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => '1',
          OUT_POLARITY_G  => '1',
          RELEASE_DELAY_G => 5)
       port map (
-         clk      => daqClkDivInt,
+         clk      => daqClk37Int,
          asyncRst => r.daqClkLost,
-         syncRst  => daqClkDivRst);
+         syncRst  => daqClk37Rst);
 
    -------------------------------------------------------------------------------------------------
    -- AXI logic
@@ -211,7 +211,7 @@ begin
          ADDR_WIDTH_G  => 4)
       port map (
          rst                => axiRst,
-         wr_clk             => daqClk,
+         wr_clk             => daqClk185,
          din(15 downto 0)   => r.triggerCount,
          din(31 downto 16)  => r.alignCount,
          din(47 downto 32)  => r.hySoftRstCount,
@@ -225,27 +225,18 @@ begin
    axiComb : process (alignCountAxi, axiR, axiReadMaster, axiRst, axiWriteMaster, daqAlignedAxi,
                       hySoftRstCountAxi, triggerCountAxi) is
       variable v         : AxiRegType;
-      variable axiStatus : AxiLiteStatusType;
+      variable axilEp : AxiLiteEndpointType;
    begin
       v := axiR;
 
-      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
-      if (axiStatus.readEnable = '1') then
-         -- Decode address and assign read data
-         v.axiReadSlave.rdata := (others => '0');
-         case axiReadMaster.araddr(7 downto 0) is
-            when X"00" =>
-               v.axiReadSlave.rdata(0) := daqAlignedAxi;
-            when X"04" =>
-               v.axiReadSlave.rdata(15 downto 0) := triggerCountAxi;
-            when X"08" =>
-               v.axiReadSlave.rdata(15 downto 0) := alignCountAxi;
-            when x"0C" =>
-               v.axiReadSlave.rdata(15 downto 0) := hySoftRstCountAxi;
-            when others => null;
-         end case;
-         axiSlaveReadResponse(v.axiReadSlave);
-      end if;
+      axiSlaveWaitTxn(axilEp, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
+      
+      axiSlaveRegisterR(axilEp, X"00", 0, daqAlignedAxi);
+      axiSlaveRegisterR(axilEp, X"04", 0, triggerCountAxi);
+      axiSlaveRegisterR(axilEp, X"08", 0, alignCountAxi);
+      axiSlaveRegisterR(axilEp, X"0C", 0, hySoftRstCountAxi);
+
+      axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       if (axiRst = '1') then
          v := AXI_REG_INIT_C;

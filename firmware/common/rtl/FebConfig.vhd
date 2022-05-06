@@ -34,7 +34,6 @@ entity FebConfig is
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
 
-      powerGood : in  PowerGoodType;
       febConfig : out FebConfigType);
 
 end FebConfig;
@@ -44,50 +43,22 @@ architecture rtl of FebConfig is
    type RegType is record
       axiReadSlave    : AxiLiteReadSlaveType;
       axiWriteSlave   : AxiLiteWriteSlaveType;
-      powerGoodCntRst : sl;
       febConfig       : FebConfigType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       axiReadSlave    => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
-      powerGoodCntRst => '0',
       febConfig       => FEB_CONFIG_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   constant POWER_GOOD_CNT_WIDTH_C : integer := 16;
---   signal powerGoodSlv            : slv(POWER_GOOD_SLV_LENGTH_C-1 downto 0);   
-   signal powerGoodSyncSlv         : slv(POWER_GOOD_SLV_LENGTH_C-1 downto 0);
-   signal powerGoodFallCnt         : SlVectorArray(POWER_GOOD_SLV_LENGTH_C-1 downto 0, POWER_GOOD_CNT_WIDTH_C-1 downto 0);
-
 
 begin
 
 
-   SyncStatusVector_1 : entity surf.SyncStatusVector
-      generic map (
-         TPD_G          => TPD_G,
-         COMMON_CLK_G   => true,
-         IN_POLARITY_G  => "0",
-         OUT_POLARITY_G => '1',
-         SYNTH_CNT_G    => "1",
-         CNT_RST_EDGE_G => false,
-         CNT_WIDTH_G    => POWER_GOOD_CNT_WIDTH_C,
-         WIDTH_G        => POWER_GOOD_SLV_LENGTH_C)
-      port map (
-         statusIn     => toSlv(powerGood),
-         statusOut    => powerGoodSyncSlv,
-         cntRstIn     => r.powerGoodCntRst,
-         rollOverEnIn => (others => '0'),
-         cntOut       => powerGoodFallCnt,
-         wrClk        => axiClk,
-         wrRst        => axiRst,
-         rdClk        => axiClk,
-         rdRst        => axiRst);
-
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, powerGoodFallCnt, powerGoodSyncSlv, r) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, r) is
       variable v       : RegType;
       variable axilEp  : AxiLiteEndpointType;
       variable addrInt : integer;
@@ -97,7 +68,6 @@ begin
       -- Turn on hybrid hard reset when no power to hybrid
       -- Only allow it high for one cycle when there is power
       v.febConfig.hyHardRst := not r.febConfig.hyPwrEn;
-      v.powerGoodCntRst     := '0';
 
       axiSlaveWaitTxn(axilEp, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
@@ -109,15 +79,17 @@ begin
       axiSlaveRegister(axilEp, X"1C", 2, v.febConfig.hybridType(1));
       axiSlaveRegister(axilEp, X"1C", 4, v.febConfig.hybridType(2));
       axiSlaveRegister(axilEp, X"1C", 6, v.febConfig.hybridType(3));
-      axiSlaveRegister(axilEp, X"24", 0, v.febConfig.prbsDataStreamEn);
+      axiSlaveRegister(axilEp, X"1C", 8, v.febConfig.hybridType(4));
+      axiSlaveRegister(axilEp, X"1C", 10, v.febConfig.hybridType(5));
+      axiSlaveRegister(axilEp, X"1C", 12, v.febConfig.hybridType(6));
+      axiSlaveRegister(axilEp, X"1C", 14, v.febConfig.hybridType(7));
+      
       axiSlaveRegister(axilEp, X"28", 0, v.febConfig.calDelay);
       axiSlaveRegister(axilEp, X"28", 8, v.febConfig.calEn);
       axiSlaveRegister(axilEp, X"2C", 0, v.febConfig.hyApvDataStreamEn);
       axiSlaveRegister(axilEp, X"40", 0, v.febConfig.headerHighThreshold);
       axiSlaveRegister(axilEp, X"44", 0, v.febConfig.statusInterval);
       axiSlaveRegister(axilEp, X"48", 0, v.febConfig.allowResync);
-      axiSlaveRegister(axilEp, X"4C", 0, v.febConfig.ledEn);
-      axiSlaveRegister(axilEp, X"fC", 31, v.powerGoodCntRst);
 
       axiSlaveRegister(axilEp, X"58", 0, v.febConfig.threshold1CutEn);
       axiSlaveRegister(axilEp, X"58", 1, v.febConfig.slopeCutEn);
@@ -130,11 +102,6 @@ begin
       axiSlaveRegister(axilEp, X"58", 15, v.febConfig.threshold2MarkOnly);                  
       axiSlaveRegister(axilEp, X"5C", 0, v.febConfig.dataPipelineRst);
       
-
-      for i in 0 to POWER_GOOD_SLV_LENGTH_C-1 loop
-         axiSlaveRegisterR(axilEp, X"80"+toSlv(i*4, 8), 31, powerGoodSyncSlv(i));
-         axiSlaveRegisterR(axilEp, X"80"+toSlv(i*4, 8), 0, muxSlVectorArray(powerGoodFallCnt, i));
-      end loop;
 
       axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 

@@ -41,7 +41,6 @@ package FebConfigPkg is
       headerHighThreshold : slv(13 downto 0);
       statusInterval      : slv(31 downto 0);
       allowResync         : sl;
-      ledEn               : sl;
 
       threshold1CutEn    : sl;
       threshold1CutNum   : slv(2 downto 0);
@@ -70,7 +69,6 @@ package FebConfigPkg is
       headerHighThreshold => "10" & X"400",
       statusInterval      => toSlv(125000000, 32),  -- 1 second
       allowResync         => '1',
-      ledEn               => '1',
       threshold1CutEn    => '0',
       threshold1CutNum   => "011",
       threshold1MarkOnly => '0',
@@ -83,61 +81,5 @@ package FebConfigPkg is
       dataPipelineRst    => '0');
 
 
-   type HybridPowerGoodType is record
-      v125 : sl;
-      dvdd : sl;
-      avdd : sl;
-   end record HybridPowerGoodType;
-
-   type HybridPowerGoodArray is array (natural range <>) of HybridPowerGoodType;
-
-   type PowerGoodType is record
-      hybrid : HybridPowerGoodArray(3 downto 0);
-      a22    : sl;
-      a18    : sl;
-      a16    : sl;
-      a29A   : sl;
-      a29D   : sl;
-   end record PowerGoodType;
-
-   constant POWER_GOOD_SLV_LENGTH_C : integer := 17;
-   function toSlv (powerGood        : PowerGoodType) return slv;
-
-
---   function toSlv (config : FebConfigType) return slv;
-
---   function toFebConfig (vec : slv(63 downto 0)) return FebConfigType;
-   
 end package FebConfigPkg;
 
-package body FebConfigPkg is
-
-   function toSlv (powerGood : PowerGoodType) return slv
-   is
-      variable ret : slv(POWER_GOOD_SLV_LENGTH_C-1 downto 0) := (others => '0');
-   begin
-      ret(0) := powerGood.a22;
-      ret(1) := powerGood.a18;
-      ret(2) := powerGood.a16;
-      ret(3) := powerGood.a29A;
-      ret(4) := powerGood.a29D;
-
-      ret(5) := powerGood.hybrid(0).v125;
-      ret(6) := powerGood.hybrid(0).dvdd;
-      ret(7) := powerGood.hybrid(0).avdd;
-
-      ret(8)  := powerGood.hybrid(1).v125;
-      ret(9)  := powerGood.hybrid(1).dvdd;
-      ret(10) := powerGood.hybrid(1).avdd;
-
-      ret(11) := powerGood.hybrid(2).v125;
-      ret(12) := powerGood.hybrid(2).dvdd;
-      ret(13) := powerGood.hybrid(2).avdd;
-
-      ret(14) := powerGood.hybrid(3).v125;
-      ret(15) := powerGood.hybrid(3).dvdd;
-      ret(16) := powerGood.hybrid(3).avdd;
-      return ret;
-   end function toSlv;
-
-end package body FebConfigPkg;

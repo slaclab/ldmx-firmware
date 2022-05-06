@@ -18,8 +18,8 @@
 #Clocks
 create_clock -period 4.000 -name gtRefClk250 [get_ports gtRefClk250P]
 
-create_generated_clock -name gtRefClk250Div2 \
-    [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/INT_REFCLK.U_pgpRefClk/ODIV2]
+create_generated_clock -name gtRefClk125 \
+    [get_pins U_HpsFebPgp_1/IBUFDS_GTE2_0/ODIV2]
 
 create_generated_clock \
     -name axilClk \
@@ -38,22 +38,22 @@ create_generated_clock -name gtRefClk371Div2 [get_pins U_HpsFebPgp_1/U_Pgp2fcGtp
 create_clock -period 3.846 -name adcDClk[0] [get_ports {adcDClkP[0]}]
 set_input_jitter adcDClk[0] .35
 create_generated_clock -name adcBitClkR[0] -source [get_ports {adcDClkP[0]}] -divide_by 7 \
-    [get_pins {FebCore_1/HYBRIDS_GEN[0].HybridIoCore_1/AdcReadout_1/U_AdcBitClkR/O}]
+    [get_pins {U_HpsFebHw_1/ADC_MAP[0].AdcReadout_1/U_AdcBitClkR/O}]
 
 create_clock -period 3.846 -name adcDClk[1] [get_ports {adcDClkP[1]}]
 set_input_jitter adcDClk[1] .35
 create_generated_clock -name adcBitClkR[1] -source [get_ports {adcDClkP[1]}] -divide_by 7 \
-    [get_pins {FebCore_1/HYBRIDS_GEN[1].HybridIoCore_1/AdcReadout_1/U_AdcBitClkR/O}]
+    [get_pins {U_HpsFebHw_1/ADC_MAP[1].AdcReadout_1/U_AdcBitClkR/O}]
 
 create_clock -period 3.846 -name adcDClk[2] [get_ports {adcDClkP[2]}]
 set_input_jitter adcDClk[2] .35
 create_generated_clock -name adcBitClkR[2] -source [get_ports {adcDClkP[2]}] -divide_by 7 \
-    [get_pins {FebCore_1/HYBRIDS_GEN[2].HybridIoCore_1/AdcReadout_1/U_AdcBitClkR/O}]
+    [get_pins {U_HpsFebHw_1/ADC_MAP[2].AdcReadout_1/U_AdcBitClkR/O}]
 
 create_clock -period 3.846 -name adcDClk[3] [get_ports {adcDClkP[3]}]
 set_input_jitter adcDClk[3] .35
 create_generated_clock -name adcBitClkR[3] -source [get_ports {adcDClkP[3]}] -divide_by 7 \
-    [get_pins {FebCore_1/HYBRIDS_GEN[3].HybridIoCore_1/AdcReadout_1/U_AdcBitClkR/O}]
+    [get_pins {U_HpsFebHw_1/ADC_MAP[3].AdcReadout_1/U_AdcBitClkR/O}]
 
 
 
@@ -64,54 +64,53 @@ create_generated_clock -name pgp2fcRxUsrClk [get_pins U_HpsFebPgp_1/U_Pgp2fcGtp7
 create_generated_clock -name pgp2fcTxUsrClk [get_pins U_HpsFebPgp_1/U_Pgp2fcGtp7Wrapper_1/TX_CM_GEN.ClockManager7_TX/MmcmGen.U_Mmcm/CLKOUT0]
 
 
-set daqClkPin [get_pins {FebCore_1/DaqTiming_1/r_reg[daqClkDiv]/Q}]
-create_generated_clock -name daqClk -source ${rxRecClkPin} -edges {1 7 11} \
-    ${daqClkPin}
+set daqClk37Pin [get_pins {U_FebCore_1/DaqTiming_1/r_reg[daqClk37]/Q}]
+create_generated_clock -name daqClk37 -source ${rxRecClkPin} -edges {1 7 11} \
+    ${daqClk37Pin}
 
-create_generated_clock -name hybridClk0 -source ${daqClkPin} -duty_cycle 50 -multiply_by 1 \
-    [get_pins FebCore_1/U_ClockPhaseShifter_HYBRIDS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT0]
-create_generated_clock -name hybridClk1 -source ${daqClkPin} -duty_cycle 50 -multiply_by 1 \
-    [get_pins FebCore_1/U_ClockPhaseShifter_HYBRIDS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT1]
-create_generated_clock -name hybridClk2 -source ${daqClkPin} -duty_cycle 50 -multiply_by 1 \
-    [get_pins FebCore_1/U_ClockPhaseShifter_HYBRIDS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT2]
-create_generated_clock -name hybridClk3 -source ${daqClkPin} -duty_cycle 50 -multiply_by 1 \
-    [get_pins FebCore_1/U_ClockPhaseShifter_HYBRIDS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT3]
+create_generated_clock -name hybridClk0 -source ${daqClk37Pin} -duty_cycle 50 -multiply_by 1 \
+    [get_pins U_HpsFebHw_1/U_ClockPhaseShifter_HYBRIDS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT0]
+create_generated_clock -name hybridClk1 -source ${daqClk37Pin} -duty_cycle 50 -multiply_by 1 \
+    [get_pins U_HpsFebHw_1/U_ClockPhaseShifter_HYBRIDS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT1]
+create_generated_clock -name hybridClk2 -source ${daqClk37Pin} -duty_cycle 50 -multiply_by 1 \
+    [get_pins U_HpsFebHw_1/U_ClockPhaseShifter_HYBRIDS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT2]
+create_generated_clock -name hybridClk3 -source ${daqClk37Pin} -duty_cycle 50 -multiply_by 1 \
+    [get_pins U_HpsFebHw_1/U_ClockPhaseShifter_HYBRIDS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT3]
 
 
-create_generated_clock -name adcClk0 -source ${daqClkPin} -duty_cycle 50 -multiply_by 1 \
-    [get_pins FebCore_1/U_ClockPhaseShifter_ADCS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT0]
-create_generated_clock -name adcClk1 -source ${daqClkPin} -duty_cycle 50 -multiply_by 1 \
-    [get_pins FebCore_1/U_ClockPhaseShifter_ADCS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT1]
-create_generated_clock -name adcClk3 -source ${daqClkPin} -duty_cycle 50 -multiply_by 1 \
-    [get_pins FebCore_1/U_ClockPhaseShifter_ADCS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT2]
-create_generated_clock -name adcClk4 -source ${daqClkPin} -duty_cycle 50 -multiply_by 1 \
-    [get_pins FebCore_1/U_ClockPhaseShifter_ADCS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT3]
+create_generated_clock -name adcClk0 -source ${daqClk37Pin} -duty_cycle 50 -multiply_by 1 \
+    [get_pins U_HpsFebHw_1/U_ClockPhaseShifter_ADCS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT0]
+create_generated_clock -name adcClk1 -source ${daqClk37Pin} -duty_cycle 50 -multiply_by 1 \
+    [get_pins U_HpsFebHw_1/U_ClockPhaseShifter_ADCS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT1]
+create_generated_clock -name adcClk3 -source ${daqClk37Pin} -duty_cycle 50 -multiply_by 1 \
+    [get_pins U_HpsFebHw_1/U_ClockPhaseShifter_ADCS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT2]
+create_generated_clock -name adcClk4 -source ${daqClk37Pin} -duty_cycle 50 -multiply_by 1 \
+    [get_pins U_HpsFebHw_1/U_ClockPhaseShifter_ADCS/CLOCK_SHIFTER_MMCM/mmcm_adv_inst/CLKOUT3]
 
 #create_clock -period 8.000 -name flPgpGtRefClk [get_pins PgpFrontEnd_1/Pgp2Gtp7Fixedlat_1/Gtp7Core_1/gtpe2_i/RXOUTCLKFABRIC]
 
 # create_clock -name daqRefClk -period 8 [get_ports daqRefClkP]
-create_clock -name pgp4TxOutClk -period 5.12 [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.GEN_LANE[0].U_Pgp/U_Pgp3Gtp7IpWrapper/GEN_3G.U_Pgp3Gtp7Ip3G/U0/Pgp3Gtp7Ip3G_i/gt0_Pgp3Gtp7Ip3G_i/gtpe2_i/TXOUTCLK]
+# create_clock -name pgp4TxOutClk -period 5.12 [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.GEN_LANE[0].U_Pgp/U_Pgp3Gtp7IpWrapper/GEN_3G.U_Pgp3Gtp7Ip3G/U0/Pgp3Gtp7Ip3G_i/gt0_Pgp3Gtp7Ip3G_i/gtpe2_i/TXOUTCLK]
 
-create_generated_clock -name pgp4TxClk [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.U_TX_PLL/CLKOUT0]
-create_generated_clock -name pgp4TxUsrClk [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.U_TX_PLL/CLKOUT1]
-create_generated_clock -name pgp4TxUsrClk2 [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.U_TX_PLL/CLKOUT2]
+# create_generated_clock -name pgp4TxClk [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.U_TX_PLL/CLKOUT0]
+# create_generated_clock -name pgp4TxUsrClk [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.U_TX_PLL/CLKOUT1]
+# create_generated_clock -name pgp4TxUsrClk2 [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.U_TX_PLL/CLKOUT2]
 
-create_clock -name pgp4RxOutClk -period 5.12 [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.GEN_LANE[0].U_Pgp/U_Pgp3Gtp7IpWrapper/GEN_3G.U_Pgp3Gtp7Ip3G/U0/Pgp3Gtp7Ip3G_i/gt0_Pgp3Gtp7Ip3G_i/gtpe2_i/RXOUTCLK]
+# create_clock -name pgp4RxOutClk -period 5.12 [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.GEN_LANE[0].U_Pgp/U_Pgp3Gtp7IpWrapper/GEN_3G.U_Pgp3Gtp7Ip3G/U0/Pgp3Gtp7Ip3G_i/gt0_Pgp3Gtp7Ip3G_i/gtpe2_i/RXOUTCLK]
 
-# create_generated_clock -name pgp4RxClk [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.GEN_LANE[0].U_Pgp/U_Pgp3Gtp7IpWrapper/U_RX_PLL/CLKOUT0]
-create_generated_clock -name pgp4RxUsrClk [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.GEN_LANE[0].U_Pgp/U_Pgp3Gtp7IpWrapper/U_RX_PLL/CLKOUT1]
-create_generated_clock -name pgp4RxUsrClk2 [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.GEN_LANE[0].U_Pgp/U_Pgp3Gtp7IpWrapper/U_RX_PLL/CLKOUT2]
+# # create_generated_clock -name pgp4RxClk [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.GEN_LANE[0].U_Pgp/U_Pgp3Gtp7IpWrapper/U_RX_PLL/CLKOUT0]
+# create_generated_clock -name pgp4RxUsrClk [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.GEN_LANE[0].U_Pgp/U_Pgp3Gtp7IpWrapper/U_RX_PLL/CLKOUT1]
+# create_generated_clock -name pgp4RxUsrClk2 [get_pins U_HpsFebPgp_1/U_Pgp4Gtp7Wrapper_1/REAL_PGP.GEN_LANE[0].U_Pgp/U_Pgp3Gtp7IpWrapper/U_RX_PLL/CLKOUT2]
 
-create_generated_clock -name dnaClk [get_pins AxiVersion_1/GEN_DEVICE_DNA.DeviceDna_1/GEN_7SERIES.DeviceDna7Series_Inst/BUFR_Inst/O]
-create_generated_clock -name dnaClkInv [get_pins AxiVersion_1/GEN_DEVICE_DNA.DeviceDna_1/GEN_7SERIES.DeviceDna7Series_Inst/DNA_CLK_INV_BUFR/O]
+create_generated_clock -name dnaClk [get_pins U_FebCore_1/AxiVersion_1/GEN_DEVICE_DNA.DeviceDna_1/GEN_7SERIES.DeviceDna7Series_Inst/BUFR_Inst/O]
+create_generated_clock -name dnaClkInv [get_pins U_FebCore_1/AxiVersion_1/GEN_DEVICE_DNA.DeviceDna_1/GEN_7SERIES.DeviceDna7Series_Inst/DNA_CLK_INV_BUFR/O]
+create_generated_clock -name icapClk [get_pins U_FebCore_1/AxiVersion_1/GEN_ICAP.Iprog_1/GEN_7SERIES.Iprog7Series_Inst/DIVCLK_GEN.BUFR_ICPAPE2/O]
 
 
 set_clock_groups  -asynchronous \
     -group [get_clocks -include_generated_clocks gtRefClk371] \
     -group [get_clocks -include_generated_clocks gtRefClk250] \ 
     -group [get_clocks -include_generated_clocks {pgp2fcRxOutClk}] \
-    -group [get_clocks -include_generated_clocks {pgp4TxOutClk}] \
-    -group [get_clocks -include_generated_clocks {pgp4RxOutClk}] \
     -group [get_clocks -include_generated_clocks {adcDClk[0]}] \
     -group [get_clocks -include_generated_clocks {adcDClk[1]}] \
     -group [get_clocks -include_generated_clocks {adcDClk[2]}] \
@@ -119,25 +118,26 @@ set_clock_groups  -asynchronous \
 
 
 set_clock_groups -asynchronous \
-    -group [get_clocks -include_generated_clocks axilClk] \
-    -group [get_clocks -include_generated_clocks clk200] \
-    -group [get_clocks -include_generated_clocks dnaClk]
+    -group [get_clocks axilClk] \
+    -group [get_clocks clk200] \
+    -group [get_clocks dnaClk] \
+    -group [get_clocks icapClk] \
 
 set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks axilClk] \
-    -group [get_clocks gtRefClk250Div2]
+    -group [get_clocks gtRefClk125]
 
 set_clock_groups -asynchronous \
     -group [get_clocks pgp2fcRxUsrClk] \
-    -group [get_clocks daqClk] \
+    -group [get_clocks daqClk37] \
     -group [get_clocks hybridClk0] \
     -group [get_clocks hybridClk1] \
     -group [get_clocks hybridClk2] \
     -group [get_clocks hybridClk3]
 
-set_clock_groups -asynchronous \
-    -group [get_clocks pgp4TxUsrClk2] \
-    -group [get_clocks pgp4TxClk] 
+# set_clock_groups -asynchronous \
+#     -group [get_clocks pgp4TxUsrClk2] \
+#     -group [get_clocks pgp4TxClk] 
 
 set_output_delay -clock {hybridClk0} 5 [get_ports {hyTrgP[0]}]
 # set_output_delay -clock {hybridClk1} 5 [get_ports {hyTrgP[1]}]
@@ -179,10 +179,10 @@ set_property PACKAGE_PIN H22 [get_ports {leds[4]}]
 set_property PACKAGE_PIN J23 [get_ports {leds[5]}]
 set_property PACKAGE_PIN H23 [get_ports {leds[3]}]
 
-set_property PACKAGE_PIN A11 [get_ports {dataGtRxN}]
-set_property PACKAGE_PIN B11 [get_ports {dataGtRxP}]
-set_property PACKAGE_PIN A7 [get_ports {dataGtTxN}]
-set_property PACKAGE_PIN B7 [get_ports {dataGtTxP}]
+# set_property PACKAGE_PIN A11 [get_ports {dataGtRxN}]
+# set_property PACKAGE_PIN B11 [get_ports {dataGtRxP}]
+# set_property PACKAGE_PIN A7 [get_ports {dataGtTxN}]
+# set_property PACKAGE_PIN B7 [get_ports {dataGtTxP}]
 
 # set_property PACKAGE_PIN C14 [get_ports {dataGtRxN[1]}]
 # set_property PACKAGE_PIN D14 [get_ports {dataGtRxP[1]}]
