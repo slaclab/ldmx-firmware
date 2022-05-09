@@ -149,7 +149,7 @@ begin
 -------------------------------------------------------------------------------------------------
 -- Monitor sync status and output on separate stream
 -------------------------------------------------------------------------------------------------
-   HybridStatusFramer_1 : entity ldmx.HybridStatusFramer
+   HybridStatusMonitor_1 : entity ldmx.HybridStatusMonitor
       generic map (
          TPD_G             => TPD_G,
          HYBRID_NUM_G      => HYBRID_NUM_G,

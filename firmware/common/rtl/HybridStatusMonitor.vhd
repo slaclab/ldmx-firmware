@@ -32,7 +32,7 @@ library ldmx;
 use ldmx.HpsPkg.all;
 use ldmx.FebConfigPkg.all;
 
-entity HybridStatusFramer is
+entity HybridStatusMonitor is
    generic (
       TPD_G             : time                 := 1 ns;
       HYBRID_NUM_G      : integer range 0 to 8 := 0;
@@ -71,9 +71,9 @@ entity HybridStatusFramer is
 --       hybridStatusAxisCtrl   : in  AxiStreamCtrlType
 
       );
-end HybridStatusFramer;
+end HybridStatusMonitor;
 
-architecture rtl of HybridStatusFramer is
+architecture rtl of HybridStatusMonitor is
 
    type RegType is record
       count         : slv(31 downto 0);
