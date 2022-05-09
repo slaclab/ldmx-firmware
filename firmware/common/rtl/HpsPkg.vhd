@@ -25,10 +25,6 @@ package HpsPkg is
    constant DAQ_APV_RESET101_C   : slv(7 downto 0) := "00011111";  -- 0x1F
 
    constant APV_DATA_SSI_CONFIG_C      : AxiStreamConfigType := ssiAxiStreamConfig(2, TKEEP_COMP_C);
-   constant HYBRID_STATUS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(2, TKEEP_COMP_C);
-
-   constant APV_PGP_VC_C    : integer := 0;
-   constant STATUS_PGP_VC_C : integer := 1;
 
    -- AXI-Stream configuration for DAQ events
    -- 128 bits wide
@@ -40,16 +36,6 @@ package HpsPkg is
       TKEEP_MODE_C  => TKEEP_COMP_C,
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
-
-   -- DMA interface on RCE
-   constant HPS_DMA_DATA_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 8,
-      TDEST_BITS_C  => 0,
-      TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_COMP_C,
-      TUSER_BITS_C  => 2,
-      TUSER_MODE_C  => TUSER_LAST_C);
 
    function apvIndex (
       index      : integer;
@@ -74,25 +60,6 @@ package HpsPkg is
    function toSlv (hybridInfo    : HybridInfoType) return slv;
    function toHybridInfo (vector : slv(15 downto 0)) return HybridInfoType;
 
-   type DataPgpCfgType is (DATA_5000_S, DATA_4000_S, DATA_3125_S, DATA_2500_S);
-
-   constant DATA_PGP_LINE_RATES_C : RealArray := (
-      DataPgpCfgType'pos(DATA_5000_S) => 5.0E9,
-      DataPgpCfgType'pos(DATA_4000_S) => 4.0E9,
-      DataPgpCfgType'pos(DATA_3125_S) => 3.125E9,
-      DataPgpCfgType'pos(DATA_2500_S) => 2.5E9);
-
-   -- Deserialized data output
-   type AdcReadoutType is record
-      valid : sl;
-      data  : slv16Array(7 downto 0);
-   end record;
-
-   constant ADC_READOUT_INIT_C : AdcReadoutType := (
-      valid => '0',
-      data  => (others => X"0000"));
-
-   type AdcReadoutArray is array (natural range <>) of AdcReadoutType;
 
    type AdcStreamArray is array (7 downto 0) of AxiStreamMasterArray(7 downto 0);
 
