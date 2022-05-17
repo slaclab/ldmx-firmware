@@ -9,7 +9,7 @@ HYBRID_TYPE_ENUM = {
     3: 'Layer0'}
 
 class FebConfig(pr.Device):
-    def __init__(self, tca, **kwargs):
+    def __init__(self, numHybrids, **kwargs):
         super().__init__(description="Front End Board FPGA FPGA Object.", **kwargs)
 
         self.add(pr.RemoteVariable(
@@ -20,7 +20,7 @@ class FebConfig(pr.Device):
             bitOffset=0,
             base=pr.UInt))
 
-        for i in range(4):
+        for i in range(numHybrids):
             self.add(pr.RemoteVariable(
                 name=f'HybridPwrEn[{i}]',
                 offset=0x0,
@@ -47,7 +47,7 @@ class FebConfig(pr.Device):
             linkedGet = getAllHybridPwrSwitch,
             linkedSet = setAllHybridPwrSwitch))
 
-        for i in range(4):
+        for i in range(numHybrids):
             self.add(pr.RemoteVariable(
                 name=f'HybridType[{i}]',
                 offset=0x1C,
@@ -66,30 +66,30 @@ class FebConfig(pr.Device):
             value=True,
             hidden=True))
 
-        def ampPwrAllGet(index, read):
-            print(f'ampPwrAllGet({index}, {read}')
-            ports = [tca.OutputPort[i].get(read) for i in range(3)]
-            print([hex(p) for p in ports])
-            ports = [p & 0x3f for p in ports]
-            print([hex(p) for p in ports])
-            ret = ports[2] << 12 | ports[1] << 6 | ports[0]
-            print(hex(ret))
-            return ret
+#         def ampPwrAllGet(index, read):
+#             print(f'ampPwrAllGet({index}, {read}')
+#             ports = [tca.OutputPort[i].get(read) for i in range(3)]
+#             print([hex(p) for p in ports])
+#             ports = [p & 0x3f for p in ports]
+#             print([hex(p) for p in ports])
+#             ret = ports[2] << 12 | ports[1] << 6 | ports[0]
+#             print(hex(ret))
+#             return ret
 
-        def ampPwrAllSet(value, index, write):
-            tca.ConfigPort[0].set(0, write=write)
-            tca.ConfigPort[1].set(0, write=write)
-            tca.ConfigPort[2].set(0, write=write)
-            tca.OutputPort[0].set((value&0x3f), write=write)
-            tca.OutputPort[1].set(((value>>6)&0x3f), write=write)
-            tca.OutputPort[2].set(((value>>12)&0x3f), write=write)
+#         def ampPwrAllSet(value, index, write):
+#             tca.ConfigPort[0].set(0, write=write)
+#             tca.ConfigPort[1].set(0, write=write)
+#             tca.ConfigPort[2].set(0, write=write)
+#             tca.OutputPort[0].set((value&0x3f), write=write)
+#             tca.OutputPort[1].set(((value>>6)&0x3f), write=write)
+#             tca.OutputPort[2].set(((value>>12)&0x3f), write=write)
 
-        self.add(pr.LinkVariable(
-            name = 'AmplifierPowerAll',
-            dependencies = [tca.OutputPort[x] for x in range(3)],
-            disp = '{:#x}',
-            linkedGet = ampPwrAllGet,
-            linkedSet = ampPwrAllSet))
+#         self.add(pr.LinkVariable(
+#             name = 'AmplifierPowerAll',
+#             dependencies = [tca.OutputPort[x] for x in range(3)],
+#             disp = '{:#x}',
+#             linkedGet = ampPwrAllGet,
+#             linkedSet = ampPwrAllSet))
 
 
         self.add(pr.RemoteVariable(
@@ -124,23 +124,6 @@ class FebConfig(pr.Device):
             bitOffset=0,
             base=pr.UInt))
 
-        self.add(pr.RemoteVariable(
-            name="StatusFrameIntervalRaw",
-            description='Time between each Feb status PGP frame',
-            offset=0x44,
-            bitSize=32,
-            bitOffset=0,
-            base=pr.UInt))
-
-        def getRaw(dev,var,read):
-            return var.dependencies[0].value() * 8.0e-9
-
-        self.add(pr.LinkVariable(
-            name="StatusFrameInterval",
-            description='Time between each Feb status PGP frame',
-            units='s',
-            linkedGet=getRaw,
-            dependencies=[self.StatusFrameIntervalRaw]))
 
         self.add(pr.RemoteVariable(
             name="AllowResync",
@@ -158,47 +141,6 @@ class FebConfig(pr.Device):
             bitOffset=0,
             base=pr.Bool))
 
-        powerList = [
-            'FebA22V',
-            'FebA18V',
-            'FebA16V',
-            'FebA29VA',
-            'FebA29VD',
-            'Hybrid0_V125',
-            'Hybrid0_Dvdd',
-            'Hybrid0_Avdd',
-            'Hybrid1_V125',
-            'Hybrid1_Dvdd',
-            'Hybrid1_Avdd',
-            'Hybrid2_V125',
-            'Hybrid2_Dvdd',
-            'Hybrid2_Avdd',
-            'Hybrid3_V125',
-            'Hybrid3_Dvdd',
-            'Hybrid3_Avdd']
-
-        for i, name in enumerate(powerList):
-            self.add(pr.RemoteVariable(
-                name=f"{name}_PGood",
-                description='Regulator PGood value',
-                offset=0x80+(i*4),
-                bitSize=1,
-                bitOffset=31,
-                mode='RO',
-                pollInterval=10,
-                hidden=True,
-                base=pr.Bool))
-
-        for i, name in enumerate(powerList):
-            self.add(pr.RemoteVariable(
-                name=f'{name}_FallCnt',
-                offset=0x80+(i*4),
-                bitSize=31,
-                bitOffset=0,
-                mode='RO',
-                pollInterval=10,
-                hidden=True,
-                base=pr.UInt))
 
 
         self.add(pr.RemoteCommand(

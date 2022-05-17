@@ -2,7 +2,7 @@ import pyrogue as pr
 
 
 class HybridSyncStatus(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, apvsPerHybrid, **kwargs):
         super().__init__(description="Synchronziation status for 1 Hybrid.", **kwargs)
 
         self.add(pr.RemoteVariable(
@@ -31,7 +31,7 @@ class HybridSyncStatus(pr.Device):
             linkedGet= lambda: (f'{self.SyncDetected.value():b}').count('1'),
             dependencies=[self.SyncDetected]))
 
-        for i in range(5):
+        for i in range(apvsPerHybrid):
             self.add(pr.RemoteVariable(
                 name=f"Base[{i}]",
                 offset=0x10+ i*4,
@@ -53,7 +53,7 @@ class HybridSyncStatus(pr.Device):
 
 
         self.addRemoteVariables(
-            number=5,
+            number=apvsPerHybrid,
             stride=4,
             name="FrameCount",
             offset=0x30,
@@ -71,7 +71,7 @@ class HybridSyncStatus(pr.Device):
             hidden='True'))
 
         self.addRemoteVariables(
-            number=5,
+            number=apvsPerHybrid,
             stride=8,
             name="PulseStream",
             offset=0x60,
@@ -83,13 +83,13 @@ class HybridSyncStatus(pr.Device):
             base=pr.UInt)
 
         self.addRemoteVariables(
-            number=5,
+            number=apvsPerHybrid,
             stride=4,
             name = 'LostSyncCount',
             offset = 0x90,
             disp = '{:d}')
 
-        for i in range(5):
+        for i in range(apvsPerHybrid):
             self.add(pr.RemoteVariable(
                 name=f"MinSample[{i}]",
                 offset=0xB0+ i*4,
@@ -99,7 +99,7 @@ class HybridSyncStatus(pr.Device):
                 pollInterval=0,
                 base=pr.UInt))
 
-        for i in range(5):
+        for i in range(apvsPerHybrid):
             self.add(pr.RemoteVariable(
                 name=f"MaxSample[{i}]",
                 offset=0xB0+ i*4,
