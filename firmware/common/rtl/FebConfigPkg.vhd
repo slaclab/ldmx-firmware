@@ -64,10 +64,10 @@ package FebConfigPkg is
       hyPwrEn             => (others => '0'),
       hyHardRst           => (others => '0'),
       hyApvDataStreamEn   => (others => '1'),
-      prbsDataStreamEn    => (others => '0'),
+  --    prbsDataStreamEn    => (others => '0'),
       febAddress          => "1110",
       headerHighThreshold => "10" & X"400",
-      statusInterval      => toSlv(125000000, 32),  -- 1 second
+--      statusInterval      => toSlv(125000000, 32),  -- 1 second
       allowResync         => '1',
       threshold1CutEn    => '0',
       threshold1CutNum   => "011",

@@ -88,7 +88,6 @@ begin
       axiSlaveRegister(axilEp, X"28", 8, v.febConfig.calEn);
       axiSlaveRegister(axilEp, X"2C", 0, v.febConfig.hyApvDataStreamEn);
       axiSlaveRegister(axilEp, X"40", 0, v.febConfig.headerHighThreshold);
-      axiSlaveRegister(axilEp, X"44", 0, v.febConfig.statusInterval);
       axiSlaveRegister(axilEp, X"48", 0, v.febConfig.allowResync);
 
       axiSlaveRegister(axilEp, X"58", 0, v.febConfig.threshold1CutEn);
