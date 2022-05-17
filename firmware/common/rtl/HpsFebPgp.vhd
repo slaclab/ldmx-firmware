@@ -139,23 +139,19 @@ architecture rtl of HpsFebPgp is
 
 
    constant AXIL_MASTERS_C  : integer := 2;
-   constant AXIL_CTRL_GTP_C : integer := 0;
-   constant AXIL_CTRL_PGP_C : integer := 1;
-   constant AXIL_DATA_PGP_C : integer := 2;
+   constant AXIL_PGP_C : integer := 1;
+   constant AXIL_GTP_C : integer := 0;
+
 
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(AXIL_MASTERS_C-1 downto 0) := (
-      AXIL_CTRL_GTP_C => (
+        AXIL_PGP_C => (
          baseAddr     => AXIL_BASE_ADDR_G,
          addrBits     => 8,
          connectivity => X"0001"),
-      AXIL_CTRL_PGP_C => (
+        AXIL_GTP_C => (
          baseAddr     => AXIL_BASE_ADDR_G + X"10000",
          addrBits     => 16,
          connectivity => X"0001"));
---       AXIL_DATA_PGP_C => (
---          baseAddr     => AXIL_BASE_ADDR_G + X"20000",
---          addrBits     => 12,
---          connectivity => X"0001"));
 
 
    signal locAxilReadMasters  : AxiLiteReadMasterArray(AXIL_MASTERS_C-1 downto 0);
@@ -195,7 +191,7 @@ begin
          VC_INTERLEAVE_G         => 1,
          PAYLOAD_CNT_TOP_G       => 7,
          NUM_VC_EN_G             => 2,
-         AXIL_BASE_ADDR_G        => AXIL_XBAR_CFG_C(AXIL_CTRL_GTP_C).baseAddr,
+         AXIL_BASE_ADDR_G        => AXIL_XBAR_CFG_C(AXIL_GTP_C).baseAddr,
          EXT_RST_POLARITY_G      => '1',
 --          TX_POLARITY_G           => TX_POLARITY_G,
 --          RX_POLARITY_G           => RX_POLARITY_G,
@@ -265,10 +261,10 @@ begin
 --          qPllTxSelect     => qPllTxSelect,      -- [in]
          axilClk          => axilClk,                               -- [in]
          axilRst          => axilRst,                               -- [in]
-         axilReadMaster   => locAxilReadMasters(AXIL_CTRL_GTP_C),   -- [in]
-         axilReadSlave    => locAxilReadSlaves(AXIL_CTRL_GTP_C),    -- [out]
-         axilWriteMaster  => locAxilWriteMasters(AXIL_CTRL_GTP_C),  -- [in]
-         axilWriteSlave   => locAxilWriteSlaves(AXIL_CTRL_GTP_C));  -- [out]
+         axilReadMaster   => locAxilReadMasters(AXIL_GTP_C),   -- [in]
+         axilReadSlave    => locAxilReadSlaves(AXIL_GTP_C),    -- [out]
+         axilWriteMaster  => locAxilWriteMasters(AXIL_GTP_C),  -- [in]
+         axilWriteSlave   => locAxilWriteSlaves(AXIL_GTP_C));  -- [out]
 
    U_Pgp2fcAxi_1 : entity surf.Pgp2fcAxi
       generic map (
@@ -292,10 +288,10 @@ begin
 --         locRxIn         => locRxIn,                               -- [in]
          axilClk         => axilClk,                               -- [in]
          axilRst         => axilRst,                               -- [in]
-         axilReadMaster  => locAxilReadMasters(AXIL_CTRL_PGP_C),   -- [in]
-         axilReadSlave   => locAxilReadSlaves(AXIL_CTRL_PGP_C),    -- [out]
-         axilWriteMaster => locAxilWriteMasters(AXIL_CTRL_PGP_C),  -- [in]
-         axilWriteSlave  => locAxilWriteSlaves(AXIL_CTRL_PGP_C));  -- [out]
+         axilReadMaster  => locAxilReadMasters(AXIL_PGP_C),   -- [in]
+         axilReadSlave   => locAxilReadSlaves(AXIL_PGP_C),    -- [out]
+         axilWriteMaster => locAxilWriteMasters(AXIL_PGP_C),  -- [in]
+         axilWriteSlave  => locAxilWriteSlaves(AXIL_PGP_C));  -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Extract 250 Mhz refclock
