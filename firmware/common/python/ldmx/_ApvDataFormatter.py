@@ -96,41 +96,41 @@ class ApvDataFormatter(pr.Device):
                 0b011: 'RESUME_S',
                 0b100: 'FREEZE'}))
 
-        for i in range(8):
-            self.add(pr.RemoteVariable(
-                name = f'LastSofApvFrameRaw[{i}]',
-                mode = 'RO',
-                offset = 0x24 + i*2,
-                bitSize = 16,
-                bitOffset = 0,
-                hidden = True,
-                disp = '{:#08x}'))
+#         for i in range(8):
+#             self.add(pr.RemoteVariable(
+#                 name = f'LastSofApvFrameRaw[{i}]',
+#                 mode = 'RO',
+#                 offset = 0x24 + i*2,
+#                 bitSize = 16,
+#                 bitOffset = 0,
+#                 hidden = True,
+#                 disp = '{:#08x}'))
 
-        def formatSof(var):
-            raw = var.dependencies[0].value() & 0xFFFF
-            return f'{(raw>>13)&0x7} {(raw>>9)&0xF}  {(raw>>1)&0xFF:#x} {(raw&0x1)^1}'
+#         def formatSof(var):
+#             raw = var.dependencies[0].value() & 0xFFFF
+#             return f'{(raw>>13)&0x7} {(raw>>9)&0xF}  {(raw>>1)&0xFF:#x} {(raw&0x1)^1}'
 
-        for i in range(8):
-            self.add(pr.LinkVariable(
-                name = f'LastSofApvFrame[{i}]',
-                description = 'Apv frame header: APVNUM FRAMECOUNT BUFADDR ERROR',
-                mode = 'RO',
-                dependencies = [self.LastSofApvFrameRaw[i]],
-                linkedGet = formatSof))
+#         for i in range(8):
+#             self.add(pr.LinkVariable(
+#                 name = f'LastSofApvFrame[{i}]',
+#                 description = 'Apv frame header: APVNUM FRAMECOUNT BUFADDR ERROR',
+#                 mode = 'RO',
+#                 dependencies = [self.LastSofApvFrameRaw[i]],
+#                 linkedGet = formatSof))
 
 
-        for i in range(8):
-            self.add(pr.RemoteVariable(
-                name = f'LastTxnCount[{i}]',
-                mode = 'RO',
-                offset = 0x34 + i*2,
-                bitSize = 16,
-                disp = '{:d}'))
+#         for i in range(8):
+#             self.add(pr.RemoteVariable(
+#                 name = f'LastTxnCount[{i}]',
+#                 mode = 'RO',
+#                 offset = 0x34 + i*2,
+#                 bitSize = 16,
+#                 disp = '{:d}'))
 
-        for i in range(16):
-            self.add(pr.RemoteVariable(
-                name = f'InsertedFrames[{i}]',
-                mode = 'RO',
-                offset = 0x44 + i*2,
-                bitSize = 16,
-                disp = '{:d}'))
+#         for i in range(16):
+#             self.add(pr.RemoteVariable(
+#                 name = f'InsertedFrames[{i}]',
+#                 mode = 'RO',
+#                 offset = 0x44 + i*2,
+#                 bitSize = 16,
+#                 disp = '{:d}'))

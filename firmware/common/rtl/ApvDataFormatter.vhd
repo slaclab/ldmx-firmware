@@ -449,7 +449,7 @@ begin
 
       axiSlaveWaitTxn(axilEp, locAxiWriteMaster, locAxiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
-      if (AXI_DEBUG_EN_G) then
+--      if (AXI_DEBUG_EN_G) then
 
          axiSlaveRegisterR(axilEp, X"00", 0, ite(r.txState = WAIT_TRIGGER_S, "00",
                                                  ite(r.txState = BLANK_HEAD_S, "01",
@@ -471,41 +471,41 @@ begin
 
 
 
-         axiSlaveRegisterR(axilEp, X"24", 0, r.lastSofApvFrame(0));
-         axiSlaveRegisterR(axilEp, X"24", 16, r.lastSofApvFrame(1));
-         axiSlaveRegisterR(axilEp, X"28", 0, r.lastSofApvFrame(2));
-         axiSlaveRegisterR(axilEp, X"28", 16, r.lastSofApvFrame(3));
-         axiSlaveRegisterR(axilEp, X"2C", 0, r.lastSofApvFrame(4));
-         axiSlaveRegisterR(axilEp, X"2C", 16, r.lastSofApvFrame(5));
-         axiSlaveRegisterR(axilEp, X"30", 0, r.lastSofApvFrame(6));
-         axiSlaveRegisterR(axilEp, X"30", 16, r.lastSofApvFrame(7));
+--          axiSlaveRegisterR(axilEp, X"24", 0, r.lastSofApvFrame(0));
+--          axiSlaveRegisterR(axilEp, X"24", 16, r.lastSofApvFrame(1));
+--          axiSlaveRegisterR(axilEp, X"28", 0, r.lastSofApvFrame(2));
+--          axiSlaveRegisterR(axilEp, X"28", 16, r.lastSofApvFrame(3));
+--          axiSlaveRegisterR(axilEp, X"2C", 0, r.lastSofApvFrame(4));
+--          axiSlaveRegisterR(axilEp, X"2C", 16, r.lastSofApvFrame(5));
+--          axiSlaveRegisterR(axilEp, X"30", 0, r.lastSofApvFrame(6));
+--          axiSlaveRegisterR(axilEp, X"30", 16, r.lastSofApvFrame(7));
 
-         axiSlaveRegisterR(axilEp, X"34", 0, r.lastTxnCount(0));
-         axiSlaveRegisterR(axilEp, X"34", 16, r.lastTxnCount(1));
-         axiSlaveRegisterR(axilEp, X"38", 0, r.lastTxnCount(2));
-         axiSlaveRegisterR(axilEp, X"38", 16, r.lastTxnCount(3));
-         axiSlaveRegisterR(axilEp, X"3C", 0, r.lastTxnCount(4));
-         axiSlaveRegisterR(axilEp, X"3C", 16, r.lastTxnCount(5));
-         axiSlaveRegisterR(axilEp, X"40", 0, r.lastTxnCount(6));
-         axiSlaveRegisterR(axilEp, X"40", 16, r.lastTxnCount(7));
+--          axiSlaveRegisterR(axilEp, X"34", 0, r.lastTxnCount(0));
+--          axiSlaveRegisterR(axilEp, X"34", 16, r.lastTxnCount(1));
+--          axiSlaveRegisterR(axilEp, X"38", 0, r.lastTxnCount(2));
+--          axiSlaveRegisterR(axilEp, X"38", 16, r.lastTxnCount(3));
+--          axiSlaveRegisterR(axilEp, X"3C", 0, r.lastTxnCount(4));
+--          axiSlaveRegisterR(axilEp, X"3C", 16, r.lastTxnCount(5));
+--          axiSlaveRegisterR(axilEp, X"40", 0, r.lastTxnCount(6));
+--          axiSlaveRegisterR(axilEp, X"40", 16, r.lastTxnCount(7));
 
-         axiSlaveRegisterR(axilEp, X"44", 0, r.insertedFrames(0));
-         axiSlaveRegisterR(axilEp, X"44", 16, r.insertedFrames(1));
-         axiSlaveRegisterR(axilEp, X"48", 0, r.insertedFrames(2));
-         axiSlaveRegisterR(axilEp, X"48", 16, r.insertedFrames(3));
-         axiSlaveRegisterR(axilEp, X"4C", 0, r.insertedFrames(4));
-         axiSlaveRegisterR(axilEp, X"4C", 16, r.insertedFrames(5));
-         axiSlaveRegisterR(axilEp, X"50", 0, r.insertedFrames(6));
-         axiSlaveRegisterR(axilEp, X"50", 16, r.insertedFrames(7));
-         axiSlaveRegisterR(axilEp, X"54", 0, r.insertedFrames(8));
-         axiSlaveRegisterR(axilEp, X"54", 16, r.insertedFrames(9));
-         axiSlaveRegisterR(axilEp, X"58", 0, r.insertedFrames(10));
-         axiSlaveRegisterR(axilEp, X"58", 16, r.insertedFrames(11));
-         axiSlaveRegisterR(axilEp, X"5C", 0, r.insertedFrames(12));
-         axiSlaveRegisterR(axilEp, X"5C", 16, r.insertedFrames(13));
-         axiSlaveRegisterR(axilEp, X"60", 0, r.insertedFrames(14));
-         axiSlaveRegisterR(axilEp, X"60", 16, r.insertedFrames(15));
-      end if;
+--          axiSlaveRegisterR(axilEp, X"44", 0, r.insertedFrames(0));
+--          axiSlaveRegisterR(axilEp, X"44", 16, r.insertedFrames(1));
+--          axiSlaveRegisterR(axilEp, X"48", 0, r.insertedFrames(2));
+--          axiSlaveRegisterR(axilEp, X"48", 16, r.insertedFrames(3));
+--          axiSlaveRegisterR(axilEp, X"4C", 0, r.insertedFrames(4));
+--          axiSlaveRegisterR(axilEp, X"4C", 16, r.insertedFrames(5));
+--          axiSlaveRegisterR(axilEp, X"50", 0, r.insertedFrames(6));
+--          axiSlaveRegisterR(axilEp, X"50", 16, r.insertedFrames(7));
+--          axiSlaveRegisterR(axilEp, X"54", 0, r.insertedFrames(8));
+--          axiSlaveRegisterR(axilEp, X"54", 16, r.insertedFrames(9));
+--          axiSlaveRegisterR(axilEp, X"58", 0, r.insertedFrames(10));
+--          axiSlaveRegisterR(axilEp, X"58", 16, r.insertedFrames(11));
+--          axiSlaveRegisterR(axilEp, X"5C", 0, r.insertedFrames(12));
+--          axiSlaveRegisterR(axilEp, X"5C", 16, r.insertedFrames(13));
+--          axiSlaveRegisterR(axilEp, X"60", 0, r.insertedFrames(14));
+--          axiSlaveRegisterR(axilEp, X"60", 16, r.insertedFrames(15));
+--       end if;
 
       axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
