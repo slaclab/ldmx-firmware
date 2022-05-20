@@ -76,7 +76,7 @@ class HybridVoltageControl(pr.Device):
         
 #Control Power for 1 hybrid
 class HybridPowerControl(pr.Device):
-    def __init__(self, hybridNum, febCore, **kwargs):
+    def __init__(self, numHybrids, febHw, febCore, **kwargs):
         super().__init__(**kwargs)
 
         self.enable.hidden = True
@@ -84,36 +84,36 @@ class HybridPowerControl(pr.Device):
 
         self.add(HybridVoltageControl(
             name = 'DVDD',
-            trim = febCore.Ad5144[hybridNum].Rdac[2],
-            near = febCore.Ltc2991[hybridNum].V1,
+            trim = febHw.Ad5144[numHybrids].Rdac[2],
+            near = febHw.Ltc2991[numHybrids].V1,
             sense = None,
             senseMult = None,
-            pgood = febCore.FebConfig.node(f'Hybrid{hybridNum}_Dvdd_PGood'),
-            pgood_fall = febCore.FebConfig.node(f'Hybrid{hybridNum}_Dvdd_FallCnt'),
-            far = febCore.Hybrid[hybridNum].DVDD,
-            current = febCore.Ltc2991[hybridNum].V2))
+            pgood = febCore.FebConfig.node(f'Hybrid{numHybrids}_Dvdd_PGood'),
+            pgood_fall = febCore.FebConfig.node(f'Hybrid{numHybrids}_Dvdd_FallCnt'),
+            far = febCore.Hybrid[numHybrids].DVDD,
+            current = febHw.Ltc2991[numHybrids].V2))
 
         self.add(HybridVoltageControl(
             name = 'AVDD',
-            trim = febCore.Ad5144[hybridNum].Rdac[1],
-            near = febCore.Ltc2991[hybridNum].V3,
-            sense = None, #febCore.Ltc2991[hybridNum].V8,
+            trim = febHw.Ad5144[numHybrids].Rdac[1],
+            near = febHw.Ltc2991[numHybrids].V3,
+            sense = None, #febHw.Ltc2991[numHybrids].V8,
             senseMult = None, # -9.09,
-            pgood = febCore.FebConfig.node(f'Hybrid{hybridNum}_Avdd_PGood'),
-            pgood_fall = febCore.FebConfig.node(f'Hybrid{hybridNum}_Avdd_FallCnt'),
-            far = febCore.Hybrid[hybridNum].AVDD,
-            current = febCore.Ltc2991[hybridNum].V4))
+            pgood = febCore.FebConfig.node(f'Hybrid{numHybrids}_Avdd_PGood'),
+            pgood_fall = febCore.FebConfig.node(f'Hybrid{numHybrids}_Avdd_FallCnt'),
+            far = febCore.Hybrid[numHybrids].AVDD,
+            current = febHw.Ltc2991[numHybrids].V4))
 
         self.add(HybridVoltageControl(
             name = 'V125',
-            trim = febCore.Ad5144[hybridNum].Rdac[0],
-            near = febCore.Ltc2991[hybridNum].V5,
-            sense = None, #febCore.Ltc2991[4].node(f'V{hybridNum*2+2}'),
+            trim = febHw.Ad5144[numHybrids].Rdac[0],
+            near = febHw.Ltc2991[numHybrids].V5,
+            sense = None, #febHw.Ltc2991[4].node(f'V{numHybrids*2+2}'),
             senseMult = None, # 4.02,
-            pgood = febCore.FebConfig.node(f'Hybrid{hybridNum}_V125_PGood'),
-            pgood_fall = febCore.FebConfig.node(f'Hybrid{hybridNum}_V125_FallCnt'),
-            far = febCore.Hybrid[hybridNum].V125,
-            current = febCore.Ltc2991[hybridNum].V6))
+            pgood = febCore.FebConfig.node(f'Hybrid{numHybrids}_V125_PGood'),
+            pgood_fall = febCore.FebConfig.node(f'Hybrid{numHybrids}_V125_FallCnt'),
+            far = febCore.Hybrid[numHybrids].V125,
+            current = febHw.Ltc2991[numHybrids].V6))
 
         self.add(pr.LinkVariable(
             name = 'HybridOnStatus',
