@@ -30,18 +30,17 @@ use ldmx.HpsPkg.all;
 entity DaqTiming is
 
    generic (
-      TPD_G         : time    := 1 ns;
-      DAQ_CLK_DIV_G : integer := 3;
-      HYBRIDS_G     : integer := 4);
+      TPD_G     : time    := 1 ns;
+      HYBRIDS_G : integer := 4);
    port (
-      daqClk185       : in  sl;
-      daqRst185       : in  sl;
-      daqFcWord    : in  slv(7 downto 0);
-      daqFcValid   : in  sl;
+      daqClk185   : in  sl;
+      daqRst185   : in  sl;
+      daqFcWord   : in  slv(7 downto 0);
+      daqFcValid  : in  sl;
       daqClk37    : out sl;
       daqClk37Rst : out sl;
-      daqTrigger   : out sl;
-      hySoftRst    : out slv(HYBRIDS_G-1 downto 0);
+      daqTrigger  : out sl;
+      hySoftRst   : out slv(HYBRIDS_G-1 downto 0);
 
       -- Axi inteface
       axiClk         : in  sl;
@@ -55,12 +54,13 @@ end entity DaqTiming;
 
 architecture rtl of DaqTiming is
 
+   constant DAQ_CLK_DIV_C : integer := 5;
 
    type RegType is record
-      counter        : integer range 0 to DAQ_CLK_DIV_G-1;
+      counter        : slv(2 downto 0);
       triggerLatch   : sl;
       daqClkLost     : sl;
-      daqClk37      : sl;
+      daqClk37       : sl;
       daqTrigger     : sl;
       daqAligned     : sl;
       hySoftRst      : slv(HYBRIDS_G-1 downto 0);
@@ -72,10 +72,10 @@ architecture rtl of DaqTiming is
 
    -- Timing comes up already enabled so that ADC can be read before sync is established
    constant REG_INIT_C : RegType := (
-      counter        => 0,
+      counter        => (others => '0'),
       triggerLatch   => '0',
       daqClkLost     => '1',
-      daqClk37      => '0',
+      daqClk37       => '0',
       daqTrigger     => '0',
       daqAligned     => '0',
       hySoftRst      => (others => '0'),
@@ -121,13 +121,13 @@ begin
 
       v.daqClkLost := '0';
       v.counter    := r.counter + 1;
-      v.daqClk37  := '1';
+      v.daqClk37   := '1';
 
       -- Assert trigger only on falling edge of daqClk37
       -- to allow enough setup time for shfited hybrid clocks to see it.
-      if (r.counter = DAQ_CLK_DIV_G-1 or (daqFcValid = '1' and daqFcWord = DAQ_CLK_ALIGN_CODE_C)) then
-         v.counter        := 0;
-         v.daqClk37      := '0';
+      if (r.counter = DAQ_CLK_DIV_C-1 or (daqFcValid = '1' and daqFcWord = DAQ_CLK_ALIGN_CODE_C)) then
+         v.counter        := (others => '0');
+         v.daqClk37       := '0';
          v.daqTrigger     := r.triggerLatch;
          v.hySoftRst      := r.hySoftRstLatch;
          v.triggerLatch   := '0';
@@ -135,7 +135,7 @@ begin
       end if;
 
       -- Terrible hack
-      if (r.counter = 3 and DAQ_CLK_DIV_G = 5) then
+      if (r.counter = 3) then
          v.daqClk37 := '0';
       end if;
 
@@ -224,13 +224,13 @@ begin
 
    axiComb : process (alignCountAxi, axiR, axiReadMaster, axiRst, axiWriteMaster, daqAlignedAxi,
                       hySoftRstCountAxi, triggerCountAxi) is
-      variable v         : AxiRegType;
+      variable v      : AxiRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
       v := axiR;
 
       axiSlaveWaitTxn(axilEp, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
-      
+
       axiSlaveRegisterR(axilEp, X"00", 0, daqAlignedAxi);
       axiSlaveRegisterR(axilEp, X"04", 0, triggerCountAxi);
       axiSlaveRegisterR(axilEp, X"08", 0, alignCountAxi);
