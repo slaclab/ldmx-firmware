@@ -171,7 +171,7 @@ begin
          CPHA_G            => '0',      -- Sample on leading edge
          CPOL_G            => '0',      -- Sample on rising edge
          CLK_PERIOD_G      => 8.0E-9,
-         SPI_SCLK_PERIOD_G => ite(SIMULATION_G, 100.0E-9, 100.0E-6))
+         SPI_SCLK_PERIOD_G => ite(SIMULATION_G, 200.0E-9, 100.0E-6))
       port map (
          clk       => axiClk,
          sRst      => axiRst,
