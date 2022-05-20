@@ -51,29 +51,52 @@ class Ad9252Config(pr.Device):
             bitOffset=0,
             base =pr.Bool))
 
-
         self.add(pr.RemoteVariable(
-            name="DevIndexMask[7:4]",
+            name="DevIndexMaskHigh",
             offset=0x10,
             bitSize=4,
             bitOffset=0,
             base=pr.UInt,
+            hidden=True,
             disp='{:#b}'))
 
         self.add(pr.RemoteVariable(
-            name="DevIndexMask[3:0]",
+            name="DevIndexMaskLow",
             offset=0x14,
             bitSize=4,
             bitOffset=0,
             base=pr.UInt,
+            hidden=True,
             disp='{:#b}'))
 
         self.add(pr.RemoteVariable(
-            name="DevIndexMask[DCO:FCO]",
+            name="DevIndexMask_DCO_FCO",
             offset=0x14,
             bitSize=2,
             bitOffset=0x4,
-            base=pr.UInt))
+            hidden=True,
+            base=pr.UInt))        
+
+        def _setDevIndexMask(value, write):
+            self.DevIndexMaskLow.set(value & 0b1111, write=False)
+            self.DevIndexMaskHigh.set((value>>4) & 0b1111, write=False)
+            self.DevIndexMask_DCO_FCO.set((value>>8) & 0b11, write=False)
+            self.writeBlocks()
+
+        def _getDevIndexMask(read):
+            low = self.DevIndexMaskLow.get(read=read)
+            high = self.DevIndexMaskHigh.get(read=read)
+            df = self.DevIndexMask_DCO_FCO.get(read=read)
+            return (df << 8) | (high << 4) | low
+        
+        self.add(pr.LinkVariable(
+            name = 'DevIndexMask',
+            dependencies = [self.DevIndexMaskHigh, self.DevIndexMaskLow, self.DevIndexMask_DCO_FCO],
+            disp = '{:#b}',
+            linkedSet = _setDevIndexMask,
+            linkedGet = _getDevIndexMask))
+
+
 
         self.add(pr.RemoteVariable(
             name="OutputTestMode",
@@ -291,8 +314,8 @@ class Ad9252Config(pr.Device):
             function=pr.BaseCommand.touchOne,
         ))
 
-    def writeBlocks(self, force=False, recurse=True, variable=None, checkEach=False):
-        pr.Device.writeBlocks(self, force=force, recurse=True, variable=variable, checkEach=checkEach)
+    def writeBlocks(self, **kwargs):
+        pr.Device.writeBlocks(self, **kwargs)
         self.DeviceUpdate()
 
 
