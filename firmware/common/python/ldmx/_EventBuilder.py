@@ -95,7 +95,7 @@ class EventBuilder(pr.Device):
 
         self.add(pr.RemoteVariable(
             name="GotTails",
-            offset=0x10,
+            offset=0x40,
             bitSize=32,
             bitOffset=0,
             mode='RO',
