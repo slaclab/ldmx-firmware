@@ -115,26 +115,26 @@ class Hybrid(pr.Device):
                 'Pga' : '2.048V'},
             name='Ads1115'))
 
-        def getAdc(channel):
+        def getAdc(channel, read):
             hyType = self.typeVar.valueDisp()
             if hyType == "Old" :
-                voltage = self.Ads7924.Voltage[channel].value()
+                voltage = self.Ads7924.Voltage[channel].get(read=read) #value()
                 return voltage
             elif hyType == "New" or hyType == 'Layer0':
-                return self.Ads1115.AIN[channel].value()
+                return self.Ads1115.AIN[channel].get(read=read) #value()
             else:
                 return 0.0
 
-        def getTemp0():
+        def getTemp0(read):
             if self.typeVar.getDisp() == 'Unknown':
                 return 0.0
-            temp = self.getThermistorTemperature(getAdc(0))
+            temp = self.getThermistorTemperature(getAdc(0, read))
             return temp
 
-        def getTemp1():
+        def getTemp1(read):
             if self.typeVar.getDisp() != 'Old':
                 return 0.0
-            temp = self.getThermistorTemperature(getAdc(1))
+            temp = self.getThermistorTemperature(getAdc(1, read))
             return temp
 
 
@@ -159,10 +159,10 @@ class Hybrid(pr.Device):
         ))
 
         def getVoltage(channel, multiplier):
-            def f():
+            def f(read):
                 if self.typeVar.valueDisp() == 'Old' or self.typeVar.valueDisp() == 'Unknown':
                     return 0.0
-                return getAdc(channel) * multiplier
+                return getAdc(channel, read) * multiplier
             return f
 
         self.add(pr.LinkVariable(
