@@ -42,7 +42,7 @@ entity FebCore is
       -- Recovered Clock and Opcode Interface
       daqClk185  : in sl;
       daqRst185  : in sl;
-      daqFcWord  : in slv(7 downto 0);
+      daqFcWord  : in slv(79 downto 0);
       daqFcValid : in sl;
 
       -- Axi Clock and Reset
@@ -180,14 +180,13 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Create trigger FIFO
    -------------------------------------------------------------------------------------------------
-   daqFcWordLong <= "00" & daqFcWord;
    U_TriggerFifo_1 : entity ldmx.TriggerFifo
       generic map (
          TPD_G => TPD_G)
       port map (
          distClk    => daqClk185,         -- [in]
          distClkRst => daqRst185,         -- [in]
-         rxData     => daqFcWordLong,     -- [in]
+         rxData     => daqFcWord(9 downto 0),     -- [in]
          rxDataEn   => daqFcValid,        -- [in]
          sysClk     => axilClk,           -- [in]
          sysRst     => axilRst,           -- [in]
@@ -248,12 +247,11 @@ begin
    DaqTiming_1 : entity ldmx.DaqTiming
       generic map (
          TPD_G         => TPD_G,
-         DAQ_CLK_DIV_G => 5,
          HYBRIDS_G     => HYBRIDS_G)
       port map (
          daqClk185      => daqClk185,
          daqRst185      => daqRst185,
-         daqFcWord      => daqFcWord,
+         daqFcWord      => daqFcWord(7 downto 0),
          daqFcValid     => daqFcValid,
          daqClk37       => daqClk37,
          daqClk37Rst    => daqClk37Rst,
