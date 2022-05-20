@@ -41,9 +41,7 @@ entity HpsFeb is
       BUILD_INFO_G          : BuildInfoType               := BUILD_INFO_DEFAULT_SLV_C;
       SIMULATION_G          : boolean                     := false;
       ROGUE_SIM_EN_G        : boolean                     := false;
-      ROGUE_SIM_SIMEBAND_G  : boolean                     := false;
       ROGUE_SIM_CTRL_PORT_G : integer range 1024 to 49151 := 9000;
-      ROGUE_SIM_DATA_PORT_G : integer range 1024 to 49141 := 9100;
       HYBRIDS_G             : integer                     := 4;
       APVS_PER_HYBRID_G     : integer                     := 5);
    port (
@@ -56,8 +54,8 @@ entity HpsFeb is
       -- Fixed Latency GTP link
       ctrlGtTxP : out sl;
       ctrlGtTxN : out sl;
-      ctrlGtRxP : in  sl;
-      ctrlGtRxN : in  sl;
+      ctrlGtRxP : in  sl := '0';
+      ctrlGtRxN : in  sl := '0';
 
 --       dataGtTxP : out sl;
 --       dataGtTxN : out sl;
@@ -146,7 +144,7 @@ architecture rtl of HpsFeb is
 
    signal daqClk185   : sl;
    signal daqRst185   : sl;
-   signal daqFcWord   : slv(7 downto 0);
+   signal daqFcWord   : slv(79 downto 0);
    signal daqFcValid  : sl;
    signal daqClk37    : sl;
    signal daqClk37Rst : sl;
@@ -349,7 +347,6 @@ begin
          TPD_G             => TPD_G,
          ROGUE_SIM_G       => ROGUE_SIM_EN_G,
          ROGUE_CTRL_PORT_G => ROGUE_SIM_CTRL_PORT_G,
-         ROGUE_DATA_PORT_G => ROGUE_SIM_DATA_PORT_G,
          AXIL_BASE_ADDR_G  => MAIN_XBAR_CFG_C(PGP_AXI_INDEX_C).baseAddr)
       port map (
          gtRefClk371P     => gtRefClk371P,                          -- [in]
