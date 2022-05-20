@@ -1,9 +1,9 @@
 import pyrogue
 import pyrogue as pr
 import surf.axi as axi
-import hps
-from surf.devices.micron import _AxiMicronN25Q as micron
-import surf.protocols.pgp as pgp
+import ldmx
+
+
 import time
 
 class FebGroup(pyrogue.Device):
@@ -11,7 +11,7 @@ class FebGroup(pyrogue.Device):
 
 
         for i in range(10): #enumerate(hostConfig.febLinkMap):
-            self.add(hps.HpsFeb(
+            self.add(ldmx.HpsFeb(
                 name=f'FebFpga[{i}]',
                 number=i,
                 memBase = memBases[i],))
@@ -28,15 +28,18 @@ class HpsFeb(pr.Device):
 
         self.number = number
 
-        self.add(hps.FebCore(
+        self.add(ldmx.FebCore(
             number=number,
             offset=0x000000,
             expand=True,
             numHybrids=numHybrids,
+            apvsPerHybrid=5,
             enabled=True
         ))
 
         self.add(ldmx.HpsFebHw(
+            numHybrids = numHybrids,
+            febCore = self.FebCore,
             offset = 0x10000000))
 
         if sim is False:
@@ -51,6 +54,6 @@ class HpsFeb(pr.Device):
             self.checkBlocks()
             self.FebCore.FebConfig.FebAddress.set(self.number)
             self.HpsFebHw.ConfigureLtc2991()
-            self.HpsFebHw.Tca6424a.writeBlocks()
+            #self.HpsFebHw.Tca6424a.writeBlocks()
 
 
