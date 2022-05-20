@@ -85,7 +85,7 @@ architecture rtl of EventBuilder is
       triggerFifoRdEn        : sl;
       runTime                : slv(31 downto 0);
       rollover               : sl;
-      apvNum                 : integer range 0 to APVS_PER_HYBRID_G-1;
+      apvNum                 : integer range 0 to APVS_PER_HYBRID_G;
       hybridNum              : integer range 0 to HYBRIDS_G;
       allValid               : sl;
       anyValid               : sl;
