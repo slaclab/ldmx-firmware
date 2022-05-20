@@ -1,14 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : Testbench for design "FrontEndBoard"
 -------------------------------------------------------------------------------
--- File       : FrontEndBoard_tb.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-10-22
--- Last update: 2015-02-02
--- Platform   : 
--- Standard   : VHDL'93/02
--------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
@@ -22,9 +14,9 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.i2cPkg.all;
 
-library hps_daq;
-use hps_daq.FebConfigPkg.all;
-use hps_daq.HpsPkg.all;
+library ldmx;
+use ldmx.FebConfigPkg.all;
+use ldmx.HpsPkg.all;
 ----------------------------------------------------------------------------------------------------
 
 entity FebTb is
@@ -100,7 +92,7 @@ architecture sim of FebTb is
 begin
 
 
-   FRONT_END_BOARD_INST : entity hps_daq.FrontEndBoardModel
+   FRONT_END_BOARD_INST : entity ldmx.FrontEndBoardModel
       generic map (
          TPD_G          => TPD_C,
          CLK_0_PERIOD_G => CLK_0_PERIOD_C,
@@ -150,7 +142,7 @@ begin
 
    --flashWait <= '0';
 
-   FIRMWARE_INST : entity hps_daq.Feb
+   FIRMWARE_INST : entity ldmx.HpsFeb
       generic map (
          TPD_G        => TPD_C,
          SIMULATION_G => true)
