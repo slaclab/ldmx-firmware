@@ -18,7 +18,7 @@ use surf.StdRtlPkg.all;
 use surf.i2cPkg.all;
 
 library ldmx;
-use ldmx.FebConfigPkg.all;
+use ldmx.HpsFebHwPkg.all;
 use ldmx.HpsPkg.all;
 ----------------------------------------------------------------------------------------------------
 
