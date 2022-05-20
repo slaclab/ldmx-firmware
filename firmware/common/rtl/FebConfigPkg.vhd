@@ -36,10 +36,10 @@ package FebConfigPkg is
       hyPwrEn             : slv(7 downto 0);
       hyHardRst           : slv(7 downto 0);
       hyApvDataStreamEn   : slv(47 downto 0);
-      prbsDataStreamEn    : slv(7 downto 0);
+--      prbsDataStreamEn    : slv(7 downto 0);
       febAddress          : slv(3 downto 0);
       headerHighThreshold : slv(13 downto 0);
-      statusInterval      : slv(31 downto 0);
+--      statusInterval      : slv(31 downto 0);
       allowResync         : sl;
 
       threshold1CutEn    : sl;
