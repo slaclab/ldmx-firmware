@@ -1,24 +1,26 @@
 import pyrogue as pr
+import surf.axi
 
 import ldmx
 import time
 
 class FebCore(pr.Device):
-    def __init__(self, number, numHybrids=1, **kwargs):
+    def __init__(self, number, numHybrids, apvsPerHybrid, **kwargs):
         super().__init__(description="Front End Board FPGA FPGA Object.", **kwargs)
 
         self.number = number
 
         # AXI Version
-        self.add(axi.AxiVersion(
+        self.add(surf.axi.AxiVersion(
             expand=True,
             offset=0x0000))
         self.AxiVersion.UpTimeCnt.pollInterval = 3
         
 
         # Feb Config
-        self.add(hps.FebConfig(
+        self.add(ldmx.FebConfig(
             offset=0x1000,
+            numHybrids = numHybrids,
             defaults = {
                 'FebAddress': str(number)}))
 
@@ -32,18 +34,17 @@ class FebCore(pr.Device):
 
         # Hybrids (I2C config)
         for i in range(numHybrids):
-            self.add(hps.Hybrid(
+            self.add(ldmx.Hybrid(
                 offset=0x00100000 + (i*0x10000),
                 typeVar = self.FebConfig.HybridType[i],
                 enableDeps=[self.FebConfig.HybridPwrEn[i]],
                 name=f'Hybrid[{i}]'))
 
-
-
         for i in range(numHybrids):
             self.add(ldmx.HybridDataCore(
                 name=f'HybridDataCore[{i}]',
                 enabled = True,
+                apvsPerHybrid = apvsPerHybrid,
                 offset=0x01000000+(0x00100000*i)))
 
 
