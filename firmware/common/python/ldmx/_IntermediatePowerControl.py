@@ -25,22 +25,22 @@ class IntermediatePowerControl(pr.Device):
     def __init__(self, ad5144, pm, **kwargs):
         super().__init__(**kwargs)
 
-        self.add(InterVoltageControl(
+        self.add(IntermediateVoltageControl(
             name = 'FebA16V',
             trim = ad5144.Rdac[0],
             voltage = pm.FebA16V))
 
-        self.add(InterVoltageControl(
+        self.add(IntermediateVoltageControl(
             name = 'FebA29VA',
             trim = ad5144.Rdac[1],
             voltage = pm.FebA29VA))
 
-        self.add(InterVoltageControl(
+        self.add(IntermediateVoltageControl(
             name = 'FebA29VD',
             trim = ad5144.Rdac[2],
             voltage = pm.FebA29VD))
 
-        self.add(InterVoltageControl(
+        self.add(IntermediateVoltageControl(
             name = 'FebA22V',
             trim = ad5144.Rdac[3],
             voltage = pm.FebA22V))
