@@ -1,5 +1,5 @@
 import pyrogue as pr
-import hps
+import ldmx
 import math
 
 
@@ -9,7 +9,7 @@ class Hybrid(pr.Device):
         print(f'{self.path}.setType({value}, write={write})')
         self.typeVar.set(value, write=True)
 
-        valueDisp = hps.HYBRID_TYPE_ENUM[value]
+        valueDisp = ldmx.HYBRID_TYPE_ENUM[value]
 
         if valueDisp == 'Old':
             self.Ads7924.enable.set(True)
@@ -52,12 +52,12 @@ class Hybrid(pr.Device):
         #     name="Type",
         #     description='Configures the type of hybrid that is attached',
         #     mode = 'RW',
-        #     enum = hps.HYBRID_TYPE_ENUM,
+        #     enum = ldmx.HYBRID_TYPE_ENUM,
         #     linkedSet = self.setType,
         #     linkedGet = lambda read: typeVar.get(read=read)))
 
         self.addNodes(
-            nodeClass=hps.Apv25,
+            nodeClass=ldmx.Apv25,
             number=5,
             stride=0x400,
             offset=0x8000,
@@ -88,7 +88,7 @@ class Hybrid(pr.Device):
             }
         )
 
-        self.add(hps.Ads7924(
+        self.add(ldmx.Ads7924(
             enabled=False,
             offset = 0x9400,
             name='Ads7924',
@@ -106,7 +106,7 @@ class Hybrid(pr.Device):
                 'SleepTime': '2.5 ms'}
         ))
 
-        self.add(hps.Ads1115(
+        self.add(ldmx.Ads1115(
             enabled=False,
             offset = 0xA000,
             defaults = {
