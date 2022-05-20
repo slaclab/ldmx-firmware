@@ -24,19 +24,16 @@ use surf.StdRtlPkg.all;
 
 library ldmx;
 use ldmx.HpsPkg.all;
-use ldmx.FebConfigPkg.all;
+use ldmx.HpsFebHwPkg.all;
 
 entity FebModelWrapper is
 
    generic (
       TPD_G                 : time                        := 1 ns;
       BUILD_INFO_G          : BuildInfoType               := BUILD_INFO_DEFAULT_SLV_C;
-      ROGUE_TCP_SIM_G       : boolean                     := false;
+      ROGUE_TCP_SIM_G       : boolean                     := true;
       ROGUE_TCP_CTRL_PORT_G : integer range 1024 to 49151 := 9000;
-      ROGUE_TCP_DATA_PORT_G : integer range 1024 to 49141 := 9100;
-      HYBRID_TYPE_G         : slv(1 downto 0)             := OLD_HYBRID_C;
-      PACK_APV_DATA_G       : boolean                     := false);
-
+      HYBRID_TYPE_G         : slv(1 downto 0)             := OLD_HYBRID_C);
    port (
       sysGtTxP : out sl;
       sysGtTxN : out sl;
@@ -52,14 +49,10 @@ end entity FebModelWrapper;
 
 architecture sim of FebModelWrapper is
 
-   signal gtRefClk125P : sl;                     -- [in]
-   signal gtRefClk125N : sl;                     -- [in]
+   signal gtRefClk371P : sl;                     -- [in]
+   signal gtRefClk371N : sl;                     -- [in]
    signal gtRefClk250P : sl;                     -- [in]
    signal gtRefClk250N : sl;                     -- [in]
-   signal daqClk125P   : sl;                     -- [out]
-   signal daqClk125N   : sl;                     -- [out]
-   signal daqRefClkP   : sl;                     -- [in]
-   signal daqRefClkN   : sl;                     -- [in]
    signal adcClkP      : slv(3 downto 0);        -- [out]
    signal adcClkN      : slv(3 downto 0);        -- [out]
    signal adcFClkP     : slv(3 downto 0);        -- [in]
@@ -107,13 +100,13 @@ begin
    U_FrontEndBoardModel_1 : entity ldmx.FrontEndBoardModel
       generic map (
          TPD_G          => TPD_G,
-         CLK_0_PERIOD_G => 8 ns,
+         CLK_0_PERIOD_G => 2.692 ns,
          CLK_1_PERIOD_G => 4 ns,
          HYBRIDS_G      => 4,
          HYBRID_TYPE_G  => HYBRID_TYPE_G)
       port map (
-         gtRefClk0P   => gtRefClk125P,  -- [out]
-         gtRefClk0N   => gtRefClk125N,  -- [out]
+         gtRefClk0P   => gtRefClk371P,  -- [out]
+         gtRefClk0N   => gtRefClk371N,  -- [out]
          gtRefClk1P   => gtRefClk250P,  -- [out]
          gtRefClk1N   => gtRefClk250N,  -- [out]
          adcClkP      => adcClkP,       -- [in]
@@ -146,36 +139,24 @@ begin
          hyI2cSdaOut  => hyI2cSdaOut,   -- [in]
          hyI2cSdaIn   => hyI2cSdaIn);   -- [out]
 
-   daqRefClkP <= daqClk125P;
-   daqRefClkN <= daqClk125N;
-
-   U_Feb_1 : entity ldmx.Feb
+   U_HpsFeb_1: entity ldmx.HpsFeb
       generic map (
          TPD_G                 => TPD_G,
          BUILD_INFO_G          => BUILD_INFO_G,
          SIMULATION_G          => true,
-         ROGUE_TCP_SIM_G       => ROGUE_TCP_SIM_G,
-         ROGUE_TCP_CTRL_PORT_G => ROGUE_TCP_CTRL_PORT_G,
-         ROGUE_TCP_DATA_PORT_G => ROGUE_TCP_DATA_PORT_G,
-         DATA_PGP_CFG_G        => DATA_3125_S,
-         PACK_APV_DATA_G       => PACK_APV_DATA_G)
+         ROGUE_SIM_EN_G        => true,
+         ROGUE_SIM_CTRL_PORT_G => 9000,
+         HYBRIDS_G             => 4,
+         APVS_PER_HYBRID_G     => 5)
       port map (
-         gtRefClk125P => gtRefClk125P,  -- [in]
-         gtRefClk125N => gtRefClk125N,  -- [in]
+         gtRefClk371P => gtRefClk371P,  -- [in]
+         gtRefClk371N => gtRefClk371N,  -- [in]
          gtRefClk250P => gtRefClk250P,  -- [in]
          gtRefClk250N => gtRefClk250N,  -- [in]
-         sysGtTxP     => sysGtTxP,      -- [out]
-         sysGtTxN     => sysGtTxN,      -- [out]
-         sysGtRxP     => sysGtRxP,      -- [in]
-         sysGtRxN     => sysGtRxN,      -- [in]
-         dataGtTxP    => dataGtTxP,     -- [out]
-         dataGtTxN    => dataGtTxN,     -- [out]
-         dataGtRxP    => dataGtRxP,     -- [in]
-         dataGtRxN    => dataGtRxN,     -- [in]
-         daqClk125P   => daqClk125P,    -- [out]
-         daqClk125N   => daqClk125N,    -- [out]
-         daqRefClkP   => daqRefClkP,    -- [in]
-         daqRefClkN   => daqRefClkN,    -- [in]
+--          ctrlGtTxP    => ctrlGtTxP,     -- [out]
+--          ctrlGtTxN    => ctrlGtTxN,     -- [out]
+--          ctrlGtRxP    => ctrlGtRxP,     -- [in]
+--          ctrlGtRxN    => ctrlGtRxN,     -- [in]
          adcClkP      => adcClkP,       -- [out]
          adcClkN      => adcClkN,       -- [out]
          adcFClkP     => adcFClkP,      -- [in]
@@ -213,7 +194,6 @@ begin
          bootCsL      => bootCsL,       -- [out]
          bootMosi     => bootMosi,      -- [out]
          bootMiso     => bootMiso);     -- [in]
-
 
 
 end architecture sim;
