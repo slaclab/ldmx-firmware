@@ -86,7 +86,7 @@ architecture rtl of AdcReadout7 is
    constant AXIL_REG_INIT_C : AxilRegType := (
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      dataDelay      => (others => "00101"),  -- Default delay of 10 taps
+      dataDelay      => (others => "01010"),  -- Default delay of 10 taps
       dataDelaySet   => (others => '1'),
       frameDelay     => "00101",
       frameDelaySet  => '1',
