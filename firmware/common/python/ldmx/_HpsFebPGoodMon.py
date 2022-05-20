@@ -22,6 +22,14 @@ class HpsFebPGoodMon(pr.Device):
             'Hybrid3_Dvdd',
             'Hybrid3_Avdd']
 
+        self.add(pr.RemoteVariable(
+            name="LedEn",
+            description='Enable debug leds',
+            offset=0x00,
+            bitSize=1,
+            bitOffset=0,
+            base=pr.Bool))            
+
         for i, name in enumerate(powerList):
             self.add(pr.RemoteVariable(
                 name=f"{name}_PGood",

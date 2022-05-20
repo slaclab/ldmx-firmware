@@ -1,13 +1,16 @@
 import pyrogue as pr
 
+from surf.devices.micron import _AxiMicronN25Q as micron
+import surf.xilinx
+
 import ldmx
 
 class HpsFebHw(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, numHybrids, febCore, **kwargs):
         super().__init__(**kwargs)
 
-        self.add(ldmx.HpsFebPgoodMon(
-            offset = 0x0000)
+        self.add(ldmx.HpsFebPGoodMon(
+            offset = 0x0000))
 
         self.add(ldmx.PhaseShifter(
             name='HybridClkPhaseShift',
@@ -38,11 +41,11 @@ class HpsFebHw(pr.Device):
 
         self.addNodes(
             name='Ltc2991',
-            nodeClass=hps.Ltc2991,
+            nodeClass=ldmx.Ltc2991,
             number=5,
             description='Hybrid Voltage Monitor',
             stride=0x0400,
-            offset=0x3000,
+            offset=0x30000,
             expand=False,
             hidden=False,
             enabled=True,
@@ -50,7 +53,7 @@ class HpsFebHw(pr.Device):
 
         self.addNodes(
             name='Ad5144',
-            nodeClass=hps.Ad5144,
+            nodeClass=ldmx.Ad5144,
             number=5,
             stride=0x0400,
             offset=0x4000,
@@ -58,25 +61,26 @@ class HpsFebHw(pr.Device):
             hidden=False,
             enabled=True)
 
-        for i in range(hybridNum):
-            self.add(HybridPowerControl(
-                hybridNum=i,
-                febCore=self,
+        for i in range(numHybrids):
+            self.add(ldmx.HybridPowerControl(
+                numHybrids=i,
+                febHw=self,
+                febCore=febCore,
                 name=f'HybridPowerControl[{i}]',
                 expand=True))
 
         self.addNodes(
-            nodeClass=hps.Ad9252Readout,
-            number=hybridNum,
-            stride=0x10000,
-            offset=0x100,
+            nodeClass=ldmx.Ad9252Readout,
+            number=numHybrids,
+            stride=0x100,
+            offset=0x10000,            
             expand=False,
             name='AdcReadout')
 
             
 
         self.addNodes(
-            nodeClass=hps.Ad9252Config,
+            nodeClass=ldmx.Ad9252Config,
             number=4,
             stride=0x1000,
             offset=0x20000,
@@ -85,15 +89,15 @@ class HpsFebHw(pr.Device):
             enabled=False,
             name='Ad9252')
 
-        self.add(xil.Xadc(
+        self.add(surf.xilinx.Xadc(
             offset=0x5000,
             name='Xadc',
             auxChannels=16,
             expand=False,
-            hidden=True,
+            hidden=False,
         ))
 
-#         self.add(hps.Tca6424a(
+#         self.add(ldmx.Tca6424a(
 #             offset=0xB000,
 #             enabled=False))
         
