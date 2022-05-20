@@ -1,5 +1,7 @@
 import pyrogue as pr
 
+import ldmx
+
 class HybridDataCore(pr.Device):
     def __init__(self, apvsPerHybrid, **kwargs):
         super().__init__(**kwargs)
