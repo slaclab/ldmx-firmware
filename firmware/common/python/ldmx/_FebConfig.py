@@ -133,13 +133,7 @@ class FebConfig(pr.Device):
             bitOffset=0,
             base=pr.Bool))
 
-        self.add(pr.RemoteVariable(
-            name="LedEn",
-            description='Enable debug leds',
-            offset=0x4C,
-            bitSize=1,
-            bitOffset=0,
-            base=pr.Bool))
+
 
 
 
