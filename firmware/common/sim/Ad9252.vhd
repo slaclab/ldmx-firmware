@@ -3,11 +3,6 @@
 -------------------------------------------------------------------------------
 -- File       : Ad9252.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-01-14
--- Last update: 2022-04-28
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -142,7 +137,7 @@ architecture behavioral of Ad9252 is
       rdData          => X"00000000",
       lsbFirst        => '0',
       softReset       => '0',
-      channelConfigEn => "0000000000",
+      channelConfigEn => (others => '1'),
       tmpGlobal       => GLOBAL_CONFIG_INIT_C,
       tmpChannel      => CHANNEL_CONFIG_INIT_C,
       global          => GLOBAL_CONFIG_INIT_C,
