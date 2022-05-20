@@ -158,7 +158,7 @@ begin
       end if;
 
       for i in APVS_PER_HYBRID_G-1 downto 0 loop
-         axiSlaveRegisterR(axilEp, X"60"+toSlv(i*4, 8), 0, r.pulseStream(index(i)));
+         axiSlaveRegisterR(axilEp, X"60"+toSlv(i*8, 8), 0, r.pulseStream(index(i)));
       end loop;
 
       for i in APVS_PER_HYBRID_G-1 downto 0 loop
