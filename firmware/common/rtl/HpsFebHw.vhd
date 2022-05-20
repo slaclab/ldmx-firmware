@@ -173,23 +173,23 @@ architecture rtl of HpsFebHw is
          connectivity                => X"0001"),
       AXI_HYBRID_CLOCK_PHASE_INDEX_C => (    -- Hybrid (APV) Clock Phase Adjustment
          baseAddr                    => AXI_BASE_ADDR_G + X"1000",
-         addrBits                    => 12,  -- to 01FF
+         addrBits                    => 12, 
          connectivity                => X"0001"),
       AXI_ADC_CLOCK_PHASE_INDEX_C    => (    -- ADC Clock Phase Adjustment
          baseAddr                    => AXI_BASE_ADDR_G + X"2000",
-         addrBits                    => 12,  -- to 02FF
+         addrBits                    => 12, 
          connectivity                => X"0001"),
       AXI_BOARD_I2C_INDEX_C          => (    -- Board I2C Interface
-         baseAddr                    => AXI_BASE_ADDR_G + X"3000",
-         addrBits                    => 12,  -- 3FFF
+         baseAddr                    => AXI_BASE_ADDR_G + X"30000",
+         addrBits                    => 16, 
          connectivity                => X"0001"),
       AXI_BOARD_SPI_INDEX_C          => (    -- Board SPI Interface
          baseAddr                    => AXI_BASE_ADDR_G + X"4000",
-         addrBits                    => 12,  -- 9FFF
+         addrBits                    => 12, 
          connectivity                => X"0001"),
       AXI_XADC_INDEX_C               => (
          baseAddr                    => AXI_BASE_ADDR_G + X"5000",
-         addrBits                    => 12,  -- to 4FFF
+         addrBits                    => 12, 
          connectivity                => X"0001"),
       AXI_PROM_INDEX_C               => (
          baseAddr                    => AXI_BASE_ADDR_G + X"6000",
@@ -671,7 +671,8 @@ begin
       ----------------------------------------------------------------------------------------------
       U_AdcConfig_1 : entity ldmx.AdcConfig
          generic map (
-            TPD_G => TPD_G)
+            TPD_G => TPD_G,
+            SIMULATION_G => SIMULATION_G)
          port map (
             axiClk         => axilClk,                       -- [in]
             axiRst         => axilRst,                       -- [in]
