@@ -26,7 +26,6 @@ library surf;
 use surf.StdRtlPkg.all;
 
 library ldmx;
-use ldmx.HpsTiPkg.all;
 
 entity TriggerFifo is
 
@@ -110,10 +109,10 @@ begin
       v.counter := r.counter + 1;
 
       if (rxDataEn = '1') then
-         if (rxData = TI_START_CODE_C) then
+         if (rxData = "1111100000") then
             v.counter := (others => '0');
             v.fifoRst := '1';
-         elsif (rxData = TI_TRIG_CODE_C) then
+         elsif (rxData = "0001011010") then
             v.wrEn := '1';
          end if;
       end if;
