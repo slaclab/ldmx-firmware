@@ -32,7 +32,7 @@ create_generated_clock \
     
 create_clock -period 2.692 -name gtRefClk371 [get_ports gtRefClk371P]
 
-create_generated_clock -name gtRefClk371Div2 [get_pins U_HpsFebPgp_1/U_Pgp2fcGtp7Wrapper_1/BUFDS_GTE2_0_GEN.IBUFDS_GTE2_0/ODIV2]
+create_generated_clock -name gtRefClk371Div2 [get_pins U_HpsFebPgp_1/NO_SIM.U_Pgp2fcGtp7Wrapper_1/BUFDS_GTE2_0_GEN.IBUFDS_GTE2_0/ODIV2]
 
 
 create_clock -period 3.846 -name adcDClk[0] [get_ports {adcDClkP[0]}]
@@ -57,11 +57,11 @@ create_generated_clock -name adcBitClkR[3] -source [get_ports {adcDClkP[3]}] -di
 
 
 
-set rxRecClkPin [get_pins {U_HpsFebPgp_1/U_Pgp2fcGtp7Wrapper_1/Pgp2fcGtp7_Inst/Gtp7Core_1/gtpe2_i/RXOUTCLK}]
+set rxRecClkPin [get_pins {U_HpsFebPgp_1/NO_SIM.U_Pgp2fcGtp7Wrapper_1/Pgp2fcGtp7_Inst/Gtp7Core_1/gtpe2_i/RXOUTCLK}]
 create_clock -name pgp2fcRxOutClk -period 5.385 ${rxRecClkPin}
 
-create_generated_clock -name pgp2fcRxUsrClk [get_pins U_HpsFebPgp_1/U_Pgp2fcGtp7Wrapper_1/RxClkMmcmGen.ClockManager7_1/PllGen.U_Pll/CLKOUT0]
-create_generated_clock -name pgp2fcTxUsrClk [get_pins U_HpsFebPgp_1/U_Pgp2fcGtp7Wrapper_1/TX_CM_GEN.ClockManager7_TX/MmcmGen.U_Mmcm/CLKOUT0]
+create_generated_clock -name pgp2fcRxUsrClk [get_pins U_HpsFebPgp_1/NO_SIM.U_Pgp2fcGtp7Wrapper_1/RxClkMmcmGen.ClockManager7_1/PllGen.U_Pll/CLKOUT0]
+create_generated_clock -name pgp2fcTxUsrClk [get_pins U_HpsFebPgp_1/NO_SIM.U_Pgp2fcGtp7Wrapper_1/TX_CM_GEN.ClockManager7_TX/MmcmGen.U_Mmcm/CLKOUT0]
 
 
 set daqClk37Pin [get_pins {U_FebCore_1/DaqTiming_1/r_reg[daqClk37]/Q}]
