@@ -10,3 +10,6 @@
 [submodule "firmware/submodules/ldmx-fastcontrol"]
 	path = firmware/submodules/ldmx-fastcontrol
 	url = git@github.com:/LDMX-Firmware/ldmx-fastcontrol.git
+[submodule "firmware/submodules/axi-pcie-core"]
+	path = firmware/submodules/axi-pcie-core
+	url = git@github.com:slaclab/axi-pcie-core
