@@ -326,7 +326,7 @@ begin
                         end if;
                         if (r.apvBufferAddresses(i) /= dataPathOut(r.hybridNum)(r.apvNum).data(i)(8 downto 1)) then
                            v.syncError      := '1';
-                           v.syncErrorCount := r.syncErrorCount + 1;
+                           --v.syncErrorCount := r.syncErrorCount + 1;
                         end if;
                      end if;
                   end loop;
