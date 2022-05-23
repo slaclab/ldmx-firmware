@@ -14,11 +14,17 @@ class HpsFebRoot(pr.Root):
         srpStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT)
         dataStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT+2)
 
+        sideband = pyrogue.interfaces.simulation.SideBandSim('localhost', SIM_SRP_PORT+8)
+
         srp = rogue.protocols.srp.SrpV3()
 
         srpStream == srp
 
-        self.addInterface(srpStream, dataStream, srp)
+        dataDebug = rogue.interfaces.stream.Slave()
+        dataDebug.setDebug(100, "EventStream")
+        dataStream >> dataDebug
+
+        self.addInterface(srpStream, dataStream, srp, sideband)
         
 
         self.add(ldmx.HpsFeb(
@@ -27,3 +33,19 @@ class HpsFebRoot(pr.Root):
             sim = False,
             expand = True,
             numHybrids = 4))
+
+        @self.command()
+        def Trigger():
+            sideband.send(opCode=0x5A)
+
+        @self.command()
+        def RunStart():
+            sideband.send(opCode=0xF0)
+
+        @self.command()
+        def ApvClkAlign():
+            sideband.send(opCode=0xA5)
+
+        @self.command()
+        def ApvReset101():
+            sideband.send(opCode=0x1F)

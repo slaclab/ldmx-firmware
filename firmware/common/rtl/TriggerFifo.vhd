@@ -26,6 +26,7 @@ library surf;
 use surf.StdRtlPkg.all;
 
 library ldmx;
+use ldmx.HpsPkg.all;
 
 entity TriggerFifo is
 
@@ -109,10 +110,10 @@ begin
       v.counter := r.counter + 1;
 
       if (rxDataEn = '1') then
-         if (rxData = "1111100000") then
+         if (rxData(7 downto 0) = X"F0") then
             v.counter := (others => '0');
             v.fifoRst := '1';
-         elsif (rxData = "0001011010") then
+         elsif (rxData = DAQ_TRIGGER_CODE_C) then
             v.wrEn := '1';
          end if;
       end if;
