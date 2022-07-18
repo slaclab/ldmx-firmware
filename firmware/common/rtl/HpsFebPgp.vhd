@@ -169,8 +169,8 @@ begin
    -- Ouput recovered clock and FC bus
    daqClk       <= pgpCtrlRxClk;
    daqRst       <= pgpCtrlRxRst;
-   daqRxFcValid <= pgpCtrlRxFcValid;
-   daqRxFcWord  <= pgpCtrlRxFcWord;
+   daqRxFcValid <= pgpCtrlRxOut.fcValid;
+   daqRxFcWord  <= pgpCtrlRxOut.fcWord(79 downto 0);
 
    PwrUpRst_1 : entity surf.PwrUpRst
       generic map (
@@ -241,10 +241,10 @@ begin
             pgpRxOut         => pgpCtrlRxOut,                     -- [out]
             pgpTxIn          => pgpCtrlTxIn,                      -- [in]
             pgpTxOut         => pgpCtrlTxOut,                     -- [out]
-            pgpTxFcValid     => pgpCtrlTxFcValid,                 -- [in]
-            pgpTxFcWord      => pgpCtrlTxFcWord,                  -- [in]
-            pgpRxFcValid     => pgpCtrlRxFcValid,                 -- [out]
-            pgpRxFcWord      => pgpCtrlRxFcWord,                  -- [out]
+--             pgpTxFcValid     => pgpCtrlTxFcValid,                 -- [in]
+--             pgpTxFcWord      => pgpCtrlTxFcWord,                  -- [in]
+--             pgpRxFcValid     => pgpCtrlRxFcValid,                 -- [out]
+--             pgpRxFcWord      => pgpCtrlRxFcWord,                  -- [out]
             pgpTxMasters     => pgpCtrlTxMasters,                 -- [in]
             pgpTxSlaves      => pgpCtrlTxSlaves,                  -- [out]
             pgpRxMasters     => pgpCtrlRxMasters,                 -- [out]
@@ -312,10 +312,10 @@ begin
             pgpRxOut     => pgpCtrlRxOut,                  -- [out]
             pgpTxIn      => pgpCtrlTxIn,                   -- [in]
             pgpTxOut     => pgpCtrlTxOut,                  -- [out]
-            pgpTxFcValid => pgpCtrlTxFcValid,                  -- [in]
-            pgpTxFcWord  => pgpCtrlTxFcWord(7 downto 0),       -- [in]
-            pgpRxFcValid => pgpCtrlRxFcValid,                  -- [out]
-            pgpRxFcWord  => pgpCtrlRxFcWord(7 downto 0),       -- [out]            
+            pgpTxFcValid => pgpCtrlTxFcValid,              -- [in]
+            pgpTxFcWord  => pgpCtrlTxFcWord(7 downto 0),   -- [in]
+            pgpRxFcValid => pgpCtrlRxFcValid,              -- [out]
+            pgpRxFcWord  => pgpCtrlRxFcWord(7 downto 0),   -- [out]            
             pgpTxMasters => pgpCtrlTxMasters(1 downto 0),  -- [in]
             pgpTxSlaves  => pgpCtrlTxSlaves(1 downto 0),   -- [out]
             pgpRxMasters => pgpCtrlRxMasters(1 downto 0),  -- [out]
@@ -329,6 +329,7 @@ begin
          COMMON_RX_CLK_G    => false,
          WRITE_EN_G         => false,
          AXI_CLK_FREQ_G     => 125.0e6,                       -- check this
+         FC_WORDS_G         => 5,
          STATUS_CNT_WIDTH_G => 32,
          ERROR_CNT_WIDTH_G  => 8)
       port map (
@@ -407,7 +408,7 @@ begin
          TPD_G                  => TPD_G,
          INT_PIPE_STAGES_G      => 1,
          PIPE_STAGES_G          => 1,
-         SLAVE_READY_EN_G       => ROGUE_SIM_G, 
+         SLAVE_READY_EN_G       => ROGUE_SIM_G,
          VALID_THOLD_G          => 1,
          VALID_BURST_MODE_G     => false,
          MEMORY_TYPE_G          => "block",
@@ -423,15 +424,15 @@ begin
          SLAVE_AXI_CONFIG_G     => EVENT_SSI_CONFIG_C,
          MASTER_AXI_CONFIG_G    => SSI_PGP2FC_CONFIG_C)
       port map (
-         sAxisClk    => dataClk,                 -- [in]
-         sAxisRst    => dataRst,                 -- [in]
-         sAxisMaster => dataAxisMaster,          -- [in]
-         sAxisSlave  => dataAxisSlave,           -- [out]
-         sAxisCtrl   => dataAxisCtrl,            -- [out]
-         mAxisClk    => pgpCtrlTxClk,            -- [in]
-         mAxisRst    => pgpCtrlTxRst,            -- [in]
-         mAxisMaster => pgpCtrlTxMasters(1),     -- [out]
-         mAxisSlave  => pgpCtrlTxSlaves(1));     -- [in]
+         sAxisClk    => dataClk,              -- [in]
+         sAxisRst    => dataRst,              -- [in]
+         sAxisMaster => dataAxisMaster,       -- [in]
+         sAxisSlave  => dataAxisSlave,        -- [out]
+         sAxisCtrl   => dataAxisCtrl,         -- [out]
+         mAxisClk    => pgpCtrlTxClk,         -- [in]
+         mAxisRst    => pgpCtrlTxRst,         -- [in]
+         mAxisMaster => pgpCtrlTxMasters(1),  -- [out]
+         mAxisSlave  => pgpCtrlTxSlaves(1));  -- [in]
 
    -------------------------------------------------------------------------------------------------
    -- AXIL Crossbar
