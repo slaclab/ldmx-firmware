@@ -90,19 +90,15 @@ begin
          AXI_BASE_ADDR_G   => AXI_BASE_ADDR_G)
       port map (
          -- QSFP[0] Ports
-         qsfp0RefClkP(0) => qsfp0RefClkP(1),  -- 156.25 MHz clock mapped to qsfp0RefClkP(0) in wrapper
-         qsfp0RefClkP(1) => qsfp0RefClkP(0),
-         qsfp0RefClkN(0) => qsfp0RefClkN(1),
-         qsfp0RefClkN(1) => qsfp0RefClkN(0),
+         qsfp0RefClkP    => qsfp0RefClkP,
+         qsfp0RefClkN    => qsfp0RefClkN,
          qsfp0RxP        => qsfp0RxP,
          qsfp0RxN        => qsfp0RxN,
          qsfp0TxP        => qsfp0TxP,
          qsfp0TxN        => qsfp0TxN,
          -- QSFP[1] Ports
-         qsfp1RefClkP(0) => qsfp1RefClkP(1),  -- 156.25 MHz clock mapped to qsfp1RefClkP(0) in wrapper
-         qsfp1RefClkP(1) => qsfp1RefClkP(0),
-         qsfp1RefClkN(0) => qsfp1RefClkN(1),
-         qsfp1RefClkN(1) => qsfp1RefClkN(0),
+         qsfp1RefClkP    => qsfp1RefClkP,
+         qsfp1RefClkN    => qsfp1RefClkN,
          qsfp1RxP        => qsfp1RxP,
          qsfp1RxN        => qsfp1RxN,
          qsfp1TxP        => qsfp1TxP,

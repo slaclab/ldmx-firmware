@@ -126,16 +126,18 @@ begin
 
    --------------------------------
    -- Mapping QSFP[1:0] to PGP[7:0]
+   -- qsfp*RefClkP(1) is reprogrammable via Si570
+   -- Use that one
    --------------------------------
    MAP_QSFP : for i in 3 downto 0 generate
       -- QSFP[0] to PGP[3:0]
-      pgpRefClk(i+0) <= refClk(0);
+      pgpRefClk(i+0) <= refClk(2);
       pgpRxP(i+0)    <= qsfp0RxP(i);
       pgpRxN(i+0)    <= qsfp0RxN(i);
       qsfp0TxP(i)    <= pgpTxP(i+0);
       qsfp0TxN(i)    <= pgpTxN(i+0);
       -- QSFP[1] to PGP[7:4]
-      pgpRefClk(i+4) <= refClk(1);
+      pgpRefClk(i+4) <= refClk(3);
       pgpRxP(i+4)    <= qsfp1RxP(i);
       pgpRxN(i+4)    <= qsfp1RxN(i);
       qsfp1TxP(i)    <= pgpTxP(i+4);
