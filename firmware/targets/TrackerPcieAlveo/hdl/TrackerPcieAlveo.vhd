@@ -195,7 +195,7 @@ begin
    U_AlveoPGP : entity ldmx.PgpFcAlveo
       generic map (
          TPD_G             => TPD_G,
-         DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G)
+         DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C)
       port map (
          ------------------------
          --  Top Level Interfaces
