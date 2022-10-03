@@ -61,9 +61,6 @@ architecture mapping of RefclkMon is
    signal refClkBufg  : slv(3 downto 0);
    signal refClkFreq  : Slv32Array(3 downto 0);
 
-   attribute dont_touch                : string;
-   attribute dont_touch of unusedGtClk : signal is "TRUE";
-
 begin
 
    GEN_VEC : for i in 3 downto 0 generate
