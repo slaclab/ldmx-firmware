@@ -11,6 +11,7 @@
 
 import rogue
 import pyrogue as pr
+import pyrogue.interfaces.simulation
 
 import axipcie
 
@@ -31,6 +32,7 @@ class TrackerPcieAlveoRoot(pr.Root):
         if sim:
             self.memMap = rogue.interfaces.memory.TcpClient('localhost', 11000)
         else:
+#            self.memMap = pyrogue.interfaces.simulation.MemEmulate()
             self.memMap = rogue.hardware.axi.AxiMemMap(dev,)
 
         self.addInterface(self.memMap)

@@ -71,7 +71,7 @@ end PgpLaneWrapper;
 
 architecture mapping of PgpLaneWrapper is
 
-   constant NUM_AXI_MASTERS_C : natural := 8;
+   constant NUM_AXI_MASTERS_C : natural := 9;
 
    constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXI_BASE_ADDR_G, 20, 16);
 
@@ -164,6 +164,19 @@ begin
          mAxiWriteSlaves     => axilWriteSlaves,
          mAxiReadMasters     => axilReadMasters,
          mAxiReadSlaves      => axilReadSlaves);
+
+   U_RefclkMon_1 : entity ldmx.RefclkMon
+      generic map (
+         TPD_G           => TPD_G,
+         AXIL_CLK_FREQ_G => AXIL_CLK_FREQ_G)
+      port map (
+         axilClk         => axilClk,              -- [in]
+         axilRst         => axilRst,              -- [in]
+         axilReadMaster  => axilReadMasters(8),   -- [in]
+         axilReadSlave   => axilReadSlaves(8),    -- [out]
+         axilWriteMaster => axilWriteMasters(8),  -- [in]
+         axilWriteSlave  => axilWriteSlaves(8),   -- [out]
+         qsfpRefClk      => refClk);              -- [in]
 
    ------------
    -- PGP Lanes

@@ -9,7 +9,7 @@ class PgpLane(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.add(surf.xilinx.Gthe3Channel(
+        self.add(surf.xilinx.Gtye4Channel(
             offset = 0x0000))
 
         self.add(surf.protocols.pgp.Pgp2fcAxi(
