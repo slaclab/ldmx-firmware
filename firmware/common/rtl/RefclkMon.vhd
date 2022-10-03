@@ -89,7 +89,7 @@ begin
             locClk  => axilClk,
             refClk  => axilClk);
 
-   end generate GEN_FREQ_MON;
+   end generate;
 
    comb : process (axilReadMaster, axilRst, axilWriteMaster, r, refClkFreq) is
       variable v      : RegType;
