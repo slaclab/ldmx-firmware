@@ -89,9 +89,6 @@ architecture mapping of PgpLaneWrapper is
    signal refClk     : slv((2*REFCLK_WIDTH_G)-1 downto 0);
    signal userRefClk : slv((2*REFCLK_WIDTH_G)-1 downto 0);
 
-   attribute dont_touch           : string;
-   attribute dont_touch of refClk : signal is "TRUE";
-
 begin
 
    ------------------------
