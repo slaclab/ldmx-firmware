@@ -22,6 +22,8 @@ set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks ddrClk]
 
 
+create_clock -period 5.385 -name qsfp0RefClkP0 [get_ports {qsfp0RefClkP[0]}]
+create_clock -period 5.385 -name qsfp1RefClkP0 [get_ports {qsfp1RefClkP[0]}]
 create_clock -period 5.385 -name qsfp0RefClkP1 [get_ports {qsfp0RefClkP[1]}]
 create_clock -period 5.385 -name qsfp1RefClkP1 [get_ports {qsfp1RefClkP[1]}]
 create_clock -period 5.385 -name userClkP   [get_ports {userClkP}]
@@ -31,6 +33,21 @@ set_clock_groups -asynchronous \
     -group [get_clocks dnaClk] \
     -group [get_clocks iprogClk]
 
+set_clock_groups -asynchronous \
+    -group [get_clocks -include_generated_clocks {qsfp0RefClkP1}] \
+    -group [get_clocks {appAxilClk}]
+
+set_clock_groups -asynchronous \
+    -group [get_clocks -include_generated_clocks {qsfp1RefClkP1}] \
+    -group [get_clocks {appAxilClk}]
+
+set_clock_groups -asynchronous \
+    -group [get_clocks -include_generated_clocks {qsfp0RefClkP0}] \
+    -group [get_clocks {appAxilClk}]
+set_clock_groups -asynchronous \
+    -group [get_clocks -include_generated_clocks {qsfp1RefClkP0}] \
+    -group [get_clocks {appAxilClk}]
+	    
 
 set_clock_groups -asynchronous \
     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~U_AlveoPGP/U_Pgp/*/RXOUTCLK}]] \
