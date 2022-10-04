@@ -86,7 +86,8 @@ architecture mapping of PgpLaneWrapper is
    signal pgpTxP    : slv(7 downto 0);
    signal pgpTxN    : slv(7 downto 0);
 
-   signal refClk : slv((2*REFCLK_WIDTH_G)-1 downto 0);
+   signal refClk     : slv((2*REFCLK_WIDTH_G)-1 downto 0);
+   signal userRefClk : slv((2*REFCLK_WIDTH_G)-1 downto 0);
 
    attribute dont_touch           : string;
    attribute dont_touch of refClk : signal is "TRUE";
@@ -108,8 +109,8 @@ begin
             I     => qsfp0RefClkP(i),
             IB    => qsfp0RefClkN(i),
             CEB   => '0',
-            ODIV2 => open,
-            O     => refClk((2*i)+0));
+            ODIV2 => userRefClk(2*i),
+            O     => refClk((2*i)));
 
       U_QsfpRef1 : IBUFDS_GTE4
          generic map (
@@ -120,7 +121,7 @@ begin
             I     => qsfp1RefClkP(i),
             IB    => qsfp1RefClkN(i),
             CEB   => '0',
-            ODIV2 => open,
+            ODIV2 => userRefClk((2*i)+1),
             O     => refClk((2*i)+1));
    end generate GEN_REFCLK;
 
@@ -168,7 +169,7 @@ begin
    U_RefclkMon_1 : entity ldmx.RefclkMon
       generic map (
          TPD_G           => TPD_G,
-         AXIL_CLK_FREQ_G => 125.0e6 )
+         AXIL_CLK_FREQ_G => 125.0e6)
       port map (
          axilClk         => axilClk,              -- [in]
          axilRst         => axilRst,              -- [in]
@@ -176,7 +177,7 @@ begin
          axilReadSlave   => axilReadSlaves(8),    -- [out]
          axilWriteMaster => axilWriteMasters(8),  -- [in]
          axilWriteSlave  => axilWriteSlaves(8),   -- [out]
-         qsfpRefClk      => refClk);              -- [in]
+         qsfpRefClk      => userRefClk);          -- [in]
 
    ------------
    -- PGP Lanes
