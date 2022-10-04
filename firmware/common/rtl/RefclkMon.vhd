@@ -61,6 +61,9 @@ architecture mapping of RefclkMon is
    signal refClkBufg  : slv(3 downto 0);
    signal refClkFreq  : Slv32Array(3 downto 0);
 
+--   attribute CLOCK_DEDICATED_ROUTE : string;
+--   attribute CLOCK_DEDICATED_ROUTE of qsfpRefClk is "FALSE";
+
 begin
 
    GEN_VEC : for i in 3 downto 0 generate
