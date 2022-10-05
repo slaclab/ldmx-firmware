@@ -55,10 +55,6 @@ set_clock_groups -asynchronous \
     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~U_AlveoPGP/U_Pgp/*/TXOUTCLKPCS}]]  \
     -group [get_clocks appAxilClk]
 
-set_property CLOCK_DEDICATED_ROUTE ANY_CMT_COLUMN [get_nets U_AlveoPGP/U_Pgp/userRefClk[0]]
-set_property CLOCK_DEDICATED_ROUTE ANY_CMT_COLUMN [get_nets U_AlveoPGP/U_Pgp/userRefClk[1]]
-set_property CLOCK_DEDICATED_ROUTE ANY_CMT_COLUMN [get_nets U_AlveoPGP/U_Pgp/userRefClk[2]]
-set_property CLOCK_DEDICATED_ROUTE ANY_CMT_COLUMN [get_nets U_AlveoPGP/U_Pgp/userRefClk[3]]
 	    
 
 

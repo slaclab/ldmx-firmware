@@ -86,8 +86,9 @@ architecture mapping of PgpLaneWrapper is
    signal pgpTxP    : slv(7 downto 0);
    signal pgpTxN    : slv(7 downto 0);
 
-   signal refClk     : slv((2*REFCLK_WIDTH_G)-1 downto 0);
-   signal userRefClk : slv((2*REFCLK_WIDTH_G)-1 downto 0);
+   signal refClk      : slv((2*REFCLK_WIDTH_G)-1 downto 0);
+   signal userRefClk  : slv((2*REFCLK_WIDTH_G)-1 downto 0);
+   signal userRefClkG : slv((2*REFCLK_WIDTH_G)-1 downto 0);
 
 begin
 
@@ -121,6 +122,20 @@ begin
             ODIV2 => userRefClk((2*i)+1),
             O     => refClk((2*i)+1));
    end generate GEN_REFCLK;
+
+   GEN_USER_REF_BUFG_GT : for i in 3 downto 0 generate
+      U_BUFG : BUFG_GT
+         port map (
+            I       => userRefClk(i),
+            CE      => '1',
+            CEMASK  => '1',
+            CLR     => '0',
+            CLRMASK => '1',
+            DIV     => "000",           -- Divide-by-1
+            O       => userRefClkG(i));
+
+   end generate;
+
 
    --------------------------------
    -- Mapping QSFP[1:0] to PGP[7:0]
@@ -174,7 +189,7 @@ begin
          axilReadSlave   => axilReadSlaves(8),    -- [out]
          axilWriteMaster => axilWriteMasters(8),  -- [in]
          axilWriteSlave  => axilWriteSlaves(8),   -- [out]
-         qsfpRefClk      => userRefClk);          -- [in]
+         qsfpRefClk      => userRefClkG);         -- [in]
 
    ------------
    -- PGP Lanes

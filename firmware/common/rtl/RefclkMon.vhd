@@ -58,7 +58,6 @@ architecture mapping of RefclkMon is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal refClkBufg  : slv(3 downto 0);
    signal refClkFreq  : Slv32Array(3 downto 0);
 
 --   attribute CLOCK_DEDICATED_ROUTE : string;
@@ -68,15 +67,6 @@ begin
 
    GEN_VEC : for i in 3 downto 0 generate
 
-      U_BUFG : BUFG_GT
-         port map (
-            I       => qsfpRefClk(i),
-            CE      => '1',
-            CEMASK  => '1',
-            CLR     => '0',
-            CLRMASK => '1',
-            DIV     => "000",           -- Divide-by-1
-            O       => refClkBufg(i));
 
       U_appClkFreq : entity surf.SyncClockFreq
          generic map (
@@ -88,7 +78,7 @@ begin
             -- Frequency Measurement (locClk domain)
             freqOut => refClkFreq(i),
             -- Clocks
-            clkIn   => refClkBufg(i),
+            clkIn   => qsfpRefClk(i),
             locClk  => axilClk,
             refClk  => axilClk);
 
