@@ -12,4 +12,4 @@ loadSource      -lib ldmx -dir "$::DIR_PATH/hdl"
 loadSource      -lib ldmx -sim_only -dir "$::DIR_PATH/sim"
 loadConstraints -dir "$::DIR_PATH/hdl"
 
-set_property top "TrackerPcieAlveoTb"     [get_filesets sim_1]
+set_property top "PgpLaneTb"     [get_filesets sim_1]

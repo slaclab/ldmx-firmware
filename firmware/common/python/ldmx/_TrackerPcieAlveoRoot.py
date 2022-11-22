@@ -28,6 +28,8 @@ class TrackerPcieAlveoRoot(pr.Root):
             **kwargs):
         super().__init__(**kwargs)
 
+        print(f'{numLanes=}')
+
         # Create PCIE memory mapped interface
         if sim:
             self.memMap = rogue.interfaces.memory.TcpClient('localhost', 11000)
@@ -76,7 +78,7 @@ class TrackerPcieAlveoArgParser(argparse.ArgumentParser):
             "-l",
             type     = int,
             required = False,
-            default  = 1,
+            default  = 8,
             help     = "# of DMA Lanes",
         )
         

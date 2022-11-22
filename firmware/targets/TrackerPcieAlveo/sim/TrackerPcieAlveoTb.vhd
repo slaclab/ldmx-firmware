@@ -19,6 +19,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 library surf;
+use surf.StdRtlPkg.all;
 
 library ruckus;
 use ruckus.BuildInfoPkg.all;
@@ -37,44 +38,44 @@ architecture sim of TrackerPcieAlveoTb is
 
    -- component generics
    constant TPD_G                : time                        := 1 ns;
-   constant ROGUE_SIM_EN_G       : boolean                     := false;
-   constant ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 8000;
+   constant ROGUE_SIM_EN_G       : boolean                     := true;
+   constant ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000;
    constant DMA_BYTE_WIDTH_G     : integer range 8 to 64       := 16;
    constant BUILD_INFO_G         : BuildInfoType               := BUILD_INFO_C;
 
    -- component ports
-   signal ddrClkP       : sl;                     -- [in]
-   signal ddrClkN       : sl;                     -- [in]
-   signal qsfp0RefClkP  : slv(1 downto 0);        -- [in]
-   signal qsfp0RefClkN  : slv(1 downto 0);        -- [in]
-   signal qsfp0RxP      : slv(3 downto 0);        -- [in]
-   signal qsfp0RxN      : slv(3 downto 0);        -- [in]
-   signal qsfp0TxP      : slv(3 downto 0);        -- [out]
-   signal qsfp0TxN      : slv(3 downto 0);        -- [out]
-   signal qsfp1RefClkP  : slv(1 downto 0);        -- [in]
-   signal qsfp1RefClkN  : slv(1 downto 0);        -- [in]
-   signal qsfp1RxP      : slv(3 downto 0);        -- [in]
-   signal qsfp1RxN      : slv(3 downto 0);        -- [in]
-   signal qsfp1TxP      : slv(3 downto 0);        -- [out]
-   signal qsfp1TxN      : slv(3 downto 0);        -- [out]
-   signal userClkP      : sl;                     -- [in]
-   signal userClkN      : sl;                     -- [in]
-   signal i2cRstL       : sl;                     -- [out]
-   signal i2cScl        : sl;                     -- [inout]
-   signal i2cSda        : sl;                     -- [inout]
-   signal qsfpFs        : Slv2Array(1 downto 0);  -- [out]
-   signal qsfpRefClkRst : slv(1 downto 0);        -- [out]
-   signal qsfpRstL      : slv(1 downto 0);        -- [out]
-   signal qsfpLpMode    : slv(1 downto 0);        -- [out]
-   signal qsfpModSelL   : slv(1 downto 0);        -- [out]
-   signal qsfpModPrsL   : slv(1 downto 0);        -- [in]
-   signal pciRstL       : sl;                     -- [in]
-   signal pciRefClkP    : sl;                     -- [in]
-   signal pciRefClkN    : sl;                     -- [in]
-   signal pciRxP        : slv(15 downto 0);       -- [in]
-   signal pciRxN        : slv(15 downto 0);       -- [in]
-   signal pciTxP        : slv(15 downto 0);       -- [out]
-   signal pciTxN        : slv(15 downto 0);       -- [out]
+   signal ddrClkP       : sl                    := '0';                          -- [in]
+   signal ddrClkN       : sl                    := '0';                          -- [in]
+   signal qsfp0RefClkP  : slv(1 downto 0)       := (others => '0');              -- [in]
+   signal qsfp0RefClkN  : slv(1 downto 0)       := (others => '0');              -- [in]
+   signal qsfp0RxP      : slv(3 downto 0)       := (others => '0');              -- [in]
+   signal qsfp0RxN      : slv(3 downto 0)       := (others => '0');              -- [in]
+   signal qsfp0TxP      : slv(3 downto 0)       := (others => '0');              -- [out]
+   signal qsfp0TxN      : slv(3 downto 0)       := (others => '0');              -- [out]
+   signal qsfp1RefClkP  : slv(1 downto 0)       := (others => '0');              -- [in]
+   signal qsfp1RefClkN  : slv(1 downto 0)       := (others => '0');              -- [in]
+   signal qsfp1RxP      : slv(3 downto 0)       := (others => '0');              -- [in]
+   signal qsfp1RxN      : slv(3 downto 0)       := (others => '0');              -- [in]
+   signal qsfp1TxP      : slv(3 downto 0)       := (others => '0');              -- [out]
+   signal qsfp1TxN      : slv(3 downto 0)       := (others => '0');              -- [out]
+   signal userClkP      : sl                    := '0';                          -- [in]
+   signal userClkN      : sl                    := '0';                          -- [in]
+   signal i2cRstL       : sl                    := '1';                          -- [out]
+   signal i2cScl        : sl                    := 'H';                          -- [inout]
+   signal i2cSda        : sl                    := 'H';                          -- [inout]
+   signal qsfpFs        : Slv2Array(1 downto 0) := (others => (others => '0'));  -- [out]
+   signal qsfpRefClkRst : slv(1 downto 0)       := (others => '0');              -- [out]
+   signal qsfpRstL      : slv(1 downto 0)       := (others => '0');              -- [out]
+   signal qsfpLpMode    : slv(1 downto 0)       := (others => '0');              -- [out]
+   signal qsfpModSelL   : slv(1 downto 0)       := (others => '0');              -- [out]
+   signal qsfpModPrsL   : slv(1 downto 0)       := (others => '0');              -- [in]
+   signal pciRstL       : sl                    := '1';                          -- [in]
+   signal pciRefClkP    : sl                    := '0';                          -- [in]
+   signal pciRefClkN    : sl                    := '0';                          -- [in]
+   signal pciRxP        : slv(15 downto 0)      := (others => '0');              -- [in]
+   signal pciRxN        : slv(15 downto 0)      := (others => '0');              -- [in]
+   signal pciTxP        : slv(15 downto 0)      := (others => '0');              -- [out]
+   signal pciTxN        : slv(15 downto 0)      := (others => '0');              -- [out]
 
 begin
 
@@ -150,6 +151,16 @@ begin
 
    qsfp1RefClkP <= qsfp0RefClkP;
    qsfp1RefClkN <= qsfp0RefClkN;
+   userClkP     <= qsfp0RefClkP(1);
+   userClkN     <= qsfp0RefClkN(1);
+
+   U_ClkRst_4 : entity surf.ClkRst
+      generic map (
+         CLK_PERIOD_G => 10.0 ns,
+         CLK_DELAY_G  => 1 ns)
+      port map (
+         clkP => pciRefClkP,
+         clkN => pciRefClkN);
 
    -------------------------------------------------------------------------------------------------
    -- Loopback

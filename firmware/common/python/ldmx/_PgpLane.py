@@ -1,3 +1,4 @@
+import rogue
 
 import pyrogue as pr
 import surf.xilinx
@@ -31,4 +32,15 @@ class PgpLane(pr.Device):
             numberLanes = 4,
             hideConfig = False,
             chName = None))
+
+class PgpLaneTb(pr.Root):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.memMap = rogue.interfaces.memory.TcpClient('localhost', 11000)
+
+        self.addInterface(self.memMap)
+
+        self.add(PgpLane(
+            memBase = self.memMap))
         

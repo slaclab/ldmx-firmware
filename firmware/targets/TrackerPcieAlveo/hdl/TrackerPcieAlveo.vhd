@@ -139,58 +139,58 @@ begin
          -- Reset Outputs
          rstOut(0) => axilRst);
 
-   U_Core : entity axi_pcie_core.XilinxAlveoU200Core
-      generic map (
-         TPD_G                => TPD_G,
-         ROGUE_SIM_EN_G       => ROGUE_SIM_EN_G,
-         ROGUE_SIM_PORT_NUM_G => ROGUE_SIM_PORT_NUM_G,
-         BUILD_INFO_G         => BUILD_INFO_G,
-         DMA_AXIS_CONFIG_G    => DMA_AXIS_CONFIG_C,
-         DMA_SIZE_G           => 8)
-      port map (
-         ------------------------
-         --  Top Level Interfaces
-         ------------------------
-         userClk156      => userClk156,
-         -- DMA Interfaces
-         dmaClk          => dmaClk,
-         dmaRst          => dmaRst,
-         dmaBuffGrpPause => dmaBuffGrpPause,
-         dmaObMasters    => dmaObMasters,
-         dmaObSlaves     => dmaObSlaves,
-         dmaIbMasters    => dmaIbMasters,
-         dmaIbSlaves     => dmaIbSlaves,
-         -- AXI-Lite Interface
-         appClk          => axilClk,
-         appRst          => axilRst,
-         appReadMaster   => axilReadMaster,
-         appReadSlave    => axilReadSlave,
-         appWriteMaster  => axilWriteMaster,
-         appWriteSlave   => axilWriteSlave,
-         --------------
-         --  Core Ports
-         --------------
-         -- System Ports
-         userClkP        => userClkP,
-         userClkN        => userClkN,
-         i2cRstL         => i2cRstL,
-         i2cScl          => i2cScl,
-         i2cSda          => i2cSda,
-         -- QSFP[1:0] Ports
-         qsfpFs          => qsfpFs,
-         qsfpRefClkRst   => qsfpRefClkRst,
-         qsfpRstL        => qsfpRstL,
-         qsfpLpMode      => qsfpLpMode,
-         qsfpModSelL     => qsfpModSelL,
-         qsfpModPrsL     => qsfpModPrsL,
-         -- PCIe Ports
-         pciRstL         => pciRstL,
-         pciRefClkP      => pciRefClkP,
-         pciRefClkN      => pciRefClkN,
-         pciRxP          => pciRxP,
-         pciRxN          => pciRxN,
-         pciTxP          => pciTxP,
-         pciTxN          => pciTxN);
+--    U_Core : entity axi_pcie_core.XilinxAlveoU200Core
+--       generic map (
+--          TPD_G                => TPD_G,
+--          ROGUE_SIM_EN_G       => ROGUE_SIM_EN_G,
+--          ROGUE_SIM_PORT_NUM_G => ROGUE_SIM_PORT_NUM_G,
+--          BUILD_INFO_G         => BUILD_INFO_G,
+--          DMA_AXIS_CONFIG_G    => DMA_AXIS_CONFIG_C,
+--          DMA_SIZE_G           => 1)
+--       port map (
+--          ------------------------
+--          --  Top Level Interfaces
+--          ------------------------
+--          userClk156      => userClk156,
+--          -- DMA Interfaces
+--          dmaClk          => dmaClk,
+--          dmaRst          => dmaRst,
+--          dmaBuffGrpPause => dmaBuffGrpPause,
+--          dmaObMasters    => open, --dmaObMasters,
+--          dmaObSlaves     => (others => AXI_STREAM_SLAVE_FORCE_C), --dmaObSlaves,
+--          dmaIbMasters    => (others => AXI_STREAM_MASTER_INIT_C), --dmaIbMasters,
+--          dmaIbSlaves     => open, --dmaIbSlaves,
+--          -- AXI-Lite Interface
+--          appClk          => axilClk,
+--          appRst          => axilRst,
+--          appReadMaster   => axilReadMaster,
+--          appReadSlave    => axilReadSlave,
+--          appWriteMaster  => axilWriteMaster,
+--          appWriteSlave   => axilWriteSlave,
+--          --------------
+--          --  Core Ports
+--          --------------
+--          -- System Ports
+--          userClkP        => userClkP,
+--          userClkN        => userClkN,
+--          i2cRstL         => i2cRstL,
+--          i2cScl          => i2cScl,
+--          i2cSda          => i2cSda,
+--          -- QSFP[1:0] Ports
+--          qsfpFs          => qsfpFs,
+--          qsfpRefClkRst   => qsfpRefClkRst,
+--          qsfpRstL        => qsfpRstL,
+--          qsfpLpMode      => qsfpLpMode,
+--          qsfpModSelL     => qsfpModSelL,
+--          qsfpModPrsL     => qsfpModPrsL,
+--          -- PCIe Ports
+--          pciRstL         => pciRstL,
+--          pciRefClkP      => pciRefClkP,
+--          pciRefClkN      => pciRefClkN,
+--          pciRxP          => pciRxP,
+--          pciRxN          => pciRxN,
+--          pciTxP          => pciTxP,
+--          pciTxN          => pciTxN);
 
    U_AlveoPGP : entity ldmx.PgpFcAlveo
       generic map (

@@ -37,7 +37,7 @@ use ldmx.AppPkg.all;
 entity PgpLane is
    generic (
       TPD_G             : time                  := 1 ns;
-      LANE_G            : positive range 0 to 7 := 0;
+      LANE_G            : natural range 0 to 7 := 0;
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
       AXI_BASE_ADDR_G   : slv(31 downto 0)      := (others => '0'));
    port (
