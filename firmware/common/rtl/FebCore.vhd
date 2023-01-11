@@ -34,6 +34,7 @@ entity FebCore is
       TPD_G             : time                 := 1 ns;
       BUILD_INFO_G      : BuildInfoType        := BUILD_INFO_DEFAULT_SLV_C;
       SIMULATION_G      : boolean              := false;
+      XIL_DEVICE_G      : string               := "ULTRASCALE_PLUS";
       HYBRIDS_G         : integer range 1 to 8 := 8;
       APVS_PER_HYBRID_G : integer range 1 to 8 := 6;
       AXI_BASE_ADDR_G   : slv(31 downto 0)     := X"00000000");
@@ -166,8 +167,6 @@ architecture rtl of FebCore is
    signal triggerFifoData  : slv(63 downto 0);
    signal triggerFifoRdEn  : sl;
 
-   signal daqFcWordLong : slv(9 downto 0);
-
    -------------------------------------------------------------------------------------------------
    -- Data path outputs
    -------------------------------------------------------------------------------------------------
@@ -184,16 +183,16 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         distClk    => daqClk185,         -- [in]
-         distClkRst => daqRst185,         -- [in]
-         rxData     => daqFcWord(9 downto 0),     -- [in]
-         rxDataEn   => daqFcValid,        -- [in]
-         sysClk     => axilClk,           -- [in]
-         sysRst     => axilRst,           -- [in]
-         trigger    => trigger,           -- [out]
-         valid      => triggerFifoValid,  -- [out]
-         data       => triggerFifoData,   -- [out]
-         rdEn       => triggerFifoRdEn);  -- [in]
+         distClk    => daqClk185,              -- [in]
+         distClkRst => daqRst185,              -- [in]
+         rxData     => daqFcWord(9 downto 0),  -- [in]
+         rxDataEn   => daqFcValid,             -- [in]
+         sysClk     => axilClk,                -- [in]
+         sysRst     => axilRst,                -- [in]
+         trigger    => trigger,                -- [out]
+         valid      => triggerFifoValid,       -- [out]
+         data       => triggerFifoData,        -- [out]
+         rdEn       => triggerFifoRdEn);       -- [in]
 
 
    -------------------------------------------------------------------------------------------------
@@ -225,6 +224,7 @@ begin
          TPD_G           => TPD_G,
          BUILD_INFO_G    => BUILD_INFO_G,
          DEVICE_ID_G     => X"FEB00000",
+         XIL_DEVICE_G    => XIL_DEVICE_G,
          EN_DEVICE_DNA_G => true,
          EN_DS2411_G     => false,
          EN_ICAP_G       => true)
@@ -246,12 +246,12 @@ begin
    -------------------------------------------------------------------------------------------------
    DaqTiming_1 : entity ldmx.DaqTiming
       generic map (
-         TPD_G         => TPD_G,
-         HYBRIDS_G     => HYBRIDS_G)
+         TPD_G     => TPD_G,
+         HYBRIDS_G => HYBRIDS_G)
       port map (
          daqClk185      => daqClk185,
          daqRst185      => daqRst185,
-         daqFcWord      => daqFcWord(7 downto 0),
+         daqFcWord      => daqFcWord,
          daqFcValid     => daqFcValid,
          daqClk37       => daqClk37,
          daqClk37Rst    => daqClk37Rst,
@@ -368,8 +368,8 @@ begin
       -------------------------------------------------------------------------------------------------
       HybridIoCore_1 : entity ldmx.HybridI2c
          generic map (
-            TPD_G           => TPD_G,
-            SIMULATION_G    => SIMULATION_G,
+            TPD_G            => TPD_G,
+            SIMULATION_G     => SIMULATION_G,
             AXIL_BASE_ADDR_G => HYBRID_I2C_XBAR_CFG_C(i).baseAddr)
          port map (
             axilClk         => axilClk,

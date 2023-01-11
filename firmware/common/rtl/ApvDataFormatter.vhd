@@ -366,8 +366,10 @@ begin
 
 
       -- Assign default multi sample value
-      v.multiSample := multiSampleReset(toSlv(HYBRID_NUM_G, 3), toSlv(APV_NUM_G, 3),
-                                        febConfig.febAddress, "00000000");
+      v.multiSample := multiSampleReset(
+         toSlv(HYBRID_NUM_G, 3),
+         toSlv(APV_NUM_G, 3),
+         febConfig.febAddress);
 
       -- State machine
       -- Assign ScatterGather output to multiSample frame structure.

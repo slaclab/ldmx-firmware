@@ -22,9 +22,6 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-library axi_pcie_core;
-use axi_pcie_core.AxiPciePkg.all;
-
 library ldmx;
 use ldmx.AppPkg.all;
 

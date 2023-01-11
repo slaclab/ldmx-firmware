@@ -62,9 +62,10 @@ entity LdmxFebHw is
       adcClkN : out slv(ADCS_G-1 downto 0);
 
       -- ADC Config Interface
-      adcCsb  : out   slv(ADCS_G-1 downto 0);
+      adcCsb  : out   slv(ADCS_G*2-1 downto 0);
       adcSclk : out   slv(ADCS_G-1 downto 0);
       adcSdio : inout slv(ADCS_G-1 downto 0);
+      adcPdwn : out   slv(ADCS_G-1 downto 0);
 
       -- I2C Interfaces
       locI2cScl : inout sl;
@@ -72,11 +73,11 @@ entity LdmxFebHw is
 
       digPmBusScl    : inout sl;
       digPmBusSda    : inout sl;
-      digPmBusAlertL : inout sl;
+      digPmBusAlertL : in sl;
 
       anaPmBusScl    : inout sl;
       anaPmBusSda    : inout sl;
-      anaPmBusAlertL : inout sl;
+      anaPmBusAlertL : in sl;
 
       hyPwrI2cScl    : inout sl;
       hyPwrI2cSda    : inout sl;
@@ -137,59 +138,69 @@ architecture rtl of LdmxFebHw is
    -------------------------------------------------------------------------------------------------
    constant AXIL_CLK_FREQ_C : real := 1.0/AXIL_CLK_FREQ_G;
 
-   constant MAIN_XBAR_MASTERS_C : natural := 10;
+   constant MAIN_XBAR_MASTERS_C : natural := 11;
 
    -- Module AXI Addresses
-   constant AXI_HYBRID_A_CLOCK_PHASE_INDEX_C : natural := 0;
-   constant AXI_HYBRID_B_CLOCK_PHASE_INDEX_C : natural := 1;
-   constant AXI_ADC_CLOCK_PHASE_INDEX_C      : natural := 2;
-   constant AXI_LOC_I2C_INDEX_C              : natural := 3;
-   constant AXI_SYSMON_INDEX_C               : natural := 5;
-   constant AXI_PROM_INDEX_C                 : natural := 6;
-   constant AXI_HY_I2C_INDEX_C               : natural := 7;
-   constant AXI_ADC_READOUT_INDEX_C          : natural := 8;
-   constant AXI_ADC_CONFIG_INDEX_C           : natural := 9;
+   constant AXIL_HYBRID_A_CLOCK_PHASE_INDEX_C : natural := 0;
+   constant AXIL_HYBRID_B_CLOCK_PHASE_INDEX_C : natural := 1;
+   constant AXIL_ADC_CLOCK_PHASE_INDEX_C      : natural := 2;
+   constant AXIL_LOC_I2C_INDEX_C              : natural := 3;
+   constant AXIL_SYSMON_INDEX_C               : natural := 4;
+   constant AXIL_PROM_INDEX_C                 : natural := 5;
+   constant AXIL_HY_PWR_I2C_INDEX_C           : natural := 6;
+   constant AXIL_DIG_PM_INDEX_C               : natural := 7;
+   constant AXIL_ANA_PM_INDEX_C               : natural := 8;
+   constant AXIL_ADC_READOUT_INDEX_C          : natural := 9;
+   constant AXIL_ADC_CONFIG_INDEX_C           : natural := 10;
 
    constant MAIN_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(MAIN_XBAR_MASTERS_C-1 downto 0) := (
-      AXI_HYBRID_A_CLOCK_PHASE_INDEX_C => (  -- Hybrid (APV) Clock Phase Adjustment
-         baseAddr                      => AXI_BASE_ADDR_G + X"0000",
-         addrBits                      => 12,
-         connectivity                  => X"0001"),
-      AXI_HYBRID_B_CLOCK_PHASE_INDEX_C => (  -- Hybrid (APV) Clock Phase Adjustment
-         baseAddr                      => AXI_BASE_ADDR_G + X"1000",
-         addrBits                      => 12,
-         connectivity                  => X"0001"),
-      AXI_ADC_CLOCK_PHASE_INDEX_C      => (  -- ADC Clock Phase Adjustment
-         baseAddr                      => AXI_BASE_ADDR_G + X"2000",
-         addrBits                      => 12,
-         connectivity                  => X"0001"),
-      AXI_LOC_I2C_INDEX_C              => (  -- Board I2C Interface
-         baseAddr                      => AXI_BASE_ADDR_G + X"30000",
-         addrBits                      => 16,
-         connectivity                  => X"0001"),
-      AXI_SYSMON_INDEX_C               => (
-         baseAddr                      => AXI_BASE_ADDR_G + X"5000",
-         addrBits                      => 12,
-         connectivity                  => X"0001"),
-      AXI_PROM_INDEX_C                 => (
-         baseAddr                      => AXI_BASE_ADDR_G + X"6000",
-         addrBits                      => 12,
-         connectivity                  => X"0001"),
-      AXI_HY_I2C_INDEX_C               => (
-         baseAddr                      => AXI_BASE_ADDR_G + X"7000",
-         addrBits                      => 8,
-         connectivity                  => X"0001"),
-      AXI_ADC_READOUT_INDEX_C          => (
-         baseAddr                      => AXI_BASE_ADDR_G + X"10000",
-         addrBits                      => 12,
-         connectivity                  => X"0001"),
-      AXI_ADC_CONFIG_INDEX_C           => (
-         baseAddr                      => AXI_BASE_ADDR_G + X"20000",
-         addrBits                      => 16,
-         connectivity                  => X"0001"));
+      AXIL_HYBRID_A_CLOCK_PHASE_INDEX_C => (    -- Hybrid (APV) Clock Phase Adjustment
+         baseAddr                       => AXIL_BASE_ADDR_G + X"0000",
+         addrBits                       => 9,
+         connectivity                   => X"0001"),
+      AXIL_HYBRID_B_CLOCK_PHASE_INDEX_C => (    -- Hybrid (APV) Clock Phase Adjustment
+         baseAddr                       => AXIL_BASE_ADDR_G + X"1000",
+         addrBits                       => 9,
+         connectivity                   => X"0001"),
+      AXIL_ADC_CLOCK_PHASE_INDEX_C      => (    -- ADC Clock Phase Adjustment
+         baseAddr                       => AXIL_BASE_ADDR_G + X"2000",
+         addrBits                       => 9,
+         connectivity                   => X"0001"),
+      AXIL_LOC_I2C_INDEX_C              => (    -- Board I2C Interface
+         baseAddr                       => AXIL_BASE_ADDR_G + X"10_0000",
+         addrBits                       => 20,
+         connectivity                   => X"0001"),
+      AXIL_SYSMON_INDEX_C               => (
+         baseAddr                       => AXIL_BASE_ADDR_G + X"1_0000",
+         addrBits                       => 13,
+         connectivity                   => X"0001"),
+      AXIL_PROM_INDEX_C                 => (
+         baseAddr                       => AXIL_BASE_ADDR_G + X"3000",
+         addrBits                       => 10,
+         connectivity                   => X"0001"),
+      AXIL_HY_PWR_I2C_INDEX_C           => (
+         baseAddr                       => AXIL_BASE_ADDR_G + X"2_0000",
+         addrBits                       => 16,
+         connectivity                   => X"0001"),
+      AXIL_DIG_PM_INDEX_C               => (
+         baseAddr                       => AXIL_BASE_ADDR_G + X"3_0000",
+         addrBits                       => 16,  -- Might be 14 but this is fine
+         connectivity                   => X"0001"),
+      AXIL_ANA_PM_INDEX_C               => (
+         baseAddr                       => AXIL_BASE_ADDR_G + X"4_0000",
+         addrBits                       => 16,  -- Probably less than 12
+         connectivity                   => X"0001"),
+      AXIL_ADC_READOUT_INDEX_C          => (
+         baseAddr                       => AXIL_BASE_ADDR_G + X"5_0000",
+         addrBits                       => 12,
+         connectivity                   => X"0001"),
+      AXIL_ADC_CONFIG_INDEX_C           => (
+         baseAddr                       => AXIL_BASE_ADDR_G + X"6_0000",
+         addrBits                       => 16,
+         connectivity                   => X"0001"));
 
---       SEM_AXI_INDEX_C      => (
---          baseAddr          => SEM_AXI_BASE_ADDR_G,
+--       SEM_AXIL_INDEX_C      => (
+--          baseAddr          => SEM_AXIL_BASE_ADDR_G,
 --          addrBits          => 8,
 --          connectivity      => X"0001"));
 
@@ -198,14 +209,14 @@ architecture rtl of LdmxFebHw is
    signal mainAxilReadMasters  : AxiLiteReadMasterArray(MAIN_XBAR_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
    signal mainAxilReadSlaves   : AxiLiteReadSlaveArray(MAIN_XBAR_MASTERS_C-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
-   constant ADC_READOUT_AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray := genAxiLiteConfig(ADCS_G*2, MAIN_XBAR_CFG_C(AXI_ADC_READOUT_INDEX_C).baseAddr, 12, 8);
+   constant ADC_READOUT_AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray := genAxiLiteConfig(ADCS_G*2, MAIN_XBAR_CFG_C(AXIL_ADC_READOUT_INDEX_C).baseAddr, 12, 8);
 
    signal adcReadoutAxilWriteMasters : AxiLiteWriteMasterArray(ADCS_G*2-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
    signal adcReadoutAxilWriteSlaves  : AxiLiteWriteSlaveArray(ADCS_G*2-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
    signal adcReadoutAxilReadMasters  : AxiLiteReadMasterArray(ADCS_G*2-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
    signal adcReadoutAxilReadSlaves   : AxiLiteReadSlaveArray(ADCS_G*2-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
-   constant ADC_CONFIG_AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray := genAxiLiteConfig(ADCS_G, MAIN_XBAR_CFG_C(AXI_ADC_CONFIG_INDEX_C).baseAddr, 16, 12);
+   constant ADC_CONFIG_AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray := genAxiLiteConfig(ADCS_G, MAIN_XBAR_CFG_C(AXIL_ADC_CONFIG_INDEX_C).baseAddr, 16, 12);
 
    signal adcConfigAxilWriteMasters : AxiLiteWriteMasterArray(ADCS_G-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
    signal adcConfigAxilWriteSlaves  : AxiLiteWriteSlaveArray(ADCS_G-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
@@ -222,8 +233,13 @@ architecture rtl of LdmxFebHw is
    -- ADC
    constant ADC_SCLK_PERIOD_C : real := ite(SIMULATION_G, 50.0e-9, 1.0e-6);
 
-   signal adcSerial : Ad9249SerialGroupType;
+   signal adcSerial : Ad9249SerialGroupArray(HYBRIDS_G-1 downto 0);
 
+   signal hyClkInt    : slv(HYBRIDS_G-1 downto 0) := (others => '0');
+   signal hyClkRstInt : slv(HYBRIDS_G-1 downto 0) := (others => '0');
+   signal adcClk      : slv(ADCS_G-1 downto 0)    := (others => '0');
+   signal adcClkRst   : slv(ADCS_G-1 downto 0)    := (others => '0');
+   signal hyPwrEnL    : slv(HYBRIDS_G-1 downto 0);
 
 
 begin
@@ -258,10 +274,10 @@ begin
       port map (
          axiClk              => axilClk,
          axiClkRst           => axilRst,
-         sAxiWriteMasters(0) => mainAxilWriteMasters(AXI_ADC_READOUT_INDEX_C),
-         sAxiWriteSlaves(0)  => mainAxilWriteSlaves(AXI_ADC_READOUT_INDEX_C),
-         sAxiReadMasters(0)  => mainAxilReadMasters(AXI_ADC_READOUT_INDEX_C),
-         sAxiReadSlaves(0)   => mainAxilReadSlaves(AXI_ADC_READOUT_INDEX_C),
+         sAxiWriteMasters(0) => mainAxilWriteMasters(AXIL_ADC_READOUT_INDEX_C),
+         sAxiWriteSlaves(0)  => mainAxilWriteSlaves(AXIL_ADC_READOUT_INDEX_C),
+         sAxiReadMasters(0)  => mainAxilReadMasters(AXIL_ADC_READOUT_INDEX_C),
+         sAxiReadSlaves(0)   => mainAxilReadSlaves(AXIL_ADC_READOUT_INDEX_C),
          mAxiWriteMasters    => adcReadoutAxilWriteMasters,
          mAxiWriteSlaves     => adcReadoutAxilWriteSlaves,
          mAxiReadMasters     => adcReadoutAxilReadMasters,
@@ -276,18 +292,18 @@ begin
       port map (
          axiClk              => axilClk,
          axiClkRst           => axilRst,
-         sAxiWriteMasters(0) => mainAxilWriteMasters(AXI_ADC_CONFIG_INDEX_C),
-         sAxiWriteSlaves(0)  => mainAxilWriteSlaves(AXI_ADC_CONFIG_INDEX_C),
-         sAxiReadMasters(0)  => mainAxilReadMasters(AXI_ADC_CONFIG_INDEX_C),
-         sAxiReadSlaves(0)   => mainAxilReadSlaves(AXI_ADC_CONFIG_INDEX_C),
+         sAxiWriteMasters(0) => mainAxilWriteMasters(AXIL_ADC_CONFIG_INDEX_C),
+         sAxiWriteSlaves(0)  => mainAxilWriteSlaves(AXIL_ADC_CONFIG_INDEX_C),
+         sAxiReadMasters(0)  => mainAxilReadMasters(AXIL_ADC_CONFIG_INDEX_C),
+         sAxiReadSlaves(0)   => mainAxilReadSlaves(AXIL_ADC_CONFIG_INDEX_C),
          mAxiWriteMasters    => adcConfigAxilWriteMasters,
          mAxiWriteSlaves     => adcConfigAxilWriteSlaves,
          mAxiReadMasters     => adcConfigAxilReadMasters,
          mAxiReadSlaves      => adcConfigAxilReadSlaves);
 
-   -------------------------------------------------------------------------------------------------
-   -- Clock Phase Shifts
-   -------------------------------------------------------------------------------------------------
+--    -------------------------------------------------------------------------------------------------
+--    -- Clock Phase Shifts
+--    -------------------------------------------------------------------------------------------------
    U_ClockManagerUltraScale_HY_A : entity surf.ClockManagerUltraScale
       generic map (
          TPD_G              => TPD_G,
@@ -307,18 +323,18 @@ begin
          CLKOUT2_DIVIDE_G   => 32,
          CLKOUT3_DIVIDE_G   => 32)
       port map (
-         clkIn           => daqClk37,                                                -- [in]
-         rstIn           => daqClk37Rst,                                             -- [in]
-         clkOut          => hyClkInt(3 downto 0),                                    -- [out]
-         rstOut          => hyClkRstInt(3 downto 0),                                 -- [out]
-         axilClk         => axilClk,                                                 -- [in]
-         axilRst         => axilRst,                                                 -- [in]
-         axilReadMaster  => mainAxilReadMasters(AXI_HYBRID_A_CLOCK_PHASE_INDEX_C),   -- [in]
-         axilReadSlave   => mainAxilReadSlaves(AXI_HYBRID_A_CLOCK_PHASE_INDEX_C),    -- [out]
-         axilWriteMaster => mainAxilWriteMasters(AXI_HYBRID_A_CLOCK_PHASE_INDEX_C),  -- [in]
-         axilWriteSlave  => mainAxilWriteSlaves(AXI_HYBRID_A_CLOCK_PHASE_INDEX_C));  -- [out]
+         clkIn           => daqClk37,                                                 -- [in]
+         rstIn           => daqClk37Rst,                                              -- [in]
+         clkOut          => hyClkInt(3 downto 0),                                     -- [out]
+         rstOut          => hyClkRstInt(3 downto 0),                                  -- [out]
+         axilClk         => axilClk,                                                  -- [in]
+         axilRst         => axilRst,                                                  -- [in]
+         axilReadMaster  => mainAxilReadMasters(AXIL_HYBRID_A_CLOCK_PHASE_INDEX_C),   -- [in]
+         axilReadSlave   => mainAxilReadSlaves(AXIL_HYBRID_A_CLOCK_PHASE_INDEX_C),    -- [out]
+         axilWriteMaster => mainAxilWriteMasters(AXIL_HYBRID_A_CLOCK_PHASE_INDEX_C),  -- [in]
+         axilWriteSlave  => mainAxilWriteSlaves(AXIL_HYBRID_A_CLOCK_PHASE_INDEX_C));  -- [out]
 
-   U_ClockManagerUltraScale_1 : entity surf.ClockManagerUltraScale
+   U_ClockManagerUltraScale_HY_B : entity surf.ClockManagerUltraScale
       generic map (
          TPD_G              => TPD_G,
          SIMULATION_G       => false,
@@ -337,23 +353,23 @@ begin
          CLKOUT2_DIVIDE_G   => 32,
          CLKOUT3_DIVIDE_G   => 32)
       port map (
-         clkIn           => daqClk37,                                                -- [in]
-         rstIn           => daqClk37Rst,                                             -- [in]
-         clkOut          => hyClkInt(7 downto 4),                                    -- [out]
-         rstOut          => hyClkRstInt(7 downto 4),                                 -- [out]
-         axilClk         => axilClk,                                                 -- [in]
-         axilRst         => axilRst,                                                 -- [in]
-         axilReadMaster  => mainAxilReadMasters(AXI_HYBRID_B_CLOCK_PHASE_INDEX_C),   -- [in]
-         axilReadSlave   => mainAxilReadSlaves(AXI_HYBRID_B_CLOCK_PHASE_INDEX_C),    -- [out]
-         axilWriteMaster => mainAxilWriteMasters(AXI_HYBRID_B_CLOCK_PHASE_INDEX_C),  -- [in]
-         axilWriteSlave  => mainAxilWriteSlaves(AXI_HYBRID_B_CLOCK_PHASE_INDEX_C));  -- [out]
+         clkIn           => daqClk37,                                                 -- [in]
+         rstIn           => daqClk37Rst,                                              -- [in]
+         clkOut          => hyClkInt(7 downto 4),                                     -- [out]
+         rstOut          => hyClkRstInt(7 downto 4),                                  -- [out]
+         axilClk         => axilClk,                                                  -- [in]
+         axilRst         => axilRst,                                                  -- [in]
+         axilReadMaster  => mainAxilReadMasters(AXIL_HYBRID_B_CLOCK_PHASE_INDEX_C),   -- [in]
+         axilReadSlave   => mainAxilReadSlaves(AXIL_HYBRID_B_CLOCK_PHASE_INDEX_C),    -- [out]
+         axilWriteMaster => mainAxilWriteMasters(AXIL_HYBRID_B_CLOCK_PHASE_INDEX_C),  -- [in]
+         axilWriteSlave  => mainAxilWriteSlaves(AXIL_HYBRID_B_CLOCK_PHASE_INDEX_C));  -- [out]
 
    -- Assign to outputs for FebCore
    hyClk    <= hyClkInt;
    hyClkRst <= hyClkRstInt;
 
 
-   U_ClockManagerUltraScale_1 : entity surf.ClockManagerUltraScale
+   U_ClockManagerUltraScale_ADC : entity surf.ClockManagerUltraScale
       generic map (
          TPD_G              => TPD_G,
          SIMULATION_G       => false,
@@ -372,16 +388,16 @@ begin
          CLKOUT2_DIVIDE_G   => 32,
          CLKOUT3_DIVIDE_G   => 32)
       port map (
-         clkIn           => daqClk37,                                           -- [in]
-         rstIn           => daqClk37Rst,                                        -- [in]
-         clkOut          => adcClk,                                             -- [out]
-         rstOut          => adcClkRst,                                          -- [out]
-         axilClk         => axilClk,                                            -- [in]
-         axilRst         => axilRst,                                            -- [in]
-         axilReadMaster  => mainAxilReadMasters(AXI_ADC_CLOCK_PHASE_INDEX_C),   -- [in]
-         axilReadSlave   => mainAxilReadSlaves(AXI_ADC_CLOCK_PHASE_INDEX_C),    -- [out]
-         axilWriteMaster => mainAxilWriteMasters(AXI_ADC_CLOCK_PHASE_INDEX_C),  -- [in]
-         axilWriteSlave  => mainAxilWriteSlaves(AXI_ADC_CLOCK_PHASE_INDEX_C));  -- [out]
+         clkIn           => daqClk37,                                            -- [in]
+         rstIn           => daqClk37Rst,                                         -- [in]
+         clkOut          => adcClk,                                              -- [out]
+         rstOut          => adcClkRst,                                           -- [out]
+         axilClk         => axilClk,                                             -- [in]
+         axilRst         => axilRst,                                             -- [in]
+         axilReadMaster  => mainAxilReadMasters(AXIL_ADC_CLOCK_PHASE_INDEX_C),   -- [in]
+         axilReadSlave   => mainAxilReadSlaves(AXIL_ADC_CLOCK_PHASE_INDEX_C),    -- [out]
+         axilWriteMaster => mainAxilWriteMasters(AXIL_ADC_CLOCK_PHASE_INDEX_C),  -- [in]
+         axilWriteSlave  => mainAxilWriteSlaves(AXIL_ADC_CLOCK_PHASE_INDEX_C));  -- [out]
 
 
    -------------------------------------------------------------------------------------------------
@@ -393,41 +409,41 @@ begin
          AXIL_PROXY_G      => false,
          DEVICE_MAP_G      => (
             0              => MakeI2cAxiLiteDevType(
-               i2cAddress  => "1010000",                              -- DS28CM00R Serial ID
+               i2cAddress  => "1010000",                                -- DS28CM00R Serial ID
                dataSize    => 8,
                addrSize    => 8,
                endianness  => '1',
                repeatStart => '1'),
-            1              => MakeI2cAxiLiteDevType(                  -- 24FC64F EEPROM
+            1              => MakeI2cAxiLiteDevType(                    -- 24FC64F EEPROM
                i2cAddress  => "1010100",
                dataSize    => 8,
                addrSize    => 16,
                endianness  => '1'),
-            2              => MakeI2cAxiLiteDevType(                  -- TCA6424 AMP PD 0-3
+            2              => MakeI2cAxiLiteDevType(                    -- TCA6424 AMP PD 0-3
                i2cAddress  => "0100010",
                dataSize    => 8,
                addrSize    => 8,
                endianness  => '1',
                repeatStart => '0'),
-            3              => MakeI2cAxiLiteDevType(                  -- TCA6424 AMP PD 4-7
+            3              => MakeI2cAxiLiteDevType(                    -- TCA6424 AMP PD 4-7
                i2cAddress  => "0100011",
                dataSize    => 8,
                addrSize    => 8,
                endianness  => '1',
                repeatStart => '0')),
-         I2C_SCL_FREQ_G    => I2C_SCL_FREQ_G,
-         I2C_MIN_PULSE_G   => I2C_SCL_FREQ_G,
-         AXI_CLK_FREQ_G    => AXI_CLK_FREQ_G)
+         I2C_SCL_FREQ_G    => I2C_SCL_FREQ_C,
+         I2C_MIN_PULSE_G   => I2C_MIN_PULSE_C,
+         AXI_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
       port map (
-         axiClk         => axiClk,                                    -- [in]
-         axiRst         => axiRst,                                    -- [in]
-         axiReadMaster  => mainAxiReadMasters(AXI_LOC_I2C_INDEX_C),   -- [in]
-         axiReadSlave   => mainAxiReadSlaves(AXI_LOC_I2C_INDEX_C),    -- [out]
-         axiWriteMaster => mainAxiWriteMasters(AXI_LOC_I2C_INDEX_C),  -- [in]
-         axiWriteSlave  => mainAxiWriteSlaves(AXI_LOC_I2C_INDEX_C),   -- [out]
+         axiClk         => axilClk,                                     -- [in]
+         axiRst         => axilRst,                                     -- [in]
+         axiReadMaster  => mainAxilReadMasters(AXIL_LOC_I2C_INDEX_C),   -- [in]
+         axiReadSlave   => mainAxilReadSlaves(AXIL_LOC_I2C_INDEX_C),    -- [out]
+         axiWriteMaster => mainAxilWriteMasters(AXIL_LOC_I2C_INDEX_C),  -- [in]
+         axiWriteSlave  => mainAxilWriteSlaves(AXIL_LOC_I2C_INDEX_C),   -- [out]
 --         sel            => sel,             -- [out]
-         scl            => locI2cScl,                                 -- [inout]
-         sda            => locI2cSda);                                -- [inout]
+         scl            => locI2cScl,                                   -- [inout]
+         sda            => locI2cSda);                                  -- [inout]
 
 
    -------------------------------------------------------------------------------------------------
@@ -439,87 +455,130 @@ begin
          HYBRIDS_G        => HYBRIDS_G,
          I2C_SCL_FREQ_G   => I2C_SCL_FREQ_C,
          I2C_MIN_PULSE_G  => I2C_MIN_PULSE_C,
-         AXIL_BASE_ADDR_G => MAIN_XBAR_CFG_C(AXI_HY_I2C_INDEX_C).baseAddr,
+         AXIL_BASE_ADDR_G => MAIN_XBAR_CFG_C(AXIL_HY_PWR_I2C_INDEX_C).baseAddr,
          AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G)
       port map (
-         scl             => hyPwrI2cScl,           -- [inout]
-         sda             => hyPwrI2cSda,           -- [inout]
-         resetL          => hyPwrI2cResetL,        -- [out]
-         axilClk         => axilClk,               -- [in]
-         axilRst         => axilRst,               -- [in]
-         axilReadMaster  => mainAxilReadMasters,   -- [out]
-         axilReadSlave   => mainAxilReadSlaves,    -- [in]
-         axilWriteMaster => mainAxilWriteMasters,  -- [out]
-         axilWriteSlave  => mainAxilWriteSlaves);  -- [in]
+         scl             => hyPwrI2cScl,                                    -- [inout]
+         sda             => hyPwrI2cSda,                                    -- [inout]
+         resetL          => hyPwrI2cResetL,                                 -- [out]
+         axilClk         => axilClk,                                        -- [in]
+         axilRst         => axilRst,                                        -- [in]
+         axilReadMaster  => mainAxilReadMasters(AXIL_HY_PWR_I2C_INDEX_C),   -- [out]
+         axilReadSlave   => mainAxilReadSlaves(AXIL_HY_PWR_I2C_INDEX_C),    -- [in]
+         axilWriteMaster => mainAxilWriteMasters(AXIL_HY_PWR_I2C_INDEX_C),  -- [out]
+         axilWriteSlave  => mainAxilWriteSlaves(AXIL_HY_PWR_I2C_INDEX_C));  -- [in]
 
    -------------------------------------------------------------------------------------------------
    -- Digital PM Bus
    -------------------------------------------------------------------------------------------------
-   U_AxiI2cRegMaster_LOC : entity surf.AxiI2cRegMaster
+   U_AxiI2cRegMaster_DIG_PM : entity surf.AxiI2cRegMaster
       generic map (
          TPD_G             => TPD_G,
          AXIL_PROXY_G      => false,
          DEVICE_MAP_G      => (
             0              => MakeI2cAxiLiteDevType(
-               i2cAddress  => "0100000",                             -- LT3815 0.85V VCCINT
+               i2cAddress  => "0100000",                               -- LT3815 0.85V VCCINT
                dataSize    => 16,
                addrSize    => 8,
                endianness  => '0',
                repeatStart => '1'),
             1              => MakeI2cAxiLiteDevType(
-               i2cAddress  => "0100001",                             -- LT3815 1.8V VCCAUX
+               i2cAddress  => "0100001",                               -- LT3815 1.8V VCCAUX
                dataSize    => 16,
                addrSize    => 8,
                endianness  => '0',
                repeatStart => '1'),
             2              => MakeI2cAxiLiteDevType(
-               i2cAddress  => "0100010",                             -- LT3815 0.90V MGTAVCC
+               i2cAddress  => "0100010",                               -- LT3815 0.90V MGTAVCC
                dataSize    => 16,
                addrSize    => 8,
                endianness  => '0',
                repeatStart => '1'),
             3              => MakeI2cAxiLiteDevType(
-               i2cAddress  => "0100011",                             -- LT3815 1.2V MGTAVTT
+               i2cAddress  => "0100011",                               -- LT3815 1.2V MGTAVTT
                dataSize    => 16,
                addrSize    => 8,
                endianness  => '0',
                repeatStart => '1'),
-            0              => MakeI2cAxiLiteDevType(
-               i2cAddress  => "0100100",                             -- LT3815 1.8V MGTVCAUX
+            4              => MakeI2cAxiLiteDevType(
+               i2cAddress  => "0100100",                               -- LT3815 1.8V MGTVCAUX
                dataSize    => 16,
                addrSize    => 8,
                endianness  => '0',
                repeatStart => '1'),
-            0              => MakeI2cAxiLiteDevType(
-               i2cAddress  => "0100101",                             -- LT3815 2.5V VCCO
+            5              => MakeI2cAxiLiteDevType(
+               i2cAddress  => "0100101",                               -- LT3815 2.5V VCCO
                dataSize    => 16,
                addrSize    => 8,
                endianness  => '0',
                repeatStart => '1'),
-            0              => MakeI2cAxiLiteDevType(
-               i2cAddress  => "0100111",                             -- LT3815 3.3V VCCO
+            6              => MakeI2cAxiLiteDevType(
+               i2cAddress  => "0100111",                               -- LT3815 3.3V VCCO
                dataSize    => 16,
                addrSize    => 8,
                endianness  => '0',
                repeatStart => '1')),
-         I2C_SCL_FREQ_G    => I2C_SCL_FREQ_G,
-         I2C_MIN_PULSE_G   => I2C_SCL_FREQ_G,
-         AXI_CLK_FREQ_G    => AXI_CLK_FREQ_G)
+         I2C_SCL_FREQ_G    => I2C_SCL_FREQ_C,
+         I2C_MIN_PULSE_G   => I2C_MIN_PULSE_C,
+         AXI_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
       port map (
-         axiClk         => axiClk,                                   -- [in]
-         axiRst         => axiRst,                                   -- [in]
-         axiReadMaster  => mainAxiReadMasters(AXI_DIG_PM_INDEX_C),   -- [in]
-         axiReadSlave   => mainAxiReadSlaves(AXI_DIG_PM_INDEX_C),    -- [out]
-         axiWriteMaster => mainAxiWriteMasters(AXI_DIG_PM_INDEX_C),  -- [in]
-         axiWriteSlave  => mainAxiWriteSlaves(AXI_DIG_PM_INDEX_C),   -- [out]
+         axiClk         => axilClk,                                    -- [in]
+         axiRst         => axilRst,                                    -- [in]
+         axiReadMaster  => mainAxilReadMasters(AXIL_DIG_PM_INDEX_C),   -- [in]
+         axiReadSlave   => mainAxilReadSlaves(AXIL_DIG_PM_INDEX_C),    -- [out]
+         axiWriteMaster => mainAxilWriteMasters(AXIL_DIG_PM_INDEX_C),  -- [in]
+         axiWriteSlave  => mainAxilWriteSlaves(AXIL_DIG_PM_INDEX_C),   -- [out]
 --         sel            => sel,             -- [out]
-         scl            => digPmBusScl,                              -- [inout]
-         sda            => digPmBusSda);                             -- [inout]
+         scl            => digPmBusScl,                                -- [inout]
+         sda            => digPmBusSda);                               -- [inout]
 
+   -------------------------------------------------------------------------------------------------
+   -- Analog PM Bus
+   -------------------------------------------------------------------------------------------------
+   U_AxiI2cRegMaster_ANA_PM : entity surf.AxiI2cRegMaster
+      generic map (
+         TPD_G             => TPD_G,
+         AXIL_PROXY_G      => false,
+         DEVICE_MAP_G      => (
+            0              => MakeI2cAxiLiteDevType(
+               i2cAddress  => "0100000",  -- LT3815 2.2V 
+               dataSize    => 16,
+               addrSize    => 8,
+               endianness  => '0',
+               repeatStart => '1'),
+            1              => MakeI2cAxiLiteDevType(
+               i2cAddress  => "0100001",  -- LT3815 2.8V Hybrid Intermediate
+               dataSize    => 16,
+               addrSize    => 8,
+               endianness  => '0',
+               repeatStart => '1')),
+         I2C_SCL_FREQ_G    => I2C_SCL_FREQ_C,
+         I2C_MIN_PULSE_G   => I2C_MIN_PULSE_C,
+         AXI_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
+      port map (
+         axiClk         => axilClk,     -- [in]
+         axiRst         => axilRst,     -- [in]
+         axiReadMaster  => mainAxilReadMasters(AXIL_ANA_PM_INDEX_C),   -- [in]
+         axiReadSlave   => mainAxilReadSlaves(AXIL_ANA_PM_INDEX_C),    -- [out]
+         axiWriteMaster => mainAxilWriteMasters(AXIL_ANA_PM_INDEX_C),  -- [in]
+         axiWriteSlave  => mainAxilWriteSlaves(AXIL_ANA_PM_INDEX_C),   -- [out]
+--         sel            => sel,             -- [out]
+         scl            => anaPmBusScl,   -- [inout]
+         sda            => anaPmBusSda);  -- [inout]
 
    -------------------------------------------------------------------------------------------------
    -- SYSMON
    -------------------------------------------------------------------------------------------------
+   U_LdmxFebSysmonWrapper_1 : entity ldmx.LdmxFebSysmonWrapper
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         axilClk         => axilClk,                                    -- [in]
+         axilRst         => axilRst,                                    -- [in]
+         axilReadMaster  => mainAxilReadMasters(AXIL_SYSMON_INDEX_C),   -- [in]
+         axilReadSlave   => mainAxilReadSlaves(AXIL_SYSMON_INDEX_C),    -- [out]
+         axilWriteMaster => mainAxilWriteMasters(AXIL_SYSMON_INDEX_C),  -- [in]
+         axilWriteSlave  => mainAxilWriteSlaves(AXIL_SYSMON_INDEX_C));  -- [out]
 
 
    -------------------------------------------------------------------------------------------------
@@ -527,16 +586,16 @@ begin
    -------------------------------------------------------------------------------------------------
    U_LdmxFebBootProm_1 : entity ldmx.LdmxFebBootProm
       generic map (
-         TPD_G          => TPD_G,
-         AXI_CLK_FREQ_G => AXIL_CLK_FREQ_G,
-         SPI_CLK_FREQ_G => (AXIL_CLK_FREQ_G/12.0))
+         TPD_G           => TPD_G,
+         AXIL_CLK_FREQ_G => AXIL_CLK_FREQ_G,
+         SPI_CLK_FREQ_G  => (AXIL_CLK_FREQ_G/12.0))
       port map (
-         axilClk          => axilClk,               -- [in]
-         axilRst          => axilRst,               -- [in]
-         axilReadMasters  => mainAxilReadMasters(AXI_PROM_INDEX_C),   -- [in]
-         axilReadSlaves   => mainAxilReadSlaves(AXI_PROM_INDEX_C),    -- [out]
-         axilWriteMasters => mainAxilWriteMasters(AXI_PROM_INDEX_C),  -- [in]
-         axilWriteSlaves  => mainAxilWriteSlaves(AXI_PROM_INDEX_C));  -- [out]
+         axilClk         => axilClk,                                  -- [in]
+         axilRst         => axilRst,                                  -- [in]
+         axilReadMaster  => mainAxilReadMasters(AXIL_PROM_INDEX_C),   -- [in]
+         axilReadSlave   => mainAxilReadSlaves(AXIL_PROM_INDEX_C),    -- [out]
+         axilWriteMaster => mainAxilWriteMasters(AXIL_PROM_INDEX_C),  -- [in]
+         axilWriteSlave  => mainAxilWriteSlaves(AXIL_PROM_INDEX_C));  -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- ADC Readout 
@@ -554,20 +613,19 @@ begin
             axilWriteSlave  => adcReadoutAxilWriteSlaves(i),                         -- [out]
             axilReadMaster  => adcReadoutAxilReadMasters(i),                         -- [in]
             axilReadSlave   => adcReadoutAxilReadSlaves(i),                          -- [out]
-            adcClkRst       => adcClkRst(i),                                         -- [in]
+            adcClkRst       => adcClkRst(i/2),                                       -- [in]
             adcSerial       => adcSerial(i),                                         -- [in]
             adcStreamClk    => axilClk,                                              -- [in]
             adcStreams      => adcReadoutStreams(i)(APVS_PER_HYBRID_G-1 downto 0));  -- [out]
 
-      -- IO Assignment to records
+      -- IO Assignment to records      
       adcSerial(i).fClkP <= adcFClkP(i);
       adcSerial(i).fClkN <= adcFClkN(i);
       adcSerial(i).dClkP <= adcDClkP(i);
       adcSerial(i).dClkN <= adcDClkN(i);
       adcSerial(i).chP   <= "00" & adcDataP(i);
       adcSerial(i).chN   <= "00" & adcDataN(i);
-
-   end generate ADC_READOUT_MAP;
+   end generate;
 
    -------------------------------------------------------------------------------------------------
    -- ADC Config
@@ -578,18 +636,18 @@ begin
             TPD_G             => TPD_G,
             NUM_CHIPS_G       => 1,
             SCLK_PERIOD_G     => ADC_SCLK_PERIOD_C,
-            AXIL_CLK_PERIOD_G => AXIL_CLK_PERIOD_C)
+            AXIL_CLK_PERIOD_G => 1.0/AXIL_CLK_FREQ_G)
          port map (
-            axilClk         => axilClk,                      -- [in]
-            axilRst         => axilRst,                      -- [in]
-            axilReadMaster  => adcConfigAxilReadMaster(i),   -- [in]
-            axilReadSlave   => adcConfigAxilReadSlave(i),    -- [out]
-            axilWriteMaster => adcConfigAxilWriteMaster(i),  -- [in]
-            axilWriteSlave  => adcConfigAxilWriteSlave(i),   -- [out]
-            adcPdwn         => adcPdwn,                      -- [out]
-            adcSclk         => adcSclk,                      -- [out]
-            adcSdio         => adcSdio,                      -- [inout]
-            adcCsb          => adcCsb);                      -- [out]
+            axilClk         => axilClk,                       -- [in]
+            axilRst         => axilRst,                       -- [in]
+            axilReadMaster  => adcConfigAxilReadMasters(i),   -- [in]
+            axilReadSlave   => adcConfigAxilReadSlaves(i),    -- [out]
+            axilWriteMaster => adcConfigAxilWriteMasters(i),  -- [in]
+            axilWriteSlave  => adcConfigAxilWriteSlaves(i),   -- [out]
+            adcPdwn(0)      => adcPdwn(i),                    -- [out]
+            adcSclk         => adcSclk(i),                    -- [out]
+            adcSdio         => adcSdio(i),                    -- [inout]
+            adcCsb          => adcCsb(i*2+1 downto i*2));     -- [out]
    end generate ADC_CONFIG_MAP;
 
    -------------------------------------------------------------------------------------------------

@@ -18,10 +18,6 @@ use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use surf.AxiStreamPkg.all;
-
-library axi_pcie_core;
-use axi_pcie_core.AxiPciePkg.all;
 
 package AppPkg is
 

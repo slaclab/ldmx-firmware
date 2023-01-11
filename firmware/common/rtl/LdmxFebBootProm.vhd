@@ -29,12 +29,12 @@ entity LdmxFebBootProm is
       SPI_CLK_FREQ_G  : real := 10.0e6);
    port (
       -- AXI-Lite Interface
-      axilClk          : in  sl;
-      axilRst          : in  sl;
-      axilReadMasters  : in  AxiLiteReadMasterType;
-      axilReadSlaves   : out AxiLiteReadSlaveType;
-      axilWriteMasters : in  AxiLiteWriteMasterType;
-      axilWriteSlaves  : out AxiLiteWriteSlaveType);
+      axilClk         : in  sl;
+      axilRst         : in  sl;
+      axilReadMaster  : in  AxiLiteReadMasterType;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 end LdmxFebBootProm;
 
 architecture rtl of LdmxFebBootProm is
@@ -61,10 +61,10 @@ begin
          mosi           => bootMosi,
          miso           => bootMiso,
          -- AXI-Lite Register Interface
-         axiReadMaster  => axilReadMasters(0),
-         axiReadSlave   => axilReadSlaves(0),
-         axiWriteMaster => axilWriteMasters(0),
-         axiWriteSlave  => axilWriteSlaves(0),
+         axiReadMaster  => axilReadMaster,
+         axiReadSlave   => axilReadSlave,
+         axiWriteMaster => axilWriteMaster,
+         axiWriteSlave  => axilWriteSlave,
          -- Clocks and Resets
          axiClk         => axilClk,
          axiRst         => axilRst);

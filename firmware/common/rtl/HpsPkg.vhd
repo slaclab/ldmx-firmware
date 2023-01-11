@@ -61,7 +61,7 @@ package HpsPkg is
    function toHybridInfo (vector : slv(15 downto 0)) return HybridInfoType;
 
 
-   type AdcStreamArray is array (7 downto 0) of AxiStreamMasterArray(7 downto 0);
+   type AdcStreamArray is array (7 downto 0) of AxiStreamMasterArray(5 downto 0);
 
    constant ADC_STREAM_ARRAY_INIT_C : AdcStreamArray := (others => (others => AXI_STREAM_MASTER_INIT_C));
 

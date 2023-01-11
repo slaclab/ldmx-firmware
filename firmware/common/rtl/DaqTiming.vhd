@@ -35,7 +35,7 @@ entity DaqTiming is
    port (
       daqClk185   : in  sl;
       daqRst185   : in  sl;
-      daqFcWord   : in  slv(7 downto 0);
+      daqFcWord   : in  slv(79 downto 0);
       daqFcValid  : in  sl;
       daqClk37    : out sl;
       daqClk37Rst : out sl;
@@ -125,7 +125,7 @@ begin
 
       -- Assert trigger only on falling edge of daqClk37
       -- to allow enough setup time for shfited hybrid clocks to see it.
-      if (r.counter = DAQ_CLK_DIV_C-1 or (daqFcValid = '1' and daqFcWord = DAQ_CLK_ALIGN_CODE_C)) then
+      if (r.counter = DAQ_CLK_DIV_C-1 or (daqFcValid = '1' and daqFcWord(79 downto 76) = DAQ_CLK_ALIGN_CODE_C)) then
          v.counter        := (others => '0');
          v.daqClk37       := '0';
          v.daqTrigger     := r.triggerLatch;

@@ -41,10 +41,10 @@ entity LdmxHybridPowerI2C is
 
       axilClk         : in  sl;
       axilRst         : in  sl;
-      axilReadMaster  : out AxiLiteReadMasterType;
-      axilReadSlave   : in  AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_OK_C;
-      axilWriteMaster : out AxiLiteWriteMasterType;
-      axilWriteSlave  : in  AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_OK_C
+      axilReadMaster  : in AxiLiteReadMasterType;
+      axilReadSlave   : out  AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_OK_C;
+      axilWriteMaster : in AxiLiteWriteMasterType;
+      axilWriteSlave  : out  AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_OK_C
       );
 end LdmxHybridPowerI2C;
 
@@ -93,8 +93,8 @@ begin
          -- I2C MUX Generics
          MUX_DECODE_MAP_G   => I2C_MUX_DECODE_MAP_PCA9547_C,
          I2C_MUX_ADDR_G     => b"111_0000",
-         I2C_SCL_FREQ_G     => I2C_SCL_FREQ_C,
-         I2C_MIN_PULSE_G    => I2C_MIN_PULSE_C,
+         I2C_SCL_FREQ_G     => I2C_SCL_FREQ_G,
+         I2C_MIN_PULSE_G    => I2C_MIN_PULSE_G,
          AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G,
          -- AXI-Lite Crossbar Generics
          NUM_MASTER_SLOTS_G => 8,
@@ -102,7 +102,7 @@ begin
       port map (
          -- Clocks and Resets
          axilClk           => axilClk,
-         axilRst           => axilClk,
+         axilRst           => axilRst,
          -- Slave AXI-Lite Interface
          sAxilWriteMaster  => axilWriteMaster,
          sAxilWriteSlave   => axilWriteSlave,
@@ -122,8 +122,8 @@ begin
       U_HY_I2C : entity surf.AxiI2cRegMasterCore
          generic map (
             TPD_G           => TPD_G,
-            I2C_SCL_FREQ_G  => I2C_SCL_FREQ_C,
-            I2C_MIN_PULSE_G => I2C_MIN_PULSE_C,
+            I2C_SCL_FREQ_G  => I2C_SCL_FREQ_G,
+            I2C_MIN_PULSE_G => I2C_MIN_PULSE_G,
             DEVICE_MAP_G    => I2C_DEV_MAP_C,
             AXI_CLK_FREQ_G  => AXIL_CLK_FREQ_G)
          port map (
