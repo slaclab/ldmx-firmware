@@ -73,16 +73,16 @@ entity LdmxFebHw is
 
       digPmBusScl    : inout sl;
       digPmBusSda    : inout sl;
-      digPmBusAlertL : in sl;
+      digPmBusAlertL : in    sl;
 
       anaPmBusScl    : inout sl;
       anaPmBusSda    : inout sl;
-      anaPmBusAlertL : in sl;
+      anaPmBusAlertL : in    sl;
 
-      hyPwrI2cScl    : inout sl;
-      hyPwrI2cSda    : inout sl;
-      hyPwrI2cResetL : out   sl;
-      hyPwrEnOut     : out   slv(HYBRIDS_G-1 downto 0);
+      hyPwrI2cScl : inout slv(HYBRIDS_G-1 downto 0);
+      hyPwrI2cSda : inout slv(HYBRIDS_G-1 downto 0);
+
+      hyPwrEnOut : out slv(HYBRIDS_G-1 downto 0);
 
       -- Interface to Hybrids
       hyClkP      : out slv(HYBRIDS_G-1 downto 0);
@@ -94,6 +94,8 @@ entity LdmxFebHw is
       hyI2cSdaOut : out slv(HYBRIDS_G-1 downto 0);
       hyI2cSdaIn  : in  slv(HYBRIDS_G-1 downto 0);
 
+      vauxp : in slv(1 downto 0);
+      vauxn : in slv(1 downto 0);
 
       leds : out slv(7 downto 0);       -- Test outputs
 
@@ -458,15 +460,15 @@ begin
          AXIL_BASE_ADDR_G => MAIN_XBAR_CFG_C(AXIL_HY_PWR_I2C_INDEX_C).baseAddr,
          AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G)
       port map (
-         scl             => hyPwrI2cScl,                                    -- [inout]
-         sda             => hyPwrI2cSda,                                    -- [inout]
-         resetL          => hyPwrI2cResetL,                                 -- [out]
          axilClk         => axilClk,                                        -- [in]
          axilRst         => axilRst,                                        -- [in]
          axilReadMaster  => mainAxilReadMasters(AXIL_HY_PWR_I2C_INDEX_C),   -- [out]
          axilReadSlave   => mainAxilReadSlaves(AXIL_HY_PWR_I2C_INDEX_C),    -- [in]
          axilWriteMaster => mainAxilWriteMasters(AXIL_HY_PWR_I2C_INDEX_C),  -- [out]
-         axilWriteSlave  => mainAxilWriteSlaves(AXIL_HY_PWR_I2C_INDEX_C));  -- [in]
+         axilWriteSlave  => mainAxilWriteSlaves(AXIL_HY_PWR_I2C_INDEX_C),   -- [in]
+         scl             => hyPwrI2cScl,                                    -- [inout]
+         sda             => hyPwrI2cSda);                                   -- [inout]
+
 
    -------------------------------------------------------------------------------------------------
    -- Digital PM Bus
@@ -578,7 +580,9 @@ begin
          axilReadMaster  => mainAxilReadMasters(AXIL_SYSMON_INDEX_C),   -- [in]
          axilReadSlave   => mainAxilReadSlaves(AXIL_SYSMON_INDEX_C),    -- [out]
          axilWriteMaster => mainAxilWriteMasters(AXIL_SYSMON_INDEX_C),  -- [in]
-         axilWriteSlave  => mainAxilWriteSlaves(AXIL_SYSMON_INDEX_C));  -- [out]
+         axilWriteSlave  => mainAxilWriteSlaves(AXIL_SYSMON_INDEX_C),   -- [out]
+         vauxp           => vauxp,                                      -- [in]
+         vauxn           => vauxn);                                     -- [in]
 
 
    -------------------------------------------------------------------------------------------------

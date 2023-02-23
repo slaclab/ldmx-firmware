@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-08-22
--- Last update: 2022-12-02
+-- Last update: 2023-02-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -57,10 +57,15 @@ entity LdmxFeb is
       gtRefClk250N : in sl;
 
       -- MGT IO
-      sasGtTxP : out sl;
-      sasGtTxN : out sl;
-      sasGtRxP : in  sl;
-      sasGtRxN : in  sl;
+      sasGtTxP : out slv(3 downto 0);
+      sasGtTxN : out slv(3 downto 0);
+      sasGtRxP : in  slv(3 downto 0);
+      sasGtRxN : in  slv(3 downto 0);
+
+      qsfpGtTxP : out slv(3 downto 0);
+      qsfpGtTxN : out slv(3 downto 0);
+      qsfpGtRxP : in  slv(3 downto 0);
+      qsfpGtRxN : in  slv(3 downto 0);
 
       sfpGtTxP : out sl;
       sfpGtTxN : out sl;
@@ -91,16 +96,16 @@ entity LdmxFeb is
 
       digPmBusScl    : inout sl;
       digPmBusSda    : inout sl;
-      digPmBusAlertL : in sl;
+      digPmBusAlertL : in    sl;
 
       anaPmBusScl    : inout sl;
       anaPmBusSda    : inout sl;
-      anaPmBusAlertL : in sl;
+      anaPmBusAlertL : in    sl;
 
-      hyPwrI2cScl    : inout sl;
-      hyPwrI2cSda    : inout sl;
-      hyPwrI2cResetL : out   sl;
-      hyPwrEnOut     : out   slv(HYBRIDS_G-1 downto 0);
+      hyPwrI2cScl : inout slv(HYBRIDS_G-1 downto 0);
+      hyPwrI2cSda : inout slv(HYBRIDS_G-1 downto 0);
+
+      hyPwrEnOut : out slv(HYBRIDS_G-1 downto 0);
 
       -- Interface to Hybrids
       hyClkP      : out slv(HYBRIDS_G-1 downto 0);
@@ -110,10 +115,12 @@ entity LdmxFeb is
       hyRstL      : out slv(HYBRIDS_G-1 downto 0);
       hyI2cScl    : out slv(HYBRIDS_G-1 downto 0);
       hyI2cSdaOut : out slv(HYBRIDS_G-1 downto 0);
-      hyI2cSdaIn  : in  slv(HYBRIDS_G-1 downto 0));
+      hyI2cSdaIn  : in  slv(HYBRIDS_G-1 downto 0);
 
-
---      leds : out slv(7 downto 0));      -- Test outputs
+      vauxp : in slv(1 downto 0);
+      vauxn : in slv(1 downto 0);
+      
+      leds : out slv(7 downto 0) := "01010101");  -- Test outputs
 
 end entity LdmxFeb;
 
@@ -223,7 +230,7 @@ architecture rtl of LdmxFeb is
 
 begin
 
-   --leds <= ledsInt when ledEn = '1' else (others => '0');
+--    leds <= ledsInt when ledEn = '1' else (others => '0');
 --    sfpGtTxP    <= pgpGtTxP(0);
 --    sfpGtTxN    <= pgpGtTxN(0);
 --    pgpGtRxP(0) <= sfpGtRxP;
@@ -291,13 +298,17 @@ begin
          gtRefClk250P     => gtRefClk250P,                          -- [in]
          gtRefClk250N     => gtRefClk250N,                          -- [in]
          pgpGtRxP(0)      => sfpGtRxP,                              -- [in]
-         pgpGtRxP(1)      => sasGtRxP,                              -- [in]
+         pgpGtRxP(1)      => sasGtRxP(0),                           -- [in]
+         pgpGtRxP(2)      => qsfpGtRxP(0),                          -- [in]         
          pgpGtRxN(0)      => sfpGtRxN,                              -- [in]
-         pgpGtRxN(1)      => sasGtRxN,                              -- [in]
+         pgpGtRxN(1)      => sasGtRxN(0),                           -- [in]
+         pgpGtRxN(2)      => qsfpGtRxN(0),                          -- [in]
          pgpGtTxP(0)      => sfpGtTxP,                              -- [out]
-         pgpGtTxP(1)      => sasGtTxP,                              -- [out]
+         pgpGtTxP(1)      => sasGtTxP(0),                           -- [out]
+         pgpGtTxP(2)      => qsfpGtTxP(0),                          -- [out]
          pgpGtTxN(0)      => sfpGtTxN,                              -- [out]
-         pgpGtTxN(1)      => sasGtTxN,                              -- [out]
+         pgpGtTxN(1)      => sasGtTxN(0),                           -- [out]
+         pgpGtTxN(2)      => qsfpGtTxN(0),                          -- [out]
          userRefClk125    => userRefClk125,                         -- [out]
          userRefRst125    => userRefRst125,                         -- [out]         
          pgpTxLink        => open,                                  -- [out]
@@ -416,7 +427,6 @@ begin
          anaPmBusAlertL    => anaPmBusAlertL,                           -- [inout]
          hyPwrI2cScl       => hyPwrI2cScl,                              -- [inout]
          hyPwrI2cSda       => hyPwrI2cSda,                              -- [inout]
-         hyPwrI2cResetL    => hyPwrI2cResetL,                           -- [out]
          hyPwrEnOut        => hyPwrEnOut,                               -- [out]
          hyClkP            => hyClkP,                                   -- [out]
          hyClkN            => hyClkN,                                   -- [out]
@@ -427,6 +437,8 @@ begin
          hyI2cSdaOut       => hyI2cSdaOut,                              -- [out]
          hyI2cSdaIn        => hyI2cSdaIn,                               -- [in]
 --         leds              => leds,                                     -- [out]
+         vauxp => vauxp,                -- [in]
+         vauxn => vauxn,                -- [in]
          axilClk           => axilClk,                                  -- [in]
          axilRst           => axilRst,                                  -- [in]
          sAxilWriteMaster  => locAxilWriteMasters(FEB_HW_AXI_INDEX_C),  -- [in]

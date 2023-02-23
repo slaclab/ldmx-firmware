@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2022-12-01
+-- Last update: 2023-02-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -55,14 +55,14 @@ entity LdmxFebPgp is
       userRefRst125 : out sl;
 
       -- MGT IO
-      pgpGtTxP : out slv(1 downto 0);
-      pgpGtTxN : out slv(1 downto 0);
-      pgpGtRxP : in  slv(1 downto 0);
-      pgpGtRxN : in  slv(1 downto 0);
+      pgpGtTxP : out slv(2 downto 0);
+      pgpGtTxN : out slv(2 downto 0);
+      pgpGtRxP : in  slv(2 downto 0);
+      pgpGtRxN : in  slv(2 downto 0);
 
       -- Status output for LEDs
-      pgpTxLink : out slv(1 downto 0);
-      pgpRxLink : out slv(1 downto 0);
+      pgpTxLink : out slv(2 downto 0);
+      pgpRxLink : out slv(2 downto 0);
 
       -- Control link Opcode and AXI-Stream interface
       daqClk       : out sl;            -- Recovered fixed-latency clock
@@ -114,31 +114,32 @@ architecture rtl of LdmxFebPgp is
    -------------------------------------------------------------------------------------------------
    constant SFP_INDEX_C : integer := 0;
    constant SAS_INDEX_C : integer := 1;
+   constant QSFP_INDEX_C : integer := 2;
 
 
-   signal pgpTxClk     : slv(1 downto 0);
-   signal pgpTxRst     : slv(1 downto 0);
-   signal pgpRxClk     : slv(1 downto 0);
-   signal pgpRxRst     : slv(1 downto 0);
-   signal pgpRxIn      : Pgp2fcRxInArray(1 downto 0)          := (others => PGP2FC_RX_IN_INIT_C);
-   signal pgpRxOut     : Pgp2fcRxOutArray(1 downto 0);
-   signal pgpTxIn      : Pgp2fcTxInArray(1 downto 0)          := (others => PGP2FC_TX_IN_INIT_C);
-   signal pgpTxOut     : Pgp2fcTxOutArray(1 downto 0);
-   signal pgpRxMasters : AxiStreamQuadMasterArray(1 downto 0);
-   signal pgpRxSlaves  : AxiStreamQuadSlaveArray(1 downto 0)  := (others => (others => AXI_STREAM_SLAVE_FORCE_C));
-   signal pgpRxCtrl    : AxiStreamQuadCtrlArray(1 downto 0)   := (others => (others => AXI_STREAM_CTRL_UNUSED_C));
-   signal pgpTxMasters : AxiStreamQuadMasterArray(1 downto 0) := (others => (others => AXI_STREAM_MASTER_INIT_C));
-   signal pgpTxSlaves  : AxiStreamQuadSlaveArray(1 downto 0);
+   signal pgpTxClk     : slv(2 downto 0);
+   signal pgpTxRst     : slv(2 downto 0);
+   signal pgpRxClk     : slv(2 downto 0);
+   signal pgpRxRst     : slv(2 downto 0);
+   signal pgpRxIn      : Pgp2fcRxInArray(2 downto 0)          := (others => PGP2FC_RX_IN_INIT_C);
+   signal pgpRxOut     : Pgp2fcRxOutArray(2 downto 0);
+   signal pgpTxIn      : Pgp2fcTxInArray(2 downto 0)          := (others => PGP2FC_TX_IN_INIT_C);
+   signal pgpTxOut     : Pgp2fcTxOutArray(2 downto 0);
+   signal pgpRxMasters : AxiStreamQuadMasterArray(2 downto 0);
+   signal pgpRxSlaves  : AxiStreamQuadSlaveArray(2 downto 0)  := (others => (others => AXI_STREAM_SLAVE_FORCE_C));
+   signal pgpRxCtrl    : AxiStreamQuadCtrlArray(2 downto 0)   := (others => (others => AXI_STREAM_CTRL_UNUSED_C));
+   signal pgpTxMasters : AxiStreamQuadMasterArray(2 downto 0) := (others => (others => AXI_STREAM_MASTER_INIT_C));
+   signal pgpTxSlaves  : AxiStreamQuadSlaveArray(2 downto 0);
 
    -------------------------------------------------------------------------------------------------
    -- AXI-Lite
    -------------------------------------------------------------------------------------------------
-   constant MAIN_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(1 downto 0) := genAxiLiteConfig(2, AXIL_BASE_ADDR_G, 24, 20);
+   constant MAIN_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(2 downto 0) := genAxiLiteConfig(3, AXIL_BASE_ADDR_G, 24, 20);
 
-   signal locAxilReadMasters  : AxiLiteReadMasterArray(1 downto 0);
-   signal locAxilReadSlaves   : AxiLiteReadSlaveArray(1 downto 0);
-   signal locAxilWriteMasters : AxiLiteWriteMasterArray(1 downto 0);
-   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
+   signal locAxilReadMasters  : AxiLiteReadMasterArray(2 downto 0);
+   signal locAxilReadSlaves   : AxiLiteReadSlaveArray(2 downto 0);
+   signal locAxilWriteMasters : AxiLiteWriteMasterArray(2 downto 0);
+   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(2 downto 0);
 
 
 
@@ -225,7 +226,7 @@ begin
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
-            NUM_MASTER_SLOTS_G => 2,
+            NUM_MASTER_SLOTS_G => 3,
             MASTERS_CONFIG_G   => MAIN_XBAR_CFG_C)
          port map (
             axiClk              => axilClk,
@@ -239,7 +240,7 @@ begin
             mAxiReadMasters     => locAxilReadMasters,
             mAxiReadSlaves      => locAxilReadSlaves);
 
-      PGP_GEN : for i in 1 downto 0 generate
+      PGP_GEN : for i in 2 downto 0 generate
 
          U_LdmxFebPgp_1 : entity ldmx.LdmxFebPgpLane
             generic map (

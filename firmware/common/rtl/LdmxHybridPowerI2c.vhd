@@ -35,91 +35,75 @@ entity LdmxHybridPowerI2C is
       AXIL_BASE_ADDR_G : slv(31 downto 0)     := X"00000000";
       AXIL_CLK_FREQ_G  : real                 := 125.0e6);
    port (
-      scl    : inout sl;
-      sda    : inout sl;
-      resetL : out   sl;
-
-      axilClk         : in  sl;
-      axilRst         : in  sl;
-      axilReadMaster  : in AxiLiteReadMasterType;
-      axilReadSlave   : out  AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_OK_C;
-      axilWriteMaster : in AxiLiteWriteMasterType;
-      axilWriteSlave  : out  AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_OK_C
-      );
+      axilClk         : in    sl;
+      axilRst         : in    sl;
+      axilReadMaster  : in    AxiLiteReadMasterType;
+      axilReadSlave   : out   AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_OK_C;
+      axilWriteMaster : in    AxiLiteWriteMasterType;
+      axilWriteSlave  : out   AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_OK_C;
+      scl             : inout slv(HYBRIDS_G-1 downto 0);
+      sda             : inout slv(HYBRIDS_G-1 downto 0));
 end LdmxHybridPowerI2C;
 
 architecture rtl of LdmxHybridPowerI2C is
 
 
-   constant XBAR_I2C_CONFIG_C : AxiLiteCrossbarMasterConfigArray(7 downto 0) := genAxiLiteConfig(8, AXIL_BASE_ADDR_G, 16, 12);
+   constant XBAR_I2C_CONFIG_C : AxiLiteCrossbarMasterConfigArray(HYBRIDS_G-1 downto 0) := genAxiLiteConfig(HYBRIDS_G, AXIL_BASE_ADDR_G, 16, 12);
 
-   signal i2cReadMasters  : AxiLiteReadMasterArray(7 downto 0);
-   signal i2cReadSlaves   : AxiLiteReadSlaveArray(7 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
-   signal i2cWriteMasters : AxiLiteWriteMasterArray(7 downto 0);
-   signal i2cWriteSlaves  : AxiLiteWriteSlaveArray(7 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
-
-   signal i2ci : i2c_in_type;
-   signal i2coVec : i2c_out_array(8 downto 0) := (
-      others    => (
-         scl    => '1',
-         scloen => '1',
-         sda    => '1',
-         sdaoen => '1',
-         enable => '0'));
-   signal i2co : i2c_out_type;
-
+   signal i2cReadMasters  : AxiLiteReadMasterArray(HYBRIDS_G-1 downto 0);
+   signal i2cReadSlaves   : AxiLiteReadSlaveArray(HYBRIDS_G-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
+   signal i2cWriteMasters : AxiLiteWriteMasterArray(HYBRIDS_G-1 downto 0);
+   signal i2cWriteSlaves  : AxiLiteWriteSlaveArray(HYBRIDS_G-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
    constant I2C_DEV_MAP_C : I2cAxiLiteDevArray := (
-      0              => (               -- LTC2991
+      0              => (               -- LTC2991 Near
          i2cAddress  => "0001001000",
          i2cTenbit   => '0',
          dataSize    => 16,
          addrSize    => 8,
          endianness  => '1',
          repeatStart => '0'),
-      1              => (
+      1              => (               -- LTC2991 Far
+         i2cAddress  => "0001001001",
+         i2cTenbit   => '0',
+         dataSize    => 16,
+         addrSize    => 8,
+         endianness  => '1',
+         repeatStart => '0'),
+      2              => (
          i2cAddress  => "0000100000",   -- AD5144
          i2cTenbit   => '0',
          dataSize    => 16,
          addrSize    => 8,
          endianness  => '1',            -- check this
-         repeatStart => '1'));           -- check this
+         repeatStart => '1'));          -- check this
 
 begin
 
-   U_XbarI2cMux : entity surf.AxiLiteCrossbarI2cMux
+   -------------------------------------------------------------------------------------------------
+   -- Crossbar
+   -------------------------------------------------------------------------------------------------
+   U_AxiLiteCrossbar : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
-         -- I2C MUX Generics
-         MUX_DECODE_MAP_G   => I2C_MUX_DECODE_MAP_PCA9547_C,
-         I2C_MUX_ADDR_G     => b"111_0000",
-         I2C_SCL_FREQ_G     => I2C_SCL_FREQ_G,
-         I2C_MIN_PULSE_G    => I2C_MIN_PULSE_G,
-         AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G,
-         -- AXI-Lite Crossbar Generics
-         NUM_MASTER_SLOTS_G => 8,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => HYBRIDS_G,
          MASTERS_CONFIG_G   => XBAR_I2C_CONFIG_C)
       port map (
-         -- Clocks and Resets
-         axilClk           => axilClk,
-         axilRst           => axilRst,
-         -- Slave AXI-Lite Interface
-         sAxilWriteMaster  => axilWriteMaster,
-         sAxilWriteSlave   => axilWriteSlave,
-         sAxilReadMaster   => axilReadMaster,
-         sAxilReadSlave    => axilReadSlave,
-         -- Master AXI-Lite Interfaces
-         mAxilWriteMasters => i2cWriteMasters,
-         mAxilWriteSlaves  => i2cWriteSlaves,
-         mAxilReadMasters  => i2cReadMasters,
-         mAxilReadSlaves   => i2cReadSlaves,
-         -- I2C MUX Ports
-         i2cRstL           => resetL,
-         i2ci              => i2ci,
-         i2co              => i2coVec(8));
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
+         sAxiWriteMasters(0) => axilWriteMaster,
+         sAxiWriteSlaves(0)  => axilWriteSlave,
+         sAxiReadMasters(0)  => axilReadMaster,
+         sAxiReadSlaves(0)   => axilReadSlave,
+         mAxiWriteMasters    => i2cWriteMasters,
+         mAxiWriteSlaves     => i2cWriteSlaves,
+         mAxiReadMasters     => i2cReadMasters,
+         mAxiReadSlaves      => i2cReadSlaves);
+
 
    I2C_GEN : for i in HYBRIDS_G-1 downto 0 generate
-      U_HY_I2C : entity surf.AxiI2cRegMasterCore
+      U_HY_I2C : entity surf.AxiI2cRegMaster
          generic map (
             TPD_G           => TPD_G,
             I2C_SCL_FREQ_G  => I2C_SCL_FREQ_G,
@@ -127,46 +111,14 @@ begin
             DEVICE_MAP_G    => I2C_DEV_MAP_C,
             AXI_CLK_FREQ_G  => AXIL_CLK_FREQ_G)
          port map (
-            -- I2C Ports
-            i2ci           => i2ci,
-            i2co           => i2coVec(i),
-            -- AXI-Lite Register Interface
+            axiClk         => axilClk,
+            axiRst         => axilRst,
             axiReadMaster  => i2cReadMasters(i),
             axiReadSlave   => i2cReadSlaves(i),
             axiWriteMaster => i2cWriteMasters(i),
             axiWriteSlave  => i2cWriteSlaves(i),
-            -- Clocks and Resets
-            axiClk         => axilClk,
-            axiRst         => axilRst);
+            scl            => scl(i),
+            sda            => sda(i));
    end generate I2C_GEN;
-
-   process(i2cReadMasters, i2cWriteMasters, i2coVec)
-      variable tmp : i2c_out_type;
-   begin
-      -- Init
-      tmp := i2coVec(8);
-      -- Check for TXN after XBAR/I2C_MUX
-      for i in 0 to 7 loop
-         if (i2cWriteMasters(i).awvalid = '1') or (i2cReadMasters(i).arvalid = '1') then
-            tmp := i2coVec(i);
-         end if;
-      end loop;
-      -- Return result
-      i2co <= tmp;
-   end process;
-
-   IOBUF_SCL : IOBUF
-      port map (
-         O  => i2ci.scl,
-         IO => scl,
-         I  => i2co.scl,
-         T  => i2co.scloen);
-
-   IOBUF_SDA : IOBUF
-      port map (
-         O  => i2ci.sda,
-         IO => sda,
-         I  => i2co.sda,
-         T  => i2co.sdaoen);
 
 end architecture rtl;
