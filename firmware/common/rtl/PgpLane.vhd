@@ -37,7 +37,8 @@ use ldmx.AppPkg.all;
 entity PgpLane is
    generic (
       TPD_G             : time                  := 1 ns;
-      LANE_G            : natural range 0 to 7 := 0;
+      SIMULATION_G      : boolean               := false;
+      LANE_G            : natural range 0 to 7  := 0;
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
       AXI_BASE_ADDR_G   : slv(31 downto 0)      := (others => '0'));
    port (
@@ -132,6 +133,7 @@ begin
    U_Pgp : entity surf.Pgp2fcGtyUltra
       generic map (
          TPD_G           => TPD_G,
+         SIMULATION_G    => SIMULATION_G,
          FC_WORDS_G      => 8,
          VC_INTERLEAVE_G => 1)          -- AxiStreamDmaV2 supports interleaving
       port map (

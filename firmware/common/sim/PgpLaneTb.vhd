@@ -38,6 +38,7 @@ architecture sim of PgpLaneTb is
 
    -- component generics
    constant TPD_G             : time                 := 1 ns;
+   constant SIMULATION_G      : boolean              := true;
    constant LANE_G            : natural range 0 to 7 := 0;
    constant DMA_AXIS_CONFIG_G : AxiStreamConfigType  := ssiAxiStreamConfig(dataBytes => 16, tDestBits => 8, tIdBits => 3);
    constant AXI_BASE_ADDR_G   : slv(31 downto 0)     := (others                      => '0');
@@ -68,6 +69,7 @@ begin
    U_PgpLane : entity ldmx.PgpLane
       generic map (
          TPD_G             => TPD_G,
+         SIMULATION_G      => SIMULATION_G,
          LANE_G            => LANE_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G,
          AXI_BASE_ADDR_G   => AXI_BASE_ADDR_G)
