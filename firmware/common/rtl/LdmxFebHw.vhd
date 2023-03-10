@@ -71,6 +71,13 @@ entity LdmxFebHw is
       locI2cScl : inout sl;
       locI2cSda : inout sl;
 
+      sfpI2cScl : inout sl;
+      spfI2cSda : inout sl;
+
+      qsfpI2cScl    : inout sl;
+      qsfpI2cSda    : inout sl;
+      qsfpI2cResetL : inout sl := '1';
+
       digPmBusScl    : inout sl;
       digPmBusSda    : inout sl;
       digPmBusAlertL : in    sl;
@@ -140,20 +147,22 @@ architecture rtl of LdmxFebHw is
    -------------------------------------------------------------------------------------------------
    constant AXIL_CLK_FREQ_C : real := 1.0/AXIL_CLK_FREQ_G;
 
-   constant MAIN_XBAR_MASTERS_C : natural := 11;
+   constant MAIN_XBAR_MASTERS_C : natural := 13;
 
    -- Module AXI Addresses
    constant AXIL_HYBRID_A_CLOCK_PHASE_INDEX_C : natural := 0;
    constant AXIL_HYBRID_B_CLOCK_PHASE_INDEX_C : natural := 1;
    constant AXIL_ADC_CLOCK_PHASE_INDEX_C      : natural := 2;
    constant AXIL_LOC_I2C_INDEX_C              : natural := 3;
-   constant AXIL_SYSMON_INDEX_C               : natural := 4;
-   constant AXIL_PROM_INDEX_C                 : natural := 5;
-   constant AXIL_HY_PWR_I2C_INDEX_C           : natural := 6;
-   constant AXIL_DIG_PM_INDEX_C               : natural := 7;
-   constant AXIL_ANA_PM_INDEX_C               : natural := 8;
-   constant AXIL_ADC_READOUT_INDEX_C          : natural := 9;
-   constant AXIL_ADC_CONFIG_INDEX_C           : natural := 10;
+   constant AXIL_SFP_I2C_INDEX_C              : natural := 4;
+   constant AXIL_QSFP_I2C_INDEX_C             : natural := 5;
+   constant AXIL_SYSMON_INDEX_C               : natural := 6;
+   constant AXIL_PROM_INDEX_C                 : natural := 7;
+   constant AXIL_HY_PWR_I2C_INDEX_C           : natural := 8;
+   constant AXIL_DIG_PM_INDEX_C               : natural := 9;
+   constant AXIL_ANA_PM_INDEX_C               : natural := 10;
+   constant AXIL_ADC_READOUT_INDEX_C          : natural := 11;
+   constant AXIL_ADC_CONFIG_INDEX_C           : natural := 12;
 
    constant MAIN_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(MAIN_XBAR_MASTERS_C-1 downto 0) := (
       AXIL_HYBRID_A_CLOCK_PHASE_INDEX_C => (    -- Hybrid (APV) Clock Phase Adjustment
@@ -171,6 +180,14 @@ architecture rtl of LdmxFebHw is
       AXIL_LOC_I2C_INDEX_C              => (    -- Board I2C Interface
          baseAddr                       => AXIL_BASE_ADDR_G + X"10_0000",
          addrBits                       => 20,
+         connectivity                   => X"0001"),
+      AXIL_SFP_I2C_INDEX_C              => (    -- Board I2C Interface
+         baseAddr                       => AXIL_BASE_ADDR_G + X"4000",
+         addrBits                       => 12,
+         connectivity                   => X"0001"),
+      AXIL_QSFP_I2C_INDEX_C             => (    -- Board I2C Interface
+         baseAddr                       => AXIL_BASE_ADDR_G + X"5000",
+         addrBits                       => 12,
          connectivity                   => X"0001"),
       AXIL_SYSMON_INDEX_C               => (
          baseAddr                       => AXIL_BASE_ADDR_G + X"1_0000",
@@ -410,24 +427,18 @@ begin
          TPD_G             => TPD_G,
          AXIL_PROXY_G      => false,
          DEVICE_MAP_G      => (
-            0              => MakeI2cAxiLiteDevType(
-               i2cAddress  => "1010000",                                -- DS28CM00R Serial ID
-               dataSize    => 8,
-               addrSize    => 8,
-               endianness  => '1',
-               repeatStart => '1'),
-            1              => MakeI2cAxiLiteDevType(                    -- 24FC64F EEPROM
+            0              => MakeI2cAxiLiteDevType(                    -- 24FC64F EEPROM
                i2cAddress  => "1010100",
                dataSize    => 8,
                addrSize    => 16,
                endianness  => '1'),
-            2              => MakeI2cAxiLiteDevType(                    -- TCA6424 AMP PD 0-3
+            1              => MakeI2cAxiLiteDevType(                    -- PCAL6524 AMP PD 0-3
                i2cAddress  => "0100010",
                dataSize    => 8,
                addrSize    => 8,
                endianness  => '1',
                repeatStart => '0'),
-            3              => MakeI2cAxiLiteDevType(                    -- TCA6424 AMP PD 4-7
+            2              => MakeI2cAxiLiteDevType(                    -- PCAL6524 AMP PD 4-7
                i2cAddress  => "0100011",
                dataSize    => 8,
                addrSize    => 8,
@@ -446,6 +457,44 @@ begin
 --         sel            => sel,             -- [out]
          scl            => locI2cScl,                                   -- [inout]
          sda            => locI2cSda);                                  -- [inout]
+
+   -------------------------------------------------------------------------------------------------
+   -- SFP I2C
+   -------------------------------------------------------------------------------------------------
+   U_Sff8472_SFP : entity surf.Sff8472
+      generic map (
+         TPD_G           => TPD_G,
+         I2C_SCL_FREQ_G  => I2C_SCL_FREQ_C,
+         I2C_MIN_PULSE_G => I2C_MIN_PULSE_C,
+         AXI_CLK_FREQ_G  => AXIL_CLK_FREQ_G)
+      port map (
+         scl             => sfpI2cScl,                                   -- [inout]
+         sda             => sfpI2cSda,                                   -- [inout]
+         axilReadMaster  => mainAxilReadMasters(AXIL_SFP_I2C_INDEX_C),   -- [in]
+         axilReadSlave   => mainAxilReadSlaves(AXIL_SFP_I2C_INDEX_C),    -- [out]
+         axilWriteMaster => mainAxilWriteMasters(AXIL_SFP_I2C_INDEX_C),  -- [in]
+         axilWriteSlave  => mainAxilWriteSlaves(AXIL_SFP_I2C_INDEX_C),   -- [out]
+         axilClk         => axilClk,                                     -- [in]
+         axilRst         => axilRst);                                    -- [in]
+
+   -------------------------------------------------------------------------------------------------
+   -- SFP I2C
+   -------------------------------------------------------------------------------------------------
+   U_Sff8472_QSFP : entity surf.Sff8472
+      generic map (
+         TPD_G           => TPD_G,
+         I2C_SCL_FREQ_G  => I2C_SCL_FREQ_C,
+         I2C_MIN_PULSE_G => I2C_MIN_PULSE_C,
+         AXI_CLK_FREQ_G  => AXIL_CLK_FREQ_G)
+      port map (
+         scl             => qsfpI2cScl,                                   -- [inout]
+         sda             => qsfpI2cSda,                                   -- [inout]
+         axilReadMaster  => mainAxilReadMasters(AXIL_QSFP_I2C_INDEX_C),   -- [in]
+         axilReadSlave   => mainAxilReadSlaves(AXIL_QSFP_I2C_INDEX_C),    -- [out]
+         axilWriteMaster => mainAxilWriteMasters(AXIL_QSFP_I2C_INDEX_C),  -- [in]
+         axilWriteSlave  => mainAxilWriteSlaves(AXIL_QSFP_I2C_INDEX_C),   -- [out]
+         axilClk         => axilClk,                                      -- [in]
+         axilRst         => axilRst);                                     -- [in]
 
 
    -------------------------------------------------------------------------------------------------
@@ -519,7 +568,12 @@ begin
                dataSize    => 16,
                addrSize    => 8,
                endianness  => '0',
-               repeatStart => '1')),
+               repeatStart => '1'),
+            7              => MakeI2cAxiLiteDevType(                    -- LTC2991 voltage monitor
+               i2cAddress  => "1001000",
+               dataSize    => 16,
+               addrSize    => 8,
+               endianness  => '1')),
          I2C_SCL_FREQ_G    => I2C_SCL_FREQ_C,
          I2C_MIN_PULSE_G   => I2C_MIN_PULSE_C,
          AXI_CLK_FREQ_G    => AXIL_CLK_FREQ_G)

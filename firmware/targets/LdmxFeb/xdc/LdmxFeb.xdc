@@ -360,53 +360,56 @@ set_property -dict { PACKAGE_PIN AH17  IOSTANDARD LVCMOS33 } [get_ports { locI2c
 
 set_property -dict { PACKAGE_PIN AG15  IOSTANDARD LVCMOS33 } [get_ports { qsfpI2cScl }];
 set_property -dict { PACKAGE_PIN AH15  IOSTANDARD LVCMOS33 } [get_ports { qsfpI2cSda }];
+set_property -dict { PACKAGE_PIN AG14  IOSTANDARD LVCMOS33 } [get_ports { qsfpResetL }];
 
-set_property -dict { PACKAGE_PIN AG14  IOSTANDARD LVCMOS33 } [get_ports { sfpI2cScl }];
-set_property -dict { PACKAGE_PIN AH14  IOSTANDARD LVCMOS33 } [get_ports { sfpI2cSda }];
+set_property -dict { PACKAGE_PIN AH14  IOSTANDARD LVCMOS33 } [get_ports { sfpI2cScl }];
+set_property -dict { PACKAGE_PIN AF13  IOSTANDARD LVCMOS33 } [get_ports { sfpI2cSda }];
 
-set_property -dict { PACKAGE_PIN AF13  IOSTANDARD LVCMOS33 } [get_ports { anaPmBusScl }];
-set_property -dict { PACKAGE_PIN AG13  IOSTANDARD LVCMOS33 } [get_ports { anaPmBusSda }];
-set_property -dict { PACKAGE_PIN AE16  IOSTANDARD LVCMOS33 } [get_ports { anaPmBusAlertL }];
+set_property -dict { PACKAGE_PIN AG13  IOSTANDARD LVCMOS33 } [get_ports { anaPmBusScl }];
+set_property -dict { PACKAGE_PIN AE16  IOSTANDARD LVCMOS33 } [get_ports { anaPmBusSda }];
+set_property -dict { PACKAGE_PIN AF16  IOSTANDARD LVCMOS33 } [get_ports { anaPmBusAlertL }];
 
-set_property -dict { PACKAGE_PIN AF16  IOSTANDARD LVCMOS33 } [get_ports { digPmBusScl }];
-set_property -dict { PACKAGE_PIN AE15  IOSTANDARD LVCMOS33 } [get_ports { digPmBusSda }];
-set_property -dict { PACKAGE_PIN AF15  IOSTANDARD LVCMOS33 } [get_ports { digPmBusAlertL }];
+set_property -dict { PACKAGE_PIN AE15  IOSTANDARD LVCMOS33 } [get_ports { digPmBusScl }];
+set_property -dict { PACKAGE_PIN AF15  IOSTANDARD LVCMOS33 } [get_ports { digPmBusSda }];
+set_property -dict { PACKAGE_PIN AE13  IOSTANDARD LVCMOS33 } [get_ports { digPmBusAlertL }];
 
-set_property -dict { PACKAGE_PIN AE13  IOSTANDARD LVCMOS33 } [get_ports { led[0] }];
-set_property -dict { PACKAGE_PIN AE14  IOSTANDARD LVCMOS33 } [get_ports { led[1] }];
-set_property -dict { PACKAGE_PIN AD13  IOSTANDARD LVCMOS33 } [get_ports { led[2] }];
-set_property -dict { PACKAGE_PIN AD14  IOSTANDARD LVCMOS33 } [get_ports { led[3] }];
-set_property -dict { PACKAGE_PIN AC16  IOSTANDARD LVCMOS33 } [get_ports { led[4] }];
-set_property -dict { PACKAGE_PIN AD16  IOSTANDARD LVCMOS33 } [get_ports { led[5] }];
-set_property -dict { PACKAGE_PIN AB15  IOSTANDARD LVCMOS33 } [get_ports { led[6] }];
-set_property -dict { PACKAGE_PIN AB16  IOSTANDARD LVCMOS33 } [get_ports { led[7] }];
+set_property -dict { PACKAGE_PIN C15  IOSTANDARD LVCMOS33 } [get_ports { led[0] }];
+set_property -dict { PACKAGE_PIN C16  IOSTANDARD LVCMOS33 } [get_ports { led[1] }];
+set_property -dict { PACKAGE_PIN C14  IOSTANDARD LVCMOS33 } [get_ports { led[2] }];
+set_property -dict { PACKAGE_PIN B15  IOSTANDARD LVCMOS33 } [get_ports { led[3] }];
+set_property -dict { PACKAGE_PIN B13  IOSTANDARD LVCMOS33 } [get_ports { led[4] }];
+set_property -dict { PACKAGE_PIN B14  IOSTANDARD LVCMOS33 } [get_ports { led[5] }];
+set_property -dict { PACKAGE_PIN A15  IOSTANDARD LVCMOS33 } [get_ports { led[6] }];
+set_property -dict { PACKAGE_PIN A16  IOSTANDARD LVCMOS33 } [get_ports { led[7] }];
 
 # Thermistors (SYSMON)
 # set_property -dict { PACKAGE_PIN AB13  IOSTANDARD ANALOG } [get_ports { thermistorP[0] }]
 # set_property -dict { PACKAGE_PIN AB14  IOSTANDARD ANALOG } [get_ports { thermistorN[0] }]
 # set_property -dict { PACKAGE_PIN AC14  IOSTANDARD ANALOG } [get_ports { thermistorP[1] }]
 # set_property -dict { PACKAGE_PIN AC15  IOSTANDARD ANALOG } [get_ports { thermistorN[1] }]
-
-
+# set_property -dict { PACKAGE_PIN AB15  IOSTANDARD ANALOG } [get_ports { thermistorP[2] }]
+# set_property -dict { PACKAGE_PIN AB16  IOSTANDARD ANALOG } [get_ports { thermistorN[2] }]
+# set_property -dict { PACKAGE_PIN AC16  IOSTANDARD ANALOG } [get_ports { thermistorP[3] }]
+# set_property -dict { PACKAGE_PIN AD16  IOSTANDARD ANALOG } [get_ports { thermistorN[3] }]
 
 
 # Hybrid Power Monitor
-set_property -dict { PACKAGE_PIN E13  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[0] }];
-set_property -dict { PACKAGE_PIN E14  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[0] }];
-set_property -dict { PACKAGE_PIN E15  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[1] }];
-set_property -dict { PACKAGE_PIN E16  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[1] }];
-set_property -dict { PACKAGE_PIN D13  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[2] }];
-set_property -dict { PACKAGE_PIN D14  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[2] }];
-set_property -dict { PACKAGE_PIN D16  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[3] }];
-set_property -dict { PACKAGE_PIN D17  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[3] }];
-set_property -dict { PACKAGE_PIN C15  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[4] }];
-set_property -dict { PACKAGE_PIN C16  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[4] }];
-set_property -dict { PACKAGE_PIN C14  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[5] }];
-set_property -dict { PACKAGE_PIN B15  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[5] }];
-set_property -dict { PACKAGE_PIN B13  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[6] }];
-set_property -dict { PACKAGE_PIN B14  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[6] }];
-set_property -dict { PACKAGE_PIN A15  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[7] }];
-set_property -dict { PACKAGE_PIN A16  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[7] }];
+set_property -dict { PACKAGE_PIN G13  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[0] }];
+set_property -dict { PACKAGE_PIN F13  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[0] }];
+set_property -dict { PACKAGE_PIN G14  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[1] }];
+set_property -dict { PACKAGE_PIN G15  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[1] }];
+set_property -dict { PACKAGE_PIN F15  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[2] }];
+set_property -dict { PACKAGE_PIN F16  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[2] }];
+set_property -dict { PACKAGE_PIN G17  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[3] }];
+set_property -dict { PACKAGE_PIN F17  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[3] }];
+set_property -dict { PACKAGE_PIN E13  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[4] }];
+set_property -dict { PACKAGE_PIN E14  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[4] }];
+set_property -dict { PACKAGE_PIN E15  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[5] }];
+set_property -dict { PACKAGE_PIN E16  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[5] }];
+set_property -dict { PACKAGE_PIN D13  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[6] }];
+set_property -dict { PACKAGE_PIN D14  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[6] }];
+set_property -dict { PACKAGE_PIN D16  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cScl[7] }];
+set_property -dict { PACKAGE_PIN D17  IOSTANDARD LVCMOS33 } [get_ports { hyPwrI2cSda[7] }];
 
 
 # Hybrid Power Enables
