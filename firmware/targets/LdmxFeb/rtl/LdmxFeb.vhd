@@ -95,7 +95,7 @@ entity LdmxFeb is
       locI2cSda : inout sl;
 
       sfpI2cScl : inout sl;
-      spfI2cSda : inout sl;
+      sfpI2cSda : inout sl;
 
       qsfpI2cScl : inout sl;
       qsfpI2cSda : inout sl;

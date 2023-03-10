@@ -37,8 +37,8 @@ entity LdmxFebSysmonWrapper is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
-      vauxp           : in  slv(1 downto 0);
-      vauxn           : in  slv(1 downto 0));
+      vauxp           : in  slv(3 downto 0);
+      vauxn           : in  slv(3 downto 0));
 
 end entity LdmxFebSysmonWrapper;
 
@@ -71,6 +71,10 @@ architecture rtl of LdmxFebSysmonWrapper is
          vauxn0                 : in  sl;
          vauxp1                 : in  sl;
          vauxn1                 : in  sl;
+         vauxp2                 : in  sl;
+         vauxn2                 : in  sl;
+         vauxp3                 : in  sl;
+         vauxn3                 : in  sl;
          ip2intc_irpt           : out sl;
          user_temp_alarm_out    : out sl;
          vccint_alarm_out       : out sl;
@@ -117,6 +121,10 @@ begin
          vauxn0                 => vauxn(0),                             -- [in]
          vauxp1                 => vauxp(1),                             -- [in]
          vauxn1                 => vauxn(1),                             -- [in]
+         vauxp2                 => vauxp(2),                             -- [in]
+         vauxn2                 => vauxn(2),                             -- [in]
+         vauxp3                 => vauxp(3),                             -- [in]
+         vauxn3                 => vauxn(3),                             -- [in]
          ip2intc_irpt           => open,                                 -- [out]
          user_temp_alarm_out    => open,                                 -- [out]
          vccint_alarm_out       => open,                                 -- [out]

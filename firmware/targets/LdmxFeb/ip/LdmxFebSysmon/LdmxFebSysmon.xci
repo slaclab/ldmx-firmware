@@ -235,8 +235,8 @@
         "AVERAGE_ENABLE_VCCDDRO": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "CHANNEL_ENABLE_VAUXP0_VAUXN0": [ { "value": "true", "value_src": "user", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "CHANNEL_ENABLE_VAUXP1_VAUXN1": [ { "value": "true", "value_src": "user", "resolve_type": "user", "format": "bool", "usage": "all" } ],
-        "CHANNEL_ENABLE_VAUXP2_VAUXN2": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
-        "CHANNEL_ENABLE_VAUXP3_VAUXN3": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
+        "CHANNEL_ENABLE_VAUXP2_VAUXN2": [ { "value": "true", "value_src": "user", "resolve_type": "user", "format": "bool", "usage": "all" } ],
+        "CHANNEL_ENABLE_VAUXP3_VAUXN3": [ { "value": "true", "value_src": "user", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "CHANNEL_ENABLE_VAUXP4_VAUXN4": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "CHANNEL_ENABLE_VAUXP5_VAUXN5": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "CHANNEL_ENABLE_VAUXP6_VAUXN6": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
@@ -252,8 +252,8 @@
         "AVERAGE_ENABLE_VP_VN": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
         "AVERAGE_ENABLE_VAUXP0_VAUXN0": [ { "value": "true", "value_src": "user", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "AVERAGE_ENABLE_VAUXP1_VAUXN1": [ { "value": "true", "value_src": "user", "resolve_type": "user", "format": "bool", "usage": "all" } ],
-        "AVERAGE_ENABLE_VAUXP2_VAUXN2": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
-        "AVERAGE_ENABLE_VAUXP3_VAUXN3": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
+        "AVERAGE_ENABLE_VAUXP2_VAUXN2": [ { "value": "true", "value_src": "user", "resolve_type": "user", "format": "bool", "usage": "all" } ],
+        "AVERAGE_ENABLE_VAUXP3_VAUXN3": [ { "value": "true", "value_src": "user", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "AVERAGE_ENABLE_VAUXP4_VAUXN4": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
         "AVERAGE_ENABLE_VAUXP5_VAUXN5": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
         "AVERAGE_ENABLE_VAUXP6_VAUXN6": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
@@ -272,8 +272,8 @@
         "BIPOLAR_VP_VN": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
         "BIPOLAR_VAUXP0_VAUXN0": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "BIPOLAR_VAUXP1_VAUXN1": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
-        "BIPOLAR_VAUXP2_VAUXN2": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
-        "BIPOLAR_VAUXP3_VAUXN3": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
+        "BIPOLAR_VAUXP2_VAUXN2": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
+        "BIPOLAR_VAUXP3_VAUXN3": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "BIPOLAR_VAUXP4_VAUXN4": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
         "BIPOLAR_VAUXP5_VAUXN5": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
         "BIPOLAR_VAUXP6_VAUXN6": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
@@ -289,8 +289,8 @@
         "ACQUISITION_TIME_VP_VN": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
         "ACQUISITION_TIME_VAUXP0_VAUXN0": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "ACQUISITION_TIME_VAUXP1_VAUXN1": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
-        "ACQUISITION_TIME_VAUXP2_VAUXN2": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
-        "ACQUISITION_TIME_VAUXP3_VAUXN3": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
+        "ACQUISITION_TIME_VAUXP2_VAUXN2": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
+        "ACQUISITION_TIME_VAUXP3_VAUXN3": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "ACQUISITION_TIME_VAUXP4_VAUXN4": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
         "ACQUISITION_TIME_VAUXP5_VAUXN5": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
         "ACQUISITION_TIME_VAUXP6_VAUXN6": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
@@ -510,8 +510,8 @@
         "UNDER_TEMP_ALARM": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "COMMON_N_VAUXP0_VAUXN0": [ { "value": "false", "value_src": "user", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "COMMON_N_VAUXP1_VAUXN1": [ { "value": "false", "value_src": "user", "resolve_type": "user", "format": "bool", "usage": "all" } ],
-        "COMMON_N_VAUXP2_VAUXN2": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
-        "COMMON_N_VAUXP3_VAUXN3": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
+        "COMMON_N_VAUXP2_VAUXN2": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
+        "COMMON_N_VAUXP3_VAUXN3": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "COMMON_N_VAUXP4_VAUXN4": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
         "COMMON_N_VAUXP5_VAUXN5": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
         "COMMON_N_VAUXP6_VAUXN6": [ { "value": "false", "resolve_type": "user", "format": "bool", "enabled": false, "usage": "all" } ],
@@ -643,9 +643,9 @@
         "C_SEQUENCE_SLAVE0_SSIT_R0": [ { "value": "256", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_SEQUENCE_SLAVE1_SSIT_R0": [ { "value": "256", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_SEQUENCE_SLAVE2_SSIT_R0": [ { "value": "256", "resolve_type": "generated", "format": "long", "usage": "all" } ],
-        "C_SEQUENCE_R1": [ { "value": "3", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_SEQUENCE_R1": [ { "value": "15", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_SEQUENCE_R2": [ { "value": "18176", "resolve_type": "generated", "format": "long", "usage": "all" } ],
-        "C_SEQUENCE_R3": [ { "value": "3", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_SEQUENCE_R3": [ { "value": "15", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_SEQUENCE_R4": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_SEQUENCE_R5": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_SEQUENCE_R6": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
@@ -653,8 +653,8 @@
         "C_VPVN": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_VAUX0": [ { "value": "1", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_VAUX1": [ { "value": "1", "resolve_type": "generated", "format": "long", "usage": "all" } ],
-        "C_VAUX2": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
-        "C_VAUX3": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_VAUX2": [ { "value": "1", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_VAUX3": [ { "value": "1", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_VAUX4": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_VAUX5": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_VAUX6": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
@@ -854,7 +854,7 @@
         "C_DIV_VUSER1_SLAVE2": [ { "value": "3", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_DIV_VUSER2_SLAVE2": [ { "value": "3", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_DIV_VUSER3_SLAVE2": [ { "value": "3", "resolve_type": "generated", "format": "long", "usage": "all" } ],
-        "C_CHANNEL_CNT": [ { "value": "11", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_CHANNEL_CNT": [ { "value": "13", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_VAUXN0_LOC": [ { "value": "AB14", "resolve_type": "generated", "usage": "all" } ],
         "C_VAUXP0_LOC": [ { "value": "AB13", "resolve_type": "generated", "usage": "all" } ],
         "C_VAUXN1_LOC": [ { "value": "AC15", "resolve_type": "generated", "usage": "all" } ],
@@ -942,6 +942,10 @@
         "vauxn0": [ { "direction": "in", "driver_value": "0" } ],
         "vauxp1": [ { "direction": "in", "driver_value": "0" } ],
         "vauxn1": [ { "direction": "in", "driver_value": "0" } ],
+        "vauxp2": [ { "direction": "in", "driver_value": "0" } ],
+        "vauxn2": [ { "direction": "in", "driver_value": "0" } ],
+        "vauxp3": [ { "direction": "in", "driver_value": "0" } ],
+        "vauxn3": [ { "direction": "in", "driver_value": "0" } ],
         "user_temp_alarm_out": [ { "direction": "out" } ],
         "vccint_alarm_out": [ { "direction": "out" } ],
         "vccaux_alarm_out": [ { "direction": "out" } ],
@@ -1084,6 +1088,30 @@
           "port_maps": {
             "V_N": [ { "physical_name": "vauxn1" } ],
             "V_P": [ { "physical_name": "vauxp1" } ]
+          }
+        },
+        "Vaux2": {
+          "vlnv": "xilinx.com:interface:diff_analog_io:1.0",
+          "abstraction_type": "xilinx.com:interface:diff_analog_io_rtl:1.0",
+          "mode": "slave",
+          "parameters": {
+            "BOARD.ASSOCIATED_PARAM": [ { "value": "VAUX2_BOARD_INTERFACE", "value_src": "constant", "usage": "all" } ]
+          },
+          "port_maps": {
+            "V_N": [ { "physical_name": "vauxn2" } ],
+            "V_P": [ { "physical_name": "vauxp2" } ]
+          }
+        },
+        "Vaux3": {
+          "vlnv": "xilinx.com:interface:diff_analog_io:1.0",
+          "abstraction_type": "xilinx.com:interface:diff_analog_io_rtl:1.0",
+          "mode": "slave",
+          "parameters": {
+            "BOARD.ASSOCIATED_PARAM": [ { "value": "VAUX3_BOARD_INTERFACE", "value_src": "constant", "usage": "all" } ]
+          },
+          "port_maps": {
+            "V_N": [ { "physical_name": "vauxn3" } ],
+            "V_P": [ { "physical_name": "vauxp3" } ]
           }
         }
       }

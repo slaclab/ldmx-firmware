@@ -72,7 +72,7 @@ entity LdmxFebHw is
       locI2cSda : inout sl;
 
       sfpI2cScl : inout sl;
-      spfI2cSda : inout sl;
+      sfpI2cSda : inout sl;
 
       qsfpI2cScl    : inout sl;
       qsfpI2cSda    : inout sl;
@@ -101,8 +101,8 @@ entity LdmxFebHw is
       hyI2cSdaOut : out slv(HYBRIDS_G-1 downto 0);
       hyI2cSdaIn  : in  slv(HYBRIDS_G-1 downto 0);
 
-      vauxp : in slv(1 downto 0);
-      vauxn : in slv(1 downto 0);
+      vauxp : in slv(3 downto 0);
+      vauxn : in slv(3 downto 0);
 
       leds : out slv(7 downto 0);       -- Test outputs
 
