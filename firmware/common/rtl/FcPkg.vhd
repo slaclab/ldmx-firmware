@@ -2,7 +2,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Fast Control Package
-
+--
 -------------------------------------------------------------------------------
 -- This file is part of 'LDMX'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -25,8 +25,8 @@ package FcPkg is
 
    constant FC_LEN_C          : natural := 80;
    subtype MSG_TYPE_RANGE_C  is natural range FC_LEN_C-1 downto 76;
-   subtype BUNCH_CNT_RANGE_C is natural range 68 downto 64;
-   subtype RUN_STATE_RANGE_C is natural range 68 downto 64;
+   subtype BUNCH_CNT_RANGE_C is natural range 69 downto 64;
+   subtype RUN_STATE_RANGE_C is natural range 69 downto 64;
    subtype PULSE_ID_RANGE_C  is natural range 63 downto 0;
 
    constant MSG_TYPE_TMNG_C  : natural := 0;
@@ -34,9 +34,9 @@ package FcPkg is
 
    type FastControlMessageType is record
       msgType  : slv(3 downto 0);
-      -- reserved : slv(6 downto 0);
-      bunchCnt : slv(4 downto 0);
-      runState : slv(4 downto 0);
+      -- reserved : slv(5 downto 0);
+      bunchCnt : slv(5 downto 0);
+      runState : slv(5 downto 0);
       pulseID  : slv(63 downto 0);
       message  : slv(FC_LEN_C-1 downto 0);
    end record;

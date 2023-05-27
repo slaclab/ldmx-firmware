@@ -31,8 +31,8 @@ entity FcEmu is
       TPD_G                      : time    := 1 ns;
       RST_ASYNC_G                : boolean := false;
       SIMULATION_G               : boolean := false;
-      TIMING_MSG_PERIOD_G        : natural := 191; -- should fit in 32 bits
-      BUNCH_CNT_PERIOD_G         : natural := 5;   -- should fit in 5 bits
+      TIMING_MSG_PERIOD_G        : natural := 200; -- should fit in 32 bits
+      BUNCH_CNT_PERIOD_G         : natural := 5;   -- should fit in 6 bits
       OVERRIDE_PERIOD_DEFAULTS_G : boolean := false);
    port (
       -- Clock and Reset
@@ -62,11 +62,10 @@ architecture rtl of FcEmu is
       bunchClk           : sl;
       fcMsg              : FastControlMessageType;
       pulseIDinit        : slv(63 downto 0);
-      bunchCntInit       : slv(4 downto 0);
-      fcRunStateSet      : slv(4 downto 0);
-      bunchCntPeriodCnt  : slv(4 downto 0);
-      bunchCntPeriodSet  : slv(4 downto 0);
-      bunchCntPeriod     : slv(4 downto 0);
+      fcRunStateSet      : slv(5 downto 0);
+      bunchCntPeriodCnt  : slv(5 downto 0);
+      bunchCntPeriodSet  : slv(5 downto 0);
+      bunchCntPeriod     : slv(5 downto 0);
       timingMsgPeriodCnt : slv(31 downto 0);
       timingMsgPeriodSet : slv(31 downto 0);
       timingMsgPeriod    : slv(31 downto 0);
@@ -86,14 +85,13 @@ architecture rtl of FcEmu is
       bunchClk           => '0',
       fcMsg              => DEFAULT_FC_MSG_C,
       pulseIDinit        => (others => '0'),
-      bunchCntInit       => (others => '0'),
       fcRunStateSet      => (others => '0'),
       bunchCntPeriodCnt  => (others => '0'),
-      bunchCntPeriodSet  => slv(conv_unsigned(5, 5)),
-      bunchCntPeriod     => slv(conv_unsigned(5, 5)),
+      bunchCntPeriodSet  => slv(conv_unsigned(5, 6)),
+      bunchCntPeriod     => slv(conv_unsigned(5, 6)),
       timingMsgPeriodCnt => (others => '0'),
-      timingMsgPeriodSet => slv(conv_unsigned(188, 32)),
-      timingMsgPeriod    => slv(conv_unsigned(188, 32)),
+      timingMsgPeriodSet => slv(conv_unsigned(200, 32)),
+      timingMsgPeriod    => slv(conv_unsigned(200, 32)),
       rOrPeriodCnt       => (others => '0'),
       rOrPeriod          => slv(conv_unsigned(100, 32)),
       axilReadSlave      => AXI_LITE_READ_SLAVE_INIT_C,
@@ -127,11 +125,10 @@ begin
       axiSlaveRegister (axilEp, x"008", 0, v.usrRoR);             -- Sends a single RoR for every
                                                                   -- low-to-high transition
       axiSlaveRegister (axilEp, x"00C", 0, v.pulseIDinit);        -- Set pulseID initial value
-      axiSlaveRegister (axilEp, x"014", 0, v.bunchCntInit);       -- Set Bunch Count initial value
-      axiSlaveRegister (axilEp, x"018", 0, v.timingMsgPeriodSet); -- Timing Message period
-      axiSlaveRegister (axilEp, x"01C", 0, v.bunchCntPeriodSet);  -- Bunch Cnt period
-      axiSlaveRegister (axilEp, x"020", 0, v.fcRunStateSet);      -- Next FC run state set value
-      axiSlaveRegister (axilEp, x"024", 0, v.rOrPeriod);          -- Read-Out-Req period
+      axiSlaveRegister (axilEp, x"014", 0, v.timingMsgPeriodSet); -- Timing Message period
+      axiSlaveRegister (axilEp, x"018", 0, v.bunchCntPeriodSet);  -- Bunch Cnt period
+      axiSlaveRegister (axilEp, x"01C", 0, v.fcRunStateSet);      -- Next FC run state set value
+      axiSlaveRegister (axilEp, x"020", 0, v.rOrPeriod);          -- Read-Out-Req period
                                                                   -- (units of 5*timing clk period)
 
 
@@ -143,54 +140,61 @@ begin
       v.timingMsgPeriod := ite(OVERRIDE_PERIOD_DEFAULTS_G, r.timingMsgPeriodSet,
                                slv(conv_unsigned(TIMING_MSG_PERIOD_G, 32)));
       v.bunchCntPeriod  := ite(OVERRIDE_PERIOD_DEFAULTS_G, r.bunchCntPeriodSet,
-                               slv(conv_unsigned(BUNCH_CNT_PERIOD_G, 5)));
+                               slv(conv_unsigned(BUNCH_CNT_PERIOD_G, 6)));
 
       -- pulseID Period Counter Control
       -- bunchCnt Period Counter Control
       -- pulseID increments when the timingMsgPeriodCnt hits its limit
       -- and coincides with a request for a timing message;
       -- bunchCnt increments when the bunchCntPeriodCnt hits its limit;
-      if (r.enableTimingMsg = '1') then
+      v.bunchCntStrb := '0';
+      v.timingMsgReq := '0';
+      v.fcValid      := '0';
+      v.usrRoR       := '0';
+
+      if (r.enableTimingMsg = '0') then
+         -- reset case
+         v.bunchClk           := '0';
+         v.bunchCntPeriodCnt  := (others => '0');
+         v.timingMsgPeriodCnt := (others => '0');
+         v.fcMsg.bunchCnt     := (others => '0');
+         v.fcMsg.pulseID      := r.pulseIDinit;
+      else
          v.timingMsgPeriodCnt := r.timingMsgPeriodCnt + 1;
          v.bunchCntPeriodCnt  := r.bunchCntPeriodCnt + 1;
-         v.timingMsgReq       := '0';
 
-         -- timing message request control
+         -- timing message request and pulseID control
          if (r.timingMsgPeriodCnt = r.timingMsgPeriod) then
             v.timingMsgPeriodCnt := (others => '0');
             v.fcMsg.pulseID      := r.fcMsg.pulseID + 1;
             v.timingMsgReq       := '1';
          end if;
 
-         -- bunchClk control. bunchClk rising-edge has to coincide with bunchCnt incr
-         -- bunchClk cannot be 50% duty-cycle because bunchCnt period is odd
-         if (r.bunchCntPeriodCnt = r.bunchCntPeriod) then
-            v.bunchClk := '1';
-         elsif (r.bunchCntPeriodCnt = conv_integer(unsigned(r.bunchCntPeriod))/2) then
-            v.bunchClk := '0';
-         end if;
-
-         -- bunch Count strobe control. this eventually triggers an RoR
+         -- the bunch Count strobe eventually triggers an RoR, and increments the bunch Counter
          if (r.bunchCntPeriodCnt = r.bunchCntPeriod-1) then
             -- strobe me just before the rollover so that the RoR
             -- gets the appropriate bunchCnt value
             v.bunchCntStrb      := '1';
-         elsif (r.bunchCntPeriodCnt = r.bunchCntPeriod) then
-            v.fcMsg.bunchCnt    := r.fcMsg.bunchCnt + 1;
             v.bunchCntPeriodCnt := (others => '0');
-            v.bunchCntStrb      := '0';
-         else
-            v.bunchCntStrb      := '0';
          end if;
 
-      else
-         v.timingMsgReq       := '0';
-         v.bunchCntStrb       := '0';
-         v.bunchClk           := '0';
-         v.bunchCntPeriodCnt  := (others => '0');
-         v.timingMsgPeriodCnt := (others => '0');
-         v.fcMsg.pulseID      := r.pulseIDinit;
-         v.fcMsg.bunchCnt     := r.bunchCntInit;
+         -- bunch Count control. resets to zero foreach timing message request
+         if (r.timingMsgReq = '1') then
+            v.fcMsg.bunchCnt := (others => '0');
+         elsif (v.bunchCntStrb = '1') then
+            v.fcMsg.bunchCnt := r.fcMsg.bunchCnt + 1;
+         end if;
+
+         -- bunchClk control. bunchClk rising-edge has to coincide with bunchCnt incr
+         -- bunchClk cannot be 50% duty-cycle because bunchCnt period is odd
+         if (r.bunchCntStrb = '1') then
+            v.bunchClk := '1';
+         elsif (r.bunchCntPeriodCnt = conv_integer(unsigned(
+                r.bunchCntPeriod(r.bunchCntPeriod'length-1 downto 1)))) then
+            -- cut the last bit -> div-by-2
+            v.bunchClk := '0';   
+         end if;
+
       end if;
 
       -- main sub-process that controls the TX of the FC message
@@ -206,7 +210,6 @@ begin
          -- if RoRs are not enabled, FC message bunchCnt will get the init value
          v.fcMsg.msgType  := slv(conv_unsigned(MSG_TYPE_ROR_C, 4));
          v.fcMsg.message  := FcEncode(r.fcMsg);
-         v.usrRor         := '0';
          v.fcValid        := '1';
       elsif (r.bunchCntStrb = '1' and r.enableRoR = '1') then
          -- periodic RoR. Have to check the RoR Period counter first
@@ -223,8 +226,6 @@ begin
          v.fcMsg.msgType  := slv(conv_unsigned(MSG_TYPE_TMNG_C, 4));
          v.fcMsg.message  := FcEncode(r.fcMsg);
          v.fcValid        := '1';
-      else
-         v.fcValid := '0';
       end if;
 
       -- General Outputs

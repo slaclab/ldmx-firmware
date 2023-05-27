@@ -50,18 +50,10 @@ class FcEmu(pr.Device):
             mode         = 'RW',
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'BunchCntInit',
-            description  = 'Set Bunch Count initial value. Being registered when a RoR is TX\'d, or if RoRs are disabled',
-            offset       = 0x014,
-            bitSize      = 5,
-            mode         = 'RW',
-        ))
-
         # self.add(pr.RemoteVariable(
         #     name         = 'TimingMsgPeriodSet',
         #     description  = 'FC Timing Message period (in units of timing clk period). [WARNING]: Only registered if firmware generic is set to override firmware default value of 200.',
-        #     offset       = 0x018,
+        #     offset       = 0x014,
         #     bitSize      = 32,
         #     mode         = 'RW',
         # ))
@@ -69,7 +61,7 @@ class FcEmu(pr.Device):
         # self.add(pr.RemoteVariable(
         #     name         = 'BunchCntPeriodSet',
         #     description  = 'Bunch Count period (in units of timing clk period). [WARNING]: Only registered if firmware generic is set to override firmware default value of 5.',
-        #     offset       = 0x01C,
+        #     offset       = 0x018,
         #     bitSize      = 5,
         #     mode         = 'RW',
         # ))
@@ -77,15 +69,15 @@ class FcEmu(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'FCrunStateSet',
             description  = 'Next FC Message Run State set value (subsequent messages retain this state)',
-            offset       = 0x020,
-            bitSize      = 5,
+            offset       = 0x01C,
+            bitSize      = 6,
             mode         = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'RoRperiod',
             description  = 'Read-Out-Req period (in units of BunchCntPeriod*timing clk period. default is 5*timing clk period)',
-            offset       = 0x024,
+            offset       = 0x020,
             bitSize      = 32,
             mode         = 'RW',
         ))
