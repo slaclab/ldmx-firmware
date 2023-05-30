@@ -164,17 +164,18 @@ begin
          v.bunchCntPeriodCnt  := r.bunchCntPeriodCnt + 1;
 
          -- timing message request and pulseID control
-         if (r.timingMsgPeriodCnt = r.timingMsgPeriod) then
+         if (r.timingMsgPeriodCnt = r.timingMsgPeriod-1) then
             v.timingMsgPeriodCnt := (others => '0');
             v.fcMsg.pulseID      := r.fcMsg.pulseID + 1;
             v.timingMsgReq       := '1';
          end if;
 
          -- the bunch Count strobe eventually triggers an RoR, and increments the bunch Counter
-         if (r.bunchCntPeriodCnt = r.bunchCntPeriod-1) then
+         if (r.bunchCntPeriodCnt = r.bunchCntPeriod-2) then
             -- strobe me just before the rollover so that the RoR
             -- gets the appropriate bunchCnt value
             v.bunchCntStrb      := '1';
+         elsif (r.bunchCntPeriodCnt = r.bunchCntPeriod-1) then
             v.bunchCntPeriodCnt := (others => '0');
          end if;
 
@@ -189,8 +190,7 @@ begin
          -- bunchClk cannot be 50% duty-cycle because bunchCnt period is odd
          if (r.bunchCntStrb = '1') then
             v.bunchClk := '1';
-         elsif (r.bunchCntPeriodCnt = conv_integer(unsigned(
-                r.bunchCntPeriod(r.bunchCntPeriod'length-1 downto 1)))) then
+         elsif (r.bunchCntPeriodCnt = ('0' & r.bunchCntPeriod(5 downto 1))) then
             -- cut the last bit -> div-by-2
             v.bunchClk := '0';   
          end if;
@@ -202,13 +202,13 @@ begin
       if (v.fcMsg.runState /= r.fcRunStateSet) then
          -- note that any state change takes precedence and gets TX'd right away
          v.fcMsg.runState := r.fcRunStateSet;
-         v.fcMsg.msgType  := slv(conv_unsigned(MSG_TYPE_TMNG_C, 4));
+         v.fcMsg.msgType  := MSG_TYPE_TIMING_C;
          v.fcMsg.message  := FcEncode(r.fcMsg);
          v.fcValid        := '1';
       elsif (r.usrRoR = '1') then
          -- immediate RoR
          -- if RoRs are not enabled, FC message bunchCnt will get the init value
-         v.fcMsg.msgType  := slv(conv_unsigned(MSG_TYPE_ROR_C, 4));
+         v.fcMsg.msgType  := MSG_TYPE_ROR_C;
          v.fcMsg.message  := FcEncode(r.fcMsg);
          v.fcValid        := '1';
       elsif (r.bunchCntStrb = '1' and r.enableRoR = '1') then
@@ -217,13 +217,13 @@ begin
          if (r.rOrPeriodCnt = r.rOrPeriod) then
             -- TX RoR
             v.rOrPeriodCnt  := (others => '0');
-            v.fcMsg.msgType := slv(conv_unsigned(MSG_TYPE_ROR_C, 4));
+            v.fcMsg.msgType := MSG_TYPE_ROR_C;
             v.fcMsg.message := FcEncode(r.fcMsg);
             v.fcValid       := '1';
          end if;
       elsif (r.timingMsgReq = '1') then
          -- simple Timing Message
-         v.fcMsg.msgType  := slv(conv_unsigned(MSG_TYPE_TMNG_C, 4));
+         v.fcMsg.msgType  := MSG_TYPE_TIMING_C;
          v.fcMsg.message  := FcEncode(r.fcMsg);
          v.fcValid        := '1';
       end if;

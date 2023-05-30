@@ -29,8 +29,8 @@ package FcPkg is
    subtype RUN_STATE_RANGE_C is natural range 69 downto 64;
    subtype PULSE_ID_RANGE_C  is natural range 63 downto 0;
 
-   constant MSG_TYPE_TMNG_C  : natural := 0;
-   constant MSG_TYPE_ROR_C   : natural := 1;
+   constant MSG_TYPE_TIMING_C  : slv(3 downto 0) := toSlv(0, 4);
+   constant MSG_TYPE_ROR_C     : slv(3 downto 0) := toSlv(1, 4);
 
    type FastControlMessageType is record
       msgType  : slv(3 downto 0);
