@@ -569,7 +569,7 @@ begin
                addrSize    => 8,
                endianness  => '0',
                repeatStart => '1'),
-            7              => MakeI2cAxiLiteDevType(                    -- LTC2991 voltage monitor
+            7              => MakeI2cAxiLiteDevType(                   -- LTC2991 voltage monitor
                i2cAddress  => "1001000",
                dataSize    => 16,
                addrSize    => 8,
@@ -662,6 +662,7 @@ begin
       U_Ad9249ReadoutGroup2_1 : entity surf.Ad9249ReadoutGroup2
          generic map (
             TPD_G          => TPD_G,
+            SIM_DEVICE_G   => "ULTRASCALE_PLUS",
             NUM_CHANNELS_G => APVS_PER_HYBRID_G,
             SIMULATION_G   => SIMULATION_G)
          port map (
