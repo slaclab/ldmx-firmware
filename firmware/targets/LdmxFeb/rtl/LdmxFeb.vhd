@@ -97,8 +97,8 @@ entity LdmxFeb is
       sfpI2cScl : inout sl;
       sfpI2cSda : inout sl;
 
-      qsfpI2cScl : inout sl;
-      qsfpI2cSda : inout sl;
+      qsfpI2cScl    : inout sl;
+      qsfpI2cSda    : inout sl;
       qsfpI2cResetL : inout sl := '1';
 
       digPmBusScl    : inout sl;
@@ -126,7 +126,7 @@ entity LdmxFeb is
 
       vauxp : in slv(3 downto 0);
       vauxn : in slv(3 downto 0);
-      
+
       leds : out slv(7 downto 0) := "01010101");  -- Test outputs
 
 end entity LdmxFeb;
@@ -426,6 +426,11 @@ begin
          adcSdio           => adcSdio,                                  -- [inout]
          locI2cScl         => locI2cScl,                                -- [inout]
          locI2cSda         => locI2cSda,                                -- [inout]
+         sfpI2cScl         => sfpI2cScl,                                -- [inout]
+         sfpI2cSda         => sfpI2cSda,                                -- [inout]
+         qsfpI2cScl        => qsfpI2cScl,                               -- [inout]
+         qsfpI2cSda        => qsfpI2cSda,                               -- [inout]
+         qsfpI2cResetL     => qsfpI2cResetL,                            -- [out]
          digPmBusScl       => digPmBusScl,                              -- [inout]
          digPmBusSda       => digPmBusSda,                              -- [inout]
          digPmBusAlertL    => digPmBusAlertL,                           -- [inout]
@@ -444,8 +449,8 @@ begin
          hyI2cSdaOut       => hyI2cSdaOut,                              -- [out]
          hyI2cSdaIn        => hyI2cSdaIn,                               -- [in]
 --         leds              => leds,                                     -- [out]
-         vauxp => vauxp,                -- [in]
-         vauxn => vauxn,                -- [in]
+         vauxp             => vauxp,                                    -- [in]
+         vauxn             => vauxn,                                    -- [in]
          axilClk           => axilClk,                                  -- [in]
          axilRst           => axilRst,                                  -- [in]
          sAxilWriteMaster  => locAxilWriteMasters(FEB_HW_AXI_INDEX_C),  -- [in]
