@@ -18,8 +18,8 @@ class PgpFcAlveo(pr.Device):
         super().__init__(**kwargs)
 
         for i in range(8):
-            self.add(ldmx.PgpLane(
-                name = f'PgpLane[{i}]',
+            self.add(ldmx.PgpLegacyLane(
+                name = f'PgpLegacyLane[{i}]',
                 offset = 0x10000 * i))
 
         self.add(RefclkMon(

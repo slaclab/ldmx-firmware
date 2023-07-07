@@ -6,7 +6,7 @@ import surf.protocols.pgp
 import ldmx
         
 
-class PgpLane(pr.Device):
+class PgpLegacyLane(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -33,7 +33,7 @@ class PgpLane(pr.Device):
             hideConfig = False,
             chName = None))
 
-class PgpLaneTb(pr.Root):
+class PgpLegacyLaneTb(pr.Root):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -41,6 +41,6 @@ class PgpLaneTb(pr.Root):
 
         self.addInterface(self.memMap)
 
-        self.add(PgpLane(
+        self.add(PgpLegacyLane(
             memBase = self.memMap))
         
