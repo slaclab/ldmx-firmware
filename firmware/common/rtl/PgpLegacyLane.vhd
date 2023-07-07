@@ -34,7 +34,7 @@ library ldmx;
 use ldmx.AppPkg.all;
 
 
-entity PgpLane is
+entity PgpLegacyLane is
    generic (
       TPD_G             : time                  := 1 ns;
       SIMULATION_G      : boolean               := false;
@@ -63,9 +63,9 @@ entity PgpLane is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end PgpLane;
+end PgpLegacyLane;
 
-architecture mapping of PgpLane is
+architecture mapping of PgpLegacyLane is
 
    constant NUM_AXI_MASTERS_C : natural := 5;
 
@@ -254,7 +254,7 @@ begin
    --------------
    -- PGP TX Path
    --------------
-   U_Tx : entity ldmx.PgpLaneTx
+   U_Tx : entity ldmx.PgpLegacyLaneTx
       generic map (
          TPD_G             => TPD_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G)
@@ -275,7 +275,7 @@ begin
    --------------
    -- PGP RX Path
    --------------
-   U_Rx : entity ldmx.PgpLaneRx
+   U_Rx : entity ldmx.PgpLegacyLaneRx
       generic map (
          TPD_G             => TPD_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G,

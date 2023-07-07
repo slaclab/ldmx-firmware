@@ -31,7 +31,7 @@ use axi_pcie_core.AxiPciePkg.all;
 
 library ldmx;
 
-entity PgpLaneWrapper is
+entity PgpLegacyLaneWrapper is
    generic (
       TPD_G             : time             := 1 ns;
       REFCLK_WIDTH_G    : positive         := 2;
@@ -67,9 +67,9 @@ entity PgpLaneWrapper is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end PgpLaneWrapper;
+end PgpLegacyLaneWrapper;
 
-architecture mapping of PgpLaneWrapper is
+architecture mapping of PgpLegacyLaneWrapper is
 
    constant NUM_AXI_MASTERS_C : natural := 9;
 
@@ -196,7 +196,7 @@ begin
    ------------
    GEN_LANE : for i in 7 downto 0 generate
 
-      U_Lane : entity ldmx.PgpLane
+      U_Lane : entity ldmx.PgpLegacyLane
          generic map (
             TPD_G             => TPD_G,
             DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G,

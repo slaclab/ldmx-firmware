@@ -82,7 +82,7 @@ begin
    --------------
    -- PGP Modules
    --------------
-   U_Pgp : entity ldmx.PgpLaneWrapper
+   U_Pgp : entity ldmx.PgpLegacyLaneWrapper
       generic map (
          TPD_G             => TPD_G,
          REFCLK_WIDTH_G    => 2,
