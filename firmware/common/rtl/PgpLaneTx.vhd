@@ -21,7 +21,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
-use surf.Pgp2bPkg.all;
+use surf.Pgp2fcPkg.all;
 
 library axi_pcie_core;
 use axi_pcie_core.AxiPciePkg.all;
@@ -39,8 +39,8 @@ entity PgpLaneTx is
       -- PGP Interface (pgpTxClk domain)
       pgpTxClk     : in  sl;
       pgpTxRst     : in  sl;
-      pgpRxOut     : in  Pgp2bRxOutType;
-      pgpTxOut     : in  Pgp2bTxOutType;
+      pgpRxOut     : in  Pgp2fcRxOutType;
+      pgpTxOut     : in  Pgp2fcTxOutType;
       pgpTxMasters : out AxiStreamMasterArray(3 downto 0);
       pgpTxSlaves  : in  AxiStreamSlaveArray(3 downto 0));
 end PgpLaneTx;
@@ -102,7 +102,7 @@ begin
          FIFO_PAUSE_THRESH_G => 20,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => DMA_AXIS_CONFIG_G,
-         MASTER_AXI_CONFIG_G => SSI_PGP2B_CONFIG_C)
+         MASTER_AXI_CONFIG_G => PGP2FC_AXIS_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => dmaClk,
@@ -121,8 +121,8 @@ begin
          COMMON_CLK_G        => true,
          SLAVE_FIFO_G        => false,
          MASTER_FIFO_G       => false,
-         SLAVE_AXI_CONFIG_G  => SSI_PGP2B_CONFIG_C,
-         MASTER_AXI_CONFIG_G => SSI_PGP2B_CONFIG_C)
+         SLAVE_AXI_CONFIG_G  => PGP2FC_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => PGP2FC_AXIS_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => pgpTxClk,

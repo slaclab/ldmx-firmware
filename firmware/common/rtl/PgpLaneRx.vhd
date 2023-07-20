@@ -21,7 +21,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
-use surf.Pgp2bPkg.all;
+use surf.Pgp2fcPkg.all;
 
 library axi_pcie_core;
 use axi_pcie_core.AxiPciePkg.all;
@@ -41,7 +41,7 @@ entity PgpLaneRx is
       -- PGP RX Interface (pgpRxClk domain)
       pgpRxClk        : in  sl;
       pgpRxRst        : in  sl;
-      pgpRxOut        : in  Pgp2bRxOutType;
+      pgpRxOut        : in  Pgp2fcRxOutType;
       pgpRxMasters    : in  AxiStreamMasterArray(3 downto 0);
       pgpRxSlaves     : out AxiStreamSlaveArray(3 downto 0);
       pgpRxCtrl       : out AxiStreamCtrlArray(3 downto 0));
@@ -92,7 +92,7 @@ begin
             FIFO_FIXED_THRESH_G => true,
             FIFO_PAUSE_THRESH_G => 128,
             -- AXI Stream Port Configurations
-            SLAVE_AXI_CONFIG_G  => SSI_PGP2B_CONFIG_C,
+            SLAVE_AXI_CONFIG_G  => PGP2FC_AXIS_CONFIG_C,
             MASTER_AXI_CONFIG_G => DMA_AXIS_CONFIG_G)
          port map (
             -- Slave Port

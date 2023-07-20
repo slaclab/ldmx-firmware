@@ -22,14 +22,13 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
-use surf.Pgp2bPkg.all;
-
-library ldmx;
+use surf.Pgp2fcPkg.all;
 
 library axi_pcie_core;
 use axi_pcie_core.AxiPciePkg.all;
 
-use work.AppPkg.all;
+library ldmx;
+use ldmx.AppPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -83,11 +82,11 @@ architecture mapping of PgpLane is
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_OK_C);
 
-   signal pgpTxIn  : Pgp2bTxInType;
-   signal pgpTxOut : Pgp2bTxOutType;
+   signal pgpTxIn  : Pgp2fcTxInType;
+   signal pgpTxOut : Pgp2fcTxOutType;
 
-   signal pgpRxIn  : Pgp2bRxInType;
-   signal pgpRxOut : Pgp2bRxOutType;
+   signal pgpRxIn  : Pgp2fcRxInType;
+   signal pgpRxOut : Pgp2fcRxOutType;
 
    signal pgpTxMasters : AxiStreamMasterArray(3 downto 0);
    signal pgpTxSlaves  : AxiStreamSlaveArray(3 downto 0);
@@ -105,13 +104,12 @@ architecture mapping of PgpLane is
    signal pgpRxRst       : sl;
    signal pgpRxResetDone : sl;
 
-   signal config    : ConfigType;
-   signal txUserRst : sl;
-   signal rxUserRst : sl;
+   signal config         : ConfigType;
+   signal txUserRst      : sl;
+   signal rxUserRst      : sl;
 
-   signal wdtRst  : sl;
-   signal locRxIn : Pgp2bRxInType := PGP2B_RX_IN_INIT_C;
-   signal locTxIn : Pgp2bTxInType := PGP2B_TX_IN_INIT_C;
+   signal wdtRst         : sl;
+   signal pwrUpRstOut    : sl;
 
 begin
 
@@ -132,7 +130,7 @@ begin
       port map (
          clk    => axilClk,
          arst   => wdtRst,
-         rstOut => locRxIn.resetRx);
+         rstOut => pwrUpRstOut);
 
    ---------------------
    -- AXI-Lite Crossbar
@@ -158,7 +156,7 @@ begin
    -----------
    -- PGP Core
    -----------
-   U_Pgp : entity surf.Pgp2bGtyUltra
+   U_Pgp : entity surf.Pgp2fcGtyUltra
       generic map (
          TPD_G           => TPD_G,
          --SIM_SPEEDUP_G   => SIM_SPEEDUP_G,
@@ -228,7 +226,7 @@ begin
    --------------
    -- PGP Monitor
    --------------
-   U_PgpMon : entity surf.Pgp2bAxi
+   U_PgpMon : entity surf.Pgp2fcAxi
       generic map (
          TPD_G              => TPD_G,
          COMMON_TX_CLK_G    => false,
@@ -243,13 +241,11 @@ begin
          pgpTxClkRst     => pgpTxRst,
          pgpTxIn         => pgpTxIn,
          pgpTxOut        => pgpTxOut,
-         locTxIn         => locTxIn,
          -- RX PGP Interface (pgpRxClk)
          pgpRxClk        => pgpRxClk,
          pgpRxClkRst     => pgpRxRst,
          pgpRxIn         => pgpRxIn,
          pgpRxOut        => pgpRxOut,
-         locRxIn         => locRxIn,
          -- AXI-Lite Register Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,
@@ -348,9 +344,9 @@ begin
       generic map(
          TPD_G            => TPD_G,
          COMMON_CLK_G     => false,
-         AXIS_CLK_FREQ_G  => 156.25E+6,
+         AXIS_CLK_FREQ_G  => AXI_CLK_FREQ_G,
          AXIS_NUM_SLOTS_G => 4,
-         AXIS_CONFIG_G    => SSI_PGP2B_CONFIG_C)
+         AXIS_CONFIG_G    => PGP2FC_AXIS_CONFIG_C)
       port map(
          -- AXIS Stream Interface
          axisClk          => pgpTxClk,
@@ -372,9 +368,9 @@ begin
       generic map(
          TPD_G            => TPD_G,
          COMMON_CLK_G     => false,
-         AXIS_CLK_FREQ_G  => 156.25E+6,
+         AXIS_CLK_FREQ_G  => AXI_CLK_FREQ_G,
          AXIS_NUM_SLOTS_G => 4,
-         AXIS_CONFIG_G    => SSI_PGP2B_CONFIG_C)
+         AXIS_CONFIG_G    => PGP2FC_AXIS_CONFIG_C)
       port map(
          -- AXIS Stream Interface
          axisClk          => pgpRxClk,
