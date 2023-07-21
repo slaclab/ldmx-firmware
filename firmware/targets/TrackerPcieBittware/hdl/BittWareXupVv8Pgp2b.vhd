@@ -106,23 +106,21 @@ begin
          INPUT_BUFG_G      => true,
          FB_BUFG_G         => true,
          RST_IN_POLARITY_G => '1',
-         NUM_CLOCKS_G      => 2,
+         NUM_CLOCKS_G      => 1,
          -- MMCM attributes
          BANDWIDTH_G       => "OPTIMIZED",
          CLKIN_PERIOD_G    => 10.0,     -- 100 MHz
-         CLKFBOUT_MULT_G   => 14,       -- 1GHz = 10 x 100 MHz
-         CLKOUT0_DIVIDE_G  => 11,       -- 125MHz = 1GHz/8
-         CLKOUT1_DIVIDE_G  => 9)
+         CLKFBOUT_MULT_G   => 10,       -- 1GHz = 10 x 100 MHz
+         CLKOUT0_DIVIDE_G  => 8)       -- 125MHz = 1GHz/8
       port map(
          -- Clock Input
          clkIn     => userClk100,
-         rstIn     => dmaRst,
+         rstIn     => userRst100,
          -- Clock Outputs
          clkOut(0) => axilClk,
-         clkOut(1) => clk156,
          -- Reset Outputs
-         rstOut(0) => axilRst,
-         rstOut(1) => rst156);
+         rstOut(0) => axilRst);
+
 
    U_PwrUpRst_1 : entity surf.PwrUpRst
       generic map (
@@ -160,8 +158,8 @@ begin
          dmaIbMasters    => dmaIbMasters,
          dmaIbSlaves     => dmaIbSlaves,
          -- Application AXI-Lite Interfaces [0x00100000:0x00FFFFFF]
-         appClk          => clk156,
-         appRst          => rst156,
+         appClk          => axilClk,
+         appRst          => axilRst,
          appReadMaster   => axilReadMaster,
          appReadSlave    => axilReadSlave,
          appWriteMaster  => axilWriteMaster,
@@ -189,11 +187,11 @@ begin
          SIM_SPEEDUP_G     => SIM_SPEEDUP_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
          PGP_QUADS_G       => PGP_QUADS_G,
-         AXI_CLK_FREQ_G    => 156.25e6,
+         AXI_CLK_FREQ_G    => 125.0e6,,
          AXI_BASE_ADDR_G   => X"0080_0000")
       port map (
-         axilClk         => clk156,           -- [in]
-         axilRst         => rst156,           -- [in]
+         axilClk         => axilClk,           -- [in]
+         axilRst         => axilRst,           -- [in]
          axilReadMaster  => axilReadMaster,   -- [in]
          axilReadSlave   => axilReadSlave,    -- [out]
          axilWriteMaster => axilWriteMaster,  -- [in]
