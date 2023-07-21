@@ -187,7 +187,7 @@ begin
          SIM_SPEEDUP_G     => SIM_SPEEDUP_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
          PGP_QUADS_G       => PGP_QUADS_G,
-         AXI_CLK_FREQ_G    => 125.0e6,,
+         AXI_CLK_FREQ_G    => 125.0e6,
          AXI_BASE_ADDR_G   => X"0080_0000")
       port map (
          axilClk         => axilClk,           -- [in]
