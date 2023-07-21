@@ -159,7 +159,7 @@ begin
    U_Pgp : entity surf.Pgp2fcGtyUltra
       generic map (
          TPD_G           => TPD_G,
-         --SIM_SPEEDUP_G   => SIM_SPEEDUP_G,
+         SIMULATION_G    => SIM_SPEEDUP_G,
          VC_INTERLEAVE_G => 1)          -- AxiStreamDmaV2 supports interleaving
       port map (
          -- GT Clocking
