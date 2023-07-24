@@ -14,7 +14,6 @@ class FebCore(pr.Device):
         self.add(surf.axi.AxiVersion(
             expand=True,
             offset=0x0000))
-        self.AxiVersion.UpTimeCnt.pollInterval = 3
         
 
         # Feb Config

@@ -5,7 +5,7 @@ import rogue
 
 import ldmx
 
-class HpsFebRoot(pr.Root):
+class LdmxFebRoot(pr.Root):
     def __init__(self, **kwargs):
         super().__init__(pollEn=False, timeout=1000, **kwargs)
 
@@ -27,7 +27,7 @@ class HpsFebRoot(pr.Root):
         self.addInterface(srpStream, dataStream, srp, sideband)
         
 
-        self.add(ldmx.HpsFeb(
+        self.add(ldmx.LdmxFeb(
             memBase = srp,
             number = 0,
             sim = False,

@@ -11,7 +11,7 @@ class FebGroup(pyrogue.Device):
 
 
         for i in range(10): #enumerate(hostConfig.febLinkMap):
-            self.add(ldmx.HpsFeb(
+            self.add(ldmx.LdmxFeb(
                 name=f'FebFpga[{i}]',
                 number=i,
                 memBase = memBases[i],))
@@ -21,8 +21,8 @@ class FebGroup(pyrogue.Device):
 
 
 
-class HpsFeb(pr.Device):
-    def __init__(self, number, sim=False, numHybrids=4, **kwargs):
+class LdmxFeb(pr.Device):
+    def __init__(self, number, sim=False, numHybrids=8, **kwargs):
         super().__init__(
             description="HPS (LDMX) Front End Board FPGA Top Level", **kwargs)
 
@@ -37,13 +37,13 @@ class HpsFeb(pr.Device):
             enabled=True
         ))
 
-        self.add(ldmx.HpsFebHw(
+        self.add(ldmx.LdmxFebHw(
             numHybrids = numHybrids,
             febCore = self.FebCore,
             offset = 0x10000000))
 
         if sim is False:
-            self.add(ldmx.HpsFebPgp(
+            self.add(ldmx.LdmxFebPgp(
                 offset=0x20000000,
                 enabled=True))
 
@@ -53,7 +53,7 @@ class HpsFeb(pr.Device):
             self.readBlocks(recurse=True, variable=None, index=-1)
             self.checkBlocks()
             self.FebCore.FebConfig.FebAddress.set(self.number)
-            self.HpsFebHw.ConfigureLtc2991()
-            #self.HpsFebHw.Tca6424a.writeBlocks()
+            self.LdmxFebHw.ConfigureLtc2991()
+            #self.LdmxFebHw.Tca6424a.writeBlocks()
 
 

@@ -10,6 +10,6 @@ import ldmx
 
 rogue.Logging.setFilter('pyrogue.SrpV3', rogue.Logging.Debug)
 
-with ldmx.HpsFebRoot() as root:
-    pyrogue.pydm.runPyDM(root=root, title='HpsFeb')
+with ldmx.LdmxFebRoot() as root:
+    pyrogue.pydm.runPyDM(root=root, title='LdmxFeb')
     pyrogue.waitCntrlC()
