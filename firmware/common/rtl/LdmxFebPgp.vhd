@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2023-02-09
+-- Last update: 2023-07-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -112,8 +112,8 @@ architecture rtl of LdmxFebPgp is
    -------------------------------------------------------------------------------------------------
    -- PGP
    -------------------------------------------------------------------------------------------------
-   constant SFP_INDEX_C : integer := 0;
-   constant SAS_INDEX_C : integer := 1;
+   constant SFP_INDEX_C  : integer := 0;
+   constant SAS_INDEX_C  : integer := 1;
    constant QSFP_INDEX_C : integer := 2;
 
 
@@ -278,12 +278,49 @@ begin
 
       end generate PGP_GEN;
 
+      daqClk       <= pgpRxClk(SFP_INDEX_C);
+      daqRst       <= pgpRxRst(SFP_INDEX_C);
+      daqRxFcWord  <= pgpRxOut(SFP_INDEX_C).fcWord(79 downto 0);
+      daqRxFcValid <= pgpRxOut(SFP_INDEX_C).fcValid;
+
    end generate NO_SIM;
 
-   daqClk       <= pgpRxClk(SFP_INDEX_C);
-   daqRst       <= pgpRxRst(SFP_INDEX_C);
-   daqRxFcWord  <= pgpRxOut(SFP_INDEX_C).fcWord(79 downto 0);
-   daqRxFcValid <= pgpRxOut(SFP_INDEX_C).fcValid;
+   GEN_SIM : if (ROGUE_SIM_EN_G) generate
+
+      pgpTxClk(0) <= gtRefClk185;
+
+      PwrUpRst_1 : entity surf.PwrUpRst
+         generic map (
+            TPD_G          => TPD_G,
+            SIM_SPEEDUP_G  => true,
+            IN_POLARITY_G  => '1',
+            OUT_POLARITY_G => '1')
+         port map (
+            clk    => pgpTxClk(0),
+            rstOut => pgpTxRst(0));
+
+      pgpRxClk(0) <= pgpTxClk(0);
+      pgpRxRst(0) <= pgpTxRst(0);
+
+      U_RoguePgp2fcSim_1 : entity surf.RoguePgp2fcSim
+         generic map (
+            TPD_G      => TPD_G,
+            FC_WORDS_G => 5,
+            PORT_NUM_G => ROGUE_CTRL_PORT_G,
+            NUM_VC_G   => 2)
+         port map (
+            pgpClk       => pgpTxClk(0),                  -- [in]
+            pgpClkRst    => pgpTxRst(0),                  -- [in]
+            pgpRxIn      => pgpRxIn(0),                   -- [in]
+            pgpRxOut     => pgpRxOut(0),                  -- [out]
+            pgpTxIn      => pgpTxIn(0),                   -- [in]
+            pgpTxOut     => pgpTxOut(0),                  -- [out]
+            pgpTxMasters => pgpTxMasters(0)(1 downto 0),  -- [in]
+            pgpTxSlaves  => pgpTxSlaves(0)(1 downto 0),   -- [out]
+            pgpRxMasters => pgpRxMasters(0)(1 downto 0),  -- [out]
+            pgpRxSlaves  => pgpRxSlaves(0)(1 downto 0));  -- [in]
+
+   end generate GEN_SIM;
 
 
 -- Lane 0, VC0 RX/TX, Register access control        

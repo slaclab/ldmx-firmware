@@ -11,15 +11,15 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
 use surf.i2cPkg.all;
 
 library ldmx;
-use ldmx.HpsFebHwPkg.all;
-use ldmx.HpsPkg.all;
+use ldmx.LdmxPkg.all;
 ----------------------------------------------------------------------------------------------------
 
 entity LdmxFebBoardModel is
@@ -87,14 +87,8 @@ entity LdmxFebBoardModel is
       vauxn          : out   slv(3 downto 0);
       leds           : in    slv(7 downto 0));
 
-end entity LdmxFeb;
-
-
-
-
 end entity LdmxFebBoardModel;
 
-----------------------------------------------------------------------------------------------------
 
 architecture sim of LdmxFebBoardModel is
 
@@ -156,7 +150,7 @@ begin
          RST_HOLD_TIME_G   => 5 us,
          SYNC_RESET_G      => true)
       port map (
-         clkP => gtRefClk185P
+         clkP => gtRefClk185P,
          clkN => gtRefClk185N,
          rst  => open,
          rstL => open);
@@ -203,7 +197,7 @@ begin
             dp(9)            => adcDataP(i*2+1)(4),  -- [out]
             dp(10)           => adcDataP(i*2+1)(3),  -- [out]
             dp(11)           => adcDataP(i*2+1)(2),  -- [out]
-            dp(12)           => adcDataP(i*+12)(1),  -- [out]
+            dp(12)           => adcDataP(i*2+1)(1),  -- [out]
             dp(13)           => adcDataP(i*2+1)(0),  -- [out]
             dp(15 downto 14) => open,                -- [out]
             dN(1 downto 0)   => open,                -- [out]
@@ -217,7 +211,7 @@ begin
             dN(9)            => adcDataN(i*2+1)(4),  -- [out]
             dN(10)           => adcDataN(i*2+1)(3),  -- [out]
             dN(11)           => adcDataN(i*2+1)(2),  -- [out]
-            dN(12)           => adcDataN(i*+12)(1),  -- [out]
+            dN(12)           => adcDataN(i*2+1)(1),  -- [out]
             dN(13)           => adcDataN(i*2+1)(0),  -- [out]
             dN(15 downto 14) => open,                -- [out]
             dcoP(0)          => adcDClkP(i*2),       -- [out]
@@ -370,7 +364,7 @@ begin
       hyPwrInt(i).dvdd      <= ite(hyPwrEn(i) = '1', (0.8 * (37.4e3 + 14.0e3 + hyPwrTrim(i).dvdd)) / hyPwrTrim(i).dvdd, 0.0);
       hyPwrLocSense(i).dvdd <= hyPwrInt(i).dvdd - (0.02 * ite(hyPwrEn(i) = '1', HY_CURRENT_C(i).dvdd, 0.0));
 
-      hyPwrInt(i).v125      <= ite(hyPwrEn(i) = '1', (0.8 * (3.01e3 + 4.12e3 + hyPwrTrim(i).v125)) / hyPwrTrim(i).v125 + 1.0))), 0.0);
+      hyPwrInt(i).v125      <= ite(hyPwrEn(i) = '1', (0.8 * (3.01e3 + 4.12e3 + hyPwrTrim(i).v125)) / hyPwrTrim(i).v125, 0.0);
       hyPwrLocSense(i).v125 <= hyPwrInt(i).v125 - (0.02 * ite(hyPwrEn(i) = '1', HY_CURRENT_C(i).v125, 0.0));
 
 
@@ -394,13 +388,13 @@ begin
             vin(8 downto 7) => (others => 0.0));
 
       -- Simulate drop over 100 cm of 28AWG
-      hyPwrRemSense(i).avdd    <= (hyPwrLocSense(i).avdd - (HY_CURRENT_C(i).avdd * 64.9e-3 * 3)) * .1;
+      hyPwrRemSense(i).avdd    <= (hyPwrLocSense(i).avdd - (HY_CURRENT_C(i).avdd * 64.9e-3 * 3)) * 0.1;
       hyPwrRemGndSense(i).avdd <= (HY_CURRENT_C(i).avdd * 64.9e-3 * 3);
 
-      hyPwrRemSense(i).dvdd    <= (hyPwrLocSense(i).dvdd - (HY_CURRENT_C(i).dvdd * 64.9e-3 * 3)) * .1;
+      hyPwrRemSense(i).dvdd    <= (hyPwrLocSense(i).dvdd - (HY_CURRENT_C(i).dvdd * 64.9e-3 * 3)) * 0.1;
       hyPwrRemGndSense(i).dvdd <= (HY_CURRENT_C(i).dvdd * 64.9e-3 * 3);
 
-      hyPwrRemSense(i).v125    <= (hyPwrLocSense(i).v125 - (HY_CURRENT_C(i).v125 * 64.9e-3 * 3)) * .1;
+      hyPwrRemSense(i).v125    <= (hyPwrLocSense(i).v125 - (HY_CURRENT_C(i).v125 * 64.9e-3 * 3)) * 0.1;
       hyPwrRemGndSense(i).v125 <= (HY_CURRENT_C(i).v125 * 64.9e-3 * 3);
 
 
@@ -447,9 +441,9 @@ begin
    aN5Sense       <= -5.0 * 1.2e3 / (1.0e3 + 1.2e3);
    anaNegVinSense <= -5.5 * 1.2e3 / (1.0e3 + 1.2e3);
    a18vSenseP     <= 1.795;
-   a18vSenseN     <= 1.795 - (.02 * 2.0);
+   a18vSenseN     <= 1.795 - (0.02 * 2.0);
    a18vdSenseP    <= 1.795;
-   a18vdSenseN    <= 1.795 - (.02 * 2.0);
+   a18vdSenseN    <= 1.795 - (0.02 * 2.0);
 
    -- Sense monitoring
    Ltc2991_U25 : entity ldmx.Ltc2991
@@ -459,7 +453,7 @@ begin
          VCC_G             => 3.3,
          CONVERSION_TIME_G => 100 us)
       port map (
-         sda    => digPmBusSda
+         sda    => digPmBusSda,
          scl    => digPmBusScl,
          vin(1) => aP5Sense,
          vin(2) => aN5Sense,

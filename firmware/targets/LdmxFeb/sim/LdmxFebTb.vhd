@@ -24,13 +24,13 @@ library ldmx;
 
 ----------------------------------------------------------------------------------------------------
 
-entity FebTb is
+entity LdmxFebTb is
 
-end entity FebTb;
+end entity LdmxFebTb;
 
 ----------------------------------------------------------------------------------------------------
 
-architecture sim of FebTb is
+architecture sim of LdmxFebTb is
 
    constant TPD_G                : time                        := 1 ns;
    constant BUILD_INFO_G         : BuildInfoType               := BUILD_INFO_DEFAULT_SLV_C;
@@ -40,7 +40,7 @@ architecture sim of FebTb is
    constant ROGUE_SIM_PORT_NUM_G : integer range 1024 to 49151 := 9000;
    constant ADCS_G               : integer                     := 4;
    constant HYBRIDS_G            : integer                     := 8;
-   constant APVS_PER_HYBRID_G    : integer                     := 6);
+   constant APVS_PER_HYBRID_G    : integer                     := 6;
 
 
    signal gtRefClk185P   : sl;                               -- [in]
