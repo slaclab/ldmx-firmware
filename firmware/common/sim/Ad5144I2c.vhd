@@ -21,6 +21,7 @@ use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.I2cPkg.all;
 
 entity Ad5144I2c is
 
@@ -63,7 +64,7 @@ architecture rtl of Ad5144I2c is
       inp     : Slv8Array(0 to 3);
       eeprom  : Slv8Array(0 to 3);
       control : slv(3 downto 0);
-      rdData  : slv(15 downto 0);
+      rdData  : slv(7 downto 0);
       rdStb   : sl;
    end record RegType;
 
@@ -78,6 +79,8 @@ architecture rtl of Ad5144I2c is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal clk       : sl;
+   signal rst       : sl;
    signal i2ci      : i2c_in_type;
    signal i2co      : i2c_out_type;
    signal i2cAddr   : slv(7 downto 0);
@@ -101,7 +104,7 @@ begin
       generic map (
          TPD_G                => TPD_G,
          TENBIT_G             => 0,
-         I2C_ADDR_G           => ADDR_C,
+         I2C_ADDR_G           => conv_integer(ADDR_C),
          OUTPUT_EN_POLARITY_G => 0,
          FILTER_G             => 2,
          ADDR_SIZE_G          => 1,
@@ -118,8 +121,13 @@ begin
          i2ci   => i2ci,
          i2co   => i2co);
 
+   i2ci.scl <= to_x01z(scl);
+   i2ci.sda <= to_x01z(sda);
+   sda      <= i2co.sda when i2co.sdaoen = '0' else 'Z';
+   scl      <= i2co.scl when i2co.scloen = '0' else 'Z';
 
-   comb : process (r, rst, wrData, wrStb) is
+
+   comb : process (i2cAddr, i2cRdEn, i2cWrData, i2cWrEn, r, rst) is
       variable v            : RegType;
       variable ctrlCode     : slv(3 downto 0);
       variable address      : slv(3 downto 0);
@@ -221,6 +229,8 @@ begin
       end if;
 
       rin <= v;
+
+      i2cRdData <= r.rdData;
 
       for i in 0 to 3 loop
          rout(i) <= (10.0e3 * real(conv_integer(r.rdac(i)))) / 256.0;
