@@ -725,8 +725,9 @@ begin
    -- IO Buffers for Shifted hybrid and ADC clocks, and triggers
    -------------------------------------------------------------------------------------------------
    HY_DIFF_BUFF_GEN : for i in HYBRIDS_G-1 downto 0 generate
-      hyRstL(i)   <= hyRstOutL(i) when hyPwrEn(i) = '1' else 'Z';
-      hyPwrEnL(i) <= not hyPwrEn(i);
+      hyRstL(i)     <= hyRstOutL(i) when hyPwrEn(i) = '1' else 'Z';
+      hyPwrEnL(i)   <= not hyPwrEn(i);
+      hyPwrEnOut(i) <= hyPwrEn(i);
 
       HY_TRG_BUFF_DIFF : OBUFTDS
          port map (
