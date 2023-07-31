@@ -235,7 +235,7 @@ architecture rtl of LdmxFebHw is
    signal adcReadoutAxilReadMasters  : AxiLiteReadMasterArray(ADCS_G*2-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
    signal adcReadoutAxilReadSlaves   : AxiLiteReadSlaveArray(ADCS_G*2-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
-   constant ADC_CONFIG_AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray := genAxiLiteConfig(ADCS_G, MAIN_XBAR_CFG_C(AXIL_ADC_CONFIG_INDEX_C).baseAddr, 16, 12);
+   constant ADC_CONFIG_AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray := genAxiLiteConfig(ADCS_G, MAIN_XBAR_CFG_C(AXIL_ADC_CONFIG_INDEX_C).baseAddr, 16, 13);
 
    signal adcConfigAxilWriteMasters : AxiLiteWriteMasterArray(ADCS_G-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
    signal adcConfigAxilWriteSlaves  : AxiLiteWriteSlaveArray(ADCS_G-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
