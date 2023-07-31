@@ -2,7 +2,7 @@
 -- Title      : LDMX FEB PGP
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: PGP block for LDMX Tracker FEB
@@ -303,7 +303,7 @@ begin
          generic map (
             TPD_G      => TPD_G,
             FC_WORDS_G => 5,
-            PORT_NUM_G => ROGUE_CTRL_PORT_G,
+            PORT_NUM_G => ROGUE_SIM_PORT_NUM_G,
             NUM_VC_G   => 2)
          port map (
             pgpClk       => pgpTxClk(0),                  -- [in]
@@ -317,10 +317,25 @@ begin
             pgpRxMasters => pgpRxMasters(0)(1 downto 0),  -- [out]
             pgpRxSlaves  => pgpRxSlaves(0)(1 downto 0));  -- [in]
 
+      DAQ_CLK_GEN : entity surf.ClkRst
+         generic map (
+            CLK_PERIOD_G      => 5.385 ns,
+            CLK_DELAY_G       => 1 ns,
+            RST_START_DELAY_G => 0 ns,
+            RST_HOLD_TIME_G   => 5 us,
+            SYNC_RESET_G      => true)
+         port map (
+            clkP => daqClk,
+            rst  => daqRst);
+
+      daqRxFcWord  <= pgpRxOut(0).fcWord(79 downto 0);
+      daqRxFcValid <= pgpRxOut(0).fcValid;
+
+
    end generate GEN_SIM;
 
 
--- Lane 0, VC0 RX/TX, Register access control        
+-- Lane 0, VC0 RX/TX, Register access control
    U_Vc0AxiMasterRegisters : entity surf.SrpV3AxiLite
       generic map (
          TPD_G               => TPD_G,
@@ -335,7 +350,7 @@ begin
          AXI_STREAM_CONFIG_G => PGP2FC_AXIS_CONFIG_C
          )
       port map (
-         -- Streaming Slave (Rx) Interface (sAxisClk domain) 
+         -- Streaming Slave (Rx) Interface (sAxisClk domain)
          sAxisClk         => pgpRxClk(SFP_INDEX_C),
          sAxisRst         => pgpRxRst(SFP_INDEX_C),
          sAxisMaster      => pgpRxMasters(SFP_INDEX_C)(0),
@@ -390,4 +405,3 @@ begin
 
 
 end rtl;
-
