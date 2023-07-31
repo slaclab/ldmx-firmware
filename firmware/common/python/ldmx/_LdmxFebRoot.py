@@ -30,9 +30,9 @@ class LdmxFebRoot(pr.Root):
         self.add(ldmx.LdmxFeb(
             memBase = srp,
             number = 0,
-            sim = False,
+            sim = True,
             expand = True,
-            numHybrids = 4))
+            numHybrids = 8))
 
         @self.command()
         def Trigger():

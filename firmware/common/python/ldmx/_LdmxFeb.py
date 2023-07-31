@@ -22,7 +22,7 @@ class FebGroup(pyrogue.Device):
 
 
 class LdmxFeb(pr.Device):
-    def __init__(self, number, sim=False, numHybrids=8, **kwargs):
+    def __init__(self, number, sim=True, numHybrids=8, **kwargs):
         super().__init__(
             description="HPS (LDMX) Front End Board FPGA Top Level", **kwargs)
 
@@ -33,7 +33,7 @@ class LdmxFeb(pr.Device):
             offset=0x000000,
             expand=True,
             numHybrids=numHybrids,
-            apvsPerHybrid=5,
+            apvsPerHybrid=6,
             enabled=True
         ))
 

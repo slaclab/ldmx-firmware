@@ -5,26 +5,81 @@ import surf.xilinx
 
 import ldmx
 
-class HpsFebHw(pr.Device):
+class LdmxFebHw(pr.Device):
     def __init__(self, numHybrids, febCore, **kwargs):
         super().__init__(**kwargs)
 
-        self.add(ldmx.HpsFebPGoodMon(
-            offset = 0x0000))
+        self.add(surf.xilinx.ClockManager(
+            name = 'HybridClockPhaseA',
+            offset = 0x0000,
+            type = 'MMCME4'))
 
-        self.add(ldmx.PhaseShifter(
-            name='HybridClkPhaseShift',
-            offset=0x1000,
-            clocks=4,
-            expand=False,
-        ))
+        self.add(surf.xilinx.ClockManager(
+            name = 'HybridClockPhaseB',
+            offset = 0x1000,
+            type = 'MMCME4'))
+        
 
-        self.add(ldmx.PhaseShifter(
-            name='AdcClkPhaseShift',
-            offset=0x2000,
-            clocks=4,
-            expand=False,
-        ))
+        self.add(surf.xilinx.ClockManager(
+            name = 'AdcClockPhase',
+            offset = 0x2000,
+            type = 'MMCME4'))
+
+        # Loc I2C Bus
+        self.add(surf.devices.microchip.Axi24LC64FT(
+            enabled = False,
+            offset = 0x10_0000))
+
+        self.add(ldmx.Pcal6524(
+            name = 'AmpPdA',
+            expand = False,
+            enable = False,
+            offset = 0x14_0000))
+
+        self.add(ldmx.Pcal6524(
+            name = 'AmpPdB',
+            expand = False,
+            enable = False,
+            offset = 0x18_0000))
+        
+        # SFP I2C Bus
+        self.add(surf.devices.transceivers.Sfp(
+            name = 'Sfp',
+            enable = False,
+            expand = False,
+            offset = 0x4000))
+
+        self.add(surf.devices.transceivers.Qsfp(
+            name = 'Qsfp',
+            enable = False,
+            expand = False,
+            offset = 0x5000))
+
+        self.add(surf.xilinx.AxiSysMonUltraScale(
+            enable = False,
+            offset = 0x1_0000))
+
+        self.add(surf.devices.micron.AxiMicronN25Q(
+            enabled = False,
+            offset = 0x3000))
+        
+        self.add(ldmx.LdmxHybridPowerI2c(
+            offset = 0x2_0000))
+
+        self.add(ldmx.DigPwrMon(
+            offset = 0x3_0000))
+
+        self.add(ldmx.AnaPwrMon(
+            offset = 0x4_0000))
+
+        self.add(ldmx.AdcReadout(
+            offset = 0x5_0000))
+
+        self.add(ldmx.AdcConfig(
+            offset = 0x6_0000))
+
+        
+        
 
         ltcConfig = {
             'TInternalVccEnable' : 'True',
