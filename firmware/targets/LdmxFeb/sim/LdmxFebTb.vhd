@@ -34,9 +34,9 @@ architecture sim of LdmxFebTb is
 
    constant TPD_G                : time                        := 1 ns;
    constant BUILD_INFO_G         : BuildInfoType               := BUILD_INFO_DEFAULT_SLV_C;
-   constant SIMULATION_G         : boolean                     := false;
-   constant ROGUE_SIM_EN_G       : boolean                     := false;
-   constant ROGUE_SIM_SIDEBAND_G : boolean                     := false;
+   constant SIMULATION_G         : boolean                     := true;
+   constant ROGUE_SIM_EN_G       : boolean                     := true;
+   constant ROGUE_SIM_SIDEBAND_G : boolean                     := true;
    constant ROGUE_SIM_PORT_NUM_G : integer range 1024 to 49151 := 9000;
    constant ADCS_G               : integer                     := 4;
    constant HYBRIDS_G            : integer                     := 8;

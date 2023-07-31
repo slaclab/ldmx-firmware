@@ -4,6 +4,8 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 # Load ruckus files
 loadSource -lib ldmx -dir "$::DIR_PATH/rtl/" 
 loadSource -lib ldmx -sim_only -dir  "$::DIR_PATH/sim/"
+
+
 # loadSource -dir "$::DIR_PATH/verilog/"
 # loadSource -dir "$::DIR_PATH/verilog/pflink"
 # loadSource -dir "$::DIR_PATH/verilog/pflink/core"

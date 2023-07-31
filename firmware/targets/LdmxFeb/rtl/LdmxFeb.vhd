@@ -136,8 +136,8 @@ architecture rtl of LdmxFeb is
    -------------------------------------------------------------------------------------------------
    signal userRefClk125 : sl;
    signal userRefRst125 : sl;
-   signal clk250        : sl;
-   signal rst250        : sl;
+--    signal clk250        : sl;
+--    signal rst250        : sl;
 
    signal axilClk : sl;
    signal axilRst : sl;
@@ -201,8 +201,8 @@ architecture rtl of LdmxFeb is
    -------------------------------------------------------------------------------------------------
    -- Data Streams
    -------------------------------------------------------------------------------------------------
-   signal dataClk             : sl;
-   signal dataRst             : sl;
+--    signal dataClk             : sl;
+--    signal dataRst             : sl;
 
    signal eventAxisMaster : AxiStreamMasterType;
    signal eventAxisSlave  : AxiStreamSlaveType;
@@ -216,7 +216,7 @@ architecture rtl of LdmxFeb is
    signal hyTrgOut   : slv(HYBRIDS_G-1 downto 0);
    signal hyRstOutL  : slv(HYBRIDS_G-1 downto 0);
    signal hyPwrEnInt : slv(HYBRIDS_G-1 downto 0);
-   signal hyPwrEnL   : slv(HYBRIDS_G-1 downto 0);
+
 
    -------------------------------------------------------------------------------------------------
    -- Hybrid I2c Signals
