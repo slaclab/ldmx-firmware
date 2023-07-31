@@ -202,7 +202,7 @@ begin
                   -- Readout header
                   v.ssiMaster.sof                := '1';
                   -- Need to modify APV number if new hybrid
-                  v.ssiMaster.data(15 downto 13) := toSlv(apvIndex(APV_NUM_G, febConfig.hybridType(HYBRID_NUM_G)), 3);
+                  v.ssiMaster.data(15 downto 13) := toSlv(APV_NUM_G, 3);
                   v.ssiMaster.data(12 downto 9)  := r.frameCount(3 downto 0);
                   v.ssiMaster.data(8 downto 1)   := r.pulseStream(8 downto 1);  -- Address
                   v.ssiMaster.data(0)            := r.pulseStream(0);           -- Error bit
@@ -227,7 +227,7 @@ begin
       end if;
 
       -- Don't allow channel to sync if stream is not enabled
-      if (febConfig.hyApvDataStreamEn(HYBRID_NUM_G*5+apvIndex(APV_NUM_G, febConfig.hybridType(HYBRID_NUM_G))) = '0') then
+      if (febConfig.hyApvDataStreamEn(HYBRID_NUM_G*5 + APV_NUM_G) = '0') then
          v.state := FIRST_PULSE_S;
       end if;
 

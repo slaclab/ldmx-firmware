@@ -129,7 +129,7 @@ begin
       v.hybridInfo.hybridNum  := toSlv(HYBRID_NUM_G, 3);
       v.hybridInfo.hybridType := febConfig.hybridType(HYBRID_NUM_G);
       for i in APVS_PER_HYBRID_G-1 downto 0 loop
-         v.hybridInfo.syncStatus(apvIndex(i, febConfig.hybridType(HYBRID_NUM_G))) := syncDetected(i);
+         v.hybridInfo.syncStatus(i) := syncDetected(i);
       end loop;
 
 
