@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : BittWareXupVv8Pgp2b.vhd
+-- File       : BittWareXupVv8Pgp2fc.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -31,7 +31,7 @@ use axi_pcie_core.AxiPciePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity BittWareXupVv8Pgp2b is
+entity BittWareXupVv8Pgp2fc is
    generic (
       TPD_G                : time                        := 1 ns;
       SIM_SPEEDUP_G        : boolean                     := true;
@@ -52,7 +52,6 @@ entity BittWareXupVv8Pgp2b is
       qsfpRxN     : in  slv(PGP_QUADS_G*4-1 downto 0);
       qsfpTxP     : out slv(PGP_QUADS_G*4-1 downto 0);
       qsfpTxN     : out slv(PGP_QUADS_G*4-1 downto 0);
-
       --------------
       --  Core Ports
       --------------
@@ -69,16 +68,17 @@ entity BittWareXupVv8Pgp2b is
       pciRxN         : in  slv(15 downto 0);
       pciTxP         : out slv(15 downto 0);
       pciTxN         : out slv(15 downto 0));
-end BittWareXupVv8Pgp2b;
+end BittWareXupVv8Pgp2fc;
 
-architecture top_level of BittWareXupVv8Pgp2b is
+architecture top_level of BittWareXupVv8Pgp2fc is
 
    constant DMA_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => DMA_BYTE_WIDTH_G, tDestBits => 8, tIdBits => 3);
 
+   -- Always check if this agrees with the MMCM configuration
+   constant AXI_CLK_FREQ_C : real := 125.0e6;
+
    signal userClk100      : sl;
    signal userRst100      : sl;
-   signal clk156          : sl;
-   signal rst156          : sl;
    signal axilClk         : sl;
    signal axilRst         : sl;
    signal axilReadMaster  : AxiLiteReadMasterType;
@@ -87,7 +87,7 @@ architecture top_level of BittWareXupVv8Pgp2b is
    signal axilWriteSlave  : AxiLiteWriteSlaveType;
 
    -- +1 because of XVC
-   constant DMA_SIZE_C : integer := PGP_QUADS_G;
+   constant DMA_SIZE_C    : integer := PGP_QUADS_G;
 
    signal dmaClk          : sl;
    signal dmaRst          : sl;
@@ -106,23 +106,20 @@ begin
          INPUT_BUFG_G      => true,
          FB_BUFG_G         => true,
          RST_IN_POLARITY_G => '1',
-         NUM_CLOCKS_G      => 2,
+         NUM_CLOCKS_G      => 1,
          -- MMCM attributes
          BANDWIDTH_G       => "OPTIMIZED",
-         CLKIN_PERIOD_G    => 10.0,     -- 100 MHz
-         CLKFBOUT_MULT_G   => 14,       -- 1GHz = 10 x 100 MHz
-         CLKOUT0_DIVIDE_G  => 11,       -- 125MHz = 1GHz/8
-         CLKOUT1_DIVIDE_G  => 9)
+         CLKIN_PERIOD_G    => 10.0, -- 100 MHz
+         CLKFBOUT_MULT_G   => 10,   -- 100x10 = 1000 MHz
+         CLKOUT0_DIVIDE_G  => 8)    -- 1000/8 = 125  MHz
       port map(
          -- Clock Input
          clkIn     => userClk100,
          rstIn     => dmaRst,
          -- Clock Outputs
          clkOut(0) => axilClk,
-         clkOut(1) => clk156,
          -- Reset Outputs
-         rstOut(0) => axilRst,
-         rstOut(1) => rst156);
+         rstOut(0) => axilRst);
 
    U_PwrUpRst_1 : entity surf.PwrUpRst
       generic map (
@@ -160,8 +157,8 @@ begin
          dmaIbMasters    => dmaIbMasters,
          dmaIbSlaves     => dmaIbSlaves,
          -- Application AXI-Lite Interfaces [0x00100000:0x00FFFFFF]
-         appClk          => clk156,
-         appRst          => rst156,
+         appClk          => axilClk,
+         appRst          => axilRst,
          appReadMaster   => axilReadMaster,
          appReadSlave    => axilReadSlave,
          appWriteMaster  => axilWriteMaster,
@@ -189,11 +186,11 @@ begin
          SIM_SPEEDUP_G     => SIM_SPEEDUP_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
          PGP_QUADS_G       => PGP_QUADS_G,
-         AXI_CLK_FREQ_G    => 156.25e6,
+         AXI_CLK_FREQ_G    => AXI_CLK_FREQ_C,
          AXI_BASE_ADDR_G   => X"0080_0000")
       port map (
-         axilClk         => clk156,           -- [in]
-         axilRst         => rst156,           -- [in]
+         axilClk         => axilClk,          -- [in]
+         axilRst         => axilRst,          -- [in]
          axilReadMaster  => axilReadMaster,   -- [in]
          axilReadSlave   => axilReadSlave,    -- [out]
          axilWriteMaster => axilWriteMaster,  -- [in]

@@ -11,8 +11,8 @@ loadSource           -dir "$::DIR_PATH/hdl"
 loadConstraints      -dir "$::DIR_PATH/xdc"
 loadSource -sim_only -dir "$::DIR_PATH/tb"
 
-set_property top {BittWareXupVv8Pgp2b} [get_filesets {sources_1}]
-set_property top {BittWareXupVv8Pgp2bTb} [get_filesets {sim_1}]
+set_property top {BittWareXupVv8Pgp2fc} [get_filesets {sources_1}]
+set_property top {BittWareXupVv8Pgp2fcTb} [get_filesets {sim_1}]
 
 set_property target_language VHDL [current_project]
 

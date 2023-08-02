@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : Testbench for design "BittWareXupVv8Pgp2b"
+-- Title      : Testbench for design "BittWareXupVv8Pgp2fc"
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Platform   : 
@@ -28,13 +28,13 @@ use ruckus.BuildInfoPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
-entity BittWareXupVv8Pgp2bTb is
+entity BittWareXupVv8Pgp2fcTb is
 
-end entity BittWareXupVv8Pgp2bTb;
+end entity BittWareXupVv8Pgp2fcTb;
 
 ----------------------------------------------------------------------------------------------------
 
-architecture sim of BittWareXupVv8Pgp2bTb is
+architecture sim of BittWareXupVv8Pgp2fcTb is
 
    -- component generics
    constant TPD_G                : time                        := 0.2 ns;
@@ -67,7 +67,7 @@ architecture sim of BittWareXupVv8Pgp2bTb is
 begin
 
    -- component instantiation
-   U_BittWareXupVv8Pgp2b : entity work.BittWareXupVv8Pgp2b
+   U_BittWareXupVv8Pgp2fc : entity work.BittWareXupVv8Pgp2fc
       generic map (
          TPD_G                => TPD_G,
          SIM_SPEEDUP_G        => SIM_SPEEDUP_G,
@@ -99,7 +99,7 @@ begin
    GEN_REFCLKS : for i in PGP_QUADS_G-1 downto 0 generate
       U_ClkRst_REFCLK : entity surf.ClkRst
          generic map (
-            CLK_PERIOD_G      => 6.4 ns,
+            CLK_PERIOD_G      => 5.3846 ns, -- 185.714285 MHz = 5.3846 ns
             CLK_DELAY_G       => 1 ns,
             RST_START_DELAY_G => 0 ns,
             RST_HOLD_TIME_G   => 5 us,
@@ -111,7 +111,7 @@ begin
 
    U_ClkRst_USERCLK : entity surf.ClkRst
       generic map (
-         CLK_PERIOD_G      => 10 ns,
+         CLK_PERIOD_G      => 10.0 ns, -- 100.0 MHz = 10.0 ns
          CLK_DELAY_G       => 1 ns,
          RST_START_DELAY_G => 0 ns,
          RST_HOLD_TIME_G   => 5 us,
