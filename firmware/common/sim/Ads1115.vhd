@@ -52,16 +52,6 @@ architecture behavioral of Ads1115 is
       6 => 27520,                       -- 512 SPS
       7 => 15200);
 
-   constant PGA_AMPLIFICATION_C : RealArray(0 to 7) := (
-      0 => 0.6667,
-      1 => 1.0,
-      2 => 2.0,
-      3 => 4.0,
-      4 => 8.0,
-      5 => 16.0,
-      6 => 16.0,
-      7 => 16.0);
-
    constant FULL_SCALE_RANGE_C : RealArray(0 to 7) := (
       0 => 6.144,
       1 => 4.096,
@@ -189,9 +179,6 @@ begin
          else
             tmpR := ain(conv_integer(r.mux(1 downto 0)));
          end if;
-
-         -- Perform programmable gain
-         tmpR := tmpR * PGA_AMPLIFICATION_C(pgaIndex);  -- Multiply by PGA
 
          -- Do conversion
          return adcConversion(tmpR, (-1.0 * FULL_SCALE_RANGE_C(pgaIndex)), FULL_SCALE_RANGE_C(pgaIndex), 16, true);
