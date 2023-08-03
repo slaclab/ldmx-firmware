@@ -58,7 +58,8 @@ class LdmxFebHw(pr.Device):
 
         self.add(surf.xilinx.AxiSysMonUltraScale(
             enabled = True,
-            offset = 0x1_0000))
+            offset = 0x1_0000,
+            simpleViewList = None))
 
         self.add(surf.devices.micron.AxiMicronN25Q(
             enabled = False,
