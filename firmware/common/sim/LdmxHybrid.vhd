@@ -56,7 +56,7 @@ begin
       Apv25_Inst : entity ldmx.Apv25
          generic map (
             TPD_G  => TPD_G,
-            ADDR_G => ("00" & toSlv(i, 3)))
+            ADDR_G => ("01" & toSlv(i, 3)))
          port map (
             clk       => clk,
             trig      => trig,
