@@ -67,6 +67,7 @@ class LdmxFebHw(pr.Device):
         self.add(ldmx.LdmxHybridPowerI2c(
             name = f'HybridPowerArray',
             offset = 0x2_0000,
+            expand = True,
             numHybrids = numHybrids)) 
 
 #         self.add(ldmx.DigPwrMon(

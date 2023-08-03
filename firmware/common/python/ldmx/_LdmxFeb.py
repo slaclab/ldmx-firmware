@@ -40,6 +40,7 @@ class LdmxFeb(pr.Device):
         self.add(ldmx.LdmxFebHw(
             numHybrids = numHybrids,
             febCore = self.FebCore,
+            expand = True,
             offset = 0x10000000))
 
         if sim is False:
