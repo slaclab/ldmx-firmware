@@ -11,23 +11,10 @@ class LdmxHybridPowerI2c(pr.Device):
                 name = f'HybridPower[{i}]',
                 offset = i*0x1000))
 
-        ltcConfig = {
-            'TInternalVccEnable' : 'True',
-            'V1V2Enable' : 'True',
-            'V3V4Enable' : 'True',
-            'V5V6Enable' : 'True',
-            'V7V8Enable' : 'True',
-            'V1V2Diff' : 'Differential',
-            'V3V4Diff' : 'Differential',
-            'V5V6Diff' : 'Differential',
-            'V7V8Diff' : 'Differential',
-            'AcquisitionMode' : 'Repeated',}            
-
         @self.command()
         def ConfigureLtc2991():
-            for dev in self.find(typ=ldmx.Ltc2991):
-                dev._setDict(ltcConfig, writeEach=False, modes=['RW', 'WO'], incGroups=None, excGroups='NoConfig', keys=None)
-                dev.writeAndVerifyBlocks(force=True, recurse=False)
+            for dev in self.find(typ=ldmx.HybridPower):
+                dev.ConfigureLtc2991()
             
         @self.command(description='Save all voltage trim values to AD5144 EEPROM')
         def SaveTrims():
@@ -42,6 +29,19 @@ class LdmxHybridPowerI2c(pr.Device):
 class HybridPower(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        ltcConfig = {
+            'TInternalVccEnable' : 'True',
+            'V1V2Enable' : 'True',
+            'V3V4Enable' : 'True',
+            'V5V6Enable' : 'True',
+            'V7V8Enable' : 'True',
+            'V1V2Diff' : 'Differential',
+            'V3V4Diff' : 'Differential',
+            'V5V6Diff' : 'Differential',
+            'V7V8Diff' : 'Differential',
+            'AcquisitionMode' : 'Repeated',}            
+        
 
         self.add(ldmx.Ltc2991(
             name='Ltc2991Near',
@@ -68,4 +68,9 @@ class HybridPower(pr.Device):
             hidden=False,
             enabled=True))
 
+        @self.command()
+        def ConfigureLtc2991():
+            for dev in self.find(typ=ldmx.Ltc2991):
+                dev._setDict(ltcConfig, writeEach=False, modes=['RW', 'WO'], incGroups=None, excGroups='NoConfig', keys=None)
+                dev.writeAndVerifyBlocks(force=True, recurse=False)
 
