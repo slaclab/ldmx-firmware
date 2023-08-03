@@ -83,10 +83,20 @@ begin
       axiSlaveRegister(axilEp, X"1C", 10, v.febConfig.hybridType(5));
       axiSlaveRegister(axilEp, X"1C", 12, v.febConfig.hybridType(6));
       axiSlaveRegister(axilEp, X"1C", 14, v.febConfig.hybridType(7));
+
+      axiSlaveRegister(axilEp, X"30", 0, v.febConfig.hyApvDataStreamEn(0));
+      axiSlaveRegister(axilEp, X"30", 6, v.febConfig.hyApvDataStreamEn(1));
+      axiSlaveRegister(axilEp, X"30", 12, v.febConfig.hyApvDataStreamEn(2));
+      axiSlaveRegister(axilEp, X"30", 18, v.febConfig.hyApvDataStreamEn(3));
+      axiSlaveRegister(axilEp, X"34", 0, v.febConfig.hyApvDataStreamEn(4));
+      axiSlaveRegister(axilEp, X"34", 6, v.febConfig.hyApvDataStreamEn(5));
+      axiSlaveRegister(axilEp, X"34", 12, v.febConfig.hyApvDataStreamEn(6));
+      axiSlaveRegister(axilEp, X"34", 18, v.febConfig.hyApvDataStreamEn(7));      
+
       
       axiSlaveRegister(axilEp, X"28", 0, v.febConfig.calDelay);
       axiSlaveRegister(axilEp, X"28", 8, v.febConfig.calEn);
-      axiSlaveRegister(axilEp, X"2C", 0, v.febConfig.hyApvDataStreamEn);
+
       axiSlaveRegister(axilEp, X"40", 0, v.febConfig.headerHighThreshold);
       axiSlaveRegister(axilEp, X"48", 0, v.febConfig.allowResync);
 

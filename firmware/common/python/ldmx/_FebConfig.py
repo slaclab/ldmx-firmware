@@ -108,13 +108,14 @@ class FebConfig(pr.Device):
             bitOffset=8,
             base=pr.Bool))
 
-        self.add(pr.RemoteVariable(
-            name="ApvDataStreamEn",
-            description='Enable the APV Frame stream for each hybrid',
-            offset=0x2C,
-            bitSize=20,
-            bitOffset=0,
-            base=pr.UInt))
+        for i in range(8):
+            self.add(pr.RemoteVariable(
+                name=f'Hybrid{i}ApvDataStreamEn',
+                description=f'Enable mask for APV Frame stream for Hybrid {i}',
+                offset=0x30 + (i//4)*4,
+                bitSize=6,
+                bitOffset=(i%4)*6,
+                base=pr.UInt))
 
         self.add(pr.RemoteVariable(
             name="HeaderHighThreshold",

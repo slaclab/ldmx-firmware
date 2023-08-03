@@ -227,7 +227,7 @@ begin
       end if;
 
       -- Don't allow channel to sync if stream is not enabled
-      if (febConfig.hyApvDataStreamEn(HYBRID_NUM_G*5 + APV_NUM_G) = '0') then
+      if (febConfig.hyApvDataStreamEn(HYBRID_NUM_G)(APV_NUM_G) = '0') then
          v.state := FIRST_PULSE_S;
       end if;
 

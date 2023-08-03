@@ -35,7 +35,7 @@ package FebConfigPkg is
       calDelay            : slv(7 downto 0);
       hyPwrEn             : slv(7 downto 0);
       hyHardRst           : slv(7 downto 0);
-      hyApvDataStreamEn   : slv(47 downto 0);
+      hyApvDataStreamEn   : slv6Array(7 downto 0);
 --      prbsDataStreamEn    : slv(7 downto 0);
       febAddress          : slv(3 downto 0);
       headerHighThreshold : slv(13 downto 0);
@@ -63,7 +63,7 @@ package FebConfigPkg is
       calDelay            => (others => '0'),
       hyPwrEn             => (others => '0'),
       hyHardRst           => (others => '0'),
-      hyApvDataStreamEn   => (others => '1'),
+      hyApvDataStreamEn   => (others => (others => '1')),
   --    prbsDataStreamEn    => (others => '0'),
       febAddress          => "1110",
       headerHighThreshold => "10" & X"400",
