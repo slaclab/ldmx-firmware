@@ -8,7 +8,7 @@ class HybridSyncStatus(pr.Device):
         self.add(pr.RemoteVariable(
             name="SyncDetected",
             offset=0x00,
-            bitSize=5,
+            bitSize=apvsPerHybrid,
             bitOffset=0,
             mode='RO',
             pollInterval=3,
@@ -41,7 +41,7 @@ class HybridSyncStatus(pr.Device):
                 pollInterval=5,
                 base=pr.UInt))
 
-        for i in range(5):
+        for i in range(apvsPerHybrid):
             self.add(pr.RemoteVariable(
                 name=f"Peak[{i}]",
                 offset=0x10+ i*4,
