@@ -85,6 +85,7 @@ class HybridSyncStatus(pr.Device):
         self.addRemoteVariables(
             number=apvsPerHybrid,
             stride=4,
+            mode = 'RO',
             name = 'LostSyncCount',
             offset = 0x90,
             disp = '{:d}')
