@@ -73,7 +73,7 @@ architecture rtl of LdmxHybridPowerI2C is
       2              => (
          i2cAddress  => "0000100000",   -- AD5144
          i2cTenbit   => '0',
-         dataSize    => 16,
+         dataSize    => 8,
          addrSize    => 8,
          endianness  => '1',            -- check this
          repeatStart => '1'));          -- check this
