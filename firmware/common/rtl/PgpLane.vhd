@@ -48,6 +48,8 @@ entity PgpLane is
       pgpRxP          : in  sl;
       pgpRxN          : in  sl;
       pgpRefClk       : in  sl;
+      pgpFabricRefClk : in  sl;
+      pgpUserRefClk   : in  sl;
       -- DMA Interface (dmaClk domain)
       dmaClk          : in  sl;
       dmaRst          : in  sl;
@@ -160,12 +162,15 @@ begin
       generic map (
          TPD_G           => TPD_G,
          SIMULATION_G    => SIM_SPEEDUP_G,
+         AXI_BASE_ADDR_G => AXI_BASE_ADDR_G,
          VC_INTERLEAVE_G => 1)          -- AxiStreamDmaV2 supports interleaving
       port map (
          -- GT Clocking
          stableClk       => axilClk,
          stableRst       => axilRst,
          gtRefClk        => pgpRefClk,
+         gtFabricRefClk  => pgpFabricRefClk,
+         gtUserRefClk    => pgpUserRefClk,
          -- Gt Serial IO
          pgpGtTxP        => pgpTxP,
          pgpGtTxN        => pgpTxN,

@@ -75,13 +75,14 @@ architecture mapping of PgpLaneWrapper is
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
 
-   signal qsfpRefClk : slv(PGP_QUADS_G-1 downto 0);
+   signal qsfpRefClk       : slv(PGP_QUADS_G-1 downto 0);
+   signal qsfpUserRefClk   : slv(PGP_QUADS_G-1 downto 0);
+   signal userRefClk       : slv(PGP_QUADS_G-1 downto 0);
 
-
-   signal pgpObMasters : AxiStreamMasterArray(PGP_QUADS_G*4-1 downto 0);
-   signal pgpObSlaves  : AxiStreamSlaveArray(PGP_QUADS_G*4-1 downto 0);
-   signal pgpIbMasters : AxiStreamMasterArray(PGP_QUADS_G*4-1 downto 0);
-   signal pgpIbSlaves  : AxiStreamSlaveArray(PGP_QUADS_G*4-1 downto 0);
+   signal pgpObMasters     : AxiStreamMasterArray(PGP_QUADS_G*4-1 downto 0);
+   signal pgpObSlaves      : AxiStreamSlaveArray(PGP_QUADS_G*4-1 downto 0);
+   signal pgpIbMasters     : AxiStreamMasterArray(PGP_QUADS_G*4-1 downto 0);
+   signal pgpIbSlaves      : AxiStreamSlaveArray(PGP_QUADS_G*4-1 downto 0);
 
 
 begin
@@ -121,9 +122,18 @@ begin
             I     => qsfpRefClkP(quad),
             IB    => qsfpRefClkN(quad),
             CEB   => '0',
-            ODIV2 => open,
+            ODIV2 => qsfpUserRefClk(quad),
             O     => qsfpRefClk(quad));
 
+      U_QsfpUserRefClk : BUFG_GT
+         port map (
+            I       => qsfpUserRefClk(quad),
+            CE      => '1',
+            CEMASK  => '1',
+            CLR     => '0',
+            CLRMASK => '1',
+            DIV     => "000",
+            O       => userRefClk(quad));
 
       GEN_LANE : for lane in 3 downto 0 generate
          U_Lane : entity ldmx.PgpLane
@@ -141,6 +151,8 @@ begin
                pgpTxP          => qsfpTxP(quad*4+lane),
                pgpTxN          => qsfpTxN(quad*4+lane),
                pgpRefClk       => qsfpRefClk(quad),
+               pgpFabricRefClk => '0', -- placeholder
+               pgpUserRefClk   => userRefClk(quad),
                -- DMA Interface (dmaClk domain)
                dmaClk          => dmaClk,
                dmaRst          => dmaRst,
