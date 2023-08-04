@@ -3,6 +3,7 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 # Load common and sub-module ruckus.tcl files
 loadRuckusTcl $::env(TOP_DIR)/submodules/surf
+loadRuckusTcl $::env(TOP_DIR)/submodules/lcls-timing-core/LCLS-II/core
 loadRuckusTcl $::env(TOP_DIR)/submodules/axi-pcie-core/hardware/BittWareXupVv8
 loadRuckusTcl $::env(TOP_DIR)/common
 
