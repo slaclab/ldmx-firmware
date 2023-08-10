@@ -109,6 +109,9 @@ begin
       -- Latch the current value
       v := r;
 
+      -- Reset the strobe
+      v.usrRoR := '0';
+
       ----------------------------------------------------------------------
       --                AXI-Lite Register Logic
       ----------------------------------------------------------------------
@@ -150,7 +153,6 @@ begin
       v.bunchCntStrb := '0';
       v.timingMsgReq := '0';
       v.fcValid      := '0';
-      v.usrRoR       := '0';
 
       if (r.enableTimingMsg = '0') then
          -- reset case
