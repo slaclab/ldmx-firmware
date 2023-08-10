@@ -40,10 +40,6 @@ set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks qsfpRefClk0] \
     -group [get_clocks axilClk]
 
-
-
-    U_PgpLaneWrapper/GEN_QUAD[0].GEN_LANE[0].U_Lane/U_Pgp/PgpGtyCoreWrapper_1/U_Pgp2fcGtyCore/inst/gen_gtwizard_gtye4_top.Pgp2fcGtyCore_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_channel_container[1].gen_enabled_channel.gtye4_channel_wrapper_inst/channel_inst/gtye4_channel_gen.gen_gtye4_channel_inst[0].GTYE4_CHANNEL_PRIM_INST/RXOUTCLK
-
 set_clock_groups -asynchronous \
     -group [get_clocks axilClk] \
     -group [get_clocks dmaClk]
