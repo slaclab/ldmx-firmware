@@ -121,7 +121,7 @@ begin
          -- Reset Outputs
          rstOut(0) => axilRst);
 
-   U_PwrUpRst_1 : entity surf.PwrUpRst
+   U_PwrUpRst : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
          DURATION_G => 500)
@@ -180,7 +180,7 @@ begin
          pciTxP          => pciTxP,
          pciTxN          => pciTxN);
 
-   U_Hardware_1 : entity ldmx.Hardware
+   U_PgpLaneWrapper : entity ldmx.PgpLaneWrapper
       generic map (
          TPD_G             => TPD_G,
          SIM_SPEEDUP_G     => SIM_SPEEDUP_G,
@@ -189,12 +189,12 @@ begin
          AXI_CLK_FREQ_G    => AXI_CLK_FREQ_C,
          AXI_BASE_ADDR_G   => X"0080_0000")
       port map (
-         axilClk         => axilClk,          -- [in]
-         axilRst         => axilRst,          -- [in]
-         axilReadMaster  => axilReadMaster,   -- [in]
-         axilReadSlave   => axilReadSlave,    -- [out]
-         axilWriteMaster => axilWriteMaster,  -- [in]
-         axilWriteSlave  => axilWriteSlave,   -- [out]
+         qsfpRefClkP     => qsfpRefClkP,      -- [in]
+         qsfpRefClkN     => qsfpRefClkN,      -- [in]
+         qsfpRxP         => qsfpRxP,          -- [in]
+         qsfpRxN         => qsfpRxN,          -- [in]
+         qsfpTxP         => qsfpTxP,          -- [out]
+         qsfpTxN         => qsfpTxN,          -- [out]
          dmaClk          => dmaClk,           -- [in]
          dmaRst          => dmaRst,           -- [in]
          dmaBuffGrpPause => dmaBuffGrpPause,  -- [in]
@@ -202,12 +202,13 @@ begin
          dmaObSlaves(0)  => dmaObSlaves(0),   -- [out]
          dmaIbMasters(0) => dmaIbMasters(0),  -- [out]
          dmaIbSlaves(0)  => dmaIbSlaves(0),   -- [in]
-         qsfpRefClkP     => qsfpRefClkP,      -- [in]
-         qsfpRefClkN     => qsfpRefClkN,      -- [in]
-         qsfpRxP         => qsfpRxP,          -- [in]
-         qsfpRxN         => qsfpRxN,          -- [in]
-         qsfpTxP         => qsfpTxP,          -- [out]
-         qsfpTxN         => qsfpTxN);         -- [out]
+         axilClk         => axilClk,          -- [in]
+         axilRst         => axilRst,          -- [in]
+         axilReadMaster  => axilReadMaster,   -- [in]
+         axilReadSlave   => axilReadSlave,    -- [out]
+         axilWriteMaster => axilWriteMaster,  -- [in]
+         axilWriteSlave  => axilWriteSlave);  -- [out]
+
 
 --    U_DmaXvc : entity work.DmaXvcWrapper
 --       generic map(
