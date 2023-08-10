@@ -11,9 +11,9 @@ import ldmx
 
 rogue.Logging.setFilter('pyrogue.SrpV3', rogue.Logging.Debug)
 
-parser = ldmx.TrackerPcieAlveoArgParser()
+parser = ldmx.TrackerPciePgpFcArgParser()
 args = parser.parse_args()
 
 with ldmx.PgpLaneTb(pollEn=False) as root:
-    pyrogue.pydm.runPyDM(root=root, title='Alveo', )
+    pyrogue.pydm.runPyDM(root=root, title='PgpFc', )
 

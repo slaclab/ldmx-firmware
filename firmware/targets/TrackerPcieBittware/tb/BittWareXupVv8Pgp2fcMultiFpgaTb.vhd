@@ -41,7 +41,6 @@ architecture sim of BittWareXupVv8Pgp2fcMultiFpgaTb is
    constant TPD_G                : time                        := 0.2 ns;
    constant SIM_SPEEDUP_G        : boolean                     := true;
    constant ROGUE_SIM_EN_G       : boolean                     := true;
-   constant ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000;
    constant DMA_BURST_BYTES_G    : integer range 256 to 4096   := 4096;
    constant DMA_BYTE_WIDTH_G     : integer range 8 to 64       := 8;
    constant PGP_QUADS_G          : integer                     := 1;
@@ -51,6 +50,10 @@ architecture sim of BittWareXupVv8Pgp2fcMultiFpgaTb is
    type PciLaneArray    is array (natural range PGP_FPGAS_G*4-1 downto 0) of slv(15 downto 0);
    type QsfpLaneArray   is array (natural range PGP_FPGAS_G*4-1 downto 0) of slv(PGP_QUADS_G*4-1 downto 0);
    type QsfpRefClkArray is array (natural range PGP_FPGAS_G-1 downto 0) of slv(PGP_QUADS_G-1 downto 0);
+
+   type RoguePortArray is array (natural range PGP_FPGAS_G-1 downto 0) of natural range 1024 to 49151;
+
+   constant ROGUE_SIM_PORT_NUM_G : RoguePortArray := (11000, 12000);
 
    -- component ports
    signal qsfpLane       : QsfpLaneArray   := (others => (others => '0'));
@@ -78,7 +81,7 @@ GEN_FPGA : for fpga in 0 to PGP_FPGAS_G-1 generate
          TPD_G                => TPD_G,
          SIM_SPEEDUP_G        => SIM_SPEEDUP_G,
          ROGUE_SIM_EN_G       => ROGUE_SIM_EN_G,
-         ROGUE_SIM_PORT_NUM_G => ROGUE_SIM_PORT_NUM_G,
+         ROGUE_SIM_PORT_NUM_G => ROGUE_SIM_PORT_NUM_G(fpga),
          DMA_BURST_BYTES_G    => DMA_BURST_BYTES_G,
          DMA_BYTE_WIDTH_G     => DMA_BYTE_WIDTH_G,
          PGP_QUADS_G          => PGP_QUADS_G,

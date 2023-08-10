@@ -19,12 +19,12 @@ import ldmx
 
 import argparse
 
-class TrackerPcieAlveoRoot(pr.Root):
+class TrackerPciePgpFcRoot(pr.Root):
     def __init__(
             self,
             dev = '/dev/datadev_0',
             sim = False,
-            numLanes = 8,
+            numLanes = 4,
             **kwargs):
         super().__init__(**kwargs)
 
@@ -46,16 +46,14 @@ class TrackerPcieAlveoRoot(pr.Root):
             numDmaLanes = numLanes,
             expand      = True,
             sim         = sim,
-            boardType = 'U200'
         ))
-        
 
-        self.add(ldmx.PgpFcAlveo(
+        self.add(ldmx.PgpFc(
             offset = 0x00800000,
             memBase = self.memMap,
             expand = True))
 
-class TrackerPcieAlveoArgParser(argparse.ArgumentParser):
+class TrackerPciePgpFcArgParser(argparse.ArgumentParser):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
