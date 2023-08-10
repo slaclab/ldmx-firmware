@@ -53,7 +53,7 @@ architecture sim of BittWareXupVv8Pgp2fcMultiFpgaTb is
 
    type RoguePortArray is array (natural range PGP_FPGAS_G-1 downto 0) of natural range 1024 to 49151;
 
-   constant ROGUE_SIM_PORT_NUM_G : RoguePortArray := (11000, 12000);
+   constant ROGUE_SIM_PORT_NUM_G : RoguePortArray := (12000, 11000);
 
    -- component ports
    signal qsfpLane       : QsfpLaneArray   := (others => (others => '0'));
