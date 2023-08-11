@@ -208,25 +208,8 @@ begin
          axilWriteMaster => axilWriteMasters(GT_INDEX_C),
          axilWriteSlave  => axilWriteSlaves(GT_INDEX_C));
 
-   U_BUFG_TX : BUFG_GT
-      port map (
-         I       => pgpTxOutClk,
-         CE      => '1',
-         CEMASK  => '1',
-         CLR     => '0',
-         CLRMASK => '1',
-         DIV     => "000",              -- Divide by 1
-         O       => pgpTxClk);
-
-   U_BUFG_RX : BUFG_GT
-      port map (
-         I       => pgpRxOutClk,
-         CE      => '1',
-         CEMASK  => '1',
-         CLR     => '0',
-         CLRMASK => '1',
-         DIV     => "000",              -- Divide by 1
-         O       => pgpRxClk);
+   U_BUFG_TX : BUFG port map (I => pgpTxOutClk, O => pgpTxClk);
+   U_BUFG_RX : BUFG port map (I => pgpRxOutClk, O => pgpRxClk);
 
    --------------
    -- PGP Monitor
