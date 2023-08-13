@@ -208,8 +208,9 @@ begin
          axilWriteMaster => axilWriteMasters(GT_INDEX_C),
          axilWriteSlave  => axilWriteSlaves(GT_INDEX_C));
 
-   U_BUFG_TX : BUFG port map (I => pgpTxOutClk, O => pgpTxClk);
-   U_BUFG_RX : BUFG port map (I => pgpRxOutClk, O => pgpRxClk);
+   -- clocks are buffered via a BUFG_GT further down in the hierarchy; no need for BUFG
+   pgpTxClk <= pgpTxOutClk;
+   pgpRxClk <= pgpRxOutClk;
 
    --------------
    -- PGP Monitor
