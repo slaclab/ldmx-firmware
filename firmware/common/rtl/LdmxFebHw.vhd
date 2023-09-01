@@ -31,9 +31,7 @@ use surf.I2cPkg.all;
 use surf.Ad9249Pkg.all;
 
 library ldmx;
-use ldmx.HpsPkg.all;
-use ldmx.HpsFebHwPkg.all;
-use ldmx.AdcReadoutPkg.all;
+use ldmx.LdmxPkg.all;
 
 entity LdmxFebHw is
 
@@ -134,10 +132,10 @@ entity LdmxFebHw is
       adcReadoutStreams : out AdcStreamArray := ADC_STREAM_ARRAY_INIT_C;
 
       -- 37Mhz clock
-      daqClk37    : in  sl;
-      daqClk37Rst : in  sl;
-      hyClk       : out slv(HYBRIDS_G-1 downto 0) := (others => '0');
-      hyClkRst    : out slv(HYBRIDS_G-1 downto 0) := (others => '0'));
+      fcClk37    : in  sl;
+      fcClk37Rst : in  sl;
+      hyClk      : out slv(HYBRIDS_G-1 downto 0) := (others => '0');
+      hyClkRst   : out slv(HYBRIDS_G-1 downto 0) := (others => '0'));
 
 end entity LdmxFebHw;
 
@@ -342,8 +340,8 @@ begin
          CLKOUT2_DIVIDE_G   => 32,
          CLKOUT3_DIVIDE_G   => 32)
       port map (
-         clkIn           => daqClk37,                                                 -- [in]
-         rstIn           => daqClk37Rst,                                              -- [in]
+         clkIn           => fcClk37,                                                  -- [in]
+         rstIn           => fcClk37Rst,                                               -- [in]
          clkOut          => hyClkInt(3 downto 0),                                     -- [out]
          rstOut          => hyClkRstInt(3 downto 0),                                  -- [out]
          axilClk         => axilClk,                                                  -- [in]
@@ -372,8 +370,8 @@ begin
          CLKOUT2_DIVIDE_G   => 32,
          CLKOUT3_DIVIDE_G   => 32)
       port map (
-         clkIn           => daqClk37,                                                 -- [in]
-         rstIn           => daqClk37Rst,                                              -- [in]
+         clkIn           => fcClk37,                                                  -- [in]
+         rstIn           => fcClk37Rst,                                               -- [in]
          clkOut          => hyClkInt(7 downto 4),                                     -- [out]
          rstOut          => hyClkRstInt(7 downto 4),                                  -- [out]
          axilClk         => axilClk,                                                  -- [in]
@@ -407,8 +405,8 @@ begin
          CLKOUT2_DIVIDE_G   => 32,
          CLKOUT3_DIVIDE_G   => 32)
       port map (
-         clkIn           => daqClk37,                                            -- [in]
-         rstIn           => daqClk37Rst,                                         -- [in]
+         clkIn           => fcClk37,                                             -- [in]
+         rstIn           => fcClk37Rst,                                          -- [in]
          clkOut          => adcClk,                                              -- [out]
          rstOut          => adcClkRst,                                           -- [out]
          axilClk         => axilClk,                                             -- [in]

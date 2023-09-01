@@ -29,7 +29,7 @@ use surf.SsiPkg.all;
 
 
 library ldmx;
-use ldmx.HpsPkg.all;
+use ldmx.LdmxPkg.all;
 use ldmx.FebConfigPkg.all;
 
 entity HybridStatusMonitor is
@@ -39,8 +39,8 @@ entity HybridStatusMonitor is
       APVS_PER_HYBRID_G : integer              := 5);
    port (
       -- Master system clock, 125Mhz
-      sysClk : in sl;
-      sysRst : in sl;
+      axilClk : in sl;
+      axilRst : in sl;
 
       -- Config
       febConfig : in FebConfigType;
@@ -79,7 +79,7 @@ architecture rtl of HybridStatusMonitor is
       count         : slv(31 downto 0);
       pulseStream   : slv64array(APVS_PER_HYBRID_G-1 downto 0);
       countReset    : sl;
-      hybridInfo    : HybridInfoType;
+      syncStatus : slv(APVS_PER_HYBRID_G-1 downto 0);
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
@@ -88,7 +88,7 @@ architecture rtl of HybridStatusMonitor is
       count         => (others => '0'),
       pulseStream   => (others => (others => '0')),
       countReset    => '0',
-      hybridInfo    => HYBRID_INFO_INIT_C,
+      syncStatus => (others => '0'),
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -99,37 +99,19 @@ architecture rtl of HybridStatusMonitor is
 begin
 
    comb : process (axiReadMaster, axiWriteMaster, febConfig, frameCount, lostSyncCount, maxSamples,
-                   minSamples, pulseStream, r, syncBase, syncDetected, syncPeak, sysRst) is
+                   minSamples, pulseStream, r, syncBase, syncDetected, syncPeak, axilRst) is
       variable v          : RegType;
       variable axilEp     : AxiLiteEndpointType;
-      variable hybridInfo : HybridInfoType;
+--      variable hybridInfo : HybridInfoType;
       variable freeze     : sl;
-      variable index      : IntegerArray(0 to 5);
    begin
       v := r;
 
-      -- Translate apv index accoring to hybridType
-      if (febConfig.hybridType(HYBRID_NUM_G) = NEW_HYBRID_C) then
-         index(2) := 0;
-         index(3) := 1;
-         index(4) := 2;
-         index(0) := 3;
-         index(1) := 4;
-         index(5) := 5;
-      else
-         index(0) := 0;
-         index(1) := 1;
-         index(2) := 2;
-         index(3) := 3;
-         index(4) := 4;
-         index(5) := 5;
-      end if;
-
-      v.hybridInfo.febAddress := febConfig.febAddress;
-      v.hybridInfo.hybridNum  := toSlv(HYBRID_NUM_G, 3);
-      v.hybridInfo.hybridType := febConfig.hybridType(HYBRID_NUM_G);
+--       v.hybridInfo.febAddress := febConfig.febAddress;
+--       v.hybridInfo.hybridNum  := toSlv(HYBRID_NUM_G, 3);
+--       v.hybridInfo.hybridType := febConfig.hybridType(HYBRID_NUM_G);
       for i in APVS_PER_HYBRID_G-1 downto 0 loop
-         v.hybridInfo.syncStatus(i) := syncDetected(i);
+         v.syncStatus(i) := syncDetected(i);
       end loop;
 
 
@@ -139,16 +121,16 @@ begin
       axiSlaveWaitTxn(axilEp, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
       for i in APVS_PER_HYBRID_G-1 downto 0 loop
-         axiSlaveRegisterR(axilEp, X"00", i, r.hybridInfo.syncStatus(i));
+         axiSlaveRegisterR(axilEp, X"00", i, r.syncStatus(i));
       end loop;
 
       for i in APVS_PER_HYBRID_G-1 downto 0 loop
-         axiSlaveRegisterR(axilEp, X"10"+toSlv(i*4, 8), 0, syncBase(index(i)));
-         axiSlaveRegisterR(axilEp, X"10"+toSlv(i*4, 8), 16, syncPeak(index(i)));
+         axiSlaveRegisterR(axilEp, X"10"+toSlv(i*4, 8), 0, syncBase(i));
+         axiSlaveRegisterR(axilEp, X"10"+toSlv(i*4, 8), 16, syncPeak(i));
       end loop;
 
       for i in APVS_PER_HYBRID_G-1 downto 0 loop
-         axiSlaveRegisterR(axilEp, X"30"+toSlv(i*4, 8), 0, frameCount(index(i)));
+         axiSlaveRegisterR(axilEp, X"30"+toSlv(i*4, 8), 0, frameCount(i));
       end loop;
 
       freeze := '0';
@@ -158,16 +140,16 @@ begin
       end if;
 
       for i in APVS_PER_HYBRID_G-1 downto 0 loop
-         axiSlaveRegisterR(axilEp, X"60"+toSlv(i*8, 8), 0, r.pulseStream(index(i)));
+         axiSlaveRegisterR(axilEp, X"60"+toSlv(i*8, 8), 0, r.pulseStream(i));
       end loop;
 
       for i in APVS_PER_HYBRID_G-1 downto 0 loop
-         axiSlaveRegisterR(axilEp, X"90"+toSlv(i*4, 8), 0, lostSyncCount(index(i)));
+         axiSlaveRegisterR(axilEp, X"90"+toSlv(i*4, 8), 0, lostSyncCount(i));
       end loop;
 
       for i in APVS_PER_HYBRID_G-1 downto 0 loop
-         axiSlaveRegisterR(axilEp, X"B0"+toSlv(i*4, 8), 0, minSamples(index(i)));
-         axiSlaveRegisterR(axilEp, X"B0"+toSlv(i*4, 8), 16, maxSamples(index(i)));
+         axiSlaveRegisterR(axilEp, X"B0"+toSlv(i*4, 8), 0, minSamples(i));
+         axiSlaveRegisterR(axilEp, X"B0"+toSlv(i*4, 8), 16, maxSamples(i));
       end loop;
 
       v.countReset := '0';
@@ -178,7 +160,7 @@ begin
       ----------------------------------------------------------------------------------------------
       -- Resets and outputs
       ----------------------------------------------------------------------------------------------
-      if (sysRst = '1') then
+      if (axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -190,9 +172,9 @@ begin
 
    end process comb;
 
-   seq : process (sysClk) is
+   seq : process (axilClk) is
    begin
-      if (rising_edge(sysClk)) then
+      if (rising_edge(axilClk)) then
          r <= rin after TPD_G;
       end if;
    end process seq;

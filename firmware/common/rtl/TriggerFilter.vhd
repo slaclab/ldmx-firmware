@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-03-01
--- Last update: 2022-04-27
+-- Last update: 2023-08-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ use surf.SsiPkg.all;
 
 
 library ldmx;
-use ldmx.HpsPkg.all;
+use ldmx.LdmxPkg.all;
 use ldmx.DataPathPkg.all;
 use ldmx.RceConfigPkg.all;
 

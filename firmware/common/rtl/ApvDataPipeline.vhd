@@ -27,7 +27,7 @@ use surf.AxiStreamPkg.all;
 
 
 library ldmx;
-use ldmx.HpsPkg.all;
+use ldmx.LdmxPkg.all;
 use ldmx.FebConfigPkg.all;
 use ldmx.DataPathPkg.all;
 
@@ -40,8 +40,8 @@ entity ApvDataPipeline is
       THRESHOLD_EN_G   : boolean              := true);
    port (
       -- Master system clock, 125Mhz
-      sysClk : in sl;
-      sysRst : in sl;
+      axilClk : in sl;
+      axilRst : in sl;
 
       -- Axi-Lite interface for configuration and status
       axilReadMaster  : in  AxiLiteReadMasterType;
@@ -56,7 +56,7 @@ entity ApvDataPipeline is
       adcReadoutStream : in AxiStreamMasterType;
 
       -- Trigger
-      trigger : in sl;
+      readoutReq : in sl;
 
       -- Status outputs
       syncDetected  : out sl;
@@ -102,7 +102,7 @@ architecture rtl of ApvDataPipeline is
    signal thresholdFilterOut : MultiSampleType;
 
    -- Filtered data fifo signals
-   signal filterFifoOut   : slv(128 downto 0);
+   signal filterFifoOut   : slv(MULTI_SAMPLE_LENGTH_C-1 downto 0);
    signal filterFifoValid : sl;
 
 begin
@@ -116,8 +116,8 @@ begin
          NUM_MASTER_SLOTS_G => XBAR_NUM_MASTERS_C,
          MASTERS_CONFIG_G   => XBAR_CFG_C)
       port map (
-         axiClk              => sysClk,
-         axiClkRst           => sysRst,
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
          sAxiWriteMasters(0) => axilWriteMaster,
          sAxiWriteSlaves(0)  => axilWriteSlave,
          sAxiReadMasters(0)  => axilReadMaster,
@@ -134,8 +134,8 @@ begin
          HYBRID_NUM_G => HYBRID_NUM_G,
          APV_NUM_G    => APV_NUM_G)
       port map (
-         sysClk             => sysClk,
-         sysRst             => sysRst,
+         sysClk             => axilClk,
+         sysRst             => axilRst,
          adcValid           => adcReadoutStream.tvalid,
          adcData            => adcReadoutStream.tdata(15 downto 0),
          febConfig          => febConfig,
@@ -156,8 +156,8 @@ begin
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 4)                     -- Check this
       port map (
-         axisClk     => sysClk,                  -- [in]
-         axisRst     => sysRst,                  -- [in]
+         axisClk     => axilClk,                  -- [in]
+         axisRst     => axilRst,                  -- [in]
          sAxisMaster => apvFrameAxisMaster,      -- [in]
          sAxisSlave  => open,                    -- [out]
          mAxisMaster => buffApvFrameAxisMaster,  -- [out]
@@ -174,8 +174,8 @@ begin
          AXI_DEBUG_EN_G  => false,
          AXI_BASE_ADDR_G => XBAR_CFG_C(0).baseAddr)  -- 8 address bits
       port map (
-         sysClk             => sysClk,
-         sysRst             => sysRst,
+         axilClk            => axilClk,
+         axilRst            => axilRst,
          sysPipelineRst     => '0',
          axiReadMaster      => locAxilReadMasters(0),
          axiReadSlave       => locAxilReadSlaves(0),
@@ -183,7 +183,7 @@ begin
          axiWriteSlave      => locAxilWriteSlaves(0),
          apvFrameAxisMaster => buffApvFrameAxisMaster,
          apvFrameAxisSlave  => buffApvFrameAxisSlave,
-         trigger            => trigger,
+         readoutReq         => readoutReq,
          febConfig          => febConfig,
          syncStatus         => syncDetectedLoc,
          dataOut            => sampleExtractorOut);
@@ -198,8 +198,8 @@ begin
          generic map (
             TPD_G => TPD_G)             -- 9 address bits
          port map (
-            sysClk         => sysClk,
-            sysRst         => sysRst,
+            sysClk         => axilClk,
+            sysRst         => axilRst,
             sysPipelineRst => '0',
             axiReadMaster  => locAxilReadMasters(1),
             axiReadSlave   => locAxilReadSlaves(1),
@@ -225,17 +225,17 @@ begin
          MEMORY_TYPE_G   => "block",
          FWFT_EN_G       => true,
          PIPE_STAGES_G   => 1,
-         DATA_WIDTH_G    => 129,
+         DATA_WIDTH_G    => MULTI_SAMPLE_LENGTH_C,
          ADDR_WIDTH_G    => 7)          -- Want to buffer a whole frame w/o threshold filters
       port map (
-         rst          => sysRst,
-         wr_clk       => sysClk,
+         rst          => axilRst,
+         wr_clk       => axilClk,
          wr_en        => thresholdFilterOut.valid,
          din          => toSlv(thresholdFilterOut),
          prog_full    => open,
          almost_full  => open,
          full         => open,
-         rd_clk       => sysClk,
+         rd_clk       => axilClk,
          rd_en        => dataRdEn,
          dout         => filterFifoOut,
          valid        => filterFifoValid,

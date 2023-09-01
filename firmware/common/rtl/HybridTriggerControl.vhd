@@ -1,18 +1,20 @@
 -------------------------------------------------------------------------------
--- Title         : Tigger Control
--- Project       : Heavy Photon Tracker
+-- Title      : Hybrid Trigger Control
 -------------------------------------------------------------------------------
--- File          : TrigControl.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 06/27/2011
+-- Company    : SLAC National Accelerator Laboratory
+-- Platform   : 
+-- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
--- This block control the TRIG signal sent to the PAV25
+-- Description: Drive TRG signal line to hybrids based on readout requests
+-- and RESET101 commands from fast control.
 -------------------------------------------------------------------------------
--- Copyright (c) 2011 by SLAC. All rights reserved.
--------------------------------------------------------------------------------
--- Modification history:
--- 06/27/2011: created.
+-- This file is part of LDMX. It is subject to
+-- the license terms in the LICENSE.txt file found in the top-level directory
+-- of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of LDMX, including this file, may be
+-- copied, modified, propagated, or distributed except according to the terms
+-- contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -28,7 +30,7 @@ use surf.StdRtlPkg.all;
 library ldmx;
 use ldmx.FebConfigPkg.all;
 
-entity TrigControl is
+entity HybridTriggerControl is
    generic (
       TPD_G : time := 1 ns);
    port (
@@ -37,19 +39,18 @@ entity TrigControl is
       febConfig : in FebConfigType;     -- Contains trigger config
 
       -- Trigger inputs (sync'd to daqClk125)
-      daqTrigger : in sl;
-      hySoftRst  : in sl;
+      fcRor      : in sl;
+      fcReset101 : in sl;
 
       -- Hybrid Clock and reset (phase adjusted daqClk41)
       hyClk    : in sl;
       hyClkRst : in sl;
 
       -- Trigger output to APVs
-      hyTrigOut : out sl
-      );
-end TrigControl;
+      hyTrigOut : out sl);
+end HybridTriggerControl;
 
-architecture rtl of TrigControl is
+architecture rtl of HybridTriggerControl is
 
    type StateType is (WAIT_TRIGGER_S, WAIT_SHIFT_S, WAIT_CAL_S);
 
@@ -57,7 +58,7 @@ architecture rtl of TrigControl is
       state    : StateType;
       active   : sl;
       counter  : slv(7 downto 0);
-      shiftOut : slv(5 downto 0);
+      shiftOut : slv(2 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -70,8 +71,8 @@ architecture rtl of TrigControl is
    signal rin : RegType;
 
    -- Synchronized trigger signals
-   signal hySoftRstRise  : sl;
-   signal daqTriggerRise : sl;
+   signal fcReset101Rise : sl;
+   signal fcRorRise      : sl;
 
    -- Synchronized febConfig signals
    signal hyTrigEn : sl;
@@ -81,7 +82,7 @@ architecture rtl of TrigControl is
 
 begin
 
-   Synchronizer_hySoftRst : entity surf.SynchronizerOneShot
+   Synchronizer_fcReset101 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
@@ -89,10 +90,10 @@ begin
       port map (
          clk     => hyClk,
          rst     => hyClkRst,
-         dataIn  => hySoftRst,
-         dataOut => hySoftRstRise);
+         dataIn  => fcReset101,
+         dataOut => fcReset101Rise);
 
-   Synchronizer_daqTrigger : entity surf.SynchronizerOneShot
+   Synchronizer_fcRor : entity surf.SynchronizerOneShot
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
@@ -100,8 +101,8 @@ begin
       port map (
          clk     => hyClk,
          rst     => hyClkRst,
-         dataIn  => daqTrigger,
-         dataOut => daqTriggerRise);
+         dataIn  => fcRor,
+         dataOut => fcRorRise);
 
    SynchronizerFifo_febConfig : entity surf.SynchronizerFifo
       generic map (
@@ -120,25 +121,25 @@ begin
          dout(1)          => calEn,
          dout(9 downto 2) => calDelay);
 
-   comb : process (calDelay, calEn, daqTriggerRise, hyClkRst, hySoftRstRise, hyTrigEn, r) is
+   comb : process (calDelay, calEn, fcReset101Rise, fcRorRise, hyClkRst, hyTrigEn, r) is
       variable v : RegType;
    begin
       v := r;
 
-      v.shiftOut := r.shiftOut(4 downto 0) & '0';
+      v.shiftOut := r.shiftOut(1 downto 0) & '0';
 
       case (r.state) is
          when WAIT_TRIGGER_S =>
             v.counter := (others => '0');
-            if (hySoftRstRise = '1') then
-               v.shiftOut := "101000";
+            if (fcReset101Rise = '1') then
+               v.shiftOut := "101";
                v.state    := WAIT_SHIFT_S;
-            elsif (daqTriggerRise = '1' and hyTrigEn = '1') then
+            elsif (fcRorRise = '1' and hyTrigEn = '1') then
                if (calEn = '1') then
-                  v.shiftOut := "110000";
+                  v.shiftOut := "110";
                   v.state    := WAIT_CAL_S;
                else
-                  v.shiftOut := "100100";
+                  v.shiftOut := "100";
                   v.state    := WAIT_SHIFT_S;
                end if;
             end if;
@@ -146,14 +147,14 @@ begin
          when WAIT_SHIFT_S =>
             -- Wait until enough of the trigger sequence has shifted out that
             -- a new trigger can be processed.
-            if (r.shiftOut = "000000") then
+            if (r.shiftOut = "000") then
                v.state := WAIT_TRIGGER_S;
             end if;
 
          when WAIT_CAL_S =>
             v.counter := r.counter + 1;
             if (r.counter = calDelay) then
-               v.shiftOut := "100100";
+               v.shiftOut := "100";
                v.state    := WAIT_SHIFT_S;
             end if;
 
@@ -165,7 +166,7 @@ begin
 
       rin <= v;
 
-      hyTrigOut <= r.shiftOut(5);
+      hyTrigOut <= r.shiftOut(2);
 
    end process comb;
 

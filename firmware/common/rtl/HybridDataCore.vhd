@@ -27,7 +27,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
 library ldmx;
-use ldmx.HpsPkg.all;
+use ldmx.LdmxPkg.all;
 use ldmx.DataPathPkg.all;
 use ldmx.FebConfigPkg.all;
 
@@ -39,8 +39,8 @@ entity HybridDataCore is
       APVS_PER_HYBRID_G : integer range 4 to 6 := 6);
    port (
       -- Master system clock, 125Mhz
-      sysClk : in sl;
-      sysRst : in sl;
+      axilClk : in sl;
+      axilRst : in sl;
 
       -- Axi-Lite interface for configuration and status
       axiReadMaster  : in  AxiLiteReadMasterType;
@@ -52,7 +52,7 @@ entity HybridDataCore is
       febConfig : in FebConfigType;
 
       -- Trigger
-      trigger : in sl;
+      readoutReq : in sl;
 
       -- Incomming raw ADC data from one hybrid
       adcReadoutStreams : in AxiStreamMasterArray(APVS_PER_HYBRID_G-1 downto 0);
@@ -97,8 +97,8 @@ begin
          NUM_MASTER_SLOTS_G => XBAR_NUM_MASTERS_C,
          MASTERS_CONFIG_G   => XBAR_CFG_C)
       port map (
-         axiClk              => sysClk,
-         axiClkRst           => sysRst,
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
          sAxiWriteMasters(0) => axiWriteMaster,
          sAxiWriteSlaves(0)  => axiWriteSlave,
          sAxiReadMasters(0)  => axiReadMaster,
@@ -121,15 +121,15 @@ begin
             HYBRID_NUM_G     => HYBRID_NUM_G,
             APV_NUM_G        => i)
          port map (
-            sysClk           => sysClk,                    -- [in]
-            sysRst           => sysRst,                    -- [in]
+            axilClk          => axilClk,                   -- [in]
+            axilRst          => axilRst,                   -- [in]
             axilReadMaster   => locAxilReadMasters(i+1),   -- [in]
             axilReadSlave    => locAxilReadSlaves(i+1),    -- [out]
             axilWriteMaster  => locAxilWriteMasters(i+1),  -- [in]
             axilWriteSlave   => locAxilWriteSlaves(i+1),   -- [out]
             febConfig        => febConfig,                 -- [in]
             adcReadoutStream => adcReadoutStreams(i),      -- [in]
-            trigger          => trigger,                   -- [in]
+            readoutReq       => readoutReq,                   -- [in]
             syncDetected     => syncDetected(i),           -- [out]
             syncBase         => syncBase(i),               -- [out]
             syncPeak         => syncPeak(i),               -- [out]
@@ -155,8 +155,8 @@ begin
          HYBRID_NUM_G      => HYBRID_NUM_G,
          APVS_PER_HYBRID_G => APVS_PER_HYBRID_G)
       port map (
-         sysClk         => sysClk,
-         sysRst         => sysRst,
+         axilClk        => axilClk,
+         axilRst        => axilRst,
          febConfig      => febConfig,
          syncDetected   => syncDetected,
          syncBase       => syncBase,

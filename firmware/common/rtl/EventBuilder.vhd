@@ -31,21 +31,22 @@ use surf.SsiPkg.all;
 
 
 library ldmx;
-use ldmx.HpsPkg.all;
+use ldmx.LdmxPkg.all;
 use ldmx.DataPathPkg.all;
 use ldmx.FebConfigPkg.all;
+use ldmx.FcPkg.all;
 
 entity EventBuilder is
 
    generic (
       TPD_G             : time                  := 1 ns;
-      HYBRIDS_G         : natural range 1 to 12 := 4;
-      APVS_PER_HYBRID_G : natural               := 5);
+      HYBRIDS_G         : natural range 1 to 12 := 8;
+      APVS_PER_HYBRID_G : natural               := 6);
 
    port (
-      sysClk         : in sl;
-      sysRst         : in sl;
-      sysPipelineRst : in sl := '0';
+      axilClk         : in sl;
+      axilRst         : in sl;
+      axilPipelineRst : in sl := '0';
 
       -- Axi Bus for status and debug
       axiReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -53,10 +54,10 @@ entity EventBuilder is
       axiWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
 
-      trigger          : in  sl;
-      triggerFifoValid : in  sl;
-      triggerFifoData  : in  slv(63 downto 0);
-      triggerFifoRdEn  : out sl;
+--      rorFifoValid     : in  sl;
+      rorFifoMsg       :     FastControlMessageType;
+      rorFifoTimestamp : in  slv(63 downto 0);
+      rorFifoRdEn      : out sl;
 
       febConfig : in FebConfigType;
 
@@ -78,40 +79,46 @@ architecture rtl of EventBuilder is
    subtype ApvSlv is slv(APVS_PER_HYBRID_G-1 downto 0);
    type HybridSlv is array (HYBRIDS_G-1 downto 0) of ApvSlv;
 
-   type StateType is (WAIT_TRIGGER_S, DO_DATA_S, EOF_S, FROZEN_S);
+   type StateType is (
+      WAIT_ROR_S,
+      HEADER_TIMESTAMP_S,
+      HEADER_FC_MSG_S,
+      WAIT_ALL_VALID_S,
+      DO_DATA_S,
+      EOF_S);
 
    type RegType is record
-      state                  : StateType;
-      triggerFifoRdEn        : sl;
-      runTime                : slv(31 downto 0);
-      rollover               : sl;
-      apvNum                 : integer range 0 to APVS_PER_HYBRID_G;
-      hybridNum              : integer range 0 to HYBRIDS_G;
-      allValid               : sl;
-      anyValid               : sl;
-      allHead                : sl;
-      anyHead                : sl;
-      allTails               : sl;
-      gotApvBufferAddresses  : sl;
-      syncError              : sl;
-      syncErrorLatch         : sl;
-      syncErrorCount         : slv(15 downto 0);
-      burnFrame              : sl;
-      eventCount             : slv(31 downto 0);
-      burnCount              : slv(15 downto 0);  -- Number of EOFE frames
-      gotHeadError           : sl;
-      headerMode             : slv(1 downto 0);
-      headErrorCount         : slv(15 downto 0);
-      eventErrorCount        : slv(15 downto 0);
-      maxSampleCount         : slv(11 downto 0);
-      maxTriggersOutstanding : slv(5 downto 0);
-      dataPathEn             : slv(3 downto 0);
-      sampleCount            : slv(11 downto 0);
-      sampleCountLast        : slv(11 downto 0);
-      peakOccupancy          : slv(11 downto 0);
-      skipCount              : slv(11 downto 0);
-      gotTail                : HybridSlv;
-      apvBufferAddresses     : slv8Array(5 downto 0);
+      state                 : StateType;
+      rorFifoRdEn           : sl;
+      runTime               : slv(31 downto 0);
+      rollover              : sl;
+      apvNum                : integer range 0 to APVS_PER_HYBRID_G;
+      hybridNum             : integer range 0 to HYBRIDS_G;
+      allValid              : sl;
+      anyValid              : sl;
+      allHead               : sl;
+      anyHead               : sl;
+      allTails              : sl;
+      gotApvBufferAddresses : sl;
+      syncError             : sl;
+      syncErrorLatch        : sl;
+      syncErrorCount        : slv(15 downto 0);
+      burnFrame             : sl;
+      eventCount            : slv(31 downto 0);
+      burnCount             : slv(15 downto 0);  -- Number of EOFE frames
+      gotHeadError          : sl;
+      headerMode            : slv(1 downto 0);
+      headErrorCount        : slv(15 downto 0);
+      eventErrorCount       : slv(15 downto 0);
+      maxSampleCount        : slv(11 downto 0);
+      maxRorsOutstanding    : slv(5 downto 0);
+      dataPathEn            : slv(3 downto 0);
+      sampleCount           : slv(11 downto 0);
+      sampleCountLast       : slv(11 downto 0);
+      peakOccupancy         : slv(11 downto 0);
+      skipCount             : slv(11 downto 0);
+      gotTail               : HybridSlv;
+      apvBufferAddresses    : slv8Array(5 downto 0);
 
       -- Outputs
       eventSsiMaster : SsiMasterType;
@@ -124,58 +131,58 @@ architecture rtl of EventBuilder is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state                  => WAIT_TRIGGER_S,
-      triggerFifoRdEn        => '0',
-      runTime                => (others => '0'),
-      rollover               => '0',
-      apvNum                 => 0,
-      hybridNum              => 0,
-      allValid               => '0',
-      anyValid               => '0',
-      allHead                => '0',
-      anyHead                => '0',
-      allTails               => '0',
-      gotApvBufferAddresses  => '0',
-      syncError              => '0',
-      syncErrorLatch         => '0',
-      syncErrorCount         => (others => '0'),
-      burnFrame              => '0',
-      eventCount             => toSlv(1, 32),
-      burnCount              => (others => '0'),
-      gotHeadError           => '0',
-      headerMode             => (others => '0'),
-      headErrorCount         => (others => '0'),
-      eventErrorCount        => (others => '0'),
-      maxSampleCount         => X"FFF",  -- sampleCountLimit
-      maxTriggersOutstanding => (others => '0'),
-      dataPathEn             => X"F",
-      sampleCount            => (others => '0'),
-      sampleCountLast        => (others => '0'),
-      peakOccupancy          => (others => '0'),
-      skipCount              => (others => '0'),
-      gotTail                => (others => (others => '0')),
-      apvBufferAddresses     => (others => (others => '0')),
-      eventSsiMaster         => ssiMasterInit(EVENT_SSI_CONFIG_C),
-      dataPathIn             => (others => (others => '0')),
-      axiReadSlave           => AXI_LITE_READ_SLAVE_INIT_C,
-      axiWriteSlave          => AXI_LITE_WRITE_SLAVE_INIT_C,
-      sofCount               => (others => '0'),
-      eofCount               => (others => '0'));
+      state                 => WAIT_ROR_S,
+      rorFifoRdEn           => '0',
+      runTime               => (others => '0'),
+      rollover              => '0',
+      apvNum                => 0,
+      hybridNum             => 0,
+      allValid              => '0',
+      anyValid              => '0',
+      allHead               => '0',
+      anyHead               => '0',
+      allTails              => '0',
+      gotApvBufferAddresses => '0',
+      syncError             => '0',
+      syncErrorLatch        => '0',
+      syncErrorCount        => (others => '0'),
+      burnFrame             => '0',
+      eventCount            => toSlv(1, 32),
+      burnCount             => (others => '0'),
+      gotHeadError          => '0',
+      headerMode            => (others => '0'),
+      headErrorCount        => (others => '0'),
+      eventErrorCount       => (others => '0'),
+      maxSampleCount        => X"FFF",  -- sampleCountLimit
+      maxRorsOutstanding    => (others => '0'),
+      dataPathEn            => X"F",
+      sampleCount           => (others => '0'),
+      sampleCountLast       => (others => '0'),
+      peakOccupancy         => (others => '0'),
+      skipCount             => (others => '0'),
+      gotTail               => (others => (others => '0')),
+      apvBufferAddresses    => (others => (others => '0')),
+      eventSsiMaster        => ssiMasterInit(EVENT_SSI_CONFIG_C),
+      dataPathIn            => (others => (others => '0')),
+      axiReadSlave          => AXI_LITE_READ_SLAVE_INIT_C,
+      axiWriteSlave         => AXI_LITE_WRITE_SLAVE_INIT_C,
+      sofCount              => (others => '0'),
+      eofCount              => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal eventSsiSlave : SsiSlaveType;
 
---   signal triggersOutstanding : slv(5 downto 0);
+--   signal rorsOutstanding : slv(5 downto 0);
 
 begin
 
    -- Convert AXIS bus into SSI Bus
    eventSsiSlave <= axis2SsiSlave(EVENT_SSI_CONFIG_C, eventAxisSlave, eventAxisCtrl);
 
-   comb : process (axiReadMaster, axiWriteMaster, dataPathOut, eventSsiSlave, r, febConfig,
-                   sysPipelineRst, sysRst, triggerFifoData) is
+   comb : process (axiReadMaster, axiWriteMaster, axilPipelineRst, axilRst, dataPathOut,
+                   eventSsiSlave, r, rorFifoMsg, rorFifoTimestamp) is
       variable v         : RegType;
       variable apvInt    : natural;
       variable hybridInt : natural;
@@ -227,9 +234,9 @@ begin
       end loop;
 
       -- By default, don't output anything to event buffer
-      v.eventSsiMaster  := ssiMasterInit(EVENT_SSI_CONFIG_C);
-      v.dataPathIn      := (others => (others => '0'));
-      v.triggerFifoRdEn := '0';
+      v.eventSsiMaster := ssiMasterInit(EVENT_SSI_CONFIG_C);
+      v.dataPathIn     := (others => (others => '0'));
+      v.rorFifoRdEn    := '0';
 --      v.gotApvBufferAddresses := '0';
 
       -- Latch for sync erros
@@ -237,8 +244,8 @@ begin
          v.syncErrorLatch := '1';
       end if;
 
---       if (triggersOutstanding > r.maxTriggersOutstanding and triggerFifoEmpty = '0') then
---          v.maxTriggersOutstanding := triggersOutstanding;
+--       if (rorsOutstanding > r.maxRorsOutstanding and rorFifoEmpty = '0') then
+--          v.maxRorsOutstanding := rorsOutstanding;
 --       end if;
 
       if (r.sampleCountLast > r.peakOccupancy) then
@@ -250,7 +257,7 @@ begin
       -- Main State Machine
       ----------------------------------------------------------------------------------------------
       case (r.state) is
-         when WAIT_TRIGGER_S =>
+         when WAIT_ROR_S =>
             -- Wait for any headers to be ready before starting
             v.syncError             := '0';
             v.burnFrame             := '0';
@@ -259,26 +266,39 @@ begin
             v.sampleCount           := (others => '0');
             v.skipCount             := (others => '0');
             v.gotHeadError          := '0';
-            if (r.anyValid = '1') then
-               -- Put data on both low 32 bit words
-               v.eventSsiMaster.data(31 downto 0)   := r.eventCount;
-               v.eventSsiMaster.data(55 downto 32)  := triggerFifoData(23 downto 0);
-               v.eventSsiMaster.data(87 downto 64)  := triggerFifoData(47 downto 24);
-               v.eventSsiMaster.data(103 downto 96) := (others => '0');  -- Was RCE address,
-                                                                        -- probably no longer
-                                                                        -- needed
-              v.eventSsiMaster.data(127 downto 104) := (others => '0');
-               v.eventSsiMaster.keep(15 downto 0) := X"FFFF";
-               v.eventSsiMaster.sof               := '1';
+            v.hybridNum             := 0;
+
+            if (rorFifoMsg.valid = '1') then
+               -- Put first header txn on stream
                v.eventSsiMaster.valid             := '1';
-               v.eventCount                       := r.eventCount + 1;
-               v.hybridNum                        := 0;
+               v.eventSsiMaster.sof               := '1';
+               v.eventSsiMaster.data(31 downto 0) := r.eventCount;
 
-               v.state := DO_DATA_S;    --WAIT_ALL_SAMPLE_HEADERS_S;
 
-               v.sofCount := r.sofCount + 1;
+               -- Update counts
+               v.eventCount := r.eventCount + 1;
+               v.sofCount   := r.sofCount + 1;
+               v.state      := HEADER_TIMESTAMP_S;
             end if;
 
+         when HEADER_TIMESTAMP_S =>
+            v.eventSsiMaster.valid             := '1';
+            v.eventSsiMaster.data(63 downto 0) := rorFifoTimestamp;
+            v.state                            := HEADER_FC_MSG_S;
+
+         when HEADER_FC_MSG_S =>
+            v.hybridNum                        := 0;
+            -- Put second header word on stream
+            v.eventSsiMaster.valid             := '1';
+            v.eventSsiMaster.data(79 downto 0) := rorFifoMsg.message;
+
+            v.state := WAIT_ALL_VALID_S;
+
+         when WAIT_ALL_VALID_S =>
+            v.hybridNum := 0;
+            if (r.allHead = '1') then
+               v.state := DO_DATA_S;
+            end if;
 
          when DO_DATA_S =>
             if (eventSsiSlave.pause = '1') then
@@ -288,8 +308,8 @@ begin
             if (dataPathOut(r.hybridNum)(r.apvNum).valid = '1' and
                 r.gotTail(r.hybridNum)(r.apvNum) = '0') then
 
-               v.eventSsiMaster.data(127 downto 0) := toSlv(dataPathOut(r.hybridNum)(r.apvNum))(127 downto 0);
-               v.dataPathIn(r.hybridNum)(r.apvNum) := '1';
+               v.eventSsiMaster.data(MULTI_SAMPLE_LENGTH_C-1 downto 0) := toSlv(dataPathOut(r.hybridNum)(r.apvNum));
+               v.dataPathIn(r.hybridNum)(r.apvNum)                     := '1';
 
                v.eventSsiMaster.valid := '1';
                if (r.dataPathEn(r.hybridNum) = '0' or
@@ -317,7 +337,7 @@ begin
                      v.eventSsiMaster.valid := '0';
                      v.sampleCount          := r.sampleCount;
                   end if;
-                  for i in 5 downto 0 loop
+                  for i in 2 downto 0 loop
                      v.apvBufferAddresses(i) := dataPathOut(r.hybridNum)(r.apvNum).data(i)(8 downto 1);
                      if (r.gotApvBufferAddresses = '1') then
                         if (r.headerMode(1) = '1' or r.headerMode(0) = '1') then
@@ -325,8 +345,8 @@ begin
                            v.sampleCount          := r.sampleCount;
                         end if;
                         if (r.apvBufferAddresses(i) /= dataPathOut(r.hybridNum)(r.apvNum).data(i)(8 downto 1)) then
-                           v.syncError      := '1';
-                           --v.syncErrorCount := r.syncErrorCount + 1;
+                           v.syncError := '1';
+                        --v.syncErrorCount := r.syncErrorCount + 1;
                         end if;
                      end if;
                   end loop;
@@ -373,23 +393,16 @@ begin
             v.eventSsiMaster.data(25)           := '0';
             v.eventSsiMaster.data(26)           := r.syncError;
             v.eventSsiMaster.data(27)           := r.burnFrame;
-            v.eventSsiMaster.keep(15 downto 0)  := X"FFFF";
             v.gotTail                           := (others => (others => '0'));
-            v.state                             := WAIT_TRIGGER_S;
+            v.state                             := WAIT_ROR_S;
             v.eofCount                          := r.eofCount + 1;
             v.sampleCountLast                   := r.sampleCount;
-            v.triggerFifoRdEn                   := '1';
+            v.rorFifoRdEn                       := '1';
             if (r.burnFrame = '1') then
                v.burnCount := r.burnCount + 1;
             end if;
 
             v.syncError := '0';
---             if (r.syncError = '1') then
---                v.state := FROZEN_S;
---             end if;
-
-         when FROZEN_S =>
-            v.state := FROZEN_S;
 
       end case;
 
@@ -398,8 +411,8 @@ begin
          v.syncErrorCount := r.syncErrorCount;
       end if;
 
-      -- In case of sysPipeline reset, reset all registers except AXI
-      if (sysPipelineRst = '1') then
+      -- In case of axilPipeline reset, reset all registers except AXI
+      if (axilPipelineRst = '1') then
          v                := REG_INIT_C;
          v.axiWriteSlave  := r.axiWriteSlave;
          v.axiReadSlave   := r.axiReadSlave;
@@ -415,10 +428,10 @@ begin
 
       v.axiReadSlave.rdata := (others => '0');
 
-      axiSlaveRegisterR(axiEp, X"00", 0, ite(r.state = WAIT_TRIGGER_S, "00",
+      axiSlaveRegisterR(axiEp, X"00", 0, ite(r.state = WAIT_ROR_S, "00",
                                              ite(r.state = DO_DATA_S, "01",
-                                                 ite(r.state = EOF_S, "10",
-                                                     ite(r.state = FROZEN_S, "11", "00")))));
+                                                 ite(r.state = EOF_S, "10", "11"))));
+
 
       axiSlaveRegisterR(axiEp, X"04", 0, toSlv(r.apvNum, 3));
       axiSlaveRegisterR(axiEp, X"04", 10, toSlv(r.hybridNum, 4));
@@ -444,8 +457,6 @@ begin
       axiSlaveRegisterR(axiEp, X"24", 12, r.syncErrorLatch);
       axiSlaveRegisterR(axiEp, X"28", 0, r.headErrorCount);
       axiSlaveRegisterR(axiEp, X"28", 16, r.eventErrorCount);
---       axiSlaveRegisterR(axiEp, X"2C", 0, triggersOutstanding);
---       axiSlaveRegisterR(axiEp, X"2C", 16, r.maxTriggersOutstanding);
       axiSlaveRegisterR(axiEp, X"30", 0, r.peakOccupancy);
       axiSlaveRegisterR(axiEp, X"34", 0, r.syncErrorCount);
 
@@ -454,7 +465,7 @@ begin
       ----------------------------------------------------------------------------------------------
       -- Reset and outputs
       ----------------------------------------------------------------------------------------------
-      if (sysRst = '1') then
+      if (axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -464,13 +475,13 @@ begin
       dataPathIn      <= r.dataPathIn;
       axiWriteSlave   <= r.axiWriteSlave;
       axiReadSlave    <= r.axiReadSlave;
-      triggerFifoRdEn <= r.triggerFifoRdEn;
+      rorFifoRdEn     <= r.rorFifoRdEn;
 
    end process comb;
 
-   sync : process (sysClk) is
+   sync : process (axilClk) is
    begin
-      if (rising_edge(sysClk)) then
+      if (rising_edge(axilClk)) then
          r <= rin after TPD_G;
       end if;
    end process sync;

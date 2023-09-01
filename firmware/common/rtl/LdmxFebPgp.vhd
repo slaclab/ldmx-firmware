@@ -31,7 +31,8 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
 library ldmx;
-use ldmx.HpsPkg.all;
+use ldmx.LdmxPkg.all;
+use ldmx.FcPkg.all;
 
 entity LdmxFebPgp is
    generic (
@@ -62,10 +63,11 @@ entity LdmxFebPgp is
       pgpRxLink : out slv(2 downto 0);
 
       -- Control link Opcode and AXI-Stream interface
-      daqClk       : out sl;            -- Recovered fixed-latency clock
-      daqRst       : out sl;
-      daqRxFcWord  : out slv(79 downto 0);
-      daqRxFcValid : out sl;
+      fcClk185 : out sl;                -- Recovered fixed-latency clock
+      fcRst185 : out sl;
+      fcMsg    : out FastControlMessageType;
+--       daqRxFcWord  : out slv(79 downto 0);
+--       daqRxFcValid : out sl;
 
       -- All AXI-Lite and AXI-Stream interfaces are synchronous with this clock
       axilClk : in sl;                  -- Also Drives PGP stableClk input
@@ -109,9 +111,11 @@ architecture rtl of LdmxFebPgp is
    -------------------------------------------------------------------------------------------------
    -- PGP
    -------------------------------------------------------------------------------------------------
+   constant NUM_AXIL_C   : integer := 4;
    constant SFP_INDEX_C  : integer := 0;
    constant SAS_INDEX_C  : integer := 1;
    constant QSFP_INDEX_C : integer := 2;
+   constant SIM_INDEX_C  : integer := 3;
 
 
    signal pgpTxClk     : slv(2 downto 0);
@@ -131,14 +135,15 @@ architecture rtl of LdmxFebPgp is
    -------------------------------------------------------------------------------------------------
    -- AXI-Lite
    -------------------------------------------------------------------------------------------------
-   constant MAIN_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(2 downto 0) := genAxiLiteConfig(3, AXIL_BASE_ADDR_G, 24, 20);
+   constant MAIN_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_C, AXIL_BASE_ADDR_G, 24, 20);
 
-   signal locAxilReadMasters  : AxiLiteReadMasterArray(2 downto 0);
-   signal locAxilReadSlaves   : AxiLiteReadSlaveArray(2 downto 0);
-   signal locAxilWriteMasters : AxiLiteWriteMasterArray(2 downto 0);
-   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(2 downto 0);
+   signal locAxilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_C-1 downto 0);
+   signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_C-1 downto 0);
+   signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_C-1 downto 0);
+   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_C-1 downto 0);
 
-
+   signal fcClk185Tmp : sl;
+   signal fcRst185Tmp : sl;
 
 begin
 
@@ -197,7 +202,7 @@ begin
          CEMASK  => '1',
          CLR     => '0',
          CLRMASK => '1',
-         DIV     => "001",              -- Divide-by-1
+         DIV     => "001",              -- Divide-by-2
          O       => userRefClk125G);
 
    PwrUpRst_1 : entity surf.PwrUpRst
@@ -223,7 +228,7 @@ begin
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
-            NUM_MASTER_SLOTS_G => 3,
+            NUM_MASTER_SLOTS_G => NUM_AXIL_C,
             MASTERS_CONFIG_G   => MAIN_XBAR_CFG_C)
          port map (
             axiClk              => axilClk,
@@ -275,10 +280,11 @@ begin
 
       end generate PGP_GEN;
 
-      daqClk       <= pgpRxClk(SFP_INDEX_C);
-      daqRst       <= pgpRxRst(SFP_INDEX_C);
-      daqRxFcWord  <= pgpRxOut(SFP_INDEX_C).fcWord(79 downto 0);
-      daqRxFcValid <= pgpRxOut(SFP_INDEX_C).fcValid;
+      fcClk185 <= pgpRxClk(SFP_INDEX_C);
+      fcRst185 <= pgpRxRst(SFP_INDEX_C);
+      fcMsg    <= fcDecode(pgpRxOut(SFP_INDEX_C).fcWord(79 downto 0), pgpRxOut(SFP_INDEX_C).fcValid);
+--       daqRxFcWord  <= pgpRxOut(SFP_INDEX_C).fcWord(79 downto 0);
+--       daqRxFcValid <= pgpRxOut(SFP_INDEX_C).fcValid;
 
    end generate NO_SIM;
 
@@ -325,11 +331,31 @@ begin
             RST_HOLD_TIME_G   => 5 us,
             SYNC_RESET_G      => true)
          port map (
-            clkP => daqClk,
-            rst  => daqRst);
+            clkP => fcClk185Tmp,
+            rst  => fcRst185Tmp);
 
-      daqRxFcWord  <= pgpRxOut(0).fcWord(79 downto 0);
-      daqRxFcValid <= pgpRxOut(0).fcValid;
+      fcClk185 <= fcClk185Tmp;
+      fcRst185 <= fcRst185Tmp;
+
+      U_FcEmu_1 : entity ldmx.FcEmu
+         generic map (
+            TPD_G                => TPD_G,
+            AXIL_CLK_IS_FC_CLK_G => false)
+         port map (
+            fcClk           => fcClk185Tmp,                       -- [in]
+            fcRst           => fcRst185Tmp,                       -- [in]
+            fcMsg           => fcMsg,                             -- [out]
+            bunchClk        => open,                              -- [out]
+            bunchStrobe     => open,                              -- [out]
+            axilClk         => axilClk,                           -- [in]
+            axilRst         => axilRst,                           -- [in]
+            axilReadMaster  => locAxilReadMasters(SIM_INDEX_C),   -- [in]
+            axilReadSlave   => locAxilReadSlaves(SIM_INDEX_C),    -- [out]
+            axilWriteMaster => locAxilWriteMasters(SIM_INDEX_C),  -- [in]
+            axilWriteSlave  => locAxilWriteSlaves(SIM_INDEX_C));  -- [out]
+
+--       daqRxFcWord  <= pgpRxOut(0).fcWord(79 downto 0);
+--       daqRxFcValid <= pgpRxOut(0).fcValid;
 
 
    end generate GEN_SIM;

@@ -159,7 +159,7 @@ begin
       threshold1Exceeded := (others => '0');
       if (febConfig.threshold1CutEn = '1' and r.mem.sample.valid = '1' and r.mem.sample.head = '0' and r.mem.sample.tail = '0') then
          v.threshold1.sample.valid := '0';
-         for i in 5 downto 0 loop
+         for i in 2 downto 0 loop
             if (r.mem.sample.data(i) > r.mem.threshold1) then
                threshold1Exceeded(i) := '1';
             end if;
@@ -170,30 +170,16 @@ begin
                v.threshold1.sample.valid := uOr(threshold1Exceeded);
             when "010" =>
                -- 2 consecutive samples exceeding threshold req'd
-               for i in 5 downto 1 loop
-                  if (threshold1Exceeded(i downto i-1) = "11") then
-                     v.threshold1.sample.valid := '1';
-                  end if;
-               end loop;
+               if (threshold1Exceeded(1 downto 0) = "11") or
+                  (threshold1Exceeded(2 downto 1) = "11") then
+                  v.threshold1.sample.valid := '1';
+               end if;
+
             when "011" =>
                -- Look for 3 consecutive exceedes
-               for i in 5 downto 2 loop
-                  if (threshold1Exceeded(i downto i-2) = "111") then
-                     v.threshold1.sample.valid := '1';
-                  end if;
-               end loop;
-            when "100" =>
-               -- Look for 4 consecutive exceedes
-               for i in 5 downto 3 loop
-                  if (threshold1Exceeded(i downto i-3) = "1111") then
-                     v.threshold1.sample.valid := '1';
-                  end if;
-               end loop;
-            when "101" =>
-               -- Look for 5 consecutive exceedes
-               v.threshold1.sample.valid := uAnd(threshold1Exceeded(5 downto 1)) or
-                                            uAnd(threshold1Exceeded(4 downto 0));
-            when "110" =>
+               if (threshold1Exceeded = "111") then
+                  v.threshold1.sample.valid := '1';
+               end if;
 
             when others => null;
          end case;
@@ -209,11 +195,12 @@ begin
       ----------------------------------------------------------------------------------------------
       v.threshold2       := r.threshold1;  -- Pass everything unchanged by default
       threshold2Exceeded := (others => '0');
-      if (febConfig.threshold2CutEn = '1' and r.threshold1.sample.valid = '1' and r.threshold1.sample.head = '0' and r.threshold1.sample.tail = '0') then
-         v.threshold1.sample.valid := '0';
-         for i in 5 downto 0 loop
-            if (r.threshold1.sample.data(i) > r.threshold1.threshold1) then
-               threshold1Exceeded(i) := '1';
+      if (febConfig.threshold2CutEn = '1' and r.threshold2.sample.valid = '1' and r.threshold2.sample.head = '0' and r.threshold2.sample.tail = '0') then
+         v.threshold2.sample.valid := '0';
+         v.threshold2.sample.valid := '0';
+         for i in 2 downto 0 loop
+            if (r.mem.sample.data(i) > r.mem.threshold2) then
+               threshold2Exceeded(i) := '1';
             end if;
          end loop;
          case (febConfig.threshold2CutNum) is
@@ -222,30 +209,16 @@ begin
                v.threshold2.sample.valid := uOr(threshold2Exceeded);
             when "010" =>
                -- 2 consecutive samples exceeding threshold req'd
-               for i in 5 downto 1 loop
-                  if (threshold2Exceeded(i downto i-1) = "11") then
-                     v.threshold2.sample.valid := '1';
-                  end if;
-               end loop;
+               if (threshold2Exceeded(1 downto 0) = "11") or
+                  (threshold2Exceeded(2 downto 1) = "11") then
+                  v.threshold2.sample.valid := '1';
+               end if;
+
             when "011" =>
                -- Look for 3 consecutive exceedes
-               for i in 5 downto 2 loop
-                  if (threshold2Exceeded(i downto i-2) = "111") then
-                     v.threshold2.sample.valid := '1';
-                  end if;
-               end loop;
-            when "100" =>
-               -- Look for 4 consecutive exceedes
-               for i in 5 downto 3 loop
-                  if (threshold2Exceeded(i downto i-3) = "1111") then
-                     v.threshold2.sample.valid := '1';
-                  end if;
-               end loop;
-            when "101" =>
-               -- Look for 5 consecutive exceedes
-               v.threshold2.sample.valid := uAnd(threshold2Exceeded(5 downto 1)) or
-                                            uAnd(threshold2Exceeded(4 downto 0));
-            when "110" =>
+               if (threshold2Exceeded = "111") then
+                  v.threshold2.sample.valid := '1';
+               end if;
 
             when others => null;
          end case;

@@ -23,25 +23,21 @@ library surf;
 use surf.StdRtlPkg.all;
 
 library ldmx;
-use ldmx.HpsPkg.all;
+use ldmx.LdmxPkg.all;
 
 package FebConfigPkg is
 
    type FebConfigType is record
-      hybridType          : slv2Array(7 downto 0);
-      daqTimingEn         : sl;
+      hybridType          : slv3Array(7 downto 0);
       hyTrigEn            : sl;
       calEn               : sl;
       calDelay            : slv(7 downto 0);
       hyPwrEn             : slv(7 downto 0);
       hyHardRst           : slv(7 downto 0);
       hyApvDataStreamEn   : slv6Array(7 downto 0);
---      prbsDataStreamEn    : slv(7 downto 0);
       febAddress          : slv(3 downto 0);
       headerHighThreshold : slv(13 downto 0);
---      statusInterval      : slv(31 downto 0);
       allowResync         : sl;
-
       threshold1CutEn    : sl;
       threshold1CutNum   : slv(2 downto 0);
       threshold1MarkOnly : sl;
@@ -57,7 +53,6 @@ package FebConfigPkg is
    
    constant FEB_CONFIG_INIT_C : FebConfigType := (
       hybridType          => (others => UNKNOWN_HYBRID_C),
-      daqTimingEn         => '1',
       hyTrigEn            => '1',
       calEn               => '0',
       calDelay            => (others => '0'),

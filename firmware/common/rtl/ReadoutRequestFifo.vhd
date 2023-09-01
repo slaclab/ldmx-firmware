@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : Trigger FIFO
+-- Title      : ReadoutRequest FIFO
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Platform   : 
@@ -28,26 +28,25 @@ use surf.StdRtlPkg.all;
 library ldmx;
 use ldmx.HpsPkg.all;
 
-entity TriggerFifo is
+entity ReadoutRequestFifo is
 
    generic (
       TPD_G : time := 1 ns);
 
    port (
-      distClk    : in  sl;
-      distClkRst : in  sl;
-      rxData     : in  slv(9 downto 0);
-      rxDataEn   : in  sl;
-      sysClk     : in  sl;
-      sysRst     : in  sl;
-      trigger    : out sl;
-      valid      : out sl;
-      data       : out slv(63 downto 0);
-      rdEn       : in  sl);
+      daqClk   : in sl;
+      daqRst   : in sl;
+      daqFcMsg : in FastControlMessageType;
+      
+      sysClk    : in  sl;
+      sysRst    : in  sl;
+      sysRoR    : out sl;
+      fifoFcMsg : out    FastControlMessageType;
+      fifoRdEn  : in  sl);
 
-end entity TriggerFifo;
+end entity ReadoutRequestFifo;
 
-architecture rtl of TriggerFifo is
+architecture rtl of ReadoutRequestFifo is
 
    type RegType is record
       counter : slv(63 downto 0);
@@ -65,40 +64,6 @@ architecture rtl of TriggerFifo is
 
 begin
 
-   -- Pulse trigger for 1 sysClk cycle in response to each trigger code
-   TRIGGER_SYNC_FIFO : entity surf.SynchronizerFifo
-      generic map (
-         TPD_G         => TPD_G,
-         MEMORY_TYPE_G => "distributed",
-         DATA_WIDTH_G  => 1,
-         ADDR_WIDTH_G  => 4)
-      port map (
-         rst    => r.fifoRst,
-         wr_clk => distClk,
-         wr_en  => r.wrEn,
-         din(0) => '0',
-         rd_clk => sysClk,
-         valid  => trigger);
-
-   -- Log the timestamp of each trigger
-   TRIGGER_TIMESTAMP_FIFO : entity surf.Fifo
-      generic map (
-         TPD_G           => TPD_G,
-         GEN_SYNC_FIFO_G => false,
-         MEMORY_TYPE_G   => "distributed",
-         FWFT_EN_G       => true,
-         DATA_WIDTH_G    => 64,
-         ADDR_WIDTH_G    => 6)
-      port map (
-         rst           => r.fifoRst,
-         wr_clk        => distClk,
-         wr_en         => r.wrEn,
-         wr_data_count => open,
-         din           => r.counter,
-         rd_clk        => sysClk,
-         rd_en         => rdEn,
-         dout          => data,
-         valid         => valid);
 
    comb : process (distClkRst, r, rxData, rxDataEn) is
       variable v : RegType;

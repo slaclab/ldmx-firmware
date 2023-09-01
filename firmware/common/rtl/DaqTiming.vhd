@@ -25,7 +25,7 @@ use surf.AxiLitePkg.all;
 
 
 library ldmx;
-use ldmx.HpsPkg.all;
+use ldmx.LdmxPkg.all;
 
 entity DaqTiming is
 

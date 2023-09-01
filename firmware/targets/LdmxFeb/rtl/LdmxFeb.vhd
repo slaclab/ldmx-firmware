@@ -32,7 +32,8 @@ use surf.Pgp2bPkg.all;
 use surf.Ad9249Pkg.all;
 
 library ldmx;
-use ldmx.HpsPkg.all;
+use ldmx.LdmxPkg.all;
+use ldmx.FcPkg.all;
 
 entity LdmxFeb is
 
@@ -142,12 +143,11 @@ architecture rtl of LdmxFeb is
    signal axilClk : sl;
    signal axilRst : sl;
 
-   signal daqClk185    : sl;
-   signal daqRst185    : sl;
-   signal daqRxFcWord  : slv(79 downto 0);
-   signal daqRxFcValid : sl;
-   signal daqClk37     : sl;
-   signal daqClk37Rst  : sl;
+   signal fcClk185   : sl;
+   signal fcRst185   : sl;
+   signal fcMsg      : FastControlMessageType;
+   signal fcClk37    : sl;
+   signal fcClk37Rst : sl;
 
    -------------------------------------------------------------------------------------------------
    -- PGP Remap
@@ -318,10 +318,9 @@ begin
          userRefRst125    => userRefRst125,                         -- [out]         
          pgpTxLink        => open,                                  -- [out]
          pgpRxLink        => open,                                  -- [out]
-         daqClk           => daqClk185,                             -- [in]
-         daqRst           => daqRst185,                             -- [in]
-         daqRxFcWord      => daqRxFcWord,                           -- [out]
-         daqRxFcValid     => daqRxFcValid,                          -- [out]
+         fcClk185         => fcClk185,                              -- [in]
+         fcRst185         => fcRst185,                              -- [in]
+         fcMsg            => fcMsg,                                 -- [out]
          axilClk          => axilClk,                               -- [in]
          axilRst          => axilRst,                               -- [in]
          mAxilReadMaster  => extAxilReadMaster,                     -- [out]
@@ -374,10 +373,9 @@ begin
          APVS_PER_HYBRID_G => APVS_PER_HYBRID_G,
          AXI_BASE_ADDR_G   => MAIN_XBAR_CFG_C(FEB_CORE_AXI_INDEX_C).baseAddr)
       port map (
-         daqClk185         => daqClk185,                                  -- [in]
-         daqRst185         => daqRst185,                                  -- [in]
-         daqFcWord         => daqRxFcWord,                                -- [in]
-         daqFcValid        => daqRxFcValid,                               -- [in]
+         fcClk185          => fcClk185,                                   -- [in]
+         fcRst185          => fcRst185,                                   -- [in]
+         fcMsg             => fcMsg,                                      -- [in]
          axilClk           => axilClk,                                    -- [in]
          axilRst           => axilRst,                                    -- [in]
          sAxilWriteMaster  => locAxilWriteMasters(FEB_CORE_AXI_INDEX_C),  -- [in]
@@ -392,8 +390,8 @@ begin
          hyRstOutL         => hyRstOutL,                                  -- [out]
          hyI2cIn           => hyI2cIn,                                    -- [in]
          hyI2cOut          => hyI2cOut,                                   -- [out]
-         daqClk37          => daqClk37,                                   -- [out]
-         daqClk37Rst       => daqClk37Rst,                                -- [out]
+         fcClk37           => fcClk37,                                    -- [out]
+         fcClk37Rst        => fcClk37Rst,                                 -- [out]
          hyClk             => hyClk,                                      -- [in]
          hyClkRst          => hyClkRst,                                   -- [in]
          adcReadoutStreams => adcReadoutStreams);                         -- [in]
@@ -461,8 +459,8 @@ begin
          hyI2cIn           => hyI2cIn,                                  -- [out]
          hyI2cOut          => hyI2cOut,                                 -- [in]
          adcReadoutStreams => adcReadoutStreams,                        -- [out]
-         daqClk37          => daqClk37,                                 -- [in]
-         daqClk37Rst       => daqClk37Rst,                              -- [in]
+         fcClk37           => fcClk37,                                  -- [in]
+         fcClk37Rst        => fcClk37Rst,                               -- [in]
          hyClk             => hyClk,                                    -- [out]
          hyClkRst          => hyClkRst);                                -- [out]
 

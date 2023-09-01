@@ -19,7 +19,7 @@ use surf.StdRtlPkg.all;
 use surf.i2cPkg.all;
 
 library ldmx;
-use ldmx.HpsPkg.all;
+use ldmx.LdmxPkg.all;
 ----------------------------------------------------------------------------------------------------
 
 entity LdmxFebBoardModel is

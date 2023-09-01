@@ -23,27 +23,27 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 
-library work;
-use work.FcPkg.all;
+library ldmx;
+use ldmx.FcPkg.all;
 
 entity FcEmu is
    generic (
-      TPD_G                      : time    := 1 ns;
-      RST_ASYNC_G                : boolean := false;
-      SIMULATION_G               : boolean := false;
-      TIMING_MSG_PERIOD_G        : natural := 200; -- should fit in 32 bits
-      BUNCH_CNT_PERIOD_G         : natural := 5;   -- should fit in 6 bits
-      OVERRIDE_PERIOD_DEFAULTS_G : boolean := false);
+      TPD_G                : time    := 1 ns;
+      AXIL_CLK_IS_FC_CLK_G : boolean := false;
+      TIMING_MSG_PERIOD_G  : natural := 200;  -- should fit in 32 bits
+      BUNCH_CNT_PERIOD_G   : natural := 5);   -- should fit in 6 bits
    port (
       -- Clock and Reset
-      axilClk         : in  sl;
-      axilRst         : in  sl;
+      fcClk           : in  sl;
+      fcRst           : in  sl;
+      -- Fast-Control Message Interface
+      fcMsg           : out FastControlMessageType;
       -- Bunch Clock
       bunchClk        : out sl;
-      -- Fast-Control Message Interface
-      fcValid         : out sl;
-      fcMsg           : out FastControlMessageType;
+      bunchStrobe     : out sl;
       -- AXI-Lite Interface
+      axilClk         : in  sl;
+      axilRst         : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
@@ -56,7 +56,6 @@ architecture rtl of FcEmu is
       enableTimingMsg    : sl;
       enableRoR          : sl;
       usrRoR             : sl;
-      fcValid            : sl;
       timingMsgReq       : sl;
       bunchCntStrb       : sl;
       bunchClk           : sl;
@@ -79,7 +78,6 @@ architecture rtl of FcEmu is
       enableTimingMsg    => '0',
       enableRoR          => '0',
       usrRoR             => '0',
-      fcValid            => '0',
       timingMsgReq       => '0',
       bunchCntStrb       => '0',
       bunchClk           => '0',
@@ -87,22 +85,46 @@ architecture rtl of FcEmu is
       pulseIDinit        => (others => '0'),
       fcRunStateSet      => (others => '0'),
       bunchCntPeriodCnt  => (others => '0'),
-      bunchCntPeriodSet  => slv(conv_unsigned(5, 6)),
-      bunchCntPeriod     => slv(conv_unsigned(5, 6)),
+      bunchCntPeriodSet  => toSlv(BUNCH_CNT_PERIOD_G, 6),
+      bunchCntPeriod     => toSlv(BUNCH_CNT_PERIOD_G, 6),
       timingMsgPeriodCnt => (others => '0'),
-      timingMsgPeriodSet => slv(conv_unsigned(200, 32)),
-      timingMsgPeriod    => slv(conv_unsigned(200, 32)),
+      timingMsgPeriodSet => toSlv(TIMING_MSG_PERIOD_G, 32),
+      timingMsgPeriod    => toSlv(TIMING_MSG_PERIOD_G, 32),
       rOrPeriodCnt       => (others => '0'),
-      rOrPeriod          => slv(conv_unsigned(100, 32)),
+      rOrPeriod          => toSlv(100, 32),
       axilReadSlave      => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal syncAxilReadMaster  : AxiLiteReadMasterType;
+   signal syncAxilReadSlave   : AxiLiteReadSlaveType;
+   signal syncAxilWriteMaster : AxiLiteWriteMasterType;
+   signal syncAxilWriteSlave  : AxiLiteWriteSlaveType;
+
 begin
 
-   comb : process (axilReadMaster, axilRst, axilWriteMaster, r) is
+   U_AxiLiteAsync_1 : entity surf.AxiLiteAsync
+      generic map (
+         TPD_G         => TPD_G,
+         COMMON_CLK_G  => AXIL_CLK_IS_FC_CLK_G,
+         PIPE_STAGES_G => 0)
+      port map (
+         sAxiClk         => axilClk,              -- [in]
+         sAxiClkRst      => axilRst,              -- [in]
+         sAxiReadMaster  => axilReadMaster,       -- [in]
+         sAxiReadSlave   => axilReadSlave,        -- [out]
+         sAxiWriteMaster => axilWriteMaster,      -- [in]
+         sAxiWriteSlave  => axilWriteSlave,       -- [out]
+         mAxiClk         => fcClk,                -- [in]
+         mAxiClkRst      => fcRst,                -- [in]
+         mAxiReadMaster  => syncAxilReadMaster,   -- [out]
+         mAxiReadSlave   => syncAxilReadSlave,    -- [in]
+         mAxiWriteMaster => syncAxilWriteMaster,  -- [out]
+         mAxiWriteSlave  => syncAxilWriteSlave);  -- [in]
+
+   comb : process (axilRst, r, syncAxilReadMaster, syncAxilWriteMaster) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -114,33 +136,26 @@ begin
       ----------------------------------------------------------------------
 
       -- Determine the transaction type
-      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
+      axiSlaveWaitTxn(axilEp, syncAxilWriteMaster, syncAxilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Map the read registers
-      axiSlaveRegister (axilEp, x"000", 0, v.enableTimingMsg);    -- If high, Timing Msg Period cnt
-                                                                  -- rolls and msgs are being sent
-      axiSlaveRegister (axilEp, x"004", 0, v.enableRoR);          -- If high, RoR Period Counter
-                                                                  -- increments every 5 cycles,
-                                                                  -- and RoRs are being sent
-      axiSlaveRegister (axilEp, x"008", 0, v.usrRoR);             -- Sends a single RoR for every
-                                                                  -- low-to-high transition
-      axiSlaveRegister (axilEp, x"00C", 0, v.pulseIDinit);        -- Set pulseID initial value
-      axiSlaveRegister (axilEp, x"014", 0, v.timingMsgPeriodSet); -- Timing Message period
-      axiSlaveRegister (axilEp, x"018", 0, v.bunchCntPeriodSet);  -- Bunch Cnt period
-      axiSlaveRegister (axilEp, x"01C", 0, v.fcRunStateSet);      -- Next FC run state set value
-      axiSlaveRegister (axilEp, x"020", 0, v.rOrPeriod);          -- Read-Out-Req period
-                                                                  -- (units of 5*timing clk period)
+      axiSlaveRegister (axilEp, x"000", 0, v.enableTimingMsg);     -- If high, Timing Msg Period cnt
+                                                                   -- rolls and msgs are being sent
+      axiSlaveRegister (axilEp, x"004", 0, v.enableRoR);           -- If high, RoR Period Counter
+                                                                   -- increments every 5 cycles,
+                                                                   -- and RoRs are being sent
+      axiSlaveRegister (axilEp, x"008", 0, v.usrRoR);              -- Sends a single RoR for every
+                                                                   -- low-to-high transition
+      axiSlaveRegister (axilEp, x"00C", 0, v.pulseIDinit);         -- Set pulseID initial value
+      axiSlaveRegister (axilEp, x"014", 0, v.timingMsgPeriodSet);  -- Timing Message period
+      axiSlaveRegister (axilEp, x"018", 0, v.bunchCntPeriodSet);   -- Bunch Cnt period
+      axiSlaveRegister (axilEp, x"01C", 0, v.fcRunStateSet);       -- Next FC run state set value
+      axiSlaveRegister (axilEp, x"020", 0, v.rOrPeriod);           -- Read-Out-Req period
+                                                                   -- (units of 5*timing clk period)
 
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
-
-
-      -- to override or not to override
-      v.timingMsgPeriod := ite(OVERRIDE_PERIOD_DEFAULTS_G, r.timingMsgPeriodSet,
-                               slv(conv_unsigned(TIMING_MSG_PERIOD_G, 32)));
-      v.bunchCntPeriod  := ite(OVERRIDE_PERIOD_DEFAULTS_G, r.bunchCntPeriodSet,
-                               slv(conv_unsigned(BUNCH_CNT_PERIOD_G, 6)));
 
       -- pulseID Period Counter Control
       -- bunchCnt Period Counter Control
@@ -149,7 +164,7 @@ begin
       -- bunchCnt increments when the bunchCntPeriodCnt hits its limit;
       v.bunchCntStrb := '0';
       v.timingMsgReq := '0';
-      v.fcValid      := '0';
+      v.fcMsg.valid  := '0';
       v.usrRoR       := '0';
 
       if (r.enableTimingMsg = '0') then
@@ -159,6 +174,10 @@ begin
          v.timingMsgPeriodCnt := (others => '0');
          v.fcMsg.bunchCnt     := (others => '0');
          v.fcMsg.pulseID      := r.pulseIDinit;
+
+         -- When messages are disabled, set right away
+         v.timingMsgPeriod := r.timingMsgPeriodSet;
+         v.bunchCntPeriod  := r.bunchCntPeriodSet;
       else
          v.timingMsgPeriodCnt := r.timingMsgPeriodCnt + 1;
          v.bunchCntPeriodCnt  := r.bunchCntPeriodCnt + 1;
@@ -168,13 +187,18 @@ begin
             v.timingMsgPeriodCnt := (others => '0');
             v.fcMsg.pulseID      := r.fcMsg.pulseID + 1;
             v.timingMsgReq       := '1';
+
+            -- Load new periods set by software before starting next msg period
+            v.timingMsgPeriod := r.timingMsgPeriodSet;
+            v.bunchCntPeriod  := r.bunchCntPeriodSet;
+
          end if;
 
          -- the bunch Count strobe eventually triggers an RoR, and increments the bunch Counter
          if (r.bunchCntPeriodCnt = r.bunchCntPeriod-2) then
             -- strobe me just before the rollover so that the RoR
             -- gets the appropriate bunchCnt value
-            v.bunchCntStrb      := '1';
+            v.bunchCntStrb := '1';
          elsif (r.bunchCntPeriodCnt = r.bunchCntPeriod-1) then
             v.bunchCntPeriodCnt := (others => '0');
          end if;
@@ -192,7 +216,7 @@ begin
             v.bunchClk := '1';
          elsif (r.bunchCntPeriodCnt = ('0' & r.bunchCntPeriod(5 downto 1))) then
             -- cut the last bit -> div-by-2
-            v.bunchClk := '0';   
+            v.bunchClk := '0';
          end if;
 
       end if;
@@ -204,13 +228,13 @@ begin
          v.fcMsg.runState := r.fcRunStateSet;
          v.fcMsg.msgType  := MSG_TYPE_TIMING_C;
          v.fcMsg.message  := FcEncode(r.fcMsg);
-         v.fcValid        := '1';
+         v.fcMsg.valid    := '1';
       elsif (r.usrRoR = '1') then
          -- immediate RoR
          -- if RoRs are not enabled, FC message bunchCnt will get the init value
-         v.fcMsg.msgType  := MSG_TYPE_ROR_C;
-         v.fcMsg.message  := FcEncode(r.fcMsg);
-         v.fcValid        := '1';
+         v.fcMsg.msgType := MSG_TYPE_ROR_C;
+         v.fcMsg.message := FcEncode(r.fcMsg);
+         v.fcMsg.valid   := '1';
       elsif (r.bunchCntStrb = '1' and r.enableRoR = '1') then
          -- periodic RoR. Have to check the RoR Period counter first
          v.rOrPeriodCnt := r.rOrPeriodCnt + 1;
@@ -219,27 +243,27 @@ begin
             v.rOrPeriodCnt  := (others => '0');
             v.fcMsg.msgType := MSG_TYPE_ROR_C;
             v.fcMsg.message := FcEncode(r.fcMsg);
-            v.fcValid       := '1';
+            v.fcMsg.valid   := '1';
          end if;
       elsif (r.timingMsgReq = '1') then
          -- simple Timing Message
-         v.fcMsg.msgType  := MSG_TYPE_TIMING_C;
-         v.fcMsg.message  := FcEncode(r.fcMsg);
-         v.fcValid        := '1';
+         v.fcMsg.msgType := MSG_TYPE_TIMING_C;
+         v.fcMsg.message := FcEncode(r.fcMsg);
+         v.fcMsg.valid   := '1';
       end if;
 
       -- General Outputs
-      fcValid        <= r.fcValid;
-      fcMsg          <= r.fcMsg;
-      bunchClk       <= r.bunchClk;
+      fcMsg              <= r.fcMsg;
+      bunchClk           <= r.bunchClk;
+      bunchStrobe        <= r.bunchCntStrb;
       -- AXI Outputs
-      axilWriteSlave <= r.axilWriteSlave;
-      axilReadSlave  <= r.axilReadSlave;
+      syncAxilWriteSlave <= r.axilWriteSlave;
+      syncAxilReadSlave  <= r.axilReadSlave;
 
       ----------------------------------------------------------------------
 
       -- Reset
-      if (RST_ASYNC_G = false and axilRst = '1') then
+      if (axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -250,9 +274,7 @@ begin
 
    seq : process (axilClk, axilRst) is
    begin
-      if (RST_ASYNC_G and axilRst = '1') then
-         r <= REG_INIT_C after TPD_G;
-      elsif (rising_edge(axilClk)) then
+      if (rising_edge(axilClk)) then
          r <= rin after TPD_G;
       end if;
    end process seq;

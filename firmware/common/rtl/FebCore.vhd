@@ -19,14 +19,15 @@ use surf.I2cPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
---use surf.Ad9249Pkg.all;
+use surf.Ad9249Pkg.all;
 
 
 library ldmx;
 use ldmx.FebConfigPkg.all;
-use ldmx.HpsPkg.all;
+use ldmx.LdmxPkg.all;
+use ldmx.FcPkg.all;
 use ldmx.DataPathPkg.all;
-use ldmx.AdcReadoutPkg.all;
+
 
 entity FebCore is
 
@@ -41,10 +42,9 @@ entity FebCore is
 
    port (
       -- Recovered Clock and Opcode Interface
-      daqClk185  : in sl;
-      daqRst185  : in sl;
-      daqFcWord  : in slv(79 downto 0);
-      daqFcValid : in sl;
+      fcClk185 : in sl;
+      fcRst185 : in sl;
+      fcMsg    : in FastControlMessageType;
 
       -- Axi Clock and Reset
       axilClk : in sl;
@@ -73,10 +73,10 @@ entity FebCore is
       hyI2cOut : out i2c_out_array(HYBRIDS_G-1 downto 0);
 
       -- 37Mhz clock
-      daqClk37    : out sl;
-      daqClk37Rst : out sl;
-      hyClk       : in  slv(HYBRIDS_G-1 downto 0) := (others => '0');
-      hyClkRst    : in  slv(HYBRIDS_G-1 downto 0) := (others => '0');
+      fcClk37    : out sl;
+      fcClk37Rst : out sl;
+      hyClk      : in  slv(HYBRIDS_G-1 downto 0) := (others => '0');
+      hyClkRst   : in  slv(HYBRIDS_G-1 downto 0) := (others => '0');
 
       -- ADC streams
       adcReadoutStreams : in AdcStreamArray
@@ -89,9 +89,9 @@ architecture rtl of FebCore is
    -------------------------------------------------------------------------------------------------
    -- Recovered Clock & Opcode Signals
    -------------------------------------------------------------------------------------------------
-   signal daqClkLost : sl;
-   signal daqTrigger : sl;
-   signal hySoftRst  : slv(HYBRIDS_G-1 downto 0);
+   signal fcClkLost  : sl;
+   signal fcRor      : sl;
+   signal fcReset101 : slv(HYBRIDS_G-1 downto 0);
    signal hyRstL     : slv(HYBRIDS_G-1 downto 0);
 
    -------------------------------------------------------------------------------------------------
@@ -160,12 +160,14 @@ architecture rtl of FebCore is
    signal febConfig : FebConfigType;
 
    -------------------------------------------------------------------------------------------------
-   -- Trigger FIFO signal
+   -- Ror FIFO signal
    -------------------------------------------------------------------------------------------------
-   signal trigger          : sl;
-   signal triggerFifoValid : sl;
-   signal triggerFifoData  : slv(63 downto 0);
-   signal triggerFifoRdEn  : sl;
+   signal rorFifoValid     : sl;
+   signal rorFifoTimestamp : slv(63 downto 0);
+   signal rorFifoMsg       : FastControlMessageType;
+   signal rorFifoRdEn      : sl;
+
+   signal axilRor : sl;
 
    -------------------------------------------------------------------------------------------------
    -- Data path outputs
@@ -176,29 +178,11 @@ architecture rtl of FebCore is
 
 begin
 
-   -------------------------------------------------------------------------------------------------
-   -- Create trigger FIFO
-   -------------------------------------------------------------------------------------------------
-   U_TriggerFifo_1 : entity ldmx.TriggerFifo
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         distClk    => daqClk185,              -- [in]
-         distClkRst => daqRst185,              -- [in]
-         rxData     => daqFcWord(9 downto 0),  -- [in]
-         rxDataEn   => daqFcValid,             -- [in]
-         sysClk     => axilClk,                -- [in]
-         sysRst     => axilRst,                -- [in]
-         trigger    => trigger,                -- [out]
-         valid      => triggerFifoValid,       -- [out]
-         data       => triggerFifoData,        -- [out]
-         rdEn       => triggerFifoRdEn);       -- [in]
-
 
    -------------------------------------------------------------------------------------------------
    -- Main Axi Crossbar
    -------------------------------------------------------------------------------------------------
-   HpsAxiCrossbar : entity surf.AxiLiteCrossbar
+   LdmxAxiCrossbar : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
@@ -240,29 +224,33 @@ begin
          fdSerSdio      => open);
 
    -------------------------------------------------------------------------------------------------
-   -- Generate APV clock from distributed DAQ clock
+   -- Generate APV clock from distributed FC clock
    -- Use Pgp FC bus to to control phase alignment
-   -- Also use FC bus for triggers and resets
+   -- Also use FC bus for readout requests and resets
    -------------------------------------------------------------------------------------------------
-   DaqTiming_1 : entity ldmx.DaqTiming
+   U_FebFcRx_1 : entity ldmx.FebFcRx
       generic map (
          TPD_G     => TPD_G,
          HYBRIDS_G => HYBRIDS_G)
       port map (
-         daqClk185      => daqClk185,
-         daqRst185      => daqRst185,
-         daqFcWord      => daqFcWord,
-         daqFcValid     => daqFcValid,
-         daqClk37       => daqClk37,
-         daqClk37Rst    => daqClk37Rst,
-         daqTrigger     => daqTrigger,
-         hySoftRst      => hySoftRst,
-         axiClk         => axilClk,
-         axiRst         => axilRst,
-         axiReadMaster  => mainAxilReadMasters(AXI_DAQ_TIMING_INDEX_C),
-         axiReadSlave   => mainAxilReadSlaves(AXI_DAQ_TIMING_INDEX_C),
-         axiWriteMaster => mainAxilWriteMasters(AXI_DAQ_TIMING_INDEX_C),
-         axiWriteSlave  => mainAxilWriteSlaves(AXI_DAQ_TIMING_INDEX_C));
+         fcClk185         => fcClk185,                                      -- [in]
+         fcRst185         => fcRst185,                                      -- [in]
+         fcMsg            => fcMsg,                                         -- [in]
+         fcClk37          => fcClk37,                                       -- [out]
+         fcClk37Rst       => fcClk37Rst,                                    -- [out]
+         fcRoR            => fcRoR,                                         -- [out]
+         fcReset101       => fcReset101,                                    -- [out]
+         axilClk          => axilClk,                                       -- [in]
+         axilRst          => axilRst,                                       -- [in]
+         axilRoR          => axilRoR,                                       -- [out]
+--         rorFifoValid     => rorFifoValid,                                  -- [out]
+         rorFifoMsg       => rorFifoMsg,                                    -- [out]
+         rorFifoTimestamp => rorFifoTimestamp,                              -- [out]
+         rorFifoRdEn      => rorFifoRdEn,                                   -- [in]
+         axilReadMaster   => mainAxilReadMasters(AXI_DAQ_TIMING_INDEX_C),   -- [in]
+         axilReadSlave    => mainAxilReadSlaves(AXI_DAQ_TIMING_INDEX_C),    -- [out]
+         axilWriteMaster  => mainAxilWriteMasters(AXI_DAQ_TIMING_INDEX_C),  -- [in]
+         axilWriteSlave   => mainAxilWriteSlaves(AXI_DAQ_TIMING_INDEX_C));  -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- General configuration Registers
@@ -280,10 +268,6 @@ begin
          febConfig      => febConfig);
 
    hyPwrEn <= febConfig.hyPwrEn(HYBRIDS_G-1 downto 0);
-
-
-
-
 
 
    -------------------------------------------------------------------------------------------------
@@ -348,17 +332,17 @@ begin
       hyRstOutL(i) <= hyRstL(i);
 
       ----------------------------------------------------------------------------------------------
-      -- Generate triggers that are synced to each hybrid clock
+      -- Generate rors that are synced to each hybrid clock
       ----------------------------------------------------------------------------------------------
-      TrigControl_1 : entity ldmx.TrigControl
+      TrigControl_1 : entity ldmx.HybridTriggerControl
          generic map (
             TPD_G => TPD_G)
          port map (
             axiClk     => axilClk,
             axiRst     => axilRst,
             febConfig  => febConfig,
-            daqTrigger => daqTrigger,
-            hySoftRst  => hySoftRst(i),
+            fcRor      => fcRor,
+            fcReset101 => fcReset101(i),
             hyClk      => hyClk(i),
             hyClkRst   => hyClkRst(i),
             hyTrigOut  => hyTrgOut(i));
@@ -392,14 +376,14 @@ begin
             HYBRID_NUM_G      => i,
             APVS_PER_HYBRID_G => APVS_PER_HYBRID_G)
          port map (
-            sysClk            => axilClk,
-            sysRst            => axilRst,
+            axilClk            => axilClk,
+            axilRst            => axilRst,
             axiReadMaster     => hybridDataAxilReadMasters(i),
             axiReadSlave      => hybridDataAxilReadSlaves(i),
             axiWriteMaster    => hybridDataAxilWriteMasters(i),
             axiWriteSlave     => hybridDataAxilWriteSlaves(i),
             febConfig         => febConfig,
-            trigger           => trigger,
+            readoutReq           => axilRor,
             adcReadoutStreams => adcReadoutStreams(i)(APVS_PER_HYBRID_G-1 downto 0),
             dataOut           => dataPathOut(i)(APVS_PER_HYBRID_G-1 downto 0),
             dataRdEn          => dataPathIn(i)(APVS_PER_HYBRID_G-1 downto 0));
@@ -411,16 +395,17 @@ begin
          HYBRIDS_G         => HYBRIDS_G,
          APVS_PER_HYBRID_G => APVS_PER_HYBRID_G)
       port map (
-         sysClk           => axilClk,
-         sysRst           => axilRst,
+         axilClk          => axilClk,
+         axilRst          => axilRst,
          axiReadMaster    => mainAxilReadMasters(AXI_EB_INDEX_C),
          axiReadSlave     => mainAxilReadSlaves(AXI_EB_INDEX_C),
          axiWriteMaster   => mainAxilWriteMasters(AXI_EB_INDEX_C),
          axiWriteSlave    => mainAxilWriteSlaves(AXI_EB_INDEX_C),
-         trigger          => trigger,
-         triggerFifoValid => triggerFifoValid,
-         triggerFifoData  => triggerFifoData,
-         triggerFifoRdEn  => triggerFifoRdEn,
+--         readoutReq          => readoutReq,
+--         rorFifoValid     => rorFifoValid,
+         rorFifoMsg       => rorFifoMsg,
+         rorFifoTimestamp => rorFifoTimestamp,
+         rorFifoRdEn      => rorFifoRdEn,
          febConfig        => febConfig,
          dataPathOut      => dataPathOut,
          dataPathIn       => dataPathIn,

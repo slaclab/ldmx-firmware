@@ -23,7 +23,7 @@ use surf.SsiPkg.all;
 
 
 library ldmx;
-use ldmx.HpsPkg.all;
+use ldmx.LdmxPkg.all;
 use ldmx.DataPathPkg.all;
 use ldmx.FebConfigPkg.all;
 
@@ -31,15 +31,15 @@ entity ApvDataFormatter is
 
    generic (
       TPD_G           : time             := 1 ns;
-      HYBRID_NUM_G : integer := 0;
+      HYBRID_NUM_G    : integer          := 0;
       APV_NUM_G       : integer          := 0;
       AXI_DEBUG_EN_G  : boolean          := false;
       AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
 
    port (
       -- Master system clock, 125Mhz
-      sysClk         : in sl;
-      sysRst         : in sl;
+      axilClk        : in sl;
+      axilRst        : in sl;
       sysPipelineRst : in sl := '0';
 
       -- Axi Bus for status and debug
@@ -52,14 +52,11 @@ entity ApvDataFormatter is
       apvFrameAxisSlave  : out AxiStreamSlaveType;
 
       -- Trigger
-      trigger : in sl;
+      readoutReq : in sl;
 
       -- Configuration
-      febConfig : in FebConfigType;
+      febConfig  : in FebConfigType;
       syncStatus : in sl;
-
-      -- Upstream status and config
---      hybridInfo : in HybridInfoType;
 
       -- Outbound transfers
       dataOut : out MultiSampleType
@@ -69,7 +66,7 @@ end entity ApvDataFormatter;
 
 architecture rtl of ApvDataFormatter is
 
-   constant SG_MASTER_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(12);
+   constant SG_MASTER_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(6);
 
    -- Determines the APV channel number based on the order in which it was received
    -- Based on function in Section 8.5 of APV User Guide 2.2
@@ -86,7 +83,7 @@ architecture rtl of ApvDataFormatter is
 
    --------------------------------------------------------------------------------------------------
    type RxStateType is (RUN_S, INSERT_S, TAIL_S, RESUME_S, FREEZE_S);
-   type TxStateType is (WAIT_TRIGGER_S, BLANK_HEAD_S, TAIL_S, DATA_S, LOCKED_S);
+   type TxStateType is (WAIT_ROR_S, BLANK_HEAD_S, TAIL_S, DATA_S, LOCKED_S);
 
    type RegType is record
       -- rx regs
@@ -106,13 +103,13 @@ architecture rtl of ApvDataFormatter is
       -- tx regs
       txState           : TxStateType;
       multiSample       : MultiSampleType;
-      triggerFifoRdEn   : sl;
+      rorFifoRdEn       : sl;
       channelNumber     : slv(6 downto 0);
       axiWriteSlave     : AxiLiteWriteSlaveType;
       axiReadSlave      : AxiLiteReadSlaveType;
       -- tx debug regs
-      triggersIn        : slv(15 downto 0);
-      triggersOut       : slv(15 downto 0);
+      rorsIn            : slv(15 downto 0);
+      rorsOut           : slv(15 downto 0);
       normalHeads       : slv(15 downto 0);
       normalTails       : slv(15 downto 0);
       blankHeads        : slv(15 downto 0);
@@ -132,14 +129,14 @@ architecture rtl of ApvDataFormatter is
       sofIn             => (others => '0'),
       eofIn             => (others => '0'),
       eofeIn            => (others => '0'),
-      txState           => WAIT_TRIGGER_S,
+      txState           => WAIT_ROR_S,
       multiSample       => MULTI_SAMPLE_ZERO_C,
-      triggerFifoRdEn   => '0',
+      rorFifoRdEn       => '0',
       channelNumber     => (others => '0'),
       axiWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C,
       axiReadSlave      => AXI_LITE_READ_SLAVE_INIT_C,
-      triggersIn        => (others => '0'),
-      triggersOut       => (others => '0'),
+      rorsIn            => (others => '0'),
+      rorsOut           => (others => '0'),
       normalHeads       => (others => '0'),
       normalTails       => (others => '0'),
       blankHeads        => (others => '0'),
@@ -167,10 +164,10 @@ architecture rtl of ApvDataFormatter is
    signal locAxiReadMaster  : AxiLiteReadMasterType;
    signal locAxiReadSlave   : AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
 
-   signal triggerFifoValid : sl;
-   signal synced           : sl;
+   signal rorFifoValid : sl;
+   signal synced       : sl;
 
-   signal sysRstLoc : sl;
+   signal axilRstLoc : sl;
 
 
 begin
@@ -190,8 +187,8 @@ begin
                addrBits     => 8,
                connectivity => X"0001")))
       port map (
-         axiClk              => sysClk,
-         axiClkRst           => sysRst,
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
          sAxiWriteMasters(0) => axiWriteMaster,
          sAxiWriteSlaves(0)  => axiWriteSlave,
          sAxiReadMasters(0)  => axiReadMaster,
@@ -205,11 +202,11 @@ begin
          mAxiReadSlaves(0)   => locAxiReadSlave,
          mAxiReadSlaves(1)   => sgAxiReadSlave);
 
-   sysRstLoc <= sysRst or sysPipelineRst;
+   axilRstLoc <= axilRst or sysPipelineRst;
 
-   -- Queue up incomming triggers
-   -- Could just increment and decrement a counter but this might be cleaner
-   TRIGGER_FIFO : entity surf.Fifo
+   -- Queue up incomming rors
+   -- Save sync status with each one
+   ROR_FIFO : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => true,
@@ -219,14 +216,14 @@ begin
          ADDR_WIDTH_G    => 6,
          FULL_THRES_G    => 5)
       port map (
-         rst     => sysRstLoc,
-         wr_clk  => sysClk,
-         wr_en   => trigger,
-         din(0)  => syncStatus, --hybridInfo.syncStatus(APV_NUM_G),
-         rd_clk  => sysClk,
-         rd_en   => r.triggerFifoRdEn,
+         rst     => axilRstLoc,
+         wr_clk  => axilClk,
+         wr_en   => readoutReq,
+         din(0)  => syncStatus,         --hybridInfo.syncStatus(APV_NUM_G),
+         rd_clk  => axilClk,
+         rd_en   => r.rorFifoRdEn,
          dout(0) => synced,
-         valid   => triggerFifoValid);
+         valid   => rorFifoValid);
 
    AxiStreamScatterGather_1 : entity surf.AxiStreamScatterGather
       generic map (
@@ -235,8 +232,8 @@ begin
          SLAVE_AXIS_CONFIG_G     => APV_DATA_SSI_CONFIG_C,
          MASTER_AXIS_CONFIG_G    => SG_MASTER_AXIS_CONFIG_C)
       port map (
-         axiClk          => sysClk,
-         axiRst          => sysRstLoc,
+         axiClk          => axilClk,
+         axiRst          => axilRstLoc,
          axilReadMaster  => sgAxiReadMaster,
          axilReadSlave   => sgAxiReadSlave,
          axilWriteMaster => sgAxiWriteMaster,
@@ -254,14 +251,14 @@ begin
    sgAxisSlave <= AXI_STREAM_SLAVE_FORCE_C;
    sgAxisCtrl  <= AXI_STREAM_CTRL_UNUSED_C;
 
-   comb : process (apvFrameAxisMaster, febConfig, locAxiReadMaster, locAxiWriteMaster, r,
-                   sgSsiMaster, synced, sysPipelineRst, sysRst, trigger, triggerFifoValid) is
+   comb : process (apvFrameAxisMaster, axilRst, febConfig, locAxiReadMaster, locAxiWriteMaster, r,
+                   readoutReq, rorFifoValid, sgSsiMaster, synced, sysPipelineRst) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
       v := r;
 
-      v.triggerFifoRdEn := '0';
+      v.rorFifoRdEn := '0';
 
       ----------------------------------------------------------------------------------------------
       -- Watch data as it comes in. Insert blank frames when necessary
@@ -283,39 +280,10 @@ begin
                v.eofIn := r.eofIn + 1;
             end if;
 
-            if (apvFrameAxisMaster.tValid = '1' and apvFrameAxisMaster.tLast = '1' and ssiGetUserEofe(APV_DATA_SSI_CONFIG_C, apvFrameAxisMaster) = '1') then
-               v.eofeIn := r.eofeIn + 1;
-            end if;
-
 
             if (apvFrameAxisMaster.tValid = '1' and ssiGetUserSof(APV_DATA_SSI_CONFIG_C, apvFrameAxisMaster) = '1') then
 
-               v.sofIn     := r.sofIn + 1;
---                v.gotApvSof := '1';
-
---                -- Save last 8 frame counts
---                v.lastSofApvFrame(0) := apvFrameAxisMaster.tData(15 downto 0);
---                v.lastTxnCount(0)    := X"0001";
---                for i in 0 to 6 loop
---                   v.lastSofApvFrame(i+1) := r.lastSofApvFrame(i);
---                   v.lastTxnCount(i+1)    := r.lastTxnCount(i);
---                end loop;
-
-
---                if (r.gotApvSof = '1') then
---                   if (apvFrameAxisMaster.tData(12 downto 9) - (r.lastSofApvFrame(0)(12 downto 9) + 1) /= 0) then
---                      v.insertCount              := apvFrameAxisMaster.tData(12 downto 9) - (r.lastSofApvFrame(0)(12 downto 9) + 1);
---                      v.rxState                  := INSERT_S;
---                      v.apvFrameAxisSlave.tReady := '0';
---                      v.sofData                  := apvFrameAxisMaster.tData(15 downto 0);
---                      v.sgInAxisMaster.tValid    := '0';
-
---                      v.insertedFrames(conv_integer(v.insertCount)) := r.insertedFrames(conv_integer(v.insertCount)) + 1;
-
---                   else
---                      v.insertedFrames(0) := r.insertedFrames(0) + 1;
---                   end if;
---                end if;
+               v.sofIn := r.sofIn + 1;
             end if;
 
          when INSERT_S =>
@@ -359,27 +327,25 @@ begin
       ----------------------------------------------------------------------------------------------
 
       -- Debugging counters
-      if (trigger = '1') then
-         v.triggersIn := r.triggersIn + 1;
+      if (readoutReq = '1') then
+         v.rorsIn := r.rorsIn + 1;
       end if;
 
 
 
       -- Assign default multi sample value
       v.multiSample := multiSampleReset(
-         toSlv(HYBRID_NUM_G, 3),
-         toSlv(APV_NUM_G, 3),
-         febConfig.febAddress);
+         HYBRID_NUM_G, APV_NUM_G, febConfig.febAddress);
 
       -- State machine
       -- Assign ScatterGather output to multiSample frame structure.
       -- Send blank frames if not sync'd
       case (r.txState) is
-         when WAIT_TRIGGER_S =>
+         when WAIT_ROR_S =>
 
             v.channelNumber := (others => '0');
-            if (triggerFifoValid = '1' and r.triggerFifoRdEn = '0') then
-               v.triggersOut := r.triggersOut + 1;
+            if (rorFifoValid = '1' and r.rorFifoRdEn = '0') then
+               v.rorsOut := r.rorsOut + 1;
                if (synced = '1') then
                   v.txState := DATA_S;
                else
@@ -400,14 +366,14 @@ begin
             v.multiSample.tail      := '1';
             v.multiSample.filter    := '1';
             v.multiSample.readError := r.multiSample.readError;
-            v.triggerFifoRdEn       := '1';
-            v.txState               := WAIT_TRIGGER_S;
+            v.rorFifoRdEn           := '1';
+            v.txState               := WAIT_ROR_S;
 
          when DATA_S =>
             v.multiSample.valid      := sgSsiMaster.valid;
             v.multiSample.apvChannel := APV_CHANNEL_MAP_C(conv_integer(r.channelNumber));
             v.multiSample.readError  := r.multiSample.readError;
-            for i in 5 downto 0 loop
+            for i in 2 downto 0 loop
                v.multiSample.data(i)(15 downto 0) := sgSsiMaster.data(i*16+15 downto i*16);
             end loop;
             v.multiSample.head := sgSsiMaster.sof;
@@ -453,68 +419,31 @@ begin
 
 --      if (AXI_DEBUG_EN_G) then
 
-         axiSlaveRegisterR(axilEp, X"00", 0, ite(r.txState = WAIT_TRIGGER_S, "00",
-                                                 ite(r.txState = BLANK_HEAD_S, "01",
-                                                     ite(r.txState = TAIL_S, "10",
-                                                         ite(r.txState = DATA_S, "11", "00")))));
-         axiSlaveRegisterR(axilEp, X"04", 0, r.triggersOut);
-         axiSlaveRegisterR(axilEp, X"04", 16, r.triggersIn);
-         axiSlaveRegisterR(axilEp, X"08", 0, r.normalHeads);
-         axiSlaveRegisterR(axilEp, X"0C", 0, r.totalTails);
-         axiSlaveRegisterR(axilEp, X"0C", 16, r.blankHeads);
-         axiSlaveRegisterR(axilEp, X"10", 0, r.sofIn);
-         axiSlaveRegisterR(axilEp, X"14", 0, r.eofIn);
-         axiSlaveRegisterR(axilEp, X"18", 0, r.eofeIn);
-         axiSlaveRegisterR(axilEp, X"1C", 0, ite(r.rxState = RUN_S, "000",
-                                                 ite(r.rxState = INSERT_S, "001",
-                                                     ite(r.rxState = TAIL_S, "010",
-                                                         ite(r.rxState = RESUME_S, "011",
-                                                             ite(r.rxState = FREEZE_S, "100", "000"))))));
+      axiSlaveRegisterR(axilEp, X"00", 0, ite(r.txState = WAIT_ROR_S, "00",
+                                              ite(r.txState = BLANK_HEAD_S, "01",
+                                                  ite(r.txState = TAIL_S, "10",
+                                                      ite(r.txState = DATA_S, "11", "00")))));
+      axiSlaveRegisterR(axilEp, X"04", 0, r.rorsOut);
+      axiSlaveRegisterR(axilEp, X"04", 16, r.rorsIn);
+      axiSlaveRegisterR(axilEp, X"08", 0, r.normalHeads);
+      axiSlaveRegisterR(axilEp, X"0C", 0, r.totalTails);
+      axiSlaveRegisterR(axilEp, X"0C", 16, r.blankHeads);
+      axiSlaveRegisterR(axilEp, X"10", 0, r.sofIn);
+      axiSlaveRegisterR(axilEp, X"14", 0, r.eofIn);
+      axiSlaveRegisterR(axilEp, X"18", 0, r.eofeIn);
+      axiSlaveRegisterR(axilEp, X"1C", 0, ite(r.rxState = RUN_S, "000",
+                                              ite(r.rxState = INSERT_S, "001",
+                                                  ite(r.rxState = TAIL_S, "010",
+                                                      ite(r.rxState = RESUME_S, "011",
+                                                          ite(r.rxState = FREEZE_S, "100", "000"))))));
 
-
-
---          axiSlaveRegisterR(axilEp, X"24", 0, r.lastSofApvFrame(0));
---          axiSlaveRegisterR(axilEp, X"24", 16, r.lastSofApvFrame(1));
---          axiSlaveRegisterR(axilEp, X"28", 0, r.lastSofApvFrame(2));
---          axiSlaveRegisterR(axilEp, X"28", 16, r.lastSofApvFrame(3));
---          axiSlaveRegisterR(axilEp, X"2C", 0, r.lastSofApvFrame(4));
---          axiSlaveRegisterR(axilEp, X"2C", 16, r.lastSofApvFrame(5));
---          axiSlaveRegisterR(axilEp, X"30", 0, r.lastSofApvFrame(6));
---          axiSlaveRegisterR(axilEp, X"30", 16, r.lastSofApvFrame(7));
-
---          axiSlaveRegisterR(axilEp, X"34", 0, r.lastTxnCount(0));
---          axiSlaveRegisterR(axilEp, X"34", 16, r.lastTxnCount(1));
---          axiSlaveRegisterR(axilEp, X"38", 0, r.lastTxnCount(2));
---          axiSlaveRegisterR(axilEp, X"38", 16, r.lastTxnCount(3));
---          axiSlaveRegisterR(axilEp, X"3C", 0, r.lastTxnCount(4));
---          axiSlaveRegisterR(axilEp, X"3C", 16, r.lastTxnCount(5));
---          axiSlaveRegisterR(axilEp, X"40", 0, r.lastTxnCount(6));
---          axiSlaveRegisterR(axilEp, X"40", 16, r.lastTxnCount(7));
-
---          axiSlaveRegisterR(axilEp, X"44", 0, r.insertedFrames(0));
---          axiSlaveRegisterR(axilEp, X"44", 16, r.insertedFrames(1));
---          axiSlaveRegisterR(axilEp, X"48", 0, r.insertedFrames(2));
---          axiSlaveRegisterR(axilEp, X"48", 16, r.insertedFrames(3));
---          axiSlaveRegisterR(axilEp, X"4C", 0, r.insertedFrames(4));
---          axiSlaveRegisterR(axilEp, X"4C", 16, r.insertedFrames(5));
---          axiSlaveRegisterR(axilEp, X"50", 0, r.insertedFrames(6));
---          axiSlaveRegisterR(axilEp, X"50", 16, r.insertedFrames(7));
---          axiSlaveRegisterR(axilEp, X"54", 0, r.insertedFrames(8));
---          axiSlaveRegisterR(axilEp, X"54", 16, r.insertedFrames(9));
---          axiSlaveRegisterR(axilEp, X"58", 0, r.insertedFrames(10));
---          axiSlaveRegisterR(axilEp, X"58", 16, r.insertedFrames(11));
---          axiSlaveRegisterR(axilEp, X"5C", 0, r.insertedFrames(12));
---          axiSlaveRegisterR(axilEp, X"5C", 16, r.insertedFrames(13));
---          axiSlaveRegisterR(axilEp, X"60", 0, r.insertedFrames(14));
---          axiSlaveRegisterR(axilEp, X"60", 16, r.insertedFrames(15));
---       end if;
 
       axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       ----------------------------------------------------------------------------------------------
       -- Reset 
       ----------------------------------------------------------------------------------------------
-      if (sysRst = '1') then
+      if (axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -532,9 +461,9 @@ begin
 
 
 
-   sync : process (sysClk) is
+   sync : process (axilClk) is
    begin
-      if (rising_edge(sysClk)) then
+      if (rising_edge(axilClk)) then
          r <= rin after TPD_G;
       end if;
    end process sync;
