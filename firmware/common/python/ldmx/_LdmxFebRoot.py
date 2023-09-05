@@ -25,6 +25,10 @@ class LdmxFebRoot(pr.Root):
         dataStream >> dataDebug
 
         self.addInterface(srpStream, dataStream, srp, sideband)
+
+        # Zmq Server
+        self.zmqServer = pyrogue.interfaces.ZmqServer(root=self, addr='*', port=0)
+        self.addInterface(self.zmqServer)
         
 
         self.add(ldmx.LdmxFeb(
