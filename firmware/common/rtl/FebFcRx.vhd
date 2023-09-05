@@ -168,6 +168,10 @@ begin
          v.fcReset101Latch := (others => '0');
       end if;
 
+      if (r.divCounter = CLK_DIV_RISE_CNT_C) then
+         v.fcClk37 := '1';
+      end if;
+
 
       -- Process FC Messages
       if (fcMsg.valid = '1') then
