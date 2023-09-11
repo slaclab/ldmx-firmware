@@ -61,7 +61,7 @@ architecture rtl of FcEmu is
       bunchClk           : sl;
       fcMsg              : FastControlMessageType;
       pulseIDinit        : slv(63 downto 0);
-      fcRunStateSet      : slv(5 downto 0);
+      fcRunStateSet      : slv(4 downto 0);
       bunchCntPeriodCnt  : slv(5 downto 0);
       bunchCntPeriodSet  : slv(5 downto 0);
       bunchCntPeriod     : slv(5 downto 0);
@@ -131,6 +131,9 @@ begin
       -- Latch the current value
       v := r;
 
+      -- Pulsed
+      v.usrRoR       := '0';      
+
       ----------------------------------------------------------------------
       --                AXI-Lite Register Logic
       ----------------------------------------------------------------------
@@ -165,7 +168,7 @@ begin
       v.bunchCntStrb := '0';
       v.timingMsgReq := '0';
       v.fcMsg.valid  := '0';
-      v.usrRoR       := '0';
+
 
       if (r.enableTimingMsg = '0') then
          -- reset case
@@ -223,13 +226,7 @@ begin
 
       -- main sub-process that controls the TX of the FC message
       -- controls FC message type, run state, and the message valid strobe
-      if (v.fcMsg.runState /= r.fcRunStateSet) then
-         -- note that any state change takes precedence and gets TX'd right away
-         v.fcMsg.runState := r.fcRunStateSet;
-         v.fcMsg.msgType  := MSG_TYPE_TIMING_C;
-         v.fcMsg.message  := FcEncode(r.fcMsg);
-         v.fcMsg.valid    := '1';
-      elsif (r.usrRoR = '1') then
+      if (r.usrRoR = '1') then
          -- immediate RoR
          -- if RoRs are not enabled, FC message bunchCnt will get the init value
          v.fcMsg.msgType := MSG_TYPE_ROR_C;
@@ -247,9 +244,11 @@ begin
          end if;
       elsif (r.timingMsgReq = '1') then
          -- simple Timing Message
-         v.fcMsg.msgType := MSG_TYPE_TIMING_C;
-         v.fcMsg.message := FcEncode(r.fcMsg);
-         v.fcMsg.valid   := '1';
+         v.fcMsg.stateChanged := toSl(v.fcMsg.runState /= r.fcRunStateSet);
+         v.fcMsg.runState     := r.fcRunStateSet;
+         v.fcMsg.msgType      := MSG_TYPE_TIMING_C;
+         v.fcMsg.message      := FcEncode(r.fcMsg);
+         v.fcMsg.valid        := '1';
       end if;
 
       -- General Outputs
@@ -263,7 +262,7 @@ begin
       ----------------------------------------------------------------------
 
       -- Reset
-      if (axilRst = '1') then
+      if (fcRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -272,9 +271,9 @@ begin
 
    end process comb;
 
-   seq : process (axilClk, axilRst) is
+   seq : process (fcClk) is
    begin
-      if (rising_edge(axilClk)) then
+      if (rising_edge(fcClk)) then
          r <= rin after TPD_G;
       end if;
    end process seq;

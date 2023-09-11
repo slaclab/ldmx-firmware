@@ -23,3 +23,5 @@ from ldmx._Ltc2991 import *
 from ldmx._Ad5144 import *
 from ldmx._AdcReadout import *
 from ldmx._AdcConfig import *
+from ldmx._LdmxFebPgp import *
+from ldmx._FcEmu import *

@@ -150,7 +150,7 @@ begin
 
       -- Pulsed signals
       v.fcClkLost := '0';
-      v.fifoRst   := '0';
+      --v.fifoRst   := '0';
       v.fifoWrEn  := '0';
 
       -- Counters
@@ -192,6 +192,7 @@ begin
                         v.fcAligned := '0';
                      when RUN_STATE_CLOCK_ALIGN_C =>
                         -- Algin Bunch clock
+                        v.fifoRst := '0';
                         v.divCounter := (others => '0');
                         v.fcClk37    := '0';
                         v.fcAligned  := '1';

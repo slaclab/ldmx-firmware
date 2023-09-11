@@ -137,10 +137,10 @@ architecture rtl of LdmxFebPgp is
    -------------------------------------------------------------------------------------------------
    constant MAIN_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_C, AXIL_BASE_ADDR_G, 24, 20);
 
-   signal locAxilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_C-1 downto 0);
-   signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_C-1 downto 0);
-   signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_C-1 downto 0);
-   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_C-1 downto 0);
+   signal locAxilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_C-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
+   signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_C-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
+   signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
+   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
    signal fcClk185Tmp : sl;
    signal fcRst185Tmp : sl;
@@ -218,30 +218,29 @@ begin
    userRefClk125 <= userRefClk125G;
    userRefRst125 <= userRefRst125G;
 
+   ---------------------
+   -- AXI-Lite Crossbar
+   ---------------------
+   U_MAIN_XBAR : entity surf.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => NUM_AXIL_C,
+         MASTERS_CONFIG_G   => MAIN_XBAR_CFG_C)
+      port map (
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
+         sAxiWriteMasters(0) => sAxilWriteMaster,
+         sAxiWriteSlaves(0)  => sAxilWriteSlave,
+         sAxiReadMasters(0)  => sAxilReadMaster,
+         sAxiReadSlaves(0)   => sAxilReadSlave,
+         mAxiWriteMasters    => locAxilWriteMasters,
+         mAxiWriteSlaves     => locAxilWriteSlaves,
+         mAxiReadMasters     => locAxilReadMasters,
+         mAxiReadSlaves      => locAxilReadSlaves);
+
 
    NO_SIM : if (not ROGUE_SIM_EN_G) generate
-
-      ---------------------
-      -- AXI-Lite Crossbar
-      ---------------------
-      U_MAIN_XBAR : entity surf.AxiLiteCrossbar
-         generic map (
-            TPD_G              => TPD_G,
-            NUM_SLAVE_SLOTS_G  => 1,
-            NUM_MASTER_SLOTS_G => NUM_AXIL_C,
-            MASTERS_CONFIG_G   => MAIN_XBAR_CFG_C)
-         port map (
-            axiClk              => axilClk,
-            axiClkRst           => axilRst,
-            sAxiWriteMasters(0) => sAxilWriteMaster,
-            sAxiWriteSlaves(0)  => sAxilWriteSlave,
-            sAxiReadMasters(0)  => sAxilReadMaster,
-            sAxiReadSlaves(0)   => sAxilReadSlave,
-            mAxiWriteMasters    => locAxilWriteMasters,
-            mAxiWriteSlaves     => locAxilWriteSlaves,
-            mAxiReadMasters     => locAxilReadMasters,
-            mAxiReadSlaves      => locAxilReadSlaves);
-
       PGP_GEN : for i in 2 downto 0 generate
 
          U_LdmxFebPgp_1 : entity ldmx.LdmxFebPgpLane

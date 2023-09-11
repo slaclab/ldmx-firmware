@@ -43,10 +43,10 @@ class LdmxFeb(pr.Device):
             expand = True,
             offset = 0x10000000))
 
-        if sim is False:
-            self.add(ldmx.LdmxFebPgp(
-                offset=0x20000000,
-                enabled=True))
+        self.add(ldmx.LdmxFebPgp(
+            offset=0x20000000,
+            sim=sim,
+            enabled=True))
 
     def enableChanged(self, value):
         if value is True:

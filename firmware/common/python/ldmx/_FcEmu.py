@@ -32,14 +32,13 @@ class FcEmu(pr.Device):
             base         = pr.Bool,
         ))
 
-        self.add(pr.RemoteVariable(
+        self.add(pr.RemoteCommand(
             name         = 'UsrRoR',
             description  = 'Sends a single RoR for every False-to-True transition',
             offset       = 0x008,
             bitSize      = 1,
             # Set to WO to avoid errors of read mismatch due to firmware forcing reg to zero to do a strobe
-            mode         = 'WO',
-            base         = pr.Bool,
+            function = pr.Command.touchOne
         ))
 
         self.add(pr.RemoteVariable(
@@ -70,7 +69,7 @@ class FcEmu(pr.Device):
             name         = 'FCrunStateSet',
             description  = 'Next FC Message Run State set value (subsequent messages retain this state)',
             offset       = 0x01C,
-            bitSize      = 6,
+            bitSize      = 5,
             mode         = 'RW',
         ))
 

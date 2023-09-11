@@ -38,18 +38,18 @@ class LdmxFebRoot(pr.Root):
             expand = True,
             numHybrids = 8))
 
-        @self.command()
-        def Trigger():
-            sideband.send(opCode=0x5A)
+#         @self.command()
+#         def Trigger():
+#             sideband.send(opCode=0x5A)
 
-        @self.command()
-        def RunStart():
-            sideband.send(opCode=0xF0)
+#         @self.command()
+#         def RunStart():
+#             sideband.send(opCode=0xF0)
 
-        @self.command()
-        def ApvClkAlign():
-            sideband.send(opCode=0xA5)
+#         @self.command()
+#         def ApvClkAlign():
+#             sideband.send(opCode=0xA5)
 
-        @self.command()
-        def ApvReset101():
-            sideband.send(opCode=0x1F)
+#         @self.command()
+#         def ApvReset101():
+#             sideband.send(opCode=0x1F)

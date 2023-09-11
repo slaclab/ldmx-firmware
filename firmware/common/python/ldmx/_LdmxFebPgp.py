@@ -1,3 +1,5 @@
+import ldmx
+
 import pyrogue as pr
 
 import surf.xilinx
@@ -16,9 +18,26 @@ class GtpWrapper(pr.Device):
             name = 'Qpll',
             offset = 0x1000,
             enabled = False))
+
+class LdmxFebPgpLane(pr.Device):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.add(surf.protocols.pgp.Pgp2fcAxi(
+            name='Pgp2Fc',
+            expand=False,
+            offset=0x0000))
+
+        # Add PgpMiscCtrl
+
+        self.add(surf.xilinx.Gtye4Channel(
+            name='GTY',
+            expand=False,
+            offset=0x10000))
+        
         
 
-class HpsFebPgp(pr.Device):
+class LdmxFebPgp(pr.Device):
     def __init__(self, sim=False, **kwargs):
         super().__init__(**kwargs)
 
@@ -27,19 +46,24 @@ class HpsFebPgp(pr.Device):
         longPoll = ['RxLinkErrorCount', 'RxLinkDownCount', 'RxCellErrorCount', 'RxFrameCount', 'RxFrameErrorCount', 'TxFrameCount']
 
         if sim is False:
-            self.add(surf.protocols.pgp.Pgp2fcAxi(
-                name='Pgp2Fc',
-                expand=False,
-                offset=0x0000))
 
-            self.add(GtpWrapper(
-                offset = 0x10000))
+            self.add(LdmxFebPgpLane(
+                name='SFP_PGP',
+                offset = 0x00_0000))
 
-            self.Pgp2Fc.setPollInterval(0) #, noPoll)
-            self.Pgp2Fc.setPollInterval(5, longPoll)
+            self.add(LdmxFebPgpLane(
+                name='QSFP_PGP',
+                offset = 0x10_0000))
+
+            self.add(LdmxFebPgpLane(
+                name='SAS_PGP',
+                offset = 0x20_0000))
+
+#            self.Pgp2Fc.setPollInterval(0) #, noPoll)
+#            self.Pgp2Fc.setPollInterval(5, longPoll)
 
         else:
 
             self.add(ldmx.FcEmu(
-                offset = 0x30000))
+                offset = 0x30_0000))
 

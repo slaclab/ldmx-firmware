@@ -112,7 +112,7 @@ architecture rtl of EventBuilder is
       eventErrorCount       : slv(15 downto 0);
       maxSampleCount        : slv(11 downto 0);
       maxRorsOutstanding    : slv(5 downto 0);
-      dataPathEn            : slv(3 downto 0);
+      dataPathEn            : slv(HYBRIDS_G-1 downto 0);
       sampleCount           : slv(11 downto 0);
       sampleCountLast       : slv(11 downto 0);
       peakOccupancy         : slv(11 downto 0);
