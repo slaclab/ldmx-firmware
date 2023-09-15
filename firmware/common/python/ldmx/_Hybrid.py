@@ -192,7 +192,7 @@ class Hybrid(pr.Device):
         ))
 
         @self.command()
-        def Configure(arg):
+        def Configure():
             #In theory this will enable and disable things properly
             print(f'{self.path}.Configure()')
             val = self.typeVar.get(read=False)
