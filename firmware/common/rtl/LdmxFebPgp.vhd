@@ -132,6 +132,9 @@ architecture rtl of LdmxFebPgp is
    signal pgpTxMasters : AxiStreamQuadMasterArray(2 downto 0) := (others => (others => AXI_STREAM_MASTER_INIT_C));
    signal pgpTxSlaves  : AxiStreamQuadSlaveArray(2 downto 0);
 
+   signal buffDataAxisMaster : AxiStreamMasterType;
+   signal buffDataAxisSlave  : AxiStreamSlaveType;
+
    -------------------------------------------------------------------------------------------------
    -- AXI-Lite
    -------------------------------------------------------------------------------------------------
@@ -395,36 +398,69 @@ begin
          mAxilReadSlave   => mAxilReadSlave);
 
    -- Lane 0, VC1 TX, streaming data out
+   -- Large synchronous FIFO to buffer data
    U_AxiStreamFifoV2_1 : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G                  => TPD_G,
          INT_PIPE_STAGES_G      => 1,
          PIPE_STAGES_G          => 1,
-         SLAVE_READY_EN_G       => ROGUE_SIM_EN_G,     -- Check his
+         SLAVE_READY_EN_G       => false,    -- Always use ctrl to EventBuilder
          VALID_THOLD_G          => 1,
          VALID_BURST_MODE_G     => false,
+--         SYNTH_MODE_G           => "xpm",
          MEMORY_TYPE_G          => "block",
          GEN_SYNC_FIFO_G        => true,
          CASCADE_SIZE_G         => 1,
          CASCADE_PAUSE_SEL_G    => 0,
-         FIFO_ADDR_WIDTH_G      => 10,                 --13,
+         FIFO_ADDR_WIDTH_G      => 13,
          FIFO_FIXED_THRESH_G    => true,
-         FIFO_PAUSE_THRESH_G    => 2**10-8,            --2**13-6200,
+         FIFO_PAUSE_THRESH_G    => 2**13-8,
          INT_WIDTH_SELECT_G     => "WIDE",
 --         INT_DATA_WIDTH_G       => INT_DATA_WIDTH_G,
+         LAST_FIFO_ADDR_WIDTH_G => 0,
+         SLAVE_AXI_CONFIG_G     => EVENT_SSI_CONFIG_C,
+         MASTER_AXI_CONFIG_G    => EVENT_SSI_CONFIG_C)
+      port map (
+         sAxisClk    => dataClk,             -- [in]
+         sAxisRst    => dataRst,             -- [in]
+         sAxisMaster => dataAxisMaster,      -- [in]
+         sAxisSlave  => dataAxisSlave,       -- [out]
+         sAxisCtrl   => dataAxisCtrl,        -- [out]
+         mAxisClk    => dataClk,             -- [in]
+         mAxisRst    => dataRst,             -- [in]
+         mAxisMaster => buffDataAxisMaster,  -- [out]
+         mAxisSlave  => buffDataAxisSlave);  -- [in]
+
+   -- Small async fifo to transition to PGPFC clock
+   -- and word size
+   U_AxiStreamFifoV2_2 : entity surf.AxiStreamFifoV2
+      generic map (
+         TPD_G                  => TPD_G,
+         INT_PIPE_STAGES_G      => 1,
+         PIPE_STAGES_G          => 1,
+         SLAVE_READY_EN_G       => true,
+         VALID_THOLD_G          => 1,
+         VALID_BURST_MODE_G     => false,
+--         SYNTH_MODE_G           => "xpm",
+         MEMORY_TYPE_G          => "distributed",
+         GEN_SYNC_FIFO_G        => false,
+         CASCADE_SIZE_G         => 1,
+         CASCADE_PAUSE_SEL_G    => 0,
+         FIFO_ADDR_WIDTH_G      => 5,
+         INT_WIDTH_SELECT_G     => "WIDE",
          LAST_FIFO_ADDR_WIDTH_G => 0,
          SLAVE_AXI_CONFIG_G     => EVENT_SSI_CONFIG_C,
          MASTER_AXI_CONFIG_G    => PGP2FC_AXIS_CONFIG_C)
       port map (
          sAxisClk    => dataClk,                       -- [in]
          sAxisRst    => dataRst,                       -- [in]
-         sAxisMaster => dataAxisMaster,                -- [in]
-         sAxisSlave  => dataAxisSlave,                 -- [out]
-         sAxisCtrl   => dataAxisCtrl,                  -- [out]
+         sAxisMaster => buffDataAxisMaster,            -- [in]
+         sAxisSlave  => buffDataAxisSlave,             -- [out]
          mAxisClk    => pgpTxClk(SFP_INDEX_C),         -- [in]
          mAxisRst    => pgpTxRst(SFP_INDEX_C),         -- [in]
          mAxisMaster => pgpTxMasters(SFP_INDEX_C)(1),  -- [out]
          mAxisSlave  => pgpTxSlaves(SFP_INDEX_C)(1));  -- [in]
+
 
 
 
