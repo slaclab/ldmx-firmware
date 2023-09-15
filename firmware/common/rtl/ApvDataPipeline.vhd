@@ -156,15 +156,15 @@ begin
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 4)                     -- Check this
       port map (
-         axisClk     => axilClk,                  -- [in]
-         axisRst     => axilRst,                  -- [in]
+         axisClk     => axilClk,                 -- [in]
+         axisRst     => axilRst,                 -- [in]
          sAxisMaster => apvFrameAxisMaster,      -- [in]
          sAxisSlave  => open,                    -- [out]
          mAxisMaster => buffApvFrameAxisMaster,  -- [out]
          mAxisSlave  => buffApvFrameAxisSlave);  -- [in]
 
-   -- Each trigger produces 6 APV frames from each APV
-   -- Group the data from all 6 frames by channel
+   -- Each trigger produces 3 APV frames from each APV
+   -- Group the data from all 3 frames by channel
    -- Needs 9 AXI address bits
    ApvDataFormatter_1 : entity ldmx.ApvDataFormatter
       generic map (
@@ -172,7 +172,7 @@ begin
          HYBRID_NUM_G    => HYBRID_NUM_G,
          APV_NUM_G       => APV_NUM_G,
          AXI_DEBUG_EN_G  => false,
-         AXI_BASE_ADDR_G => XBAR_CFG_C(0).baseAddr)  -- 8 address bits
+         AXI_BASE_ADDR_G => XBAR_CFG_C(0).baseAddr)  -- 9 address bits
       port map (
          axilClk            => axilClk,
          axilRst            => axilRst,
@@ -217,16 +217,19 @@ begin
 
    ----------------------------------------------------------------------------------------------
    -- Buffer data until it can be read by EventBuilder
+   -- Want to buffer a whole trigger/readout w/o threshold filters
+   -- 129 Multi-samples = 2**7
    ----------------------------------------------------------------------------------------------
    FILTERED_DATA_FIFO : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => true,
          MEMORY_TYPE_G   => "block",
+         SYNTH_MODE_G    => "xpm",
          FWFT_EN_G       => true,
          PIPE_STAGES_G   => 1,
          DATA_WIDTH_G    => MULTI_SAMPLE_LENGTH_C,
-         ADDR_WIDTH_G    => 7)          -- Want to buffer a whole frame w/o threshold filters
+         ADDR_WIDTH_G    => 7)
       port map (
          rst          => axilRst,
          wr_clk       => axilClk,
