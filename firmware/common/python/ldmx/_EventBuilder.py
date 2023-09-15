@@ -87,7 +87,7 @@ class EventBuilder(pr.Device):
         self.add(pr.RemoteVariable(
             name="SampleCount",
             offset=0xC,
-            bitSize=12,
+            bitSize=16,
             bitOffset=0,
             disp = '{:d}',
             mode='RO',
@@ -124,17 +124,17 @@ class EventBuilder(pr.Device):
         self.add(pr.RemoteVariable(
             name="MaxEventSize",
             offset=0x1C,
-            bitSize=12,
+            bitSize=16,
             bitOffset=0,
             disp = '{:d}',
             base=pr.UInt,
-            value=0xFFF))
+            value=0xFFFF))
 
         self.add(pr.RemoteVariable(
             name="DataPathEn",
-            offset=0x1C,
-            bitSize=4,
-            bitOffset=12,
+            offset=0x38,
+            bitSize=8,
+            bitOffset=0,
             base=pr.UInt,
             value=0xF))
 
@@ -163,7 +163,7 @@ class EventBuilder(pr.Device):
         self.add(pr.RemoteVariable(
             name="SampleCountLast",
             offset=0x24,
-            bitSize=12,
+            bitSize=16,
             bitOffset=0,
             disp = '{:d}',
             mode='RO',
@@ -220,7 +220,7 @@ class EventBuilder(pr.Device):
         self.add(pr.RemoteVariable(
             name="PeakOccupancy",
             offset=0x30,
-            bitSize=12,
+            bitSize=16,
             bitOffset=0,
             disp = '{:d}',
             mode='RO',
