@@ -26,7 +26,7 @@ package DataPathPkg is
       valid      : sl;
       head       : sl;
       tail       : sl;
-      data       : slv16Array(0 to 3);  -- 6 samples of data per trigger
+      data       : slv16Array(0 to 2);  -- 3 samples of data per trigger
       apvChannel : slv(6 downto 0);
       readError  : sl;
       filter     : sl;
