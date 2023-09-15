@@ -25,7 +25,6 @@ package LdmxPkg is
    constant APV_DATA_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(2, TKEEP_COMP_C);
 
    -- AXI-Stream configuration for DAQ events
-   -- 128 bits wide
    constant EVENT_SSI_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 10,
