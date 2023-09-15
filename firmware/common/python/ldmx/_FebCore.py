@@ -10,10 +10,6 @@ class FebCore(pr.Device):
 
         self.number = number
 
-        # AXI Version
-        self.add(surf.axi.AxiVersion(
-            expand=True,
-            offset=0x0000))
         
 
         # Feb Config

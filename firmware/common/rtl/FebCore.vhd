@@ -33,9 +33,7 @@ entity FebCore is
 
    generic (
       TPD_G             : time                 := 1 ns;
-      BUILD_INFO_G      : BuildInfoType        := BUILD_INFO_DEFAULT_SLV_C;
       SIMULATION_G      : boolean              := false;
-      XIL_DEVICE_G      : string               := "ULTRASCALE_PLUS";
       HYBRIDS_G         : integer range 1 to 8 := 8;
       APVS_PER_HYBRID_G : integer range 1 to 8 := 6;
       AXI_BASE_ADDR_G   : slv(31 downto 0)     := X"00000000");
@@ -199,29 +197,6 @@ begin
          mAxiWriteSlaves     => mainAxilWriteSlaves,
          mAxiReadMasters     => mainAxilReadMasters,
          mAxiReadSlaves      => mainAxilReadSlaves);
-
-   -------------------------------------------------------------------------------------------------
-   -- Put version info on AXI Bus
-   -------------------------------------------------------------------------------------------------
-   AxiVersion_1 : entity surf.AxiVersion
-      generic map (
-         TPD_G           => TPD_G,
-         BUILD_INFO_G    => BUILD_INFO_G,
-         DEVICE_ID_G     => X"FEB00000",
-         XIL_DEVICE_G    => XIL_DEVICE_G,
-         EN_DEVICE_DNA_G => true,
-         EN_DS2411_G     => false,
-         EN_ICAP_G       => true)
-      port map (
-         axiClk         => axilClk,
-         axiRst         => axilRst,
-         axiReadMaster  => mainAxilReadMasters(AXI_VERSION_INDEX_C),
-         axiReadSlave   => mainAxilReadSlaves(AXI_VERSION_INDEX_C),
-         axiWriteMaster => mainAxilWriteMasters(AXI_VERSION_INDEX_C),
-         axiWriteSlave  => mainAxilWriteSlaves(AXI_VERSION_INDEX_C),
-         fpgaReload     => open,
-         fpgaReloadAddr => open,
-         fdSerSdio      => open);
 
    -------------------------------------------------------------------------------------------------
    -- Generate APV clock from distributed FC clock

@@ -10,20 +10,26 @@ class LdmxFebHw(pr.Device):
     def __init__(self, numHybrids, febCore, **kwargs):
         super().__init__(**kwargs)
 
+        # AXI Version
+        self.add(surf.axi.AxiVersion(
+            expand=True,
+            offset=0x0000))
+        
+
         self.add(surf.xilinx.ClockManager(
             name = 'HybridClockPhaseA',
-            offset = 0x0000,
+            offset = 0x1000,
             type = 'MMCME4'))
 
         self.add(surf.xilinx.ClockManager(
             name = 'HybridClockPhaseB',
-            offset = 0x1000,
+            offset = 0x2000,
             type = 'MMCME4'))
         
 
         self.add(surf.xilinx.ClockManager(
             name = 'AdcClockPhase',
-            offset = 0x2000,
+            offset = 0x3000,
             type = 'MMCME4'))
 
         # Loc I2C Bus
@@ -63,7 +69,8 @@ class LdmxFebHw(pr.Device):
 
         self.add(surf.devices.micron.AxiMicronN25Q(
             enabled = False,
-            offset = 0x3000))
+            hidden = True,
+            offset = 0x6000))
 
         self.add(ldmx.LdmxHybridPowerI2c(
             name = f'HybridPowerArray',

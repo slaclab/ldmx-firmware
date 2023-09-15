@@ -37,7 +37,9 @@ entity LdmxFebHw is
 
    generic (
       TPD_G             : time                 := 1 ns;
+      BUILD_INFO_G      : BuildInfoType        := BUILD_INFO_DEFAULT_SLV_C;
       SIMULATION_G      : boolean              := false;
+      XIL_DEVICE_G      : string               := "ULTRASCALE_PLUS";      
       ADCS_G            : integer range 1 to 4 := 4;
       HYBRIDS_G         : integer range 1 to 8 := 8;
       APVS_PER_HYBRID_G : integer range 1 to 8 := 6;
@@ -145,39 +147,40 @@ architecture rtl of LdmxFebHw is
    -------------------------------------------------------------------------------------------------
    constant AXIL_CLK_FREQ_C : real := 1.0/AXIL_CLK_FREQ_G;
 
-   constant MAIN_XBAR_MASTERS_C : natural := 13;
+   constant MAIN_XBAR_MASTERS_C : natural := 14;
 
    -- Module AXI Addresses
-   constant AXIL_HYBRID_A_CLOCK_PHASE_INDEX_C : natural := 0;
-   constant AXIL_HYBRID_B_CLOCK_PHASE_INDEX_C : natural := 1;
-   constant AXIL_ADC_CLOCK_PHASE_INDEX_C      : natural := 2;
-   constant AXIL_LOC_I2C_INDEX_C              : natural := 3;
-   constant AXIL_SFP_I2C_INDEX_C              : natural := 4;
-   constant AXIL_QSFP_I2C_INDEX_C             : natural := 5;
-   constant AXIL_SYSMON_INDEX_C               : natural := 6;
-   constant AXIL_PROM_INDEX_C                 : natural := 7;
-   constant AXIL_HY_PWR_I2C_INDEX_C           : natural := 8;
-   constant AXIL_DIG_PM_INDEX_C               : natural := 9;
-   constant AXIL_ANA_PM_INDEX_C               : natural := 10;
-   constant AXIL_ADC_READOUT_INDEX_C          : natural := 11;
-   constant AXIL_ADC_CONFIG_INDEX_C           : natural := 12;
+   constant AXIL_VERSION_INDEX_C              : natural := 0;
+   constant AXIL_HYBRID_A_CLOCK_PHASE_INDEX_C : natural := 1;
+   constant AXIL_HYBRID_B_CLOCK_PHASE_INDEX_C : natural := 2;
+   constant AXIL_ADC_CLOCK_PHASE_INDEX_C      : natural := 3;
+   constant AXIL_LOC_I2C_INDEX_C              : natural := 4;
+   constant AXIL_SFP_I2C_INDEX_C              : natural := 5;
+   constant AXIL_QSFP_I2C_INDEX_C             : natural := 6;
+   constant AXIL_SYSMON_INDEX_C               : natural := 7;
+   constant AXIL_PROM_INDEX_C                 : natural := 8;
+   constant AXIL_HY_PWR_I2C_INDEX_C           : natural := 9;
+   constant AXIL_DIG_PM_INDEX_C               : natural := 10;
+   constant AXIL_ANA_PM_INDEX_C               : natural := 11;
+   constant AXIL_ADC_READOUT_INDEX_C          : natural := 12;
+   constant AXIL_ADC_CONFIG_INDEX_C           : natural := 13;
 
    constant MAIN_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(MAIN_XBAR_MASTERS_C-1 downto 0) := (
-      AXIL_HYBRID_A_CLOCK_PHASE_INDEX_C => (    -- Hybrid (APV) Clock Phase Adjustment
+      AXIL_VERSION_INDEX_C              => (
          baseAddr                       => AXIL_BASE_ADDR_G + X"0000",
-         addrBits                       => 9,
+         addrBits                       => 12,
          connectivity                   => X"0001"),
-      AXIL_HYBRID_B_CLOCK_PHASE_INDEX_C => (    -- Hybrid (APV) Clock Phase Adjustment
+      AXIL_HYBRID_A_CLOCK_PHASE_INDEX_C => (    -- Hybrid (APV) Clock Phase Adjustment
          baseAddr                       => AXIL_BASE_ADDR_G + X"1000",
          addrBits                       => 9,
          connectivity                   => X"0001"),
-      AXIL_ADC_CLOCK_PHASE_INDEX_C      => (    -- ADC Clock Phase Adjustment
+      AXIL_HYBRID_B_CLOCK_PHASE_INDEX_C => (    -- Hybrid (APV) Clock Phase Adjustment
          baseAddr                       => AXIL_BASE_ADDR_G + X"2000",
          addrBits                       => 9,
          connectivity                   => X"0001"),
-      AXIL_LOC_I2C_INDEX_C              => (    -- Board I2C Interface
-         baseAddr                       => AXIL_BASE_ADDR_G + X"10_0000",
-         addrBits                       => 20,
+      AXIL_ADC_CLOCK_PHASE_INDEX_C      => (    -- ADC Clock Phase Adjustment
+         baseAddr                       => AXIL_BASE_ADDR_G + X"3000",
+         addrBits                       => 9,
          connectivity                   => X"0001"),
       AXIL_SFP_I2C_INDEX_C              => (    -- Board I2C Interface
          baseAddr                       => AXIL_BASE_ADDR_G + X"4000",
@@ -187,13 +190,13 @@ architecture rtl of LdmxFebHw is
          baseAddr                       => AXIL_BASE_ADDR_G + X"5000",
          addrBits                       => 12,
          connectivity                   => X"0001"),
+      AXIL_PROM_INDEX_C                 => (
+         baseAddr                       => AXIL_BASE_ADDR_G + X"6000",
+         addrBits                       => 10,
+         connectivity                   => X"0001"),
       AXIL_SYSMON_INDEX_C               => (
          baseAddr                       => AXIL_BASE_ADDR_G + X"1_0000",
          addrBits                       => 13,
-         connectivity                   => X"0001"),
-      AXIL_PROM_INDEX_C                 => (
-         baseAddr                       => AXIL_BASE_ADDR_G + X"3000",
-         addrBits                       => 10,
          connectivity                   => X"0001"),
       AXIL_HY_PWR_I2C_INDEX_C           => (
          baseAddr                       => AXIL_BASE_ADDR_G + X"2_0000",
@@ -214,6 +217,10 @@ architecture rtl of LdmxFebHw is
       AXIL_ADC_CONFIG_INDEX_C           => (
          baseAddr                       => AXIL_BASE_ADDR_G + X"6_0000",
          addrBits                       => 16,
+         connectivity                   => X"0001"),
+      AXIL_LOC_I2C_INDEX_C              => (    -- Board I2C Interface
+         baseAddr                       => AXIL_BASE_ADDR_G + X"10_0000",
+         addrBits                       => 20,
          connectivity                   => X"0001"));
 
 --       SEM_AXIL_INDEX_C      => (
@@ -318,9 +325,34 @@ begin
          mAxiReadMasters     => adcConfigAxilReadMasters,
          mAxiReadSlaves      => adcConfigAxilReadSlaves);
 
---    -------------------------------------------------------------------------------------------------
---    -- Clock Phase Shifts
---    -------------------------------------------------------------------------------------------------
+   -------------------------------------------------------------------------------------------------
+   -- Put version info on AXI Bus
+   -------------------------------------------------------------------------------------------------
+   AxiVersion_1 : entity surf.AxiVersion
+      generic map (
+         TPD_G           => TPD_G,
+         BUILD_INFO_G    => BUILD_INFO_G,
+         DEVICE_ID_G     => X"FEB00000",
+         XIL_DEVICE_G    => XIL_DEVICE_G,
+         EN_DEVICE_DNA_G => true,
+         EN_DS2411_G     => false,
+         EN_ICAP_G       => true)
+      port map (
+         axiClk         => axilClk,
+         axiRst         => axilRst,
+         axiReadMaster  => mainAxilReadMasters(AXIL_VERSION_INDEX_C),
+         axiReadSlave   => mainAxilReadSlaves(AXIL_VERSION_INDEX_C),
+         axiWriteMaster => mainAxilWriteMasters(AXIL_VERSION_INDEX_C),
+         axiWriteSlave  => mainAxilWriteSlaves(AXIL_VERSION_INDEX_C),
+         fpgaReload     => open,
+         fpgaReloadAddr => open,
+         fdSerSdio      => open);
+
+
+
+   -------------------------------------------------------------------------------------------------
+   -- Clock Phase Shifts
+   -------------------------------------------------------------------------------------------------
    U_ClockManagerUltraScale_HY_A : entity surf.ClockManagerUltraScale
       generic map (
          TPD_G              => TPD_G,

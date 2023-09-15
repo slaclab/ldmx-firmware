@@ -368,7 +368,6 @@ begin
       generic map (
          TPD_G             => TPD_G,
          SIMULATION_G      => SIMULATION_G,
-         XIL_DEVICE_G      => "ULTRASCALE_PLUS",
          HYBRIDS_G         => HYBRIDS_G,
          APVS_PER_HYBRID_G => APVS_PER_HYBRID_G,
          AXI_BASE_ADDR_G   => MAIN_XBAR_CFG_C(FEB_CORE_AXI_INDEX_C).baseAddr)
@@ -402,7 +401,9 @@ begin
    U_LdmxFebHw_1 : entity ldmx.LdmxFebHw
       generic map (
          TPD_G             => TPD_G,
+         BUILD_INFO_G      => BUILD_INFO_G,
          SIMULATION_G      => SIMULATION_G,
+         XIL_DEVICE_G      => "ULTRASCALE_PLUS",
          ADCS_G            => ADCS_G,
          HYBRIDS_G         => HYBRIDS_G,
          APVS_PER_HYBRID_G => APVS_PER_HYBRID_G,
