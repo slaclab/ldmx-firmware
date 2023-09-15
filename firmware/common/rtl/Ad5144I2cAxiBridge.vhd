@@ -28,13 +28,10 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 entity Ad5144SpiAxiBridge is
-   
-   generic (
-      TPD_G             : time                  := 1 ns;
-      NUM_CHIPS_G       : positive range 1 to 8 := 4;
-      AXI_CLK_PERIOD_G  : real                  := 8.0E-9;
-      SPI_SCLK_PERIOD_G : real                  := 1.0E-6);
 
+   generic (
+      TPD_G      : time            := 1 ns;
+      I2C_ADDR_G : slv(6 downto 0) := "0100000");
    port (
       axiClk : in sl;
       axiRst : in sl;
@@ -44,17 +41,19 @@ entity Ad5144SpiAxiBridge is
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
 
-      spiCsL  : out slv(NUM_CHIPS_G-1 downto 0);
-      spiSclk : out sl;
-      spiSdi  : out sl;
-      spiSdo  : in  sl);
+      i2cRegMasterIn  : out I2cRegMasterInType;
+      i2cRegMasterOut : in  I2cRegMasterOutType);
 
 end entity Ad5144SpiAxiBridge;
 
 architecture rtl of Ad5144SpiAxiBridge is
 
-   constant DATA_SIZE_C : natural := 16;
-
+   constant I2C_CONFIG_C : I2cAxiLiteDevType := MakeI2cAxiLiteDevType(
+      i2cAddress  => I2C_ADDR_G;
+      dataSize    => 8,
+      addrSize    => 8,
+      endianness  => '1',
+      repeatStart => '1');
 
    constant CMD_NOP_C        : slv(3 downto 0) := "0000";
    constant CMD_WR_RDAC_C    : slv(3 downto 0) := "0001";
@@ -71,148 +70,121 @@ architecture rtl of Ad5144SpiAxiBridge is
    constant RDBACK_SRC_CTRLREG_C : slv(1 downto 0) := "10";
    constant RDBACK_SRC_RDAC_C    : slv(1 downto 0) := "11";
 
-   type StateType is (WAIT_AXI_TXN_S, WRITE_SPI_S, READ_SPI_S);
-
    type RegType is record
       axiWriteSlave : AxiLiteWriteSlaveType;
       axiReadSlave  : AxiLiteReadSlaveType;
-      state         : StateType;
-      hold          : sl;
-      wrTxn         : sl;
-      wrEn          : sl;
-      chipSel       : slv(log2(NUM_CHIPS_G)-1 downto 0);
-      wrData        : slv(15 downto 0);
+      regIn         : I2cRegMasterInType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-      axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      state         => WAIT_AXI_TXN_S,
-      hold          => '0',
-      wrTxn         => '0',
-      wrEn          => '0',
-      chipSel       => (others => '0'),
-      wrData        => (others => '0'));
+      axiWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
+      axiReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
+      regIn          => (
+         i2cAddress  => I2C_CONFIG_C.i2cAddress,
+         tenbit      => '0',
+         regAddrSize => "00",
+         regDataSize => "00",
+         regAddrSize => '0',
+         endianness  => '1',
+         repeatStart => '1',
+         wrDataOnRd  => '1'));
+
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal rdEn   : sl;
-   signal rdData : slv(15 downto 0);
-
 begin
 
-   comb : process (axiRst, axiReadMaster, axiWriteMaster, r, rdData, rdEn) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, i2cRegMasterOut, r) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
       v := r;
 
-      v.wrEn := '0';
-
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
-      case (r.state) is
-         when WAIT_AXI_TXN_S =>
-            v.hold := '0';
-            if (axiStatus.writeEnable = '1') then
-               -- Select chip by upper address bits
-               v.chipSel := axiWriteMaster.awaddr(log2(NUM_CHIPS_G)-1+10 downto 10);
-               v.wrTxn   := '1';
-               v.wrEn    := '1';
-               v.wrData  := (others => '0');
-               v.state   := WRITE_SPI_S;
+      if (axiStatus.writeEnable = '1') then
+         v.regIn.regReq := '1';
+         v.regIn.regOp  := '1';
 
-               -- Decode Register, POT number is bits 1:0
-               case (axiWriteMaster.awaddr(6 downto 4)) is
-                  
-                  when "000" =>         -- RDAC ACCESS
-                     v.wrData(15 downto 12) := CMD_WR_RDAC_C;
-                     v.wrData(11 downto 8)  := "00" & axiWriteMaster.awaddr(3 downto 2);
-                     v.wrData(7 downto 0)   := axiWriteMaster.wdata(7 downto 0);
+         -- Decode Register, POT number is bits 3:2
+         case (axiWriteMaster.awaddr(6 downto 4)) is
 
-                  when "001" =>         -- EEPROM Access
-                     v.wrData(15 downto 12) := CMD_WR_EEPROM_C;
-                     v.wrData(11 downto 8)  := "00" & axiWriteMaster.awaddr(3 downto 2);
-                     v.wrData(7 downto 0)   := axiWriteMaster.wdata(7 downto 0);
+            when "000" =>               -- RDAC ACCESS
+               v.regIn.regAddr(7 downto 4) := CMD_WR_RDAC_C;
+               v.regIn.regAddr(3 downto 0) := "00" & axiWriteMaster.awaddr(3 downto 2);
+               v.regIn.regData(7 downto 0) := axiWriteMaster.wdata(7 downto 0);
 
-                  when "010" =>         -- INPUT Access
-                     v.wrData(15 downto 12) := CMD_WR_INP_C;
-                     v.wrData(11 downto 8)  := "00" & axiWriteMaster.awaddr(3 downto 2);
-                     v.wrData(7 downto 0)   := axiWriteMaster.wdata(7 downto 0);
+            when "001" =>               -- EEPROM Access
+               v.regIn.regAddr(7 downto 4) := CMD_WR_EEPROM_C;
+               v.regIn.regAddr(3 downto 0) := "00" & axiWriteMaster.awaddr(3 downto 2);
+               v.regIn.regData(7 downto 0) := axiWriteMaster.wdata(7 downto 0);
 
-                  when "011" =>         -- Copy Access
-                     v.wrData(15 downto 12) := CMD_CPY_C;
-                     v.wrData(11 downto 8)  := "00" & axiWriteMaster.awaddr(3 downto 2);
-                     v.wrData(0)            := axiWriteMaster.wdata(0);  -- 0 = RDAC->EEPROM, 1 = EEPROM->RDAC
+            when "010" =>               -- INPUT Access
+               v.regIn.regAddr(7 downto 4) := CMD_WR_INP_C;
+               v.regIn.regAddr(3 downto 0) := "00" & axiWriteMaster.awaddr(3 downto 2);
+               v.regIn.regData(7 downto 0) := axiWriteMaster.wdata(7 downto 0);
 
-                  when "100" =>         -- LRDAC Access
-                     v.wrData(15 downto 12) := CMD_LRDAC_C;
-                     v.wrData(11 downto 8)  := axiWriteMaster.wdata(3 downto 0);
+            when "011" =>               -- Copy Access
+               v.regIn.regAddr(7 downto 4) := CMD_CPY_C;
+               v.regIn.regAddr(3 downto 0) := "00" & axiWriteMaster.awaddr(3 downto 2);
+               v.regIn.regData(0)          := axiWriteMaster.wdata(0);  -- 0 = RDAC->EEPROM, 1 = EEPROM->RDAC
 
-                  when "101" =>         -- CTRLREG
-                     v.wrData(15 downto 12) := CMD_WR_CTRLREG_C;
-                     v.wrData(3 downto 0)   := axiWriteMaster.wdata(3 downto 0);
+            when "100" =>               -- LRDAC Access
+               v.regIn.regAddr(7 downto 4) := CMD_LRDAC_C;
+               v.regIn.regAddr(3 downto 0) := axiWriteMaster.wdata(3 downto 0);
 
-                  when "110" =>         -- Software reset
-                     v.wrData(15 downto 12) := CMD_SOFT_RESET_C;
+            when "101" =>               -- CTRLREG
+               v.regIn.regAddr(7 downto 4) := CMD_WR_CTRLREG_C;
+               v.regIn.regData(3 downto 0) := axiWriteMaster.wdata(3 downto 0);
 
-                  when others =>
-                     v.wrData(15 downto 12) := CMD_NOP_C;
-               end case;
+            when "110" =>               -- Software reset
+               v.regIn.regAddr(7 downto 4) := CMD_SOFT_RESET_C;
 
-            -- READ
-            elsif (axiStatus.readEnable = '1') then
-               v.chipSel := axiReadMaster.araddr(log2(NUM_CHIPS_G)-1+10 downto 10);
-               v.wrTxn   := '0';
-               v.wrEn    := '1';
-               v.state   := WRITE_SPI_S;
+            when others =>
+               v.regIn.regAddr(7 downto 4) := CMD_NOP_C;
+         end case;
 
-               v.wrData(15 downto 12) := CMD_RDBACK_C;
-               v.wrData(11 downto 8)  := "00" & axiReadMaster.araddr(3 downto 2);
-               v.wrData(7 downto 0)   := (others => '0');
+      -- READ
+      elsif (axiStatus.readEnable = '1') then
+         v.regIn.regReq := '1';
+         v.regIn.regOp  := '0';
 
-               case (axiReadMaster.araddr(6 downto 4)) is
-                  when "000" =>         -- RDAC ACCESS
-                     v.wrData(1 downto 0) := "11";
-                  when "001" =>         -- EEPROM ACCESS
-                     v.wrData(1 downto 0) := "01";
-                  when "010" =>         -- INPUT ACCESS
-                     v.wrData(1 downto 0) := "00";
-                  when "101" =>         -- CTRLREG
-                     v.wrData(1 downto 0) := "10";
-                  when others =>
-                     -- Could just return zero right away if reading unreadable register
-                     -- But this makes the state machine a bit simpler
-                     v.wrData(15 downto 12) := CMD_NOP_C;
-                     v.wrData(11 downto 0)  := (others => '0');
-               end case;
+         v.regIn.regAddr(7 downto 4) := CMD_RDBACK_C;
+         v.regIn.regAddr(3 downto 0) := "00" & axiReadMaster.araddr(3 downto 2);
+         v.regIn.regData(7 downto 0) := (others => '0');
+
+         case (axiReadMaster.araddr(6 downto 4)) is
+            when "000" =>               -- RDAC ACCESS
+               v.regIn.regData(1 downto 0) := "11";
+            when "001" =>               -- EEPROM ACCESS
+               v.regIn.regData(1 downto 0) := "01";
+            when "010" =>               -- INPUT ACCESS
+               v.regIn.regData(1 downto 0) := "00";
+            when "101" =>               -- CTRLREG
+               v.regIn.regData(1 downto 0) := "10";
+            when others =>
+               -- Could just return zero right away if reading unreadable register
+               -- But this makes the state machine a bit simpler
+               v.regIn.regAddr(7 downto 4) := CMD_NOP_C;
+               v.regIn.regData(7 downto 0) := (others => '0');
+         end case;
+      end if;
+
+      if (i2cRegMasterOut.regAck = '1' and r.regIn.regReq = '1') then
+         v.regIn.regReq := '0';
+         axiResp        := ite(i2cRegMasterOut.regFail = '1', AXI_RESP_SLVERR_C, AXI_RESP_OK_C);
+         if (r.regIn.regOp = '1') then
+            axiSlaveWriteResponse(v.axiWriteSlave, axiResp);
+         else
+            v.axiReadSlave.rdata := i2cRegMasterOut.regRdData;
+            if (i2cRegMasterOut.regFail = '1') then
+               v.axiReadSlave.rdata := X"000000" & i2cRegMasterOut.regFailCode;
             end if;
+            axiSlaveReadResponse(v.axiReadSlave, axiResp);
+         end if;
+      end if;
 
-         when WRITE_SPI_S =>
-            v.hold := '1';
-            if (r.hold = '1' and rdEn = '1') then
-               v.hold := '0';
-               if (r.wrTxn = '1') then
-                  axiSlaveWriteResponse(v.axiWriteSlave);
-                  v.state := WAIT_AXI_TXN_S;
-               else
-                  -- Do a NOP write to read back the result
-                  v.wrData(15 downto 12) := CMD_NOP_C;
-                  v.wrEn                 := '1';
-                  v.state                := READ_SPI_S;
-               end if;
-            end if;
-
-         when READ_SPI_S =>
-            v.hold := '1';
-            if (r.hold = '1' and rdEn = '1') then
-               v.axiReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
-               axiSlaveReadResponse(v.axiReadSlave);
-               v.state                          := WAIT_AXI_TXN_S;
-            end if;
-
-      end case;
 
       if (axiRst = '1') then
          v := REG_INIT_C;
@@ -222,7 +194,7 @@ begin
 
       axiWriteSlave <= r.axiWriteSlave;
       axiReadSlave  <= r.axiReadSlave;
-      
+
    end process comb;
 
    seq : process (axiClk) is
@@ -232,26 +204,5 @@ begin
       end if;
    end process seq;
 
-   SpiMaster_1 : entity surf.SpiMaster
-      generic map (
-         TPD_G             => TPD_G,
-         NUM_CHIPS_G       => NUM_CHIPS_G,
-         DATA_SIZE_G       => 16,
-         CPHA_G            => '0',      -- Sample on leading edge
-         CPOL_G            => '1',      -- Sample on falling edge
-         CLK_PERIOD_G      => AXI_CLK_PERIOD_G,
-         SPI_SCLK_PERIOD_G => SPI_SCLK_PERIOD_G)
-      port map (
-         clk     => axiClk,
-         sRst    => axiRst,
-         chipSel => r.chipSel,
-         wrEn    => r.wrEn,
-         wrData  => r.wrData,
-         rdEn    => rdEn,
-         rdData  => rdData,
-         spiCsL  => spiCsL,
-         spiSclk => spiSclk,
-         spiSdi  => spiSdi,
-         spiSdo  => spiSdo);
 
 end architecture rtl;
