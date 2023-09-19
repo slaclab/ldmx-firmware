@@ -25,3 +25,4 @@ from ldmx._AdcReadout import *
 from ldmx._AdcConfig import *
 from ldmx._LdmxFebPgp import *
 from ldmx._FcEmu import *
+from ldmx._PhaseShift import *
