@@ -26,8 +26,9 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
+use surf.I2cPkg.all;
 
-entity Ad5144SpiAxiBridge is
+entity Ad5144I2cAxiBridge is
 
    generic (
       TPD_G      : time            := 1 ns;
@@ -44,12 +45,12 @@ entity Ad5144SpiAxiBridge is
       i2cRegMasterIn  : out I2cRegMasterInType;
       i2cRegMasterOut : in  I2cRegMasterOutType);
 
-end entity Ad5144SpiAxiBridge;
+end entity Ad5144I2cAxiBridge;
 
-architecture rtl of Ad5144SpiAxiBridge is
+architecture rtl of Ad5144I2cAxiBridge is
 
    constant I2C_CONFIG_C : I2cAxiLiteDevType := MakeI2cAxiLiteDevType(
-      i2cAddress  => I2C_ADDR_G;
+      i2cAddress  => I2C_ADDR_G,
       dataSize    => 8,
       addrSize    => 8,
       endianness  => '1',
@@ -80,11 +81,16 @@ architecture rtl of Ad5144SpiAxiBridge is
       axiWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
       axiReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       regIn          => (
-         i2cAddress  => I2C_CONFIG_C.i2cAddress,
+         i2cAddr     => I2C_CONFIG_C.i2cAddress,
          tenbit      => '0',
+         regAddr     => (others => '0'),
+         regWrData   => (others => '0'),
+         regOp       => '0',
+         regAddrSkip => '0',
          regAddrSize => "00",
          regDataSize => "00",
-         regAddrSize => '0',
+         regReq      => '0',
+         busReq      => '0',
          endianness  => '1',
          repeatStart => '1',
          wrDataOnRd  => '1'));
@@ -98,6 +104,7 @@ begin
    comb : process (axiReadMaster, axiRst, axiWriteMaster, i2cRegMasterOut, r) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
+      variable axiResp   : slv(1 downto 0);      
    begin
       v := r;
 
@@ -111,32 +118,32 @@ begin
          case (axiWriteMaster.awaddr(6 downto 4)) is
 
             when "000" =>               -- RDAC ACCESS
-               v.regIn.regAddr(7 downto 4) := CMD_WR_RDAC_C;
-               v.regIn.regAddr(3 downto 0) := "00" & axiWriteMaster.awaddr(3 downto 2);
-               v.regIn.regData(7 downto 0) := axiWriteMaster.wdata(7 downto 0);
+               v.regIn.regAddr(7 downto 4)   := CMD_WR_RDAC_C;
+               v.regIn.regAddr(3 downto 0)   := "00" & axiWriteMaster.awaddr(3 downto 2);
+               v.regIn.regWrData(7 downto 0) := axiWriteMaster.wdata(7 downto 0);
 
             when "001" =>               -- EEPROM Access
-               v.regIn.regAddr(7 downto 4) := CMD_WR_EEPROM_C;
-               v.regIn.regAddr(3 downto 0) := "00" & axiWriteMaster.awaddr(3 downto 2);
-               v.regIn.regData(7 downto 0) := axiWriteMaster.wdata(7 downto 0);
+               v.regIn.regAddr(7 downto 4)   := CMD_WR_EEPROM_C;
+               v.regIn.regAddr(3 downto 0)   := "00" & axiWriteMaster.awaddr(3 downto 2);
+               v.regIn.regWrData(7 downto 0) := axiWriteMaster.wdata(7 downto 0);
 
             when "010" =>               -- INPUT Access
-               v.regIn.regAddr(7 downto 4) := CMD_WR_INP_C;
-               v.regIn.regAddr(3 downto 0) := "00" & axiWriteMaster.awaddr(3 downto 2);
-               v.regIn.regData(7 downto 0) := axiWriteMaster.wdata(7 downto 0);
+               v.regIn.regAddr(7 downto 4)   := CMD_WR_INP_C;
+               v.regIn.regAddr(3 downto 0)   := "00" & axiWriteMaster.awaddr(3 downto 2);
+               v.regIn.regWrData(7 downto 0) := axiWriteMaster.wdata(7 downto 0);
 
             when "011" =>               -- Copy Access
                v.regIn.regAddr(7 downto 4) := CMD_CPY_C;
                v.regIn.regAddr(3 downto 0) := "00" & axiWriteMaster.awaddr(3 downto 2);
-               v.regIn.regData(0)          := axiWriteMaster.wdata(0);  -- 0 = RDAC->EEPROM, 1 = EEPROM->RDAC
+               v.regIn.regWrData(0)        := axiWriteMaster.wdata(0);  -- 0 = RDAC->EEPROM, 1 = EEPROM->RDAC
 
             when "100" =>               -- LRDAC Access
                v.regIn.regAddr(7 downto 4) := CMD_LRDAC_C;
                v.regIn.regAddr(3 downto 0) := axiWriteMaster.wdata(3 downto 0);
 
             when "101" =>               -- CTRLREG
-               v.regIn.regAddr(7 downto 4) := CMD_WR_CTRLREG_C;
-               v.regIn.regData(3 downto 0) := axiWriteMaster.wdata(3 downto 0);
+               v.regIn.regAddr(7 downto 4)   := CMD_WR_CTRLREG_C;
+               v.regIn.regWrData(3 downto 0) := axiWriteMaster.wdata(3 downto 0);
 
             when "110" =>               -- Software reset
                v.regIn.regAddr(7 downto 4) := CMD_SOFT_RESET_C;
@@ -150,24 +157,24 @@ begin
          v.regIn.regReq := '1';
          v.regIn.regOp  := '0';
 
-         v.regIn.regAddr(7 downto 4) := CMD_RDBACK_C;
-         v.regIn.regAddr(3 downto 0) := "00" & axiReadMaster.araddr(3 downto 2);
-         v.regIn.regData(7 downto 0) := (others => '0');
+         v.regIn.regAddr(7 downto 4)   := CMD_RDBACK_C;
+         v.regIn.regAddr(3 downto 0)   := "00" & axiReadMaster.araddr(3 downto 2);
+         v.regIn.regWrData(7 downto 0) := (others => '0');
 
          case (axiReadMaster.araddr(6 downto 4)) is
             when "000" =>               -- RDAC ACCESS
-               v.regIn.regData(1 downto 0) := "11";
+               v.regIn.regWrData(1 downto 0) := "11";
             when "001" =>               -- EEPROM ACCESS
-               v.regIn.regData(1 downto 0) := "01";
+               v.regIn.regWrData(1 downto 0) := "01";
             when "010" =>               -- INPUT ACCESS
-               v.regIn.regData(1 downto 0) := "00";
+               v.regIn.regWrData(1 downto 0) := "00";
             when "101" =>               -- CTRLREG
-               v.regIn.regData(1 downto 0) := "10";
+               v.regIn.regWrData(1 downto 0) := "10";
             when others =>
                -- Could just return zero right away if reading unreadable register
                -- But this makes the state machine a bit simpler
-               v.regIn.regAddr(7 downto 4) := CMD_NOP_C;
-               v.regIn.regData(7 downto 0) := (others => '0');
+               v.regIn.regAddr(7 downto 4)   := CMD_NOP_C;
+               v.regIn.regWrData(7 downto 0) := (others => '0');
          end case;
       end if;
 
@@ -191,6 +198,8 @@ begin
       end if;
 
       rin <= v;
+
+      i2cRegMasterIn <= r.regIn;
 
       axiWriteSlave <= r.axiWriteSlave;
       axiReadSlave  <= r.axiReadSlave;

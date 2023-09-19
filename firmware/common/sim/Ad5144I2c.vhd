@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-27
--- Last update: 2014-05-15
+-- Last update: 2023-09-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -109,6 +109,7 @@ begin
          FILTER_G             => 2,
          ADDR_SIZE_G          => 1,
          DATA_SIZE_G          => 1,
+         ADDR_AUTO_INC_G      => false,
          ENDIANNESS_G         => 0)
       port map (
          aRst   => rst,
@@ -171,20 +172,18 @@ begin
             end if;
 
          when CMD_RDBACK_C =>
-            if (i2cRdEn = '1') then
-               case data(1 downto 0) is
-                  when "00" =>          -- Read Input Reg
-                     v.rdData(7 downto 0) := r.inp(addressIndex);
-                  when "01" =>          -- Read EERPOM
-                     v.rdData(7 downto 0) := r.eeprom(addressIndex);
-                  when "10" =>          -- READ control reg
-                     v.rdData(7 downto 0) := "0000" & r.control;
-                  when "11" =>          -- Read RDAC
-                     v.rdData(7 downto 0) := r.rdac(addressIndex);
-                  when others =>
-                     v.rdData(7 downto 0) := (others => '0');
-               end case;
-            end if;
+            case data(1 downto 0) is
+               when "00" =>             -- Read Input Reg
+                  v.rdData(7 downto 0) := r.inp(addressIndex);
+               when "01" =>             -- Read EERPOM
+                  v.rdData(7 downto 0) := r.eeprom(addressIndex);
+               when "10" =>             -- READ control reg
+                  v.rdData(7 downto 0) := "0000" & r.control;
+               when "11" =>             -- Read RDAC
+                  v.rdData(7 downto 0) := r.rdac(addressIndex);
+               when others =>
+                  v.rdData(7 downto 0) := (others => '0');
+            end case;
 
          when CMD_LRDAC_C =>
             if (i2cWrEn = '1') then
