@@ -6,7 +6,7 @@ from ldmx._LdmxFebRoot import *
 from ldmx._LdmxFeb import *
 from ldmx._FebCore import *
 from ldmx._FebConfig import *
-from ldmx._DaqTiming import *
+from ldmx._FebFcRx import *
 from ldmx._EventBuilder import *
 from ldmx._Hybrid import *
 from ldmx._Apv25 import *

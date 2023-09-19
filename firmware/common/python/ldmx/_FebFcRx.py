@@ -1,6 +1,6 @@
 import pyrogue as pr
 
-class DaqTiming(pr.Device):
+class FebFcRx(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -32,3 +32,17 @@ class DaqTiming(pr.Device):
             bitSize=16,
             mode='RO',
             disp='{:d}'))
+
+        self.add(pr.RemoteVariable(
+            name = 'LastTimingMessage',
+            offset = 0x10,
+            bitSize = 80,
+            bitOffset = 0,
+            base = pr.UInt))
+
+        self.add(pr.RemoteVariable(
+            name = 'FcClkRst',
+            offset = 0x24,
+            bitSize = 1,
+            bitOffset = 0,
+            base = pr.UInt))

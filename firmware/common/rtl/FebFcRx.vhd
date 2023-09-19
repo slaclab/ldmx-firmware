@@ -80,9 +80,10 @@ architecture rtl of FebFcRx is
       rorCount        : slv(15 downto 0);
       alignCount      : slv(15 downto 0);
       fcReset101Count : slv(15 downto 0);
-
-      axilReadSlave  : AxiLiteReadSlaveType;
-      axilWriteSlave : AxiLiteWriteSlaveType;
+      fcClkAxilRst    : sl;
+      fcClk37Rst      : sl;
+      axilReadSlave   : AxiLiteReadSlaveType;
+      axilWriteSlave  : AxiLiteWriteSlaveType;
 
    end record RegType;
 
@@ -103,6 +104,8 @@ architecture rtl of FebFcRx is
       rorCount        => (others => '0'),
       alignCount      => (others => '0'),
       fcReset101Count => (others => '0'),
+      fcClkAxilRst    => '0',
+      fcClk37Rst      => '0',
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -192,7 +195,7 @@ begin
                         v.fcAligned := '0';
                      when RUN_STATE_CLOCK_ALIGN_C =>
                         -- Algin Bunch clock
-                        v.fifoRst := '0';
+                        v.fifoRst    := '0';
                         v.divCounter := (others => '0');
                         v.fcClk37    := '0';
                         v.fcAligned  := '1';
@@ -222,6 +225,8 @@ begin
 
       end if;
 
+
+
       -- AXI Lite registers
       axiSlaveWaitTxn(axilEp, syncAxilWriteMaster, syncAxilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
@@ -231,10 +236,12 @@ begin
       axiSlaveRegisterR(axilEp, X"0C", 0, r.fcReset101Count);
       axiSlaveRegisterR(axilEp, X"10", 0, r.lastTimingMsg.message);
       axiSlaveRegister(axilEp, X"20", 0, v.fifoRst);
+      axiSlaveRegister(axilEp, X"24", 0, v.fcClkAxilRst);  -- Allows software reprogramming of CM
       -- Add trigger enable register to replace feb config equivalent?
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
+      v.fcClk37Rst := r.fcClkAxilRst or r.fcClkLost;
 
       rin <= v;
 
@@ -242,7 +249,6 @@ begin
       fcReset101         <= r.fcReset101;
       syncAxilReadSlave  <= r.axilReadSlave;
       syncAxilWriteSlave <= r.axilWriteSlave;
-
 
    end process comb;
 
@@ -274,7 +280,7 @@ begin
          RELEASE_DELAY_G => 5)
       port map (
          clk      => fcClk37Int,
-         asyncRst => r.fcClkLost,
+         asyncRst => r.fcClk37Rst,
          syncRst  => fcClk37Rst);
 
    -- Pulse trigger for 1 axilClk cycle in response to each trigger code
