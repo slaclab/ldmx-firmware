@@ -20,7 +20,7 @@ class FebCore(pr.Device):
                 'FebAddress': str(number)}))
 
         # DAQ Timing
-        self.add(ldmx.DaqTiming(
+        self.add(ldmx.FebFcRx(
             offset=0x2000))
 
         # Event Builder

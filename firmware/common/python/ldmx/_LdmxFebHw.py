@@ -16,21 +16,21 @@ class LdmxFebHw(pr.Device):
             offset=0x0000))
         
 
-        self.add(surf.xilinx.ClockManager(
+        self.add(ldmx.PhaseShift(
             name = 'HybridClockPhaseA',
             offset = 0x1000,
-            type = 'MMCME4'))
+            rx = febCore.FebFcRx))
 
-        self.add(surf.xilinx.ClockManager(
+        self.add(ldmx.PhaseShift(
             name = 'HybridClockPhaseB',
             offset = 0x2000,
-            type = 'MMCME4'))
-        
+            rx = febCore.FebFcRx))
 
-        self.add(surf.xilinx.ClockManager(
+        self.add(ldmx.PhaseShift(
             name = 'AdcClockPhase',
             offset = 0x3000,
-            type = 'MMCME4'))
+            rx = febCore.FebFcRx))
+        
 
         # Loc I2C Bus
         self.add(surf.devices.microchip.Axi24LC64FT(

@@ -530,7 +530,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Hybrid Power Monitor and Trim
    -------------------------------------------------------------------------------------------------
-   U_LdmxHybridPowerI2C_1 : entity ldmx.LdmxHybridPowerI2C
+   U_LdmxHybridPowerI2C_1 : entity ldmx.LdmxHybridPowerI2cArray
       generic map (
          TPD_G            => TPD_G,
          HYBRIDS_G        => HYBRIDS_G,
