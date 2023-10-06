@@ -1,21 +1,17 @@
 -------------------------------------------------------------------------------
--- Title      : Coulter PGP 
+-- Title      : LDMX PGP Lane
 -------------------------------------------------------------------------------
--- File       : FetPgp.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-03
--- Last update: 2023-09-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- This file is part of Coulter. It is subject to
+-- This file is part of LDMX. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory
 -- of this distribution and at:
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of Coulter, including this file, may be
+-- No part of LDMX, including this file, may be
 -- copied, modified, propagated, or distributed except according to the terms
 -- contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -169,13 +165,13 @@ begin
          SIMULATION_G    => SIMULATION_G,
          FC_WORDS_G      => 5,
          VC_INTERLEAVE_G => 1,
-         NUM_VC_EN_G     => 2)
+         NUM_VC_EN_G     => VC_COUNT_G)
       port map (
          stableClk       => stableClk,                        -- [in]
          stableRst       => stableRst,                        -- [in]
          gtRefClk        => gtRefClk185,                      -- [in]
          gtFabricRefClk  => '0',                              -- [in]
-         gtUserRefClk    => gtRefClk185,                      -- [in]
+         gtUserRefClk    => gtRefClk185G,                     -- [in]
          pgpGtTxP        => pgpGtTxP,                         -- [out]
          pgpGtTxN        => pgpGtTxN,                         -- [out]
          pgpGtRxP        => pgpGtRxP,                         -- [in]
