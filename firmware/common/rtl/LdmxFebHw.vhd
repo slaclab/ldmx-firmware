@@ -40,7 +40,7 @@ entity LdmxFebHw is
       TPD_G             : time                 := 1 ns;
       BUILD_INFO_G      : BuildInfoType        := BUILD_INFO_DEFAULT_SLV_C;
       SIMULATION_G      : boolean              := false;
-      XIL_DEVICE_G      : string               := "ULTRASCALE_PLUS";      
+      XIL_DEVICE_G      : string               := "ULTRASCALE_PLUS";
       ADCS_G            : integer range 1 to 4 := 4;
       HYBRIDS_G         : integer range 1 to 8 := 8;
       APVS_PER_HYBRID_G : integer range 1 to 8 := 6;

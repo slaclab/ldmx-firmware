@@ -355,14 +355,14 @@ begin
             HYBRID_NUM_G      => i,
             APVS_PER_HYBRID_G => APVS_PER_HYBRID_G)
          port map (
-            axilClk            => axilClk,
-            axilRst            => axilRst,
+            axilClk           => axilClk,
+            axilRst           => axilRst,
             axiReadMaster     => hybridDataAxilReadMasters(i),
             axiReadSlave      => hybridDataAxilReadSlaves(i),
             axiWriteMaster    => hybridDataAxilWriteMasters(i),
             axiWriteSlave     => hybridDataAxilWriteSlaves(i),
             febConfig         => febConfig,
-            readoutReq           => axilRor,
+            readoutReq        => axilRor,
             adcReadoutStreams => adcReadoutStreams(i)(APVS_PER_HYBRID_G-1 downto 0),
             dataOut           => dataPathOut(i)(APVS_PER_HYBRID_G-1 downto 0),
             dataRdEn          => dataPathIn(i)(APVS_PER_HYBRID_G-1 downto 0));
