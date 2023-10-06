@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2022-12-01
+-- Last update: 2023-09-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -49,7 +49,8 @@ entity LdmxFebPgpLane is
       stableRst : in sl;
 
       -- Reference clocks for PGP MGTs
-      gtRefClk185 : in sl;
+      gtRefClk185  : in sl;
+      gtRefClk185G : in sl;
 
       -- MGT IO
       pgpGtTxP : out sl;
@@ -173,6 +174,8 @@ begin
          stableClk       => stableClk,                        -- [in]
          stableRst       => stableRst,                        -- [in]
          gtRefClk        => gtRefClk185,                      -- [in]
+         gtFabricRefClk  => '0',                              -- [in]
+         gtUserRefClk    => gtRefClk185,                      -- [in]
          pgpGtTxP        => pgpGtTxP,                         -- [out]
          pgpGtTxN        => pgpGtTxN,                         -- [out]
          pgpGtRxP        => pgpGtRxP,                         -- [in]
@@ -208,15 +211,17 @@ begin
    -------------------------------------------------------------------------------------------------
    -- TX and RX Clock Buffers
    -------------------------------------------------------------------------------------------------
-   U_BUFG_TX : BUFG_GT
-      port map (
-         I       => pgpTxClkTmp,
-         CE      => '1',
-         CEMASK  => '1',
-         CLR     => '0',
-         CLRMASK => '1',
-         DIV     => "000",              -- Divide by 1
-         O       => pgpTxClk);
+--    U_BUFG_TX : BUFG_GT
+--       port map (
+--          I       => pgpTxClkTmp,
+--          CE      => '1',
+--          CEMASK  => '1',
+--          CLR     => '0',
+--          CLRMASK => '1',
+--          DIV     => "000",              -- Divide by 1
+--          O       => pgpTxClk);
+
+   pgpTxClk <= pgpTxClkTmp;             -- BUFG_GT moved to inside GT core
 
    U_PwrUpRst_1 : entity surf.PwrUpRst
       generic map (
@@ -230,15 +235,17 @@ begin
    pgpTxClkOut <= pgpTxClk;
    pgpTxRstOut <= pgpTxRst;
 
-   U_BUFG_RX : BUFG_GT
-      port map (
-         I       => pgpRxClkTmp,
-         CE      => '1',
-         CEMASK  => '1',
-         CLR     => '0',
-         CLRMASK => '1',
-         DIV     => "000",              -- Divide by 1
-         O       => pgpRxClk);
+--    U_BUFG_RX : BUFG_GT
+--       port map (
+--          I       => pgpRxClkTmp,
+--          CE      => '1',
+--          CEMASK  => '1',
+--          CLR     => '0',
+--          CLRMASK => '1',
+--          DIV     => "000",              -- Divide by 1
+--          O       => pgpRxClk);
+
+   pgpRxClk <= pgpRxClkTmp;             -- BUFG_GT moved inside GT core
 
    U_PwrUpRst_2 : entity surf.PwrUpRst
       generic map (
