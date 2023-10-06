@@ -13,6 +13,7 @@ class LdmxFebRoot(pr.Root):
 
         srpStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT)
         dataStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT+2)
+        waveformStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT+4)
 
         sideband = pyrogue.interfaces.simulation.SideBandSim('localhost', SIM_SRP_PORT+8)
 
@@ -37,6 +38,13 @@ class LdmxFebRoot(pr.Root):
             sim = True,
             expand = True,
             numHybrids = 8))
+
+        self.add(ldmx.WaveformCaptureReceiver(
+            apvs_per_hybrid = 6,
+            num_hybrids = 8))
+
+        waveformStream >> self.WaveformCaptureReceiver
+            
 
 #         @self.command()
 #         def Trigger():

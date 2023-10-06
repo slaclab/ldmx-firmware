@@ -27,6 +27,7 @@ use UNISIM.VCOMPONENTS.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
 use surf.I2cPkg.all;
 use surf.Ad9249Pkg.all;
 
@@ -133,6 +134,10 @@ entity LdmxFebHw is
       -- ADC streams
       adcReadoutStreams : out AdcStreamArray := ADC_STREAM_ARRAY_INIT_C;
 
+      -- Waveform capture stream
+      waveformAxisMaster : out AxiStreamMasterType;
+      waveformAxisSlave  : in  AxiStreamSlaveType;
+
       -- 37Mhz clock
       fcClk37    : in  sl;
       fcClk37Rst : in  sl;
@@ -147,7 +152,7 @@ architecture rtl of LdmxFebHw is
    -------------------------------------------------------------------------------------------------
    constant AXIL_CLK_FREQ_C : real := 1.0/AXIL_CLK_FREQ_G;
 
-   constant MAIN_XBAR_MASTERS_C : natural := 14;
+   constant MAIN_XBAR_MASTERS_C : natural := 15;
 
    -- Module AXI Addresses
    constant AXIL_VERSION_INDEX_C              : natural := 0;
@@ -164,6 +169,7 @@ architecture rtl of LdmxFebHw is
    constant AXIL_ANA_PM_INDEX_C               : natural := 11;
    constant AXIL_ADC_READOUT_INDEX_C          : natural := 12;
    constant AXIL_ADC_CONFIG_INDEX_C           : natural := 13;
+   constant AXIL_WAVEFORM_INDEX_C             : natural := 14;
 
    constant MAIN_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(MAIN_XBAR_MASTERS_C-1 downto 0) := (
       AXIL_VERSION_INDEX_C              => (
@@ -193,6 +199,10 @@ architecture rtl of LdmxFebHw is
       AXIL_PROM_INDEX_C                 => (
          baseAddr                       => AXIL_BASE_ADDR_G + X"6000",
          addrBits                       => 10,
+         connectivity                   => X"0001"),
+      AXIL_WAVEFORM_INDEX_C             => (
+         baseAddr                       => AXIL_BASE_ADDR_G + X"7000",
+         addrBits                       => 8,
          connectivity                   => X"0001"),
       AXIL_SYSMON_INDEX_C               => (
          baseAddr                       => AXIL_BASE_ADDR_G + X"1_0000",
@@ -257,7 +267,8 @@ architecture rtl of LdmxFebHw is
    -- ADC
    constant ADC_SCLK_PERIOD_C : real := ite(SIMULATION_G, 50.0e-9, 1.0e-6);
 
-   signal adcSerial : Ad9249SerialGroupArray(HYBRIDS_G-1 downto 0);
+   signal adcSerial            : Ad9249SerialGroupArray(HYBRIDS_G-1 downto 0);
+   signal adcReadoutStreamsInt : AdcStreamArray;
 
    signal hyClkInt    : slv(HYBRIDS_G-1 downto 0) := (others => '0');
    signal hyClkRstInt : slv(HYBRIDS_G-1 downto 0) := (others => '0');
@@ -696,16 +707,16 @@ begin
             NUM_CHANNELS_G => APVS_PER_HYBRID_G,
             SIMULATION_G   => SIMULATION_G)
          port map (
-            axilClk         => axilClk,                                              -- [in]
-            axilRst         => axilRst,                                              -- [in]
-            axilWriteMaster => adcReadoutAxilWriteMasters(i),                        -- [in]
-            axilWriteSlave  => adcReadoutAxilWriteSlaves(i),                         -- [out]
-            axilReadMaster  => adcReadoutAxilReadMasters(i),                         -- [in]
-            axilReadSlave   => adcReadoutAxilReadSlaves(i),                          -- [out]
-            adcClkRst       => adcClkRst(i/2),                                       -- [in]
-            adcSerial       => adcSerial(i),                                         -- [in]
-            adcStreamClk    => axilClk,                                              -- [in]
-            adcStreams      => adcReadoutStreams(i)(APVS_PER_HYBRID_G-1 downto 0));  -- [out]
+            axilClk         => axilClk,                                                 -- [in]
+            axilRst         => axilRst,                                                 -- [in]
+            axilWriteMaster => adcReadoutAxilWriteMasters(i),                           -- [in]
+            axilWriteSlave  => adcReadoutAxilWriteSlaves(i),                            -- [out]
+            axilReadMaster  => adcReadoutAxilReadMasters(i),                            -- [in]
+            axilReadSlave   => adcReadoutAxilReadSlaves(i),                             -- [out]
+            adcClkRst       => adcClkRst(i/2),                                          -- [in]
+            adcSerial       => adcSerial(i),                                            -- [in]
+            adcStreamClk    => axilClk,                                                 -- [in]
+            adcStreams      => adcReadoutStreamsInt(i)(APVS_PER_HYBRID_G-1 downto 0));  -- [out]
 
       -- IO Assignment to records      
       adcSerial(i).fClkP <= adcFClkP(i);
@@ -715,6 +726,26 @@ begin
       adcSerial(i).chP   <= "00" & adcDataP(i);
       adcSerial(i).chN   <= "00" & adcDataN(i);
    end generate;
+   adcReadoutStreams <= adcReadoutStreamsInt;
+
+   -------------------------------------------------------------------------------------------------
+   -- ADC Waveform capture
+   -------------------------------------------------------------------------------------------------
+   U_WaveformCapture_1 : entity ldmx.WaveformCapture
+      generic map (
+         TPD_G             => TPD_G,
+         HYBRIDS_G         => HYBRIDS_G,
+         APVS_PER_HYBRID_G => APVS_PER_HYBRID_G)
+      port map (
+         axilClk         => axilClk,                                      -- [in]
+         axilRst         => axilRst,                                      -- [in]
+         axilReadMaster  => mainAxilReadMasters(AXIL_WAVEFORM_INDEX_C),   -- [in]
+         axilReadSlave   => mainAxilReadSlaves(AXIL_WAVEFORM_INDEX_C),    -- [out]
+         axilWriteMaster => mainAxilWriteMasters(AXIL_WAVEFORM_INDEX_C),  -- [in]
+         axilWriteSlave  => mainAxilWriteSlaves(AXIL_WAVEFORM_INDEX_C),   -- [out]
+         adcStreams      => adcReadoutStreamsInt,                         -- [in]
+         axisMaster      => waveformAxisMaster,                           -- [out]
+         axisSlave       => waveformAxisSlave);                           -- [in]
 
    -------------------------------------------------------------------------------------------------
    -- ADC Config

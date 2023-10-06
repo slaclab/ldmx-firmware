@@ -229,6 +229,13 @@ architecture rtl of LdmxFeb is
    -------------------------------------------------------------------------------------------------
    signal adcReadoutStreams : AdcStreamArray;
 
+   -------------------------------------------------------------------------------------------------
+   -- Waveform Signals
+   -------------------------------------------------------------------------------------------------
+   signal waveformAxisMaster : AxiStreamMasterType;
+   signal waveformAxisSlave  : AxiStreamSlaveType;
+
+
 
    signal ledEn   : sl;
    signal ledsInt : slv(7 downto 0);

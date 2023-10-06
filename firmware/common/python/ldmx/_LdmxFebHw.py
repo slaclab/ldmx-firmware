@@ -92,6 +92,10 @@ class LdmxFebHw(pr.Device):
             offset = 0x6_0000,
             numAdcs = 4))
 
+        self.add(ldmx.WaveformCapture(
+            offset = 0x7000,
+            apvs_per_hybrid=6))
+
         
         
 

@@ -85,6 +85,10 @@ entity LdmxFebPgp is
       sAxilWriteMaster : in  AxiLiteWriteMasterType;
       sAxilWriteSlave  : out AxiLiteWriteSlaveType;
 
+      -- Waveform capture stream
+      waveformAxisMaster : in  AxiStreamMasterType;
+      waveformAxisSlave  : out AxiStreamSlaveType;
+
       -- Streaming data
       dataClk        : in  sl;
       dataRst        : in  sl;
@@ -252,7 +256,7 @@ begin
                SIMULATION_G     => false,                  -- Set true when runing sim with GTY/PGP
                AXIL_BASE_ADDR_G => MAIN_XBAR_CFG_C(i).baseAddr,
                AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
-               VC_COUNT_G       => 2)
+               VC_COUNT_G       => 3)
             port map (
                stableClk       => userRefClk125G,          -- [in]
                stableRst       => userRefRst125G,          -- [in]
@@ -312,7 +316,7 @@ begin
             TPD_G      => TPD_G,
             FC_WORDS_G => 5,
             PORT_NUM_G => ROGUE_SIM_PORT_NUM_G,
-            NUM_VC_G   => 2)
+            NUM_VC_G   => 3)
          port map (
             pgpClk       => pgpTxClk(0),                  -- [in]
             pgpClkRst    => pgpTxRst(0),                  -- [in]
@@ -320,10 +324,10 @@ begin
             pgpRxOut     => pgpRxOut(0),                  -- [out]
             pgpTxIn      => pgpTxIn(0),                   -- [in]
             pgpTxOut     => pgpTxOut(0),                  -- [out]
-            pgpTxMasters => pgpTxMasters(0)(1 downto 0),  -- [in]
-            pgpTxSlaves  => pgpTxSlaves(0)(1 downto 0),   -- [out]
-            pgpRxMasters => pgpRxMasters(0)(1 downto 0),  -- [out]
-            pgpRxSlaves  => pgpRxSlaves(0)(1 downto 0));  -- [in]
+            pgpTxMasters => pgpTxMasters(0)(2 downto 0),  -- [in]
+            pgpTxSlaves  => pgpTxSlaves(0)(2 downto 0),   -- [out]
+            pgpRxMasters => pgpRxMasters(0)(2 downto 0),  -- [out]
+            pgpRxSlaves  => pgpRxSlaves(0)(2 downto 0));  -- [in]
 
       DAQ_CLK_GEN : entity surf.ClkRst
          generic map (
@@ -462,7 +466,34 @@ begin
          mAxisSlave  => pgpTxSlaves(SFP_INDEX_C)(1));  -- [in]
 
 
-
+   -- Small async fifo to transition to PGPFC clock
+   U_AxiStreamFifoV2_WAVEFORM : entity surf.AxiStreamFifoV2
+      generic map (
+         TPD_G                  => TPD_G,
+         INT_PIPE_STAGES_G      => 1,
+         PIPE_STAGES_G          => 1,
+         SLAVE_READY_EN_G       => true,
+         VALID_THOLD_G          => 1,
+         VALID_BURST_MODE_G     => false,
+--         SYNTH_MODE_G           => "xpm",
+         MEMORY_TYPE_G          => "distributed",
+         GEN_SYNC_FIFO_G        => false,
+         CASCADE_SIZE_G         => 1,
+         CASCADE_PAUSE_SEL_G    => 0,
+         FIFO_ADDR_WIDTH_G      => 4,
+         INT_WIDTH_SELECT_G     => "WIDE",
+         LAST_FIFO_ADDR_WIDTH_G => 0,
+         SLAVE_AXI_CONFIG_G     => PGP2FC_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G    => PGP2FC_AXIS_CONFIG_C)
+      port map (
+         sAxisClk    => axilClk,                       -- [in]
+         sAxisRst    => axilRst,                       -- [in]
+         sAxisMaster => waveformAxisMaster,            -- [in]
+         sAxisSlave  => waveformAxisSlave,             -- [out]
+         mAxisClk    => pgpTxClk(SFP_INDEX_C),         -- [in]
+         mAxisRst    => pgpTxRst(SFP_INDEX_C),         -- [in]
+         mAxisMaster => pgpTxMasters(SFP_INDEX_C)(2),  -- [out]
+         mAxisSlave  => pgpTxSlaves(SFP_INDEX_C)(2));  -- [in]
 
 
 end rtl;
