@@ -360,7 +360,7 @@ set_property -dict { PACKAGE_PIN AH17  IOSTANDARD LVCMOS33 } [get_ports { locI2c
 
 set_property -dict { PACKAGE_PIN AG15  IOSTANDARD LVCMOS33 } [get_ports { qsfpI2cScl }];
 set_property -dict { PACKAGE_PIN AH15  IOSTANDARD LVCMOS33 } [get_ports { qsfpI2cSda }];
-set_property -dict { PACKAGE_PIN AG14  IOSTANDARD LVCMOS33 } [get_ports { qsfpResetL }];
+set_property -dict { PACKAGE_PIN AG14  IOSTANDARD LVCMOS33 } [get_ports { qsfpI2cResetL }];
 
 set_property -dict { PACKAGE_PIN AH14  IOSTANDARD LVCMOS33 } [get_ports { sfpI2cScl }];
 set_property -dict { PACKAGE_PIN AF13  IOSTANDARD LVCMOS33 } [get_ports { sfpI2cSda }];
