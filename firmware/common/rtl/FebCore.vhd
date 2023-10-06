@@ -61,6 +61,8 @@ entity FebCore is
 
       -- Hybrid power control
       hyPwrEn : out slv(HYBRIDS_G-1 downto 0);
+      anaVREn : out sl;
+      hyVREn  : out sl;
 
       -- Hybrid CLK, TRG and RST
       hyTrgOut  : out slv(HYBRIDS_G-1 downto 0);
@@ -243,6 +245,8 @@ begin
          febConfig      => febConfig);
 
    hyPwrEn <= febConfig.hyPwrEn(HYBRIDS_G-1 downto 0);
+   anaVRen <= febConfig.anaVRen;
+   hyVREn  <= febConfig.hyVREn;
 
 
    -------------------------------------------------------------------------------------------------

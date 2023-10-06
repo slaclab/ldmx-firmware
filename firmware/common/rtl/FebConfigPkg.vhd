@@ -38,19 +38,20 @@ package FebConfigPkg is
       febAddress          : slv(3 downto 0);
       headerHighThreshold : slv(13 downto 0);
       allowResync         : sl;
-      threshold1CutEn    : sl;
-      threshold1CutNum   : slv(2 downto 0);
-      threshold1MarkOnly : sl;
-      threshold2CutEn    : sl;
-      threshold2CutNum   : slv(2 downto 0);
-      threshold2MarkOnly : sl;
-      slopeCutEn         : sl;
-      calGroup           : slv(2 downto 0);
-      errorFilterEn      : sl;
-      dataPipelineRst    : sl;
-
+      threshold1CutEn     : sl;
+      threshold1CutNum    : slv(2 downto 0);
+      threshold1MarkOnly  : sl;
+      threshold2CutEn     : sl;
+      threshold2CutNum    : slv(2 downto 0);
+      threshold2MarkOnly  : sl;
+      slopeCutEn          : sl;
+      calGroup            : slv(2 downto 0);
+      errorFilterEn       : sl;
+      dataPipelineRst     : sl;
+      anaVREn             : sl;
+      hyVREn              : sl;
    end record FebConfigType;
-   
+
    constant FEB_CONFIG_INIT_C : FebConfigType := (
       hybridType          => (others => UNKNOWN_HYBRID_C),
       hyTrigEn            => '1',
@@ -59,21 +60,23 @@ package FebConfigPkg is
       hyPwrEn             => (others => '0'),
       hyHardRst           => (others => '0'),
       hyApvDataStreamEn   => (others => (others => '1')),
-  --    prbsDataStreamEn    => (others => '0'),
+      --    prbsDataStreamEn    => (others => '0'),
       febAddress          => "1110",
       headerHighThreshold => "10" & X"400",
 --      statusInterval      => toSlv(125000000, 32),  -- 1 second
       allowResync         => '1',
-      threshold1CutEn    => '0',
-      threshold1CutNum   => "011",
-      threshold1MarkOnly => '0',
-      threshold2CutEn    => '0',
-      threshold2CutNum   => "011",
-      threshold2MarkOnly => '0',
-      slopeCutEn         => '0',
-      calGroup           => (others => '0'),
-      errorFilterEn      => '1',
-      dataPipelineRst    => '0');
+      threshold1CutEn     => '0',
+      threshold1CutNum    => "011",
+      threshold1MarkOnly  => '0',
+      threshold2CutEn     => '0',
+      threshold2CutNum    => "011",
+      threshold2MarkOnly  => '0',
+      slopeCutEn          => '0',
+      calGroup            => (others => '0'),
+      errorFilterEn       => '1',
+      dataPipelineRst     => '0',
+      anaVREn             => '1',
+      hyVREn              => '1');
 
 
 end package FebConfigPkg;

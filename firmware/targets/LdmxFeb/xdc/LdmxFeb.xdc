@@ -383,14 +383,18 @@ set_property -dict { PACKAGE_PIN A15  IOSTANDARD LVCMOS33 } [get_ports { leds[6]
 set_property -dict { PACKAGE_PIN A16  IOSTANDARD LVCMOS33 } [get_ports { leds[7] }];
 
 # Thermistors (SYSMON)
-# set_property -dict { PACKAGE_PIN AB13  IOSTANDARD ANALOG } [get_ports { thermistorP[0] }]
-# set_property -dict { PACKAGE_PIN AB14  IOSTANDARD ANALOG } [get_ports { thermistorN[0] }]
-# set_property -dict { PACKAGE_PIN AC14  IOSTANDARD ANALOG } [get_ports { thermistorP[1] }]
-# set_property -dict { PACKAGE_PIN AC15  IOSTANDARD ANALOG } [get_ports { thermistorN[1] }]
-# set_property -dict { PACKAGE_PIN AB15  IOSTANDARD ANALOG } [get_ports { thermistorP[2] }]
-# set_property -dict { PACKAGE_PIN AB16  IOSTANDARD ANALOG } [get_ports { thermistorN[2] }]
-# set_property -dict { PACKAGE_PIN AC16  IOSTANDARD ANALOG } [get_ports { thermistorP[3] }]
-# set_property -dict { PACKAGE_PIN AD16  IOSTANDARD ANALOG } [get_ports { thermistorN[3] }]
+set_property -dict { PACKAGE_PIN AB13  IOSTANDARD ANALOG } [get_ports { thermistorP[0] }]
+set_property -dict { PACKAGE_PIN AB14  IOSTANDARD ANALOG } [get_ports { thermistorN[0] }]
+set_property -dict { PACKAGE_PIN AC14  IOSTANDARD ANALOG } [get_ports { thermistorP[1] }]
+set_property -dict { PACKAGE_PIN AC15  IOSTANDARD ANALOG } [get_ports { thermistorN[1] }]
+set_property -dict { PACKAGE_PIN AB15  IOSTANDARD ANALOG } [get_ports { thermistorP[2] }]
+set_property -dict { PACKAGE_PIN AB16  IOSTANDARD ANALOG } [get_ports { thermistorN[2] }]
+set_property -dict { PACKAGE_PIN AC16  IOSTANDARD ANALOG } [get_ports { thermistorP[3] }]
+set_property -dict { PACKAGE_PIN AD16  IOSTANDARD ANALOG } [get_ports { thermistorN[3] }]
+
+# Enable analog and hybrid voltage regulators
+set_property -dict { PACKAGE_PIN AE14  IOSTANDARD LVCMOS33 } [get_ports { anaVREn }];
+set_property -dict { PACKAGE_PIN AD13  IOSTANDARD LVCMOS33 } [get_ports { hyVrEn }];
 
 
 # Hybrid Power Monitor

@@ -111,6 +111,9 @@ entity LdmxFeb is
       hyPwrI2cScl : inout slv(HYBRIDS_G-1 downto 0);
       hyPwrI2cSda : inout slv(HYBRIDS_G-1 downto 0);
 
+      anaVREn : out sl;
+      hyVREn  : out sl;
+
       hyPwrEnOut : out slv(HYBRIDS_G-1 downto 0);
 
       -- Interface to Hybrids
@@ -392,6 +395,8 @@ begin
          eventAxisSlave    => eventAxisSlave,                             -- [in]
          eventAxisCtrl     => eventAxisCtrl,                              -- [in]
          hyPwrEn           => hyPwrEnInt,                                 -- [out]
+         anaVREn           => anaVREn,                                    -- [out]
+         hyVREn            => hyVREn,                                     -- [out]
          hyTrgOut          => hyTrgOut,                                   -- [out]
          hyRstOutL         => hyRstOutL,                                  -- [out]
          hyI2cIn           => hyI2cIn,                                    -- [in]
