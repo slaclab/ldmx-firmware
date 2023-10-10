@@ -394,7 +394,7 @@ set_property -dict { PACKAGE_PIN AD16  IOSTANDARD ANALOG } [get_ports { thermist
 
 # Enable analog and hybrid voltage regulators
 set_property -dict { PACKAGE_PIN AE14  IOSTANDARD LVCMOS33 } [get_ports { anaVREn }];
-set_property -dict { PACKAGE_PIN AD13  IOSTANDARD LVCMOS33 } [get_ports { hyVrEn }];
+set_property -dict { PACKAGE_PIN AD13  IOSTANDARD LVCMOS33 } [get_ports { hyVREn }];
 
 
 # Hybrid Power Monitor
