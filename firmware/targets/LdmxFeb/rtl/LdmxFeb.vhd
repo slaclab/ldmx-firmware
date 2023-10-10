@@ -155,8 +155,8 @@ architecture rtl of LdmxFeb is
    -------------------------------------------------------------------------------------------------
    -- PGP 
    -------------------------------------------------------------------------------------------------
-   signal pgpTxLink : sl;
-   signal pgpRxLink : sl;
+   signal pgpTxLink : slv(2 downto 0);
+   signal pgpRxLink : slv(2 downto 0);
 
    -------------------------------------------------------------------------------------------------
    -- AXI Signals
@@ -278,7 +278,7 @@ begin
          PERIOD_IN_G  => 8.0E-9,
          PERIOD_OUT_G => 0.8)
       port map (
-         clk => axiClk,
+         clk => userRefClk125,
          o   => leds(0));
 
    Heartbeat_185 : entity surf.Heartbeat
@@ -290,9 +290,29 @@ begin
          clk => userRefClk185,
          o   => leds(1));
 
-   leds(5 downto 2) <= "0000";
-   leds(6)          <= pgpTxLink;
-   leds(7)          <= pgpRxLink;
+   Heartbeat_fcClk185 : entity surf.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 5.385E-9,
+         PERIOD_OUT_G => 0.5385)
+      port map (
+         clk => fcClk185,
+         o   => leds(2));
+
+   Heartbeat_fcClk37 : entity surf.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 5.385E-9 * 5,
+         PERIOD_OUT_G => 0.5385 * 5)
+      port map (
+         clk => fcClk37,
+         o   => leds(3));
+   
+   
+
+   leds(5 downto 4) <= "00";
+   leds(6)          <= pgpTxLink(0);
+   leds(7)          <= pgpRxLink(0);
 
 
 
