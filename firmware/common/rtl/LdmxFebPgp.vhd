@@ -49,6 +49,8 @@ entity LdmxFebPgp is
       gtRefClk250P : in sl;
       gtRefClk250N : in sl;
 
+      userRefClk185 : out sl;
+      userRefRst185 : out sl;
       userRefClk125 : out sl;
       userRefRst125 : out sl;
 
@@ -188,6 +190,10 @@ begin
       port map (
          clk    => userRefClk185G,
          rstOut => userRefRst185G);
+
+   userRefClk185 <= userRefClk185G;
+   userRefRst185 <= userRefRst185G;
+   
 
 
    U_QsfpRef0 : IBUFDS_GTE4

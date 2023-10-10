@@ -261,9 +261,6 @@ architecture rtl of LdmxFebHw is
    constant I2C_SCL_FREQ_C  : real := ite(SIMULATION_G, 2.0e6, 100.0E+3);
    constant I2C_MIN_PULSE_C : real := ite(SIMULATION_G, 50.0e-9, 100.0E-9);
 
-
-
-
    -- ADC
    constant ADC_SCLK_PERIOD_C : real := ite(SIMULATION_G, 50.0e-9, 1.0e-6);
 

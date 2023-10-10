@@ -140,8 +140,8 @@ architecture rtl of LdmxFeb is
    -------------------------------------------------------------------------------------------------
    signal userRefClk125 : sl;
    signal userRefRst125 : sl;
---    signal clk250        : sl;
---    signal rst250        : sl;
+   signal userRefClk185 : sl;
+   signal userRefRst185 : sl;
 
    signal axilClk : sl;
    signal axilRst : sl;
@@ -153,16 +153,10 @@ architecture rtl of LdmxFeb is
    signal fcClk37Rst : sl;
 
    -------------------------------------------------------------------------------------------------
-   -- PGP Remap
+   -- PGP 
    -------------------------------------------------------------------------------------------------
-   signal pgpGtTxP : slv(1 downto 0);
-   signal pgpGtTxN : slv(1 downto 0);
-   signal pgpGtRxP : slv(1 downto 0);
-   signal pgpGtRxN : slv(1 downto 0);
-
-
---    signal fpgaReload     : sl;
---    signal fpgaReloadAddr : slv(31 downto 0);
+   signal pgpTxLink : sl;
+   signal pgpRxLink : sl;
 
    -------------------------------------------------------------------------------------------------
    -- AXI Signals
@@ -238,24 +232,7 @@ architecture rtl of LdmxFeb is
    signal waveformAxisMaster : AxiStreamMasterType;
    signal waveformAxisSlave  : AxiStreamSlaveType;
 
-
-
-   signal ledEn   : sl;
-   signal ledsInt : slv(7 downto 0);
-
 begin
-
---    leds <= ledsInt when ledEn = '1' else (others => '0');
---    sfpGtTxP    <= pgpGtTxP(0);
---    sfpGtTxN    <= pgpGtTxN(0);
---    pgpGtRxP(0) <= sfpGtRxP;
---    pgpGtRxN(0) <= sfpGtRxN;
-
---    sasGtTxP    <= pgpGtTxP(0);
---    sasGtTxN    <= pgpGtTxN(0);
---    pgpGtRxP(0) <= sasGtRxP;
---    pgpGtRxN(0) <= sasGtRxN;
-
 
 
    -------------------------------------------------------------------------------------------------
@@ -295,6 +272,29 @@ begin
    -------------------------------------------------------------------------------------------------
    -- LED Test Outputs
    -------------------------------------------------------------------------------------------------
+   Heartbeat_125 : entity surf.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 8.0E-9,
+         PERIOD_OUT_G => 0.8)
+      port map (
+         clk => axiClk,
+         o   => leds(0));
+
+   Heartbeat_185 : entity surf.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 5.385E-9,
+         PERIOD_OUT_G => 0.5385)
+      port map (
+         clk => userRefClk185,
+         o   => leds(1));
+
+   leds(5 downto 2) <= "0000";
+   leds(6)          <= pgpTxLink;
+   leds(7)          <= pgpRxLink;
+
+
 
    -------------------------------------------------------------------------------------------------
    -- PGP Interface
@@ -324,12 +324,14 @@ begin
          pgpGtTxN(0)        => sfpGtTxN,                              -- [out]
          pgpGtTxN(1)        => sasGtTxN(0),                           -- [out]
          pgpGtTxN(2)        => qsfpGtTxN(0),                          -- [out]
+         userRefClk185      => userRefClk185,                         -- [out]
+         userRefRst185      => userRefRst185,                         -- [out]         
          userRefClk125      => userRefClk125,                         -- [out]
          userRefRst125      => userRefRst125,                         -- [out]         
-         pgpTxLink          => open,                                  -- [out]
-         pgpRxLink          => open,                                  -- [out]
-         fcClk185           => fcClk185,                              -- [in]
-         fcRst185           => fcRst185,                              -- [in]
+         pgpTxLink          => pgpTxLink,                             -- [out]
+         pgpRxLink          => pgpRxLink,                             -- [out]
+         fcClk185           => fcClk185,                              -- [out]
+         fcRst185           => fcRst185,                              -- [out]
          fcMsg              => fcMsg,                                 -- [out]
          axilClk            => axilClk,                               -- [in]
          axilRst            => axilRst,                               -- [in]
