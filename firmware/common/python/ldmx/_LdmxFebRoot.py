@@ -7,15 +7,28 @@ import ldmx
 
 class LdmxFebRoot(pr.Root):
     def __init__(self, **kwargs):
-        super().__init__(pollEn=False, timeout=1000, **kwargs)
+        super().__init__(dev, sim, pollEn=False, timeout=1000, **kwargs)
 
-        SIM_SRP_PORT = 9000
+        if sim is True:
+            SIM_SRP_PORT = 9000
 
-        srpStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT)
-        dataStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT+2)
-        waveformStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT+4)
+            srpStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT)
+            dataStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT+2)
+            waveformStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT+4)
+#          sideband = pyrogue.interfaces.simulation.SideBandSim('localhost', SIM_SRP_PORT+8)
+        else:
+            # Map PCIe Core
+            pcieMap = rogue.hardware.axi.AxiMemMap(dev)
+            self.addInterface(pcieMap)
+            self.add(pcie.AxiPcieCore(
+                offset      = 0x00000000,
+                memBase     = pcieMap,
+                numDmaLanes = numLanes,
+                expand      = True,
+            ))
+            
+            srpStream = 
 
-        sideband = pyrogue.interfaces.simulation.SideBandSim('localhost', SIM_SRP_PORT+8)
 
         srp = rogue.protocols.srp.SrpV3()
 
@@ -25,7 +38,7 @@ class LdmxFebRoot(pr.Root):
         dataDebug.setDebug(100, "EventStream")
         dataStream >> dataDebug
 
-        self.addInterface(srpStream, dataStream, srp, sideband)
+        self.addInterface(srpStream, dataStream, srp)
 
         # Zmq Server
         self.zmqServer = pyrogue.interfaces.ZmqServer(root=self, addr='*', port=0)
@@ -46,18 +59,3 @@ class LdmxFebRoot(pr.Root):
         waveformStream >> self.WaveformCaptureReceiver
             
 
-#         @self.command()
-#         def Trigger():
-#             sideband.send(opCode=0x5A)
-
-#         @self.command()
-#         def RunStart():
-#             sideband.send(opCode=0xF0)
-
-#         @self.command()
-#         def ApvClkAlign():
-#             sideband.send(opCode=0xA5)
-
-#         @self.command()
-#         def ApvReset101():
-#             sideband.send(opCode=0x1F)
