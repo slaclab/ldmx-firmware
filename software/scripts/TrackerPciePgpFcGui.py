@@ -6,7 +6,6 @@ import rogue
 pyrogue.addLibraryPath(f'../../firmware/common/python/')
 pyrogue.addLibraryPath(f'../../firmware/submodules/surf/python')
 pyrogue.addLibraryPath(f'../../firmware/submodules/axi-pcie-core/python')
-pyrogue.addLibraryPath(f'../../firmware/submodules/lcls-timing-core/python')
 
 import ldmx
 
