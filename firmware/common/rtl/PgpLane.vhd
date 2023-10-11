@@ -69,13 +69,12 @@ end PgpLane;
 
 architecture mapping of PgpLane is
 
-   constant NUM_AXI_MASTERS_C : natural := 5;
+   constant NUM_AXI_MASTERS_C : natural := 4;
 
    constant GT_INDEX_C     : natural := 0;
-   constant MON_INDEX_C    : natural := 1;
-   constant CTRL_INDEX_C   : natural := 2;
-   constant TX_MON_INDEX_C : natural := 3;
-   constant RX_MON_INDEX_C : natural := 4;
+   constant PGP2FC_INDEX_C : natural := 1;
+   constant TX_MON_INDEX_C : natural := 2;
+   constant RX_MON_INDEX_C : natural := 3;
 
    constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXI_BASE_ADDR_G, 20, 16);
 
@@ -162,6 +161,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          SIMULATION_G    => SIM_SPEEDUP_G,
+         AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G,
          AXI_BASE_ADDR_G => AXI_BASE_ADDR_G,
          VC_INTERLEAVE_G => 1)          -- AxiStreamDmaV2 supports interleaving
       port map (
@@ -238,10 +238,10 @@ begin
          -- AXI-Lite Register Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,
-         axilReadMaster  => axilReadMasters(MON_INDEX_C),
-         axilReadSlave   => axilReadSlaves(MON_INDEX_C),
-         axilWriteMaster => axilWriteMasters(MON_INDEX_C),
-         axilWriteSlave  => axilWriteSlaves(MON_INDEX_C));
+         axilReadMaster  => axilReadMasters(PGP2FC_INDEX_C),
+         axilReadSlave   => axilReadSlaves(PGP2FC_INDEX_C),
+         axilWriteMaster => axilWriteMasters(PGP2FC_INDEX_C),
+         axilWriteSlave  => axilWriteSlaves(PGP2FC_INDEX_C));
 
    ------------
    -- Misc Core

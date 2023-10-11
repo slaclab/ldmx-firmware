@@ -103,7 +103,7 @@ begin
       generic map(
          TPD_G             => TPD_G,
          TYPE_G            => "PLL",
-         INPUT_BUFG_G      => true,
+         INPUT_BUFG_G      => false,
          FB_BUFG_G         => true,
          RST_IN_POLARITY_G => '1',
          NUM_CLOCKS_G      => 1,

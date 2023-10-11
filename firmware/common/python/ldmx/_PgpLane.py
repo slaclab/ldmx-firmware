@@ -19,19 +19,16 @@ class PgpLane(pr.Device):
         self.add(surf.protocols.pgp.Pgp2fcAxi(
             offset = 0x1_0000))
 
-        self.add(ldmx.PgpMiscCtrl(
-            offset = 0x2_0000))
-
         self.add(surf.axi.AxiStreamMonAxiL(
-            name = "TxStreammMon",
-            offset = 0x3_0000,
+            name = "TxStreamMon",
+            offset = 0x2_0000,
             numberLanes = 4,
             hideConfig = False,
             chName = None))
 
         self.add(surf.axi.AxiStreamMonAxiL(
-            name = "RxStreammMon",
-            offset = 0x4_0000,
+            name = "RxStreamMon",
+            offset = 0x3_0000,
             numberLanes = 4,
             hideConfig = False,
             chName = None))
