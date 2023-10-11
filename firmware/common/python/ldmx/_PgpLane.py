@@ -10,25 +10,22 @@ class PgpLane(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # self.add(surf.xilinx.Gtye4Channel(
-        #     offset = 0x0000))
-
         self.add(ldmx.PgpFcGtyCoreWrapper(
-            offset = 0x0_0000))
+            offset = 0x0000))
 
         self.add(surf.protocols.pgp.Pgp2fcAxi(
-            offset = 0x1_0000))
+            offset = 0x4000))
 
         self.add(surf.axi.AxiStreamMonAxiL(
             name = "TxStreamMon",
-            offset = 0x2_0000,
+            offset = 0x8000,
             numberLanes = 4,
             hideConfig = False,
             chName = None))
 
         self.add(surf.axi.AxiStreamMonAxiL(
             name = "RxStreamMon",
-            offset = 0x3_0000,
+            offset = 0xC000,
             numberLanes = 4,
             hideConfig = False,
             chName = None))
