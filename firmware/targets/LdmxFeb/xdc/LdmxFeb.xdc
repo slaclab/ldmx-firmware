@@ -45,7 +45,7 @@ create_generated_clock -name txOutClk_unused2 [get_pins -hier * -filter {name=~*
 create_generated_clock -name txOutClkPcs_unused2 [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[2].U_LdmxFebPgp_1/*/TXOUTCLKPCS}]
 
 
-set daqClk37Pin [get_pins { U_FebCore_1/DaqTiming_1/r_reg[daqClk37]/Q }]
+set daqClk37Pin [get_pins { U_FebCore_1/U_FebFcRx_1/r_reg[fcClk37]/Q }]
 
 create_generated_clock \
     -name daqClk37 \
@@ -81,8 +81,8 @@ create_generated_clock -name adcClk4 -source ${daqClk37Pin} -duty_cycle 50 -mult
     [get_pins U_LdmxFebHw_1/U_ClockManagerUltraScale_ADC/MmcmGen.U_Mmcm/CLKOUT3]
 
 #U_LdmxFebPgp_1/NO_SIM.PGP_GEN[0].U_LdmxFebPgp_1/U_Pgp2fcGtyUltra_1/PgpGtyCoreWrapper_1/U_Pgp2fcGtyCore/inst/gen_gtwizard_gtye4_top.Pgp2fcGtyCore_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_channel_container[35].gen_enabled_channel.gtye4_channel_wrapper_inst/channel_inst/gtye4_channel_gen.gen_gtye4_channel_inst[0].GTYE4_CHANNEL_PRIM_INST/TXOUTCLK
-create_generated_clock -name dnaClk [get_pins U_FebCore_1/AxiVersion_1/GEN_DEVICE_DNA.DeviceDna_1/GEN_ULTRA_SCALE.DeviceDnaUltraScale_Inst/BUFGCE_DIV_Inst/O]
-create_generated_clock -name icapClk [get_pins U_FebCore_1/AxiVersion_1/GEN_ICAP.Iprog_1/GEN_ULTRA_SCALE.IprogUltraScale_Inst/BUFGCE_DIV_Inst/O]
+create_generated_clock -name dnaClk [get_pins U_LdmxFebHw_1/AxiVersion_1/GEN_DEVICE_DNA.DeviceDna_1/GEN_ULTRA_SCALE.DeviceDnaUltraScale_Inst/BUFGCE_DIV_Inst/O]
+create_generated_clock -name icapClk [get_pins U_LdmxFebHw_1/AxiVersion_1/GEN_ICAP.Iprog_1/GEN_ULTRA_SCALE.IprogUltraScale_Inst/BUFGCE_DIV_Inst/O]
 
 
 set_clock_groups -asynchronous \
