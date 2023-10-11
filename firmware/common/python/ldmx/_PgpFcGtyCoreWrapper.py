@@ -1,6 +1,5 @@
 import pyrogue as pr
 import surf.xilinx
-import LclsTimingCore
 
 class PgpFcGtyCoreWrapper(pr.Device):
     def __init__(self, **kwargs):
