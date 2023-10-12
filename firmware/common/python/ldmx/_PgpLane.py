@@ -11,9 +11,11 @@ class PgpLane(pr.Device):
         super().__init__(**kwargs)
 
         self.add(ldmx.PgpFcGtyCoreWrapper(
+            name   = "PgpFcGtyCoreWrapper",
             offset = 0x0000))
 
         self.add(surf.protocols.pgp.Pgp2fcAxi(
+            name   = "Pgp2fcAxi",
             offset = 0x4000))
 
         self.add(surf.axi.AxiStreamMonAxiL(
