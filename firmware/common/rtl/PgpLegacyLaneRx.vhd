@@ -26,7 +26,7 @@ use surf.Pgp2fcPkg.all;
 library axi_pcie_core;
 use axi_pcie_core.AxiPciePkg.all;
 
-entity PgpLaneRx is
+entity PgpLegacyLaneRx is
    generic (
       TPD_G             : time    := 1 ns;
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
@@ -45,15 +45,14 @@ entity PgpLaneRx is
       pgpRxMasters    : in  AxiStreamMasterArray(3 downto 0);
       pgpRxSlaves     : out AxiStreamSlaveArray(3 downto 0);
       pgpRxCtrl       : out AxiStreamCtrlArray(3 downto 0));
-end PgpLaneRx;
+end PgpLegacyLaneRx;
 
-architecture mapping of PgpLaneRx is
+architecture mapping of PgpLegacyLaneRx is
 
-   signal pgpMasters   : AxiStreamMasterArray(3 downto 0);
-   signal rxMasters    : AxiStreamMasterArray(3 downto 0);
-   signal rxSlaves     : AxiStreamSlaveArray(3 downto 0);
-   signal locBuffPause : slv(3 downto 0);
-   signal disableSel   : slv(3 downto 0);
+   signal pgpMasters : AxiStreamMasterArray(3 downto 0);
+   signal rxMasters  : AxiStreamMasterArray(3 downto 0);
+   signal rxSlaves   : AxiStreamSlaveArray(3 downto 0);
+   signal disableSel : slv(3 downto 0);
 
    signal rxMaster : AxiStreamMasterType;
    signal rxSlave  : AxiStreamSlaveType;
@@ -92,7 +91,7 @@ begin
             FIFO_FIXED_THRESH_G => true,
             FIFO_PAUSE_THRESH_G => 128,
             -- AXI Stream Port Configurations
-            SLAVE_AXI_CONFIG_G  => PGP2FC_AXIS_CONFIG_C,
+            SLAVE_AXI_CONFIG_G  => SSI_PGP2FC_CONFIG_C,
             MASTER_AXI_CONFIG_G => DMA_AXIS_CONFIG_G)
          port map (
             -- Slave Port
@@ -130,14 +129,13 @@ begin
          mAxisMaster  => rxMaster,
          mAxisSlave   => rxSlave);
 
-   locBuffPause <= dmaBuffGrpPause(3 downto 0) when (LANE_G mod 2 = 0) else dmaBuffGrpPause(7 downto 4);
    U_disableSel : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 4)
       port map (
          clk     => pgpRxClk,
-         dataIn  => locBuffPause,
+         dataIn  => dmaBuffGrpPause(3 downto 0),
          dataOut => disableSel);
 
    ASYNC_FIFO : entity surf.AxiStreamFifoV2
@@ -145,7 +143,7 @@ begin
          -- General Configurations
          TPD_G               => TPD_G,
          INT_PIPE_STAGES_G   => 1,
-         PIPE_STAGES_G       => 2,
+         PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations

@@ -18,48 +18,43 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
+library ldmx;
+
 library axi_pcie_core;
 use axi_pcie_core.AxiPciePkg.all;
 
-library ldmx;
+library unisim;
+use unisim.vcomponents.all;
 
 entity PgpLaneWrapper is
    generic (
       TPD_G             : time             := 1 ns;
-      REFCLK_WIDTH_G    : positive         := 2;
+      SIM_SPEEDUP_G     : boolean          := false;
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
+      PGP_QUADS_G       : integer          := 8;
+      AXI_CLK_FREQ_G    : real             := 125.0e6;
       AXI_BASE_ADDR_G   : slv(31 downto 0) := (others => '0'));
    port (
-      -- QSFP[0] Ports
-      qsfp0RefClkP    : in  slv(REFCLK_WIDTH_G-1 downto 0);
-      qsfp0RefClkN    : in  slv(REFCLK_WIDTH_G-1 downto 0);
-      qsfp0RxP        : in  slv(3 downto 0);
-      qsfp0RxN        : in  slv(3 downto 0);
-      qsfp0TxP        : out slv(3 downto 0);
-      qsfp0TxN        : out slv(3 downto 0);
-      -- QSFP[1] Ports
-      qsfp1RefClkP    : in  slv(REFCLK_WIDTH_G-1 downto 0);
-      qsfp1RefClkN    : in  slv(REFCLK_WIDTH_G-1 downto 0);
-      qsfp1RxP        : in  slv(3 downto 0);
-      qsfp1RxN        : in  slv(3 downto 0);
-      qsfp1TxP        : out slv(3 downto 0);
-      qsfp1TxN        : out slv(3 downto 0);
+      -- QSFP-DD Ports
+      qsfpRefClkP     : in  slv(PGP_QUADS_G-1 downto 0);
+      qsfpRefClkN     : in  slv(PGP_QUADS_G-1 downto 0);
+      qsfpRxP         : in  slv(PGP_QUADS_G*4-1 downto 0);
+      qsfpRxN         : in  slv(PGP_QUADS_G*4-1 downto 0);
+      qsfpTxP         : out slv(PGP_QUADS_G*4-1 downto 0);
+      qsfpTxN         : out slv(PGP_QUADS_G*4-1 downto 0);
       -- DMA Interface (dmaClk domain)
       dmaClk          : in  sl;
       dmaRst          : in  sl;
       dmaBuffGrpPause : in  slv(7 downto 0);
-      dmaObMasters    : in  AxiStreamMasterArray(7 downto 0);
-      dmaObSlaves     : out AxiStreamSlaveArray(7 downto 0);
-      dmaIbMasters    : out AxiStreamMasterArray(7 downto 0);
-      dmaIbSlaves     : in  AxiStreamSlaveArray(7 downto 0);
+      dmaObMasters    : in  AxiStreamMasterArray(PGP_QUADS_G-1 downto 0);
+      dmaObSlaves     : out AxiStreamSlaveArray(PGP_QUADS_G-1 downto 0);
+      dmaIbMasters    : out AxiStreamMasterArray(PGP_QUADS_G-1 downto 0);
+      dmaIbSlaves     : in  AxiStreamSlaveArray(PGP_QUADS_G-1 downto 0);
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -71,91 +66,26 @@ end PgpLaneWrapper;
 
 architecture mapping of PgpLaneWrapper is
 
-   constant NUM_AXI_MASTERS_C : natural := 9;
+   constant NUM_AXI_MASTERS_C : natural := PGP_QUADS_G*4;
 
-   constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXI_BASE_ADDR_G, 20, 16);
+   constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXI_BASE_ADDR_G, 21, 16);
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
 
-   signal pgpRefClk : slv(7 downto 0);
-   signal pgpRxP    : slv(7 downto 0);
-   signal pgpRxN    : slv(7 downto 0);
-   signal pgpTxP    : slv(7 downto 0);
-   signal pgpTxN    : slv(7 downto 0);
+   signal qsfpRefClk       : slv(PGP_QUADS_G-1 downto 0);
+   signal qsfpUserRefClk   : slv(PGP_QUADS_G-1 downto 0);
+   signal userRefClk       : slv(PGP_QUADS_G-1 downto 0);
 
-   signal refClk      : slv((2*REFCLK_WIDTH_G)-1 downto 0);
-   signal userRefClk  : slv((2*REFCLK_WIDTH_G)-1 downto 0);
-   signal userRefClkG : slv((2*REFCLK_WIDTH_G)-1 downto 0);
+   signal pgpObMasters     : AxiStreamMasterArray(PGP_QUADS_G*4-1 downto 0);
+   signal pgpObSlaves      : AxiStreamSlaveArray(PGP_QUADS_G*4-1 downto 0);
+   signal pgpIbMasters     : AxiStreamMasterArray(PGP_QUADS_G*4-1 downto 0);
+   signal pgpIbSlaves      : AxiStreamSlaveArray(PGP_QUADS_G*4-1 downto 0);
+
 
 begin
-
-   ------------------------
-   -- Common PGP Clocking
-   ------------------------
-   GEN_REFCLK :
-   for i in REFCLK_WIDTH_G-1 downto 0 generate
-
-      U_QsfpRef0 : IBUFDS_GTE4
-         generic map (
-            REFCLK_EN_TX_PATH  => '0',
-            REFCLK_HROW_CK_SEL => "00",  -- 2'b00: ODIV2 = O
-            REFCLK_ICNTL_RX    => "00")
-         port map (
-            I     => qsfp0RefClkP(i),
-            IB    => qsfp0RefClkN(i),
-            CEB   => '0',
-            ODIV2 => userRefClk(2*i),
-            O     => refClk((2*i)));
-
-      U_QsfpRef1 : IBUFDS_GTE4
-         generic map (
-            REFCLK_EN_TX_PATH  => '0',
-            REFCLK_HROW_CK_SEL => "00",  -- 2'b00: ODIV2 = O
-            REFCLK_ICNTL_RX    => "00")
-         port map (
-            I     => qsfp1RefClkP(i),
-            IB    => qsfp1RefClkN(i),
-            CEB   => '0',
-            ODIV2 => userRefClk((2*i)+1),
-            O     => refClk((2*i)+1));
-   end generate GEN_REFCLK;
-
-   GEN_USER_REF_BUFG_GT : for i in 3 downto 0 generate
-      U_BUFG : BUFG_GT
-         port map (
-            I       => userRefClk(i),
-            CE      => '1',
-            CEMASK  => '1',
-            CLR     => '0',
-            CLRMASK => '1',
-            DIV     => "000",           -- Divide-by-1
-            O       => userRefClkG(i));
-
-   end generate;
-
-
-   --------------------------------
-   -- Mapping QSFP[1:0] to PGP[7:0]
-   -- qsfp*RefClkP(1) is reprogrammable via Si570
-   -- Use that one
-   --------------------------------
-   MAP_QSFP : for i in 3 downto 0 generate
-      -- QSFP[0] to PGP[3:0]
-      pgpRefClk(i+0) <= refClk(2);
-      pgpRxP(i+0)    <= qsfp0RxP(i);
-      pgpRxN(i+0)    <= qsfp0RxN(i);
-      qsfp0TxP(i)    <= pgpTxP(i+0);
-      qsfp0TxN(i)    <= pgpTxN(i+0);
-      -- QSFP[1] to PGP[7:4]
-      pgpRefClk(i+4) <= refClk(3);
-      pgpRxP(i+4)    <= qsfp1RxP(i);
-      pgpRxN(i+4)    <= qsfp1RxN(i);
-      qsfp1TxP(i)    <= pgpTxP(i+4);
-      qsfp1TxN(i)    <= pgpTxN(i+4);
-   end generate MAP_QSFP;
 
    ---------------------
    -- AXI-Lite Crossbar
@@ -178,53 +108,126 @@ begin
          mAxiReadMasters     => axilReadMasters,
          mAxiReadSlaves      => axilReadSlaves);
 
-   U_RefclkMon_1 : entity ldmx.RefclkMon
-      generic map (
-         TPD_G           => TPD_G,
-         AXIL_CLK_FREQ_G => 125.0e6)
-      port map (
-         axilClk         => axilClk,              -- [in]
-         axilRst         => axilRst,              -- [in]
-         axilReadMaster  => axilReadMasters(8),   -- [in]
-         axilReadSlave   => axilReadSlaves(8),    -- [out]
-         axilWriteMaster => axilWriteMasters(8),  -- [in]
-         axilWriteSlave  => axilWriteSlaves(8),   -- [out]
-         qsfpRefClk      => userRefClkG);         -- [in]
-
    ------------
    -- PGP Lanes
    ------------
-   GEN_LANE : for i in 7 downto 0 generate
+   GEN_QUAD : for quad in PGP_QUADS_G-1 downto 0 generate
 
-      U_Lane : entity ldmx.PgpLane
+      U_QsfpRef : IBUFDS_GTE4
          generic map (
-            TPD_G             => TPD_G,
-            DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G,
-            LANE_G            => i,
-            AXI_BASE_ADDR_G   => AXI_CONFIG_C(i).baseAddr)
+            REFCLK_EN_TX_PATH  => '0',
+            REFCLK_HROW_CK_SEL => "00",  -- 2'b00: ODIV2 = O
+            REFCLK_ICNTL_RX    => "00")
          port map (
-            -- PGP Serial Ports
-            pgpRxP          => pgpRxP(i),
-            pgpRxN          => pgpRxN(i),
-            pgpTxP          => pgpTxP(i),
-            pgpTxN          => pgpTxN(i),
-            pgpRefClk       => pgpRefClk(i),
-            -- DMA Interface (dmaClk domain)
-            dmaClk          => dmaClk,
-            dmaRst          => dmaRst,
-            dmaBuffGrpPause => dmaBuffGrpPause,
-            dmaObMaster     => dmaObMasters(i),
-            dmaObSlave      => dmaObSlaves(i),
-            dmaIbMaster     => dmaIbMasters(i),
-            dmaIbSlave      => dmaIbSlaves(i),
-            -- AXI-Lite Interface (axilClk domain)
-            axilClk         => axilClk,
-            axilRst         => axilRst,
-            axilReadMaster  => axilReadMasters(i),
-            axilReadSlave   => axilReadSlaves(i),
-            axilWriteMaster => axilWriteMasters(i),
-            axilWriteSlave  => axilWriteSlaves(i));
+            I     => qsfpRefClkP(quad),
+            IB    => qsfpRefClkN(quad),
+            CEB   => '0',
+            ODIV2 => qsfpUserRefClk(quad),
+            O     => qsfpRefClk(quad));
 
-   end generate GEN_LANE;
+      U_QsfpUserRefClk : BUFG_GT
+         port map (
+            I       => qsfpUserRefClk(quad),
+            CE      => '1',
+            CEMASK  => '1',
+            CLR     => '0',
+            CLRMASK => '1',
+            DIV     => "000",
+            O       => userRefClk(quad));
+
+      GEN_LANE : for lane in 3 downto 0 generate
+         U_Lane : entity ldmx.PgpLane
+            generic map (
+               TPD_G             => TPD_G,
+               SIM_SPEEDUP_G     => SIM_SPEEDUP_G,
+               DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G,
+               LANE_G            => quad*4+lane,
+               AXI_CLK_FREQ_G    => AXI_CLK_FREQ_G,
+               AXI_BASE_ADDR_G   => AXI_CONFIG_C(quad*4+lane).baseAddr)
+            port map (
+               -- PGP Serial Ports
+               pgpRxP          => qsfpRxP(quad*4+lane),
+               pgpRxN          => qsfpRxN(quad*4+lane),
+               pgpTxP          => qsfpTxP(quad*4+lane),
+               pgpTxN          => qsfpTxN(quad*4+lane),
+               pgpRefClk       => qsfpRefClk(quad),
+               pgpFabricRefClk => '0', -- placeholder
+               pgpUserRefClk   => userRefClk(quad),
+               -- DMA Interface (dmaClk domain)
+               dmaClk          => dmaClk,
+               dmaRst          => dmaRst,
+               dmaBuffGrpPause => dmaBuffGrpPause,
+               dmaObMaster     => pgpObMasters(quad*4+lane),
+               dmaObSlave      => pgpObSlaves(quad*4+lane),
+               dmaIbMaster     => pgpIbMasters(quad*4+lane),
+               dmaIbSlave      => pgpIbSlaves(quad*4+lane),
+               -- AXI-Lite Interface (axilClk domain)
+               axilClk         => axilClk,
+               axilRst         => axilRst,
+               axilReadMaster  => axilReadMasters(quad*4+lane),
+               axilReadSlave   => axilReadSlaves(quad*4+lane),
+               axilWriteMaster => axilWriteMasters(quad*4+lane),
+               axilWriteSlave  => axilWriteSlaves(quad*4+lane));
+
+      end generate GEN_LANE;
+
+      ----------------------------------------------------------------------------------------------
+      -- Mux each quad of lanes together
+      -- This will make 1 DMA lane per QUAD
+      -- All even quads share a TID for buffGrpPause
+      -- Likewise for odd numbered quads
+      ----------------------------------------------------------------------------------------------
+      ----------------------------------------------------------------------------------------------
+      -- Should be
+      -- Place pgp lane streams into dma streams modulo 8
+      ----------------------------------------------------------------------------------------------
+      U_Mux : entity surf.AxiStreamMux
+         generic map (
+            TPD_G          => TPD_G,
+            NUM_SLAVES_G   => 4,
+            MODE_G         => "ROUTED",
+            TDEST_ROUTES_G => (
+               0           => "000000--",
+               1           => "000100--",
+               2           => "001000--",
+               3           => "001100--"),
+            TID_MODE_G     => "ROUTED",
+            TID_ROUTES_G   => (
+               0           => "000000--",
+               1           => "000001--",
+               2           => "000000--",
+               3           => "000001--"),
+            PIPE_STAGES_G  => 2)
+         port map (
+            -- Clock and reset
+            axisClk      => dmaClk,
+            axisRst      => dmaRst,
+            -- Slaves
+            sAxisMasters => pgpIbMasters(quad*4+3 downto quad*4),
+            sAxisSlaves  => pgpIbSlaves(quad*4+3 downto quad*4),
+            -- Master
+            mAxisMaster  => dmaIbMasters(quad),
+            mAxisSlave   => dmaIbSlaves(quad));
+
+      U_AxiStreamDeMux_1 : entity surf.AxiStreamDeMux
+         generic map (
+            TPD_G          => TPD_G,
+            NUM_MASTERS_G  => 4,
+            MODE_G         => "ROUTED",
+            TDEST_ROUTES_G => (
+               0           => "000000--",
+               1           => "000100--",
+               2           => "001000--",
+               3           => "001100--"),
+            PIPE_STAGES_G  => 2)
+         port map (
+            axisClk      => dmaClk,                                -- [in]
+            axisRst      => dmaRst,                                -- [in]
+            sAxisMaster  => dmaObMasters(quad),                    -- [in]
+            sAxisSlave   => dmaObSlaves(quad),                     -- [out]
+            mAxisMasters => pgpObMasters(quad*4+3 downto quad*4),  -- [out]
+            mAxisSlaves  => pgpObSlaves(quad*4+3 downto quad*4));  -- [in]
+
+   end generate GEN_QUAD;
 
 end mapping;

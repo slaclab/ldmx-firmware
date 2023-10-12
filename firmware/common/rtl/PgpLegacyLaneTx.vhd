@@ -26,7 +26,7 @@ use surf.Pgp2fcPkg.all;
 library axi_pcie_core;
 use axi_pcie_core.AxiPciePkg.all;
 
-entity PgpLaneTx is
+entity PgpLegacyLaneTx is
    generic (
       TPD_G             : time := 1 ns;
       DMA_AXIS_CONFIG_G : AxiStreamConfigType);
@@ -43,9 +43,9 @@ entity PgpLaneTx is
       pgpTxOut     : in  Pgp2fcTxOutType;
       pgpTxMasters : out AxiStreamMasterArray(3 downto 0);
       pgpTxSlaves  : in  AxiStreamSlaveArray(3 downto 0));
-end PgpLaneTx;
+end PgpLegacyLaneTx;
 
-architecture mapping of PgpLaneTx is
+architecture mapping of PgpLegacyLaneTx is
 
    signal dmaMaster : AxiStreamMasterType;
    signal dmaCtrl   : AxiStreamCtrlType;
@@ -102,7 +102,7 @@ begin
          FIFO_PAUSE_THRESH_G => 20,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => DMA_AXIS_CONFIG_G,
-         MASTER_AXI_CONFIG_G => PGP2FC_AXIS_CONFIG_C)
+         MASTER_AXI_CONFIG_G => SSI_PGP2FC_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => dmaClk,
@@ -121,8 +121,8 @@ begin
          COMMON_CLK_G        => true,
          SLAVE_FIFO_G        => false,
          MASTER_FIFO_G       => false,
-         SLAVE_AXI_CONFIG_G  => PGP2FC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => PGP2FC_AXIS_CONFIG_C)
+         SLAVE_AXI_CONFIG_G  => SSI_PGP2FC_CONFIG_C,
+         MASTER_AXI_CONFIG_G => SSI_PGP2FC_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => pgpTxClk,

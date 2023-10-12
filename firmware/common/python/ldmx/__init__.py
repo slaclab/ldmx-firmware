@@ -1,4 +1,4 @@
-from ldmx._PgpFcAlveo import *
+from ldmx._PgpFc import *
 from ldmx._PgpLane import *
 from ldmx._PgpMiscCtrl import *
 from ldmx._TrackerPcieAlveoRoot import *
@@ -27,3 +27,5 @@ from ldmx._LdmxFebPgp import *
 from ldmx._FcEmu import *
 from ldmx._PhaseShift import *
 from ldmx._WaveformCapture import *
+from ldmx._PgpFcGtyCoreWrapper import *
+from ldmx._TrackerPciePgpFcRoot import *

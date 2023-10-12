@@ -19,16 +19,14 @@ import ldmx
 
 import argparse
 
-class TrackerPcieAlveoRoot(pr.Root):
+class TrackerPciePgpFcRoot(pr.Root):
     def __init__(
             self,
             dev = '/dev/datadev_0',
             sim = False,
-            numLanes = 8,
+            numLanes = 1,
             **kwargs):
         super().__init__(**kwargs)
-
-        print(f'{numLanes=}')
 
         # Create PCIE memory mapped interface
         if sim:
@@ -46,16 +44,15 @@ class TrackerPcieAlveoRoot(pr.Root):
             numDmaLanes = numLanes,
             expand      = True,
             sim         = sim,
-            boardType = 'U200'
         ))
-        
 
-        self.add(ldmx.PgpFcAlveo(
-            offset = 0x00800000,
-            memBase = self.memMap,
-            expand = True))
+        self.add(ldmx.PgpFc(
+            offset   = 0x00800000,
+            memBase  = self.memMap,
+            numQuads = numLanes,
+            expand   = True))
 
-class TrackerPcieAlveoArgParser(argparse.ArgumentParser):
+class TrackerPciePgpFcArgParser(argparse.ArgumentParser):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -78,8 +75,8 @@ class TrackerPcieAlveoArgParser(argparse.ArgumentParser):
             "-l",
             type     = int,
             required = False,
-            default  = 8,
-            help     = "# of DMA Lanes",
+            default  = 1,
+            help     = "# of DMA Lanes (same as Transceiver Quads)",
         )
         
         self.add_argument(
