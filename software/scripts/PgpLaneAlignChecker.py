@@ -31,25 +31,34 @@ class PgpLaneAlignCheckerParser(ldmx.TrackerPciePgpFcArgParser):
             help     = "How many seconds to sleep between polling intervals.",
         )
 
+        self.add_argument(
+            "--oneRead",
+            action = 'store_true',
+            default = False)
+
 parser = PgpLaneAlignCheckerParser()
 args = parser.parse_args()
 
+def statusPrinter(root, numLanes):
+    system('clear')
+    for quad in range(numLanes):
+        for lane in range(4):
+            locked       = root.PgpFc.PgpLane[quad][lane].PgpFcGtyCoreWrapper.GtRxAlignCheck.Locked.get()
+            rxClkFreqRaw = root.PgpFc.PgpLane[quad][lane].PgpFcGtyCoreWrapper.GtRxAlignCheck.RxClkFreqRaw.get()
+            # formatting into a string retains the trailing zeros thus resulting in a justified printout
+            rxClkFreq    = '{:.5f}'.format(round(rxClkFreqRaw * 1.0e-6, 5))
+
+            print(f"Quad = {quad} Lane = {lane}, RxClkFreq = {rxClkFreq} MHz, Locked = {locked}")
+
 with ldmx.TrackerPciePgpFcRoot(dev=args.dev, sim=args.sim, numLanes=args.numLanes) as root:
-    pgpFc = root.PgpFc
-
-    while True:
-        try:
-            system('clear')
-            for quad in range(args.numLanes):
-                for lane in range(4):
-                    locked       = pgpFc.PgpLane[quad][lane].PgpFcGtyCoreWrapper.GtRxAlignCheck.Locked.get()
-                    rxClkFreqRaw = pgpFc.PgpLane[quad][lane].PgpFcGtyCoreWrapper.GtRxAlignCheck.RxClkFreqRaw.get()
-                    # formatting into a string retains the trailing zeros thus resulting in a justified printout
-                    rxClkFreq    = '{:.5f}'.format(round(rxClkFreqRaw * 1.0e-6, 5))
-
-                    print(f"Quad = {quad} Lane = {lane}, RxClkFreq = {rxClkFreq} MHz, Locked = {locked}")
-            time.sleep(args.sleepTime)
-        except KeyboardInterrupt:
-            print("")
-            print("Exited.")
-            sys.exit()
+    if args.oneRead is True:
+        statusPrinter(root=root, numLanes=args.numLanes)
+    else:
+        while True:
+            try:
+                statusPrinter(root=root, numLanes=args.numLanes)
+                time.sleep(args.sleepTime)
+            except KeyboardInterrupt:
+                print("")
+                print("Exited.")
+                sys.exit()
