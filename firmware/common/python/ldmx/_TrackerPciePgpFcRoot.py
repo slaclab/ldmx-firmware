@@ -24,11 +24,9 @@ class TrackerPciePgpFcRoot(pr.Root):
             self,
             dev = '/dev/datadev_0',
             sim = False,
-            numLanes = 4,
+            numLanes = 1,
             **kwargs):
         super().__init__(**kwargs)
-
-        print(f'{numLanes=}')
 
         # Create PCIE memory mapped interface
         if sim:
@@ -49,9 +47,10 @@ class TrackerPciePgpFcRoot(pr.Root):
         ))
 
         self.add(ldmx.PgpFc(
-            offset = 0x00800000,
-            memBase = self.memMap,
-            expand = True))
+            offset   = 0x00800000,
+            memBase  = self.memMap,
+            numQuads = numLanes,
+            expand   = True))
 
 class TrackerPciePgpFcArgParser(argparse.ArgumentParser):
     def __init__(self, **kwargs):
@@ -76,8 +75,8 @@ class TrackerPciePgpFcArgParser(argparse.ArgumentParser):
             "-l",
             type     = int,
             required = False,
-            default  = 8,
-            help     = "# of DMA Lanes",
+            default  = 1,
+            help     = "# of DMA Lanes (same as Transceiver Quads)",
         )
         
         self.add_argument(

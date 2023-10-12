@@ -86,16 +86,13 @@ architecture top_level of BittWareXupVv8Pgp2fc is
    signal axilWriteMaster : AxiLiteWriteMasterType;
    signal axilWriteSlave  : AxiLiteWriteSlaveType;
 
-   -- +1 because of XVC
-   constant DMA_SIZE_C    : integer := PGP_QUADS_G;
-
    signal dmaClk          : sl;
    signal dmaRst          : sl;
    signal dmaBuffGrpPause : slv(7 downto 0);
-   signal dmaObMasters    : AxiStreamMasterArray(DMA_SIZE_C-1 downto 0);
-   signal dmaObSlaves     : AxiStreamSlaveArray(DMA_SIZE_C-1 downto 0);
-   signal dmaIbMasters    : AxiStreamMasterArray(DMA_SIZE_C-1 downto 0);
-   signal dmaIbSlaves     : AxiStreamSlaveArray(DMA_SIZE_C-1 downto 0);
+   signal dmaObMasters    : AxiStreamMasterArray(PGP_QUADS_G-1 downto 0);
+   signal dmaObSlaves     : AxiStreamSlaveArray(PGP_QUADS_G-1 downto 0);
+   signal dmaIbMasters    : AxiStreamMasterArray(PGP_QUADS_G-1 downto 0);
+   signal dmaIbSlaves     : AxiStreamSlaveArray(PGP_QUADS_G-1 downto 0);
 
 begin
 
@@ -142,7 +139,7 @@ begin
          ROGUE_SIM_CH_COUNT_G => 4,
          DMA_BURST_BYTES_G    => DMA_BURST_BYTES_G,
          DMA_AXIS_CONFIG_G    => DMA_AXIS_CONFIG_C,
-         DMA_SIZE_G           => DMA_SIZE_C)
+         DMA_SIZE_G           => PGP_QUADS_G)
       port map (
          ------------------------
          --  Top Level Interfaces
@@ -198,10 +195,10 @@ begin
          dmaClk          => dmaClk,           -- [in]
          dmaRst          => dmaRst,           -- [in]
          dmaBuffGrpPause => dmaBuffGrpPause,  -- [in]
-         dmaObMasters(0) => dmaObMasters(0),  -- [in]
-         dmaObSlaves(0)  => dmaObSlaves(0),   -- [out]
-         dmaIbMasters(0) => dmaIbMasters(0),  -- [out]
-         dmaIbSlaves(0)  => dmaIbSlaves(0),   -- [in]
+         dmaObMasters    => dmaObMasters,     -- [in]
+         dmaObSlaves     => dmaObSlaves,      -- [out]
+         dmaIbMasters    => dmaIbMasters,     -- [out]
+         dmaIbSlaves     => dmaIbSlaves,      -- [in]
          axilClk         => axilClk,          -- [in]
          axilRst         => axilRst,          -- [in]
          axilReadMaster  => axilReadMaster,   -- [in]
