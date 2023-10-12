@@ -1,4 +1,7 @@
-'''Script that periodically queries several PGP2FC registers on a per-link basis to determine the interface's health status.'''
+'''
+Script that periodically queries several PGP2FC registers on a per-link basis to determine the interface's health status.
+The script can also perform PRBS checks on all lanes.
+'''
 
 import pyrogue
 import rogue
@@ -7,7 +10,6 @@ import sys
 import time
 from os import system
 
-#pyrogue.addLibraryPath(f'../python/')
 pyrogue.addLibraryPath(f'../../firmware/common/python/')
 pyrogue.addLibraryPath(f'../../firmware/submodules/surf/python')
 pyrogue.addLibraryPath(f'../../firmware/submodules/axi-pcie-core/python')
@@ -46,26 +48,36 @@ class PgpLaneHealthCheckerParser(ldmx.TrackerPciePgpFcArgParser):
             default = False)
 
 
-#######################
+####################################################################################################
 # Board handling class
-#######################
+####################################################################################################
 class BoardHandler():
     def __init__(self, board, args):
         # arguments
         self.board = board
         self.args  = args
 
-        # variables
+        # nodes and variables
         self.lanes            = []
         self.quads            = []
-        self.lockFlags        = []
-        self.rxClkFreqs       = []
-        self.retryCnts        = []
+
+        self.alignChecker     = []
+        self.lockFlag         = []
+        self.rxClkFreq        = []
+        self.retryCnt         = []
+
+        self.pgpMon           = []
         self.rxLocalLinkReady = []
         self.rxRemLinkReady   = []
-        self.rxCellErrorCnts  = []
-        self.rxLinkDownCnts   = []
-        self.rxLinkErrorCnts  = []
+        self.rxCellErrorCnt   = []
+        self.rxLinkDownCnt    = []
+        self.rxLinkErrorCnt   = []
+
+        # PRBS
+        self.prbsRx       = []
+        self.prbsTx       = []
+        self.prbsRxErrors = []
+        self.prbsRxCnts   = []
 
         # internal stuff
         self._formatDigits = 0
@@ -79,7 +91,7 @@ class BoardHandler():
                     self.board.PgpFc.PgpLane[quad][lane].PgpFcGtyCoreWrapper.GtRxAlignCheck.RstRetryCnt.set(1)
                     self.board.PgpFc.PgpLane[quad][lane].Pgp2fcAxi.CountReset.set(1)
 
-    def statusParser(self):
+    def alignStatusParser(self):
         for quad in range(args.numLanes):
             for lane in range(4):
                 # Quad/Lane Enumeration
@@ -87,59 +99,134 @@ class BoardHandler():
                 self.lanes.append(lane)
 
                 # Align Checker
-                self.lockFlags.append(self.board.PgpFc.PgpLane[quad][lane].PgpFcGtyCoreWrapper.GtRxAlignCheck.Locked.get())
-                self.rxClkFreqs.append(round((self.board.PgpFc.PgpLane[quad][lane].PgpFcGtyCoreWrapper.GtRxAlignCheck.RxClkFreqRaw.get())*1.0e-6, 5))
-                self.retryCnts.append(self.board.PgpFc.PgpLane[quad][lane].PgpFcGtyCoreWrapper.GtRxAlignCheck.RetryCnt.get())
+                self.alignCheckerAppend(quad=quad, lane=lane)
 
                 # PgpMon
-                self.rxLocalLinkReady.append(self.board.PgpFc.PgpLane[quad][lane].Pgp2fcAxi.RxLocalLinkReady.get())
-                self.rxRemLinkReady.append(self.board.PgpFc.PgpLane[quad][lane].Pgp2fcAxi.RxRemLinkReady.get())
-                self.rxCellErrorCnts.append(self.board.PgpFc.PgpLane[quad][lane].Pgp2fcAxi.RxCellErrorCount.get())
-                self.rxLinkDownCnts.append(self.board.PgpFc.PgpLane[quad][lane].Pgp2fcAxi.RxLinkDownCount.get())
-                self.rxLinkErrorCnts.append(self.board.PgpFc.PgpLane[quad][lane].Pgp2fcAxi.RxLinkErrorCount.get())
+                self.pgpMonAppend(quad=quad, lane=lane)
 
-    def _formatter(self):
-        self._formatDigits = len(str(max(self.retryCnts + self.rxClkFreqs + self.rxCellErrorCnts + self.rxLinkDownCnts + self.rxLinkErrorCnts)))
+    def prbsParser(self):
+        for quad in range(args.numLanes):
+            for lane in range(4):
+                # Quad/Lane Enumeration
+                self.quads.append(quad)
+                self.lanes.append(lane)
+
+                # PgpMon
+                self.pgpMonAppend(quad=quad, lane=lane)
+
+                # PRBS
+                self.prbsAppend(quad=quad, lane=lane)
+
+    def alignCheckerAppend(self, quad, lane):
+        self.alignChecker.append(self.board.PgpFc.PgpLane[quad][lane].PgpFcGtyCoreWrapper.GtRxAlignCheck)
+
+    def alignCheckerRead(self):
+        for alignCheckerNode in range(len(self.alignChecker)):
+            self.lockFlag.append(self.alignChecker[alignCheckerNode].Locked.get())
+            self.rxClkFreq.append(round((self.alignChecker[alignCheckerNode].RxClkFreqRaw.get())*1.0e-6, 5))
+            self.retryCnt.append(self.alignChecker[alignCheckerNode].RetryCnt.get())
+
+    def pgpMonAppend(self, quad, lane):
+        self.pgpMon.append(self.board.PgpFc.PgpLane[quad][lane].Pgp2fcAxi)
+
+    def pgpMonRead(self):
+        for pgpMonNode in range(len(self.pgpMon)):
+            self.rxLocalLinkReady.append(self.pgpMon[pgpMonNode].RxLocalLinkReady.get())
+            self.rxRemLinkReady.append(self.pgpMon[pgpMonNode].RxRemLinkReady.get())
+            self.rxCellErrorCnt.append(self.pgpMon[pgpMonNode].RxCellErrorCount.get())
+            self.rxLinkDownCnt.append(self.pgpMon[pgpMonNode].RxLinkDownCount.get())
+            self.rxLinkErrorCnt.append(self.pgpMon[pgpMonNode].RxLinkErrorCount.get())
+
+    def prbsAppend(self, quad, lane):
+        self.prbsRx.append(self.board.prbsRx[quad][lane])
+        self.prbsTx.append(self.board.prbsTx[quad][lane])
+
+    def _prbsEnableTx(self):
+        for prbsNode in range(len(self.prbsTx)):
+            self.prbsTx[prbsNode].txEnable.set(1)
+
+    def _prbsReadRx(self):
+        for prbsNode in range(len(self.prbsRx)):
+            self.prbsRxErrors.append(self.prbsRx[prbsNode].rxErrors.get())
+            self.prbsRxCnts.append(self.prbsRx[prbsNode].rxCount.get())
+
+    def _alignStatusFormatter(self):
+        self._formatDigits = len(str(max(self.retryCnt + self.rxClkFreq + self.rxCellErrorCnt + self.rxLinkDownCnt + self.rxLinkErrorCnt)))
         self._format = 'Quad = {0:<%d} Lane = {1:<%d} RxClkFreq = {2:<%d} MHz AlignerRetryCnt = {3:<%d} AlignerLocked = {4:<%d} LocalLinkReady = {5:<%d} RemLinkReady = {6:<%d} RXLinkErrorCnt = {7:<%d}' % (1, 1, self._formatDigits, self._formatDigits, 1, 1, 1, self._formatDigits)
 
-    def statusPrinter(self):
-        self._formatter()
+    def _prbsStatusFormatter(self):
+        self._formatDigits = len(str(max(self.prbsRxErrors + self.prbsRxCnts)))
+        self._format = 'Quad = {0:<%d} Lane = {1:<%d} LocalLinkReady = {2:<%d} RemLinkReady = {3:<%d} PrbsRxCnts = {4:<%d} PrbsRxErrors = {5:<%d}' % (1, 1, 1, 1, self._formatDigits, self._formatDigits)
+
+    def _alignStatusPrinter(self):
+        self._alignStatusFormatter()
         system('clear')
-        for i in range(len(self.lockFlags)):
-            print(self._format.format(self.quads[i], self.lanes[i], '{0:.5f}'.format(self.rxClkFreqs[i]), self.retryCnts[i], self.lockFlags[i], self.rxLocalLinkReady[i], self.rxRemLinkReady[i], self.rxLinkErrorCnts[i]))
+        for i in range(len(self.quads)):
+            print(self._format.format(self.quads[i], self.lanes[i], '{0:.5f}'.format(self.rxClkFreq[i]), self.retryCnt[i], self.lockFlag[i], self.rxLocalLinkReady[i], self.rxRemLinkReady[i], self.rxLinkErrorCnt[i]))
+
+    def _prbsStatusPrinter(self):
+        self._prbsStatusFormatter()
+        system('clear')
+        for i in range(len(self.quads)):
+            print(self._format.format(self.quads[i], self.lanes[i], self.rxLocalLinkReady[i], self.rxRemLinkReady[i], self.prbsRxCnts[i], self.prbsRxErrors[i]))
 
     def _clearAll(self):
         self.lanes.clear()
         self.quads.clear()
-        self.lockFlags.clear()
-        self.rxClkFreqs.clear()
-        self.retryCnts.clear()
+        self.alignChecker.clear()
+        self.lockFlag.clear()
+        self.rxClkFreq.clear()
+        self.retryCnt.clear()
+        self.pgpMon.clear()
         self.rxLocalLinkReady.clear()
         self.rxRemLinkReady.clear()
-        self.rxCellErrorCnts.clear()
-        self.rxLinkDownCnts.clear()
-        self.rxLinkErrorCnts.clear()
+        self.rxCellErrorCnt.clear()
+        self.rxLinkDownCnt.clear()
+        self.rxLinkErrorCnt.clear()
+        self.prbsRx.clear()
+        self.prbsTx.clear()
+        self.prbsRx.clear()
+        self.prbsTx.clear()
+        self.prbsRxErrors.clear()
+        self.prbsRxCnts.clear()
 
-    def _doAll(self):
-        self.statusParser()
-        self.statusPrinter()
+    def _doAllChecks(self):
+        self.alignStatusParser()
+        self.alignCheckerRead()
+        self.pgpMonRead()
+        self._alignStatusPrinter()
         self.cntReset()
         self._clearAll()
 
+    def _doAllPrbs(self):
+        self.prbsParser()
+        self._prbsEnableTx()
+        self.pgpMonRead()
+        self._prbsReadRx()
+        self._prbsStatusPrinter()
+        self._clearAll()
+
+####################################################################################################
 
 parser = PgpLaneHealthCheckerParser()
 args = parser.parse_args()
 
-with ldmx.TrackerPciePgpFcRoot(dev=args.dev, sim=args.sim, numLanes=args.numLanes) as root:
+with ldmx.TrackerPciePgpFcRoot(dev=args.dev, sim=args.sim, prbsEn=args.prbsEn, numLanes=args.numLanes) as root:
     handler = BoardHandler(board=root, args=args)
 
-    if args.oneRead is True:
-        handler._doAll()
+    if args.oneRead:
+        handler._doAllChecks()
     else:
         while True:
             try:
-                handler._doAll()
+                if args.prbsEn:
+                    print("Performing PRBS checks...")
+                    handler._doAllPrbs()
+                else:
+                    handler._doAllChecks()
+
                 time.sleep(args.sleepTime)
+
             except KeyboardInterrupt:
                 print("")
                 print("Exited.")
