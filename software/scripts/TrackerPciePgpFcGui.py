@@ -16,4 +16,3 @@ args = parser.parse_args()
 
 with ldmx.TrackerPciePgpFcRoot(**vars(args)) as root:
     pyrogue.pydm.runPyDM(root=root, title='PgpFc', )
-
