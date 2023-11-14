@@ -322,6 +322,7 @@ begin
    U_LdmxFebPgp_1 : entity ldmx.LdmxFebPgp
       generic map (
          TPD_G                => TPD_G,
+         SIM_SPEEDUP_G => SIMULATION_G,
          ROGUE_SIM_EN_G       => ROGUE_SIM_EN_G,
          ROGUE_SIM_SIDEBAND_G => ROGUE_SIM_SIDEBAND_G,
          ROGUE_SIM_PORT_NUM_G => ROGUE_SIM_PORT_NUM_G,

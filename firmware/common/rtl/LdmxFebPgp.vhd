@@ -37,6 +37,7 @@ use ldmx.FcPkg.all;
 entity LdmxFebPgp is
    generic (
       TPD_G                : time                        := 1 ns;
+      SIM_SPEEDUP_G : boolean := false;
       ROGUE_SIM_EN_G       : boolean                     := false;
       ROGUE_SIM_SIDEBAND_G : boolean                     := true;
       ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 9000;
@@ -184,7 +185,7 @@ begin
    U_PwrUpRst_185 : entity surf.PwrUpRst
       generic map (
          TPD_G          => TPD_G,
-         SIM_SPEEDUP_G  => ROGUE_SIM_EN_G,
+         SIM_SPEEDUP_G  => SIM_SPEEDUP_G,
          IN_POLARITY_G  => '1',
          OUT_POLARITY_G => '1')
       port map (
@@ -221,7 +222,7 @@ begin
    PwrUpRst_1 : entity surf.PwrUpRst
       generic map (
          TPD_G          => TPD_G,
-         SIM_SPEEDUP_G  => ROGUE_SIM_EN_G,
+         SIM_SPEEDUP_G  => SIM_SPEEDUP_G,
          IN_POLARITY_G  => '1',
          OUT_POLARITY_G => '1')
       port map (
@@ -259,7 +260,7 @@ begin
          U_LdmxFebPgp_1 : entity ldmx.LdmxFebPgpLane
             generic map (
                TPD_G            => TPD_G,
-               SIMULATION_G     => false,                  -- Set true when runing sim with GTY/PGP
+               SIMULATION_G     => SIM_SPEEDUP_G,                  -- Set true when runing sim with GTY/PGP
                AXIL_BASE_ADDR_G => MAIN_XBAR_CFG_C(i).baseAddr,
                AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
                VC_COUNT_G       => 3)

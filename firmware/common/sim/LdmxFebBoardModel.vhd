@@ -35,18 +35,6 @@ entity LdmxFebBoardModel is
       gtRefClk185N   : out   sl;
       gtRefClk250P   : out   sl;
       gtRefClk250N   : out   sl;
-      sasGtTxP       : in    slv(3 downto 0);
-      sasGtTxN       : in    slv(3 downto 0);
-      sasGtRxP       : out   slv(3 downto 0);
-      sasGtRxN       : out   slv(3 downto 0);
-      qsfpGtTxP      : in    slv(3 downto 0);
-      qsfpGtTxN      : in    slv(3 downto 0);
-      qsfpGtRxP      : out   slv(3 downto 0);
-      qsfpGtRxN      : out   slv(3 downto 0);
-      sfpGtTxP       : in    sl;
-      sfpGtTxN       : in    sl;
-      sfpGtRxP       : out   sl;
-      sfpGtRxN       : out   sl;
       adcFClkP       : out   slv(HYBRIDS_G-1 downto 0);
       adcFClkN       : out   slv(HYBRIDS_G-1 downto 0);
       adcDClkP       : out   slv(HYBRIDS_G-1 downto 0);
@@ -92,7 +80,7 @@ end entity LdmxFebBoardModel;
 
 architecture sim of LdmxFebBoardModel is
 
-   constant CLK_185_PERIOD_G  : real := 5.385e-9;
+   constant CLK_185_PERIOD_G  : real := 5.3848e-9;
    constant ADC_CLK_PERIOD_C : time := CLK_185_PERIOD_G * 5 sec;
 
    constant HY_AVDD_PWR_C : RealArray(0 to 7) := (0.5, 0.4, 0.3, 0.2, 0.5, 0.4, 0.3, 0.2);
@@ -149,7 +137,7 @@ begin
    -------------------------------------------------------------------------------------------------
    ClkRst_CLK0 : entity surf.ClkRst
       generic map (
-         CLK_PERIOD_G      => 5.385 ns,
+         CLK_PERIOD_G      => CLK_185_PERIOD_G * 1 sec,
          CLK_DELAY_G       => 1 ns,
          RST_START_DELAY_G => 0 ns,
          RST_HOLD_TIME_G   => 5 us,

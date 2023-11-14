@@ -7,9 +7,9 @@ loadRuckusTcl $::env(TOP_DIR)/submodules/axi-pcie-core/hardware/BittWareXupVv8
 loadRuckusTcl $::env(TOP_DIR)/common
 
 # Load local source Code and constraints
-loadSource           -dir "$::DIR_PATH/hdl"
+loadSource           -lib ldmx -dir "$::DIR_PATH/hdl"
 loadConstraints      -dir "$::DIR_PATH/xdc"
-loadSource -sim_only -dir "$::DIR_PATH/tb"
+loadSource -sim_only -lib ldmx -dir "$::DIR_PATH/tb"
 
 set_property top {BittWareXupVv8Pgp2fc} [get_filesets {sources_1}]
 # set_property top {BittWareXupVv8Pgp2fcTb} [get_filesets {sim_1}]

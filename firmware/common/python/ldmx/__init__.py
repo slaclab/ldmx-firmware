@@ -1,7 +1,6 @@
 from ldmx._PgpFc import *
 from ldmx._PgpLane import *
 from ldmx._PgpMiscCtrl import *
-from ldmx._TrackerPcieAlveoRoot import *
 from ldmx._LdmxFebRoot import *
 from ldmx._LdmxFeb import *
 from ldmx._FebCore import *
