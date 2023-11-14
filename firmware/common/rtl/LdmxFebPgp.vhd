@@ -268,7 +268,7 @@ begin
                stableClk       => userRefClk125G,          -- [in]
                stableRst       => userRefRst125G,          -- [in]
                gtRefClk185     => gtRefClk185,             -- [in]
-               gtRefClk185G    => userRefRst185G,          -- [in]
+               gtRefClk185G    => userRefClk185G,          -- [in]
                pgpGtTxP        => pgpGtTxP(i),             -- [out]
                pgpGtTxN        => pgpGtTxN(i),             -- [out]
                pgpGtRxP        => pgpGtRxP(i),             -- [in]

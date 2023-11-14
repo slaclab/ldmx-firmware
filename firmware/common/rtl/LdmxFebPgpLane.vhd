@@ -219,17 +219,29 @@ begin
 
    pgpTxClk <= pgpTxClkTmp;             -- BUFG_GT moved to inside GT core
 
-   U_PwrUpRst_1 : entity surf.PwrUpRst
+   U_RstSync_1 : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
-         SIM_SPEEDUP_G => SIMULATION_G)
+         OUT_REG_RST_G => true)
       port map (
-         arst   => userTxRst,           -- [in]
-         clk    => pgpTxClk,            -- [in]
-         rstOut => pgpTxRst);           -- [out]
+         clk      => pgpTxClk,          -- [in]
+         asyncRst => '0',               -- [in]
+         syncRst  => pgpTxRst);         -- [out]
+
+
+--    U_PwrUpRst_1 : entity surf.PwrUpRst
+--       generic map (
+--          TPD_G         => TPD_G,
+--          SIM_SPEEDUP_G => SIMULATION_G)
+--       port map (
+--          arst   => userTxRst,           -- [in]
+--          clk    => pgpTxClk,            -- [in]
+--          rstOut => pgpTxRst);           -- [out]
+
 
    pgpTxClkOut <= pgpTxClk;
    pgpTxRstOut <= pgpTxRst;
+
 
 --    U_BUFG_RX : BUFG_GT
 --       port map (
@@ -243,14 +255,24 @@ begin
 
    pgpRxClk <= pgpRxClkTmp;             -- BUFG_GT moved inside GT core
 
-   U_PwrUpRst_2 : entity surf.PwrUpRst
+   U_RstSync_2 : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
-         SIM_SPEEDUP_G => SIMULATION_G)
+         OUT_REG_RST_G => true)
       port map (
-         arst   => userRxRst,           -- [in]
-         clk    => pgpRxClk,            -- [in]
-         rstOut => pgpRxRst);           -- [out]
+         clk      => pgpRxClk,          -- [in]
+         asyncRst => '0',               -- [in]
+         syncRst  => pgpRxRst);         -- [out]
+
+
+--    U_PwrUpRst_2 : entity surf.PwrUpRst
+--       generic map (
+--          TPD_G         => TPD_G,
+--          SIM_SPEEDUP_G => SIMULATION_G)
+--       port map (
+--          arst   => userRxRst,           -- [in]
+--          clk    => pgpRxClk,            -- [in]
+--          rstOut => pgpRxRst);           -- [out]
 
    pgpRxClkOut <= pgpRxClk;
    pgpRxRstOut <= pgpRxRst;

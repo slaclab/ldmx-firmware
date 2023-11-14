@@ -105,12 +105,12 @@ architecture mapping of PgpLane is
    signal pgpRxRst       : sl;
    signal pgpRxResetDone : sl;
 
-   signal config         : ConfigType;
-   signal txUserRst      : sl;
-   signal rxUserRst      : sl;
+   signal config    : ConfigType;
+   signal txUserRst : sl;
+   signal rxUserRst : sl;
 
-   signal wdtRst         : sl;
-   signal pwrUpRstOut    : sl;
+   signal wdtRst      : sl;
+   signal pwrUpRstOut : sl;
 
 begin
 
@@ -163,6 +163,7 @@ begin
          SIMULATION_G    => SIM_SPEEDUP_G,
          AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G,
          AXI_BASE_ADDR_G => AXI_BASE_ADDR_G,
+         FC_WORDS_G      => 5,
          VC_INTERLEAVE_G => 1)          -- AxiStreamDmaV2 supports interleaving
       port map (
          -- GT Clocking
@@ -263,24 +264,24 @@ begin
 --          axilWriteMaster => axilWriteMasters(CTRL_INDEX_C),
 --          axilWriteSlave  => axilWriteSlaves(CTRL_INDEX_C));
 
---    U_RstSync_Tx : entity surf.RstSync
---       generic map (
---          TPD_G => TPD_G)
---       port map (
---          clk      => pgpTxClk,          -- [in]
---          asyncRst => txUserRst,         -- [in]
---          syncRst  => pgpTxRst);         -- [out]
+   U_RstSync_Tx : entity surf.RstSync
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => pgpTxClk,          -- [in]
+         asyncRst => '0',               -- [in]
+         syncRst  => pgpTxRst);         -- [out]
 
---    U_RstSync_Rx : entity surf.RstSync
---       generic map (
---          TPD_G => TPD_G)
---       port map (
---          clk      => pgpRxClk,          -- [in]
---          asyncRst => rxUserRst,         -- [in]
---          syncRst  => pgpRxRst);         -- [out]
+   U_RstSync_Rx : entity surf.RstSync
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => pgpRxClk,          -- [in]
+         asyncRst => '0',               -- [in]
+         syncRst  => pgpRxRst);         -- [out]
 
-   pgpTxRst <= '0';
-   pgpRxRst <= '0';
+--    pgpTxRst <= '0';
+--    pgpRxRst <= '0';
 
 
    --------------
