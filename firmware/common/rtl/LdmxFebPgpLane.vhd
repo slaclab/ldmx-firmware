@@ -117,10 +117,10 @@ architecture rtl of LdmxFebPgpLane is
    -------------------------------------------------------------------------------------------------
    signal pgpTxClkTmp : sl;
    signal pgpTxClk    : sl;
-   signal pgpTxRst    : sl;
+   signal pgpTxRst    : sl             := '0';
    signal pgpRxClkTmp : sl;
    signal pgpRxClk    : sl;
-   signal pgpRxRst    : sl;
+   signal pgpRxRst    : sl             := '0';
    signal pgpRxIn     : Pgp2fcRxInType := PGP2FC_RX_IN_INIT_C;
    signal pgpRxOutInt : Pgp2fcRxOutType;
    signal pgpTxInInt  : Pgp2fcTxInType := PGP2FC_TX_IN_INIT_C;
@@ -219,14 +219,26 @@ begin
 
    pgpTxClk <= pgpTxClkTmp;             -- BUFG_GT moved to inside GT core
 
-   U_RstSync_1 : entity surf.RstSync
-      generic map (
-         TPD_G         => TPD_G,
-         OUT_REG_RST_G => true)
-      port map (
-         clk      => pgpTxClk,          -- [in]
-         asyncRst => '0',               -- [in]
-         syncRst  => pgpTxRst);         -- [out]
+   SIM : if (SIMULATION_G) generate
+      U_RstSync_1 : entity surf.RstSync
+         generic map (
+            TPD_G         => TPD_G,
+            OUT_REG_RST_G => true)
+         port map (
+            clk      => pgpTxClk,       -- [in]
+            asyncRst => '0',            -- [in]
+            syncRst  => pgpTxRst);      -- [out]
+
+      U_RstSync_2 : entity surf.RstSync
+         generic map (
+            TPD_G         => TPD_G,
+            OUT_REG_RST_G => true)
+         port map (
+            clk      => pgpRxClk,       -- [in]
+            asyncRst => '0',            -- [in]
+            syncRst  => pgpRxRst);      -- [out]
+
+   end generate SIM;
 
 
 --    U_PwrUpRst_1 : entity surf.PwrUpRst
@@ -255,14 +267,6 @@ begin
 
    pgpRxClk <= pgpRxClkTmp;             -- BUFG_GT moved inside GT core
 
-   U_RstSync_2 : entity surf.RstSync
-      generic map (
-         TPD_G         => TPD_G,
-         OUT_REG_RST_G => true)
-      port map (
-         clk      => pgpRxClk,          -- [in]
-         asyncRst => '0',               -- [in]
-         syncRst  => pgpRxRst);         -- [out]
 
 
 --    U_PwrUpRst_2 : entity surf.PwrUpRst
