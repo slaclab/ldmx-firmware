@@ -499,6 +499,6 @@ set_property -dict { PACKAGE_PIN AG12 IOSTANDARD LVCMOS25  } [get_ports { hyI2cS
 set_property -dict { PACKAGE_PIN AG10 IOSTANDARD LVCMOS25  } [get_ports { hyI2cSdaIn[6] }];
 set_property -dict { PACKAGE_PIN AF10 IOSTANDARD LVCMOS25  } [get_ports { hyI2cSdaIn[7] }];
 
-set_property BITSTREAM.CONFIG.CONFIGRATE 31.9  [current_design]
+set_property BITSTREAM.CONFIG.CONFIGRATE 85.0  [current_design]
 set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]
 set_property CONFIG_VOLTAGE 1.8 [current_design]
