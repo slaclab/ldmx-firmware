@@ -24,11 +24,12 @@ use surf.StdRtlPkg.all;
 package FcPkg is
 
    constant FC_LEN_C              : natural := 80;
-   subtype MSG_TYPE_RANGE_C is natural range FC_LEN_C-1 downto 76;
+   constant STATE_CHANGED_INDEX_C : natural := 69;
+
+   subtype MSG_TYPE_RANGE_C  is natural range FC_LEN_C-1 downto 76;
    subtype BUNCH_CNT_RANGE_C is natural range 69 downto 64;
    subtype RUN_STATE_RANGE_C is natural range 68 downto 64;
-   constant STATE_CHANGED_INDEX_C : natural := 69;
-   subtype PULSE_ID_RANGE_C is natural range 63 downto 0;
+   subtype PULSE_ID_RANGE_C  is natural range 63 downto 0;
 
    constant RUN_STATE_RESET_C       : slv(4 downto 0) := "00000";
    constant RUN_STATE_CLOCK_ALIGN_C : slv(4 downto 0) := "00001";

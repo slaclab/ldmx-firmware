@@ -124,7 +124,7 @@ begin
          mAxiWriteMaster => syncAxilWriteMaster,  -- [out]
          mAxiWriteSlave  => syncAxilWriteSlave);  -- [in]
 
-   comb : process (axilRst, r, syncAxilReadMaster, syncAxilWriteMaster) is
+   comb : process (fcRst, r, syncAxilReadMaster, syncAxilWriteMaster) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -132,7 +132,7 @@ begin
       v := r;
 
       -- Pulsed
-      v.usrRoR       := '0';      
+      v.usrRoR := '0';
 
       ----------------------------------------------------------------------
       --                AXI-Lite Register Logic
@@ -155,7 +155,6 @@ begin
       axiSlaveRegister (axilEp, x"01C", 0, v.fcRunStateSet);       -- Next FC run state set value
       axiSlaveRegister (axilEp, x"020", 0, v.rOrPeriod);           -- Read-Out-Req period
                                                                    -- (units of 5*timing clk period)
-
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
