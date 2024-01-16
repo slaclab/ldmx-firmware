@@ -23,7 +23,7 @@ create_clock -name qsfpRefClk7 -period 5.38 [get_ports {qsfpRefClkP[7]}]
 set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks axilClk] \
     -group [get_clocks -include_generated_clocks dmaClk] \
-    -group [get_clocks -include_generated_clocks qsfpRefClk0]
+    -group [get_clocks -include_generated_clocks qsfpRefClk0] \
     -group [get_clocks -include_generated_clocks qsfpRefClk1] \
     -group [get_clocks -include_generated_clocks qsfpRefClk2] \
     -group [get_clocks -include_generated_clocks qsfpRefClk3] \
