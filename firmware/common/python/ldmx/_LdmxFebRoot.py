@@ -8,40 +8,49 @@ import rogue
 import ldmx
 
 class LdmxFebRoot(pr.Root):
-    def __init__(self, sim=True, **kwargs):
+    def __init__(self, sim=False, emu=True, numFebs=6, **kwargs):
         super().__init__(pollEn=False, timeout=100000, **kwargs)
 
         if sim is True:
             # Map fake PCIe space
             SIM_SRP_PORT = 11000            
-            self.memMap = rogue.interfaces.memory.TcpClient('localhost', SIM_SRP_PORT)
+            self.pcieMem = rogue.interfaces.memory.TcpClient('localhost', SIM_SRP_PORT)
 
-            srpStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT+2)
-            dataStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT+4)
-            waveformStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT+6)
+            self.febSrpStreams = [rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT + feb*10 +2) for feb in range(numFebs)]
+            self.febDataStreams = [rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT+ feb*10 + 4) for feb in range(numFebs)]
+            self.febWaveformStreams = [rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT + feb*10+6) for feb in range(numFebs)]
+            self.febMemBase = [rogue.protocols.srp.SrpV3() for feb in range(numFebs)]
+
+            dataDebug = [rogue.interfaces.stream.Slave() for feb in range(numFebs)]
+
+            # connect FEB memory streams
+            for srp, stream in zip(self.febSrpStreams, self.febMemBase):
+                stream == srp
+
+            # connect debugs
+            for index, debug, stream in enumerate(zip(dataDebug, self.febDataStreams)):
+                debug.setDebug(100, f'EventStream[{index}]')
+                stream >> debug
+            
+            self.addInterface(
+                *dataDebug,
+                *self.febSrpStreams,
+                *self.febDataStreams,
+                *self.febWaveformStreams)
+
+        elif emu is True:
+            self.pcieMem = pyrogue.interfaces.simulation.MemEmulate()
+            self.febMemBase = [pyrogue.interfaces.simulation.MemEmulate() for feb in range(numFebs)]
 
         else:
             # Map PCIe Core
-            pcieMap = rogue.hardware.axi.AxiMemMap(dev)
-            self.addInterface(pcieMap)
-            self.add(pcie.AxiPcieCore(
-                offset      = 0x00000000,
-                memBase     = pcieMap,
-                numDmaLanes = numLanes,
-                expand      = True,
-            ))
+            self.pcieMem = rogue.hardware.axi.AxiMemMap(dev)
+            self.febMemBase = []
 
-
-
-        srp = rogue.protocols.srp.SrpV3()
-
-        srpStream == srp
-
-        dataDebug = rogue.interfaces.stream.Slave()
-        dataDebug.setDebug(100, "EventStream")
-        dataStream >> dataDebug
-
-        self.addInterface(self.memMap, srpStream, dataStream, srp)
+        # These are common to all run types
+        self.addInterface(
+            self.pcieMem,
+            *self.febMemBase)
 
         # Zmq Server
         self.zmqServer = pyrogue.interfaces.ZmqServer(root=self, addr='*', port=0)
@@ -49,22 +58,24 @@ class LdmxFebRoot(pr.Root):
 
         self.add(axipcie.AxiPcieCore(
             offset = 0x0,
-            memBase = self.memMap,
+            memBase = self.pcieMem,
             numDmaLanes = 1,
             expand = True,
             sim = sim))        
 
-        self.add(ldmx.LdmxFeb(
-            memBase = srp,
-            number = 0,
-            sim = True,
-            expand = True,
-            numHybrids = 8))
+        for feb in range(6):
+            self.add(ldmx.LdmxFeb(
+                name = f'Feb[{feb}]',
+                memBase = self.febMemBase[feb],
+                number = feb,
+                sim = True,
+                expand = True,
+                numHybrids = 8))
 
-        self.add(ldmx.WaveformCaptureReceiver(
-            apvs_per_hybrid = 6,
-            num_hybrids = 8))
+#         self.add(ldmx.WaveformCaptureReceiver(
+#             apvs_per_hybrid = 6,
+#             num_hybrids = 8))
 
-        waveformStream >> self.WaveformCaptureReceiver
+        #waveformStream >> self.WaveformCaptureReceiver
             
 
