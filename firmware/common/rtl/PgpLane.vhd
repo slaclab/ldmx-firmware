@@ -50,6 +50,7 @@ entity PgpLane is
       pgpRefClk       : in  sl;
       pgpFabricRefClk : in  sl;
       pgpUserRefClk   : in  sl;
+      rxRecClk        : out sl;
       -- DMA Interface (dmaClk domain)
       dmaClk          : in  sl;
       dmaRst          : in  sl;
@@ -172,6 +173,7 @@ begin
          gtRefClk        => pgpRefClk,
          gtFabricRefClk  => pgpFabricRefClk,
          gtUserRefClk    => pgpUserRefClk,
+         rxRecClk        => rxRecClk,
          -- Gt Serial IO
          pgpGtTxP        => pgpTxP,
          pgpGtTxN        => pgpTxN,

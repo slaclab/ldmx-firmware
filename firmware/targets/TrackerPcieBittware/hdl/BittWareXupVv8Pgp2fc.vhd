@@ -48,6 +48,8 @@ entity BittWareXupVv8Pgp2fc is
       -- QSFP-DD Ports
       qsfpRefClkP : in  slv(PGP_QUADS_G-1 downto 0);
       qsfpRefClkN : in  slv(PGP_QUADS_G-1 downto 0);
+      qsfpRecClkP : out slv(PGP_QUADS_G-1 downto 0);
+      qsfpRecClkN : out slv(PGP_QUADS_G-1 downto 0);
       qsfpRxP     : in  slv(PGP_QUADS_G*4-1 downto 0);
       qsfpRxN     : in  slv(PGP_QUADS_G*4-1 downto 0);
       qsfpTxP     : out slv(PGP_QUADS_G*4-1 downto 0);
@@ -188,6 +190,8 @@ begin
       port map (
          qsfpRefClkP     => qsfpRefClkP,      -- [in]
          qsfpRefClkN     => qsfpRefClkN,      -- [in]
+         qsfpRecClkP     => qsfpRecClkP,      -- [out]
+         qsfpRecClkN     => qsfpRecClkN,      -- [out]
          qsfpRxP         => qsfpRxP,          -- [in]
          qsfpRxN         => qsfpRxN,          -- [in]
          qsfpTxP         => qsfpTxP,          -- [out]

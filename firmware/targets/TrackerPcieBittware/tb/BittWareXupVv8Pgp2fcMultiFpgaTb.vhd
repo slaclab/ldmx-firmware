@@ -57,8 +57,10 @@ architecture sim of BittWareXupVv8Pgp2fcMultiFpgaTb is
 
    -- component ports
    signal qsfpLane       : QsfpLaneArray   := (others => (others => '0'));
-   signal qsfpRefClkP    : QsfpRefClkArray := (others => (others => '0')); -- [in]
-   signal qsfpRefClkN    : QsfpRefClkArray := (others => (others => '0')); -- [in]
+   signal mgtRefClk0P    : QsfpRefClkArray := (others => (others => '0')); -- [in]
+   signal mgtRefClk0N    : QsfpRefClkArray := (others => (others => '0')); -- [in]
+   signal mgtRefClk1P    : QsfpRefClkArray := (others => (others => '0')); -- [in]
+   signal mgtRefClk1N    : QsfpRefClkArray := (others => (others => '0')); -- [in]
    signal fpgaI2cMasterL : slv(PGP_FPGAS_G-1 downto 0) := (others => '0'); -- [out]
    signal userClkP       : sl := '0';  -- [in]
    signal userClkN       : sl := '0';  -- [in]
@@ -87,8 +89,10 @@ GEN_FPGA : for fpga in 0 to PGP_FPGAS_G-1 generate
          PGP_QUADS_G          => PGP_QUADS_G,
          BUILD_INFO_G         => BUILD_INFO_G)
       port map (
-         qsfpRefClkP    => qsfpRefClkP(fpga),    -- [in]
-         qsfpRefClkN    => qsfpRefClkN(fpga),    -- [in]
+         mgtRefClk0P    => mgtRefClk0P(fpga),    -- [in]
+         mgtRefClk0N    => mgtRefClk0N(fpga),    -- [in]
+         mgtRefClk1P    => mgtRefClk1P(fpga),    -- [in]
+         mgtRefClk1N    => mgtRefClk1N(fpga),    -- [in]
          qsfpRxP        => qsfpLane(0+4*fpga),   -- [in]
          qsfpRxN        => qsfpLane(1+4*fpga),   -- [in]
          qsfpTxP        => qsfpLane(2+4*fpga),   -- [out]
@@ -112,8 +116,8 @@ GEN_FPGA : for fpga in 0 to PGP_FPGAS_G-1 generate
          RST_HOLD_TIME_G   => 5 us,
          SYNC_RESET_G      => true)
       port map (
-         clkP => qsfpRefClkP(fpga)(PGP_QUADS_G-1),
-         clkN => qsfpRefClkN(fpga)(PGP_QUADS_G-1));
+         clkP => mgtRefClk0P(fpga)(PGP_QUADS_G-1),
+         clkN => mgtRefClk0N(fpga)(PGP_QUADS_G-1));
 
 end generate GEN_FPGA;
 

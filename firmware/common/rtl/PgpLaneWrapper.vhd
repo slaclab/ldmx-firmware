@@ -43,6 +43,8 @@ entity PgpLaneWrapper is
       -- QSFP-DD Ports
       qsfpRefClkP     : in  slv(PGP_QUADS_G-1 downto 0);
       qsfpRefClkN     : in  slv(PGP_QUADS_G-1 downto 0);
+      qsfpRecClkP     : out slv(PGP_QUADS_G-1 downto 0);
+      qsfpRecClkN     : out slv(PGP_QUADS_G-1 downto 0);
       qsfpRxP         : in  slv(PGP_QUADS_G*4-1 downto 0);
       qsfpRxN         : in  slv(PGP_QUADS_G*4-1 downto 0);
       qsfpTxP         : out slv(PGP_QUADS_G*4-1 downto 0);
@@ -75,9 +77,10 @@ architecture mapping of PgpLaneWrapper is
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
 
-   signal qsfpRefClk       : slv(PGP_QUADS_G-1 downto 0);
-   signal qsfpUserRefClk   : slv(PGP_QUADS_G-1 downto 0);
-   signal userRefClk       : slv(PGP_QUADS_G-1 downto 0);
+   signal mgtRefClk        : slv(PGP_QUADS_G-1   downto 0);
+   signal mgtUserRefClk    : slv(PGP_QUADS_G-1   downto 0);
+   signal userRefClk       : slv(PGP_QUADS_G-1   downto 0);
+   signal rxRecClk         : slv(PGP_QUADS_G*4-1 downto 0);
 
    signal pgpObMasters     : AxiStreamMasterArray(PGP_QUADS_G*4-1 downto 0);
    signal pgpObSlaves      : AxiStreamSlaveArray(PGP_QUADS_G*4-1 downto 0);
@@ -113,27 +116,21 @@ begin
    ------------
    GEN_QUAD : for quad in PGP_QUADS_G-1 downto 0 generate
 
-      U_QsfpRef : IBUFDS_GTE4
+      U_RefClkMux : entity ldmx.gtRefClkMux
          generic map (
-            REFCLK_EN_TX_PATH  => '0',
-            REFCLK_HROW_CK_SEL => "00",  -- 2'b00: ODIV2 = O
-            REFCLK_ICNTL_RX    => "00")
+            TPD_G              => TPD_G,
+            QUAD_G             => quad,
+            BITTWARE_XUPVV8_G  => true)
          port map (
-            I     => qsfpRefClkP(quad),
-            IB    => qsfpRefClkN(quad),
-            CEB   => '0',
-            ODIV2 => qsfpUserRefClk(quad),
-            O     => qsfpRefClk(quad));
-
-      U_QsfpUserRefClk : BUFG_GT
-         port map (
-            I       => qsfpUserRefClk(quad),
-            CE      => '1',
-            CEMASK  => '1',
-            CLR     => '0',
-            CLRMASK => '1',
-            DIV     => "000",
-            O       => userRefClk(quad));
+            -- FPGA I/O
+            qsfpRefClkP     => qsfpRefClkP(quad),
+            qsfpRefClkN     => qsfpRefClkN(quad),
+            qsfpRecClkP     => qsfpRecClkP(quad),
+            qsfpRecClkN     => qsfpRecClkN(quad),
+            -- MGT I/O
+            rxRecClk        => rxRecClk(quad*4+0), -- using rxRecClk from Channel=0
+            mgtRefClk       => mgtRefClk(quad),
+            userRefClk      => userRefClk(quad));
 
       GEN_LANE : for lane in 3 downto 0 generate
          U_Lane : entity ldmx.PgpLane
@@ -150,9 +147,10 @@ begin
                pgpRxN          => qsfpRxN(quad*4+lane),
                pgpTxP          => qsfpTxP(quad*4+lane),
                pgpTxN          => qsfpTxN(quad*4+lane),
-               pgpRefClk       => qsfpRefClk(quad),
+               pgpRefClk       => mgtRefClk(quad),
                pgpFabricRefClk => '0', -- placeholder
                pgpUserRefClk   => userRefClk(quad),
+               rxRecClk        => rxRecClk(quad*4+lane),
                -- DMA Interface (dmaClk domain)
                dmaClk          => dmaClk,
                dmaRst          => dmaRst,

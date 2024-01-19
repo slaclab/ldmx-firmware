@@ -2,10 +2,10 @@
 -- Title      : Testbench for design "BittWareXupVv8Pgp2fc"
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of pgp-pcie-apps. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory
@@ -47,8 +47,10 @@ architecture sim of BittWareXupVv8Pgp2fcTb is
    constant BUILD_INFO_G         : BuildInfoType               := BUILD_INFO_C;
 
    -- component ports
-   signal qsfpRefClkP    : slv(PGP_QUADS_G-1 downto 0);    -- [in]
-   signal qsfpRefClkN    : slv(PGP_QUADS_G-1 downto 0);    -- [in]
+   signal mgtRefClk0P    : slv(PGP_QUADS_G-1 downto 0);    -- [in]
+   signal mgtRefClk0N    : slv(PGP_QUADS_G-1 downto 0);    -- [in]
+   signal mgtRefClk1P    : slv(PGP_QUADS_G-1 downto 0);    -- [out]
+   signal mgtRefClk1N    : slv(PGP_QUADS_G-1 downto 0);    -- [out]
    signal qsfpRxP        : slv(PGP_QUADS_G*4-1 downto 0);  -- [in]
    signal qsfpRxN        : slv(PGP_QUADS_G*4-1 downto 0);  -- [in]
    signal qsfpTxP        : slv(PGP_QUADS_G*4-1 downto 0);  -- [out]
@@ -78,8 +80,10 @@ begin
          PGP_QUADS_G          => PGP_QUADS_G,
          BUILD_INFO_G         => BUILD_INFO_G)
       port map (
-         qsfpRefClkP    => qsfpRefClkP,     -- [in]
-         qsfpRefClkN    => qsfpRefClkN,     -- [in]
+         mgtRefClk0P    => mgtRefClk0P,     -- [in]
+         mgtRefClk0N    => mgtRefClk0N,     -- [in]
+         mgtRefClk1P    => mgtRefClk1P,     -- [out]
+         mgtRefClk1N    => mgtRefClk1N,     -- [out]
          qsfpRxP        => qsfpRxP,         -- [in]
          qsfpRxN        => qsfpRxN,         -- [in]
          qsfpTxP        => qsfpTxP,         -- [out]
@@ -105,8 +109,8 @@ begin
             RST_HOLD_TIME_G   => 5 us,
             SYNC_RESET_G      => true)
          port map (
-            clkP => qsfpRefClkP(i),
-            clkN => qsfpRefClkN(i));
+            clkP => mgtRefClk0P(i),
+            clkN => mgtRefClk0N(i));
    end generate;
 
    U_ClkRst_USERCLK : entity surf.ClkRst
