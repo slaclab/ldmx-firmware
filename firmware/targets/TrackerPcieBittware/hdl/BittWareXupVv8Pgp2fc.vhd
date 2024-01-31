@@ -39,7 +39,7 @@ entity BittWareXupVv8Pgp2fc is
       ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 8000;
       DMA_BURST_BYTES_G    : integer range 256 to 4096   := 4096;
       DMA_BYTE_WIDTH_G     : integer range 8 to 64       := 8;
-      PGP_QUADS_G          : integer                     := 1; -- change xdc with clock groups if you change this
+      PGP_QUADS_G          : integer                     := 6; -- change xdc with clock groups if you change this
       BUILD_INFO_G         : BuildInfoType);
    port (
       ---------------------
