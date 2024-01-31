@@ -82,6 +82,11 @@ architecture mapping of PgpLaneWrapper is
    signal userRefClk       : slv(PGP_QUADS_G-1   downto 0);
    signal rxRecClk         : slv(PGP_QUADS_G*4-1 downto 0);
 
+   signal pgpTxOutClk      : slv(PGP_QUADS_G*4-1 downto 0);
+   signal pgpRxOutClk      : slv(PGP_QUADS_G*4-1 downto 0);
+   signal pgpTxClk         : slv(PGP_QUADS_G*4-1 downto 0);
+   signal pgpRxClk         : slv(PGP_QUADS_G*4-1 downto 0);
+
    signal pgpObMasters     : AxiStreamMasterArray(PGP_QUADS_G*4-1 downto 0);
    signal pgpObSlaves      : AxiStreamSlaveArray(PGP_QUADS_G*4-1 downto 0);
    signal pgpIbMasters     : AxiStreamMasterArray(PGP_QUADS_G*4-1 downto 0);
@@ -111,26 +116,34 @@ begin
          mAxiReadMasters     => axilReadMasters,
          mAxiReadSlaves      => axilReadSlaves);
 
+   ------------------------
+   -- MGT Clock Multiplexer
+   ------------------------
+   U_MgtRefClkMux : entity ldmx.MgtRefClkMux
+      generic map (
+         TPD_G              => TPD_G,
+         PGP_QUADS_G        => PGP_QUADS_G,
+         BITTWARE_XUPVV8_G  => true)
+      port map (
+         -- FPGA I/O
+         qsfpRefClkP => qsfpRefClkP,
+         qsfpRefClkN => qsfpRefClkN,
+         qsfpRecClkP => qsfpRecClkP,
+         qsfpRecClkN => qsfpRecClkN,
+         -- MGT I/O
+         rxRecClk    => rxRecClk,
+         mgtRefClk   => mgtRefClk,
+         userRefClk  => userRefClk,
+         -- RX/TXCLK
+         pgpTxOutClk => pgpTxOutClk,
+         pgpRxOutClk => pgpRxOutClk,
+         pgpTxClk    => pgpTxClk,
+         pgpRxClk    => pgpRxClk);
+
    ------------
    -- PGP Lanes
    ------------
    GEN_QUAD : for quad in PGP_QUADS_G-1 downto 0 generate
-
-      U_RefClkMux : entity ldmx.gtRefClkMux
-         generic map (
-            TPD_G              => TPD_G,
-            QUAD_G             => quad,
-            BITTWARE_XUPVV8_G  => true)
-         port map (
-            -- FPGA I/O
-            qsfpRefClkP     => qsfpRefClkP(quad),
-            qsfpRefClkN     => qsfpRefClkN(quad),
-            qsfpRecClkP     => qsfpRecClkP(quad),
-            qsfpRecClkN     => qsfpRecClkN(quad),
-            -- MGT I/O
-            rxRecClk        => rxRecClk(quad*4+0), -- using rxRecClk from Channel=0
-            mgtRefClk       => mgtRefClk(quad),
-            userRefClk      => userRefClk(quad));
 
       GEN_LANE : for lane in 3 downto 0 generate
          U_Lane : entity ldmx.PgpLane
@@ -151,6 +164,10 @@ begin
                pgpFabricRefClk => '0', -- placeholder
                pgpUserRefClk   => userRefClk(quad),
                rxRecClk        => rxRecClk(quad*4+lane),
+               pgpTxOutClk     => pgpTxOutClk(quad*4+lane),
+               pgpRxOutClk     => pgpRxOutClk(quad*4+lane),
+               pgpTxClk        => pgpTxClk(quad*4+lane),
+               pgpRxClk        => pgpRxClk(quad*4+lane),
                -- DMA Interface (dmaClk domain)
                dmaClk          => dmaClk,
                dmaRst          => dmaRst,

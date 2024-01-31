@@ -21,16 +21,16 @@ create_clock -name qsfpRefClk6 -period 5.384 [get_ports {qsfpRefClkP[6]}]
 create_clock -name qsfpRefClk7 -period 5.384 [get_ports {qsfpRefClkP[7]}]
 
 set_clock_groups -asynchronous \
+    -group [get_clocks -include_generated_clocks qsfpRefClk0] \
+    -group [get_clocks -include_generated_clocks qsfpRefClk1] \
+#    -group [get_clocks -include_generated_clocks qsfpRefClk2] \
+#    -group [get_clocks -include_generated_clocks qsfpRefClk3] \
+#    -group [get_clocks -include_generated_clocks qsfpRefClk4] \
+#    -group [get_clocks -include_generated_clocks qsfpRefClk5] \
+#    -group [get_clocks -include_generated_clocks qsfpRefClk6] \
+#    -group [get_clocks -include_generated_clocks qsfpRefClk7] \
     -group [get_clocks -include_generated_clocks axilClk] \
-    -group [get_clocks -include_generated_clocks dmaClk] \
-    -group [get_clocks -include_generated_clocks qsfpRefClk0]
-#    -group [get_clocks -include_generated_clocks mgtRefClk1] \
-#    -group [get_clocks -include_generated_clocks mgtRefClk2] \
-#    -group [get_clocks -include_generated_clocks mgtRefClk3] \
-#    -group [get_clocks -include_generated_clocks mgtRefClk4] \
-#    -group [get_clocks -include_generated_clocks mgtRefClk5] \
-#    -group [get_clocks -include_generated_clocks mgtRefClk6] \
-#    -group [get_clocks -include_generated_clocks mgtRefClk7]
+    -group [get_clocks -include_generated_clocks dmaClk]
 
 
 set_clock_groups -asynchronous \
@@ -38,6 +38,13 @@ set_clock_groups -asynchronous \
     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~U_PgpLaneWrapper/*/TXOUTCLK}]] \
     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~U_PgpLaneWrapper/*/TXOUTCLKPCS}]]  \
     -group [get_clocks -include_generated_clocks qsfpRefClk0] \
+    -group [get_clocks -include_generated_clocks qsfpRefClk1] \
+#    -group [get_clocks -include_generated_clocks qsfpRefClk2] \
+#    -group [get_clocks -include_generated_clocks qsfpRefClk3] \
+#    -group [get_clocks -include_generated_clocks qsfpRefClk4] \
+#    -group [get_clocks -include_generated_clocks qsfpRefClk5] \
+#    -group [get_clocks -include_generated_clocks qsfpRefClk6] \
+#    -group [get_clocks -include_generated_clocks qsfpRefClk7] \
     -group [get_clocks axilClk]
 
 set_clock_groups -asynchronous \
