@@ -45,6 +45,7 @@ entity LdmxDpmWrapper is
       -- External reference clock
       locRefClkP : in sl;
       locRefClkM : in sl;
+      dtmRefClkG : in sl;
 
       -- AXI-Lite Interface
       axilClk         : in  sl;
@@ -69,11 +70,13 @@ entity LdmxDpmWrapper is
       rtmToDpmHsM : in  slv(HS_LINK_COUNT_G-1 downto 0);
 
       -- COB Timing Interface
-      rxData   : in  Slv10Array(1 downto 0);
-      rxDataEn : in  slv(1 downto 0);
-      txData   : out slv(9 downto 0);
-      txDataEn : out sl;
-      txReady  : in  sl
+      distDivClk    : in sl;
+      distDivClkRst : in sl;
+      rxData        : in  slv(9 downto 0);
+      rxDataEn      : in  sl;
+      txData        : out slv(9 downto 0);
+      txDataEn      : out sl;
+      txReady       : in  sl
    );
 
 end LdmxDpmWrapper;
@@ -91,6 +94,7 @@ architecture rtl of LdmxDpmWrapper is
          -- External reference clock
          locRefClkP : in sl;
          locRefClkM : in sl;
+         dtmRefClkG : in sl;
 
          -- AXI-Lite Interface
          axilClk                 : in  sl;
@@ -144,14 +148,16 @@ architecture rtl of LdmxDpmWrapper is
          rtmToDpmHsM : in  slv(HS_LINK_COUNT_G-1 downto 0);
 
          -- COB Timing Interface
-         rxDataA   : in  slv(9 downto 0);
-         rxDataAEn : in  sl;
-         rxDataB   : in  slv(9 downto 0);
-         rxDataBEn : in  sl;
-         txData    : out slv(9 downto 0);
-         txDataEn  : out sl;
-         txReady   : in  sl);
+         distDivClk    : in sl;
+         distDivClkRst : in sl;
+         trigger       : in sl;
+         spill         : in sl;
+         busy          : out sl);
    end component;
+
+   signal trigger : sl;
+   signal spill   : sl;
+   signal busy    : sl;
 
 begin
 
@@ -163,6 +169,7 @@ begin
          sysClk200Rst             => sysClk200Rst,
          locRefClkP               => locRefClkP,
          locRefClkM               => locRefClkM,
+         dtmRefClkG               => dtmRefClkG,
          axilClk                  => axilClk,
          axilRst                  => axilRst,
          axilReadMaster_araddr    => axilReadMaster.araddr,
@@ -208,18 +215,34 @@ begin
          dpmToRtmHsM              => dpmToRtmHsM,
          rtmToDpmHsP              => rtmToDpmHsP,
          rtmToDpmHsM              => rtmToDpmHsM,
-         rxDataA                  => rxData(0),
-         rxDataAEn                => rxDataEn(0),
-         rxDataB                  => rxData(1),
-         rxDataBEn                => rxDataEn(1),
-         txData                   => txData,
-         txDataEn                 => txDataEn,
-         txReady                  => txReady);
+         distDivClk               => distDivClk,
+         distDivClkRst            => distDivClkRst,
+         trigger                  => trigger,
+         spill                    => spill,
+         busy                     => busy);
 
    -- Undriven Signals
    dmaIbMaster.tData(511 downto 64) <= (others=>'0');
    dmaIbMaster.tStrb(63 downto 8)   <= (others=>'0');
    dmaIbMaster.tKeep(63 downto 8)   <= (others=>'0');
    dmaIbMaster.tUser(511 downto 64) <= (others=>'0');
+
+   process (distDivClk)
+   begin
+      if rising_edge(distDivClk) then
+         if distDivClkRst = '1' then
+            trigger    <= '0'           after TPD_G;
+            spill      <= '0'           after TPD_G;
+            txData     <= (others=>'0') after TPD_G;
+         else
+            txData(0) <= busy after TPD_G;
+
+            trigger <= rxDataEn and rxData(0) after TPD_G;
+            spill   <= rxDataEn and rxData(1) after TPD_G;
+         end if;
+      end if;
+   end process;
+
+   txDataEn <= txReady;
 
 end architecture rtl;
