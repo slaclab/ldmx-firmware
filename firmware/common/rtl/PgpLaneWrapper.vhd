@@ -123,6 +123,7 @@ begin
       generic map (
          TPD_G              => TPD_G,
          PGP_QUADS_G        => PGP_QUADS_G,
+         SIMPLE_CLOCKING_G  => true,
          BITTWARE_XUPVV8_G  => true)
       port map (
          -- FPGA I/O
