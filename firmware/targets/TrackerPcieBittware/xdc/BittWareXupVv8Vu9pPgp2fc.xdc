@@ -23,8 +23,8 @@ create_clock -name qsfpRefClk7 -period 5.384 [get_ports {qsfpRefClkP[7]}]
 set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks axilClk] \
     -group [get_clocks -include_generated_clocks dmaClk] \
-    -group [get_clocks -include_generated_clocks qsfpRefClk0] \
-    -group [get_clocks -include_generated_clocks qsfpRefClk1]
+    -group [get_clocks -include_generated_clocks qsfpRefClk0]
+#    -group [get_clocks -include_generated_clocks qsfpRefClk1]
 #    -group [get_clocks -include_generated_clocks qsfpRefClk2] \
 #    -group [get_clocks -include_generated_clocks qsfpRefClk3] \
 #    -group [get_clocks -include_generated_clocks qsfpRefClk4] \
@@ -38,8 +38,8 @@ set_clock_groups -asynchronous \
     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~U_PgpLaneWrapper/*/TXOUTCLK}]] \
     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~U_PgpLaneWrapper/*/TXOUTCLKPCS}]]  \
     -group [get_clocks axilClk] \
-    -group [get_clocks -include_generated_clocks qsfpRefClk0] \
-    -group [get_clocks -include_generated_clocks qsfpRefClk1]
+    -group [get_clocks -include_generated_clocks qsfpRefClk0]
+#    -group [get_clocks -include_generated_clocks qsfpRefClk1]
 #    -group [get_clocks -include_generated_clocks qsfpRefClk2] \
 #    -group [get_clocks -include_generated_clocks qsfpRefClk3] \
 #    -group [get_clocks -include_generated_clocks qsfpRefClk4] \

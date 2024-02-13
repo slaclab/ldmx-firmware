@@ -152,7 +152,7 @@ class BoardHandler():
 
     def _alignStatusFormatter(self):
         self._formatDigits = len(str(max(self.retryCnt + self.rxClkFreq + self.rxCellErrorCnt + self.rxLinkDownCnt + self.rxLinkErrorCnt)))
-        self._format = 'Quad = {0:<%d} Lane = {1:<%d} RxClkFreq = {2:<%d} MHz AlignerRetryCnt = {3:<%d} AlignerLocked = {4:<%d} LocalLinkReady = {5:<%d} RemLinkReady = {6:<%d} RXLinkErrorCnt = {7:<%d}' % (1, 1, self._formatDigits, self._formatDigits, 1, 1, 1, self._formatDigits)
+        self._format = 'Quad = {0:<%d} Lane = {1:<%d} RxClkFreq = {2:<%d} MHz AlignerRetryCnt = {3:<%d} LocalLinkReady = {4:<%d} RemLinkReady = {5:<%d} RXLinkErrorCnt = {6:<%d}' % (1, 1, self._formatDigits, self._formatDigits, 1, 1, self._formatDigits)
 
     def _prbsStatusFormatter(self):
         self._formatDigits = len(str(max(self.prbsRxErrors + self.prbsRxCnts)))
