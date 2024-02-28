@@ -4,7 +4,7 @@ export PRJ_PART = xcvu9p-fsgd2104-2-e
 # Define target output
 target: prom
 
-export TOP_DIR = $(abspath $(PWD)/../../)
+export TOP_DIR = $(abspath $(PWD)/../../../)
 
 # export USE_XVC_DEBUG = 1
 
