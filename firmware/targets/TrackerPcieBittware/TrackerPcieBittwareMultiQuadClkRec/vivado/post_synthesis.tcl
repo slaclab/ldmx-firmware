@@ -41,7 +41,7 @@ set_property C_DATA_DEPTH 1024 [get_debug_cores ${ilaTxClk}]
 #################################
 ## Set the clock for the ILA core
 #################################
-SetDebugCoreClk ${ilaRxClk} {U_PgpLaneWrapper/GEN_QUAD[4].GEN_LANE[0].U_Lane/U_Pgp/PgpGtyCoreWrapper_1/rxOutClk}
+SetDebugCoreClk ${ilaRxClk} {U_PgpLaneWrapper/GEN_QUAD[0].GEN_LANE[0].U_Lane/U_Pgp/PgpGtyCoreWrapper_1/rxOutClk}
 SetDebugCoreClk ${ilaTxClk} {U_PgpLaneWrapper/U_MgtRefClkMux/userRefClk[4]}
 
 #######################
