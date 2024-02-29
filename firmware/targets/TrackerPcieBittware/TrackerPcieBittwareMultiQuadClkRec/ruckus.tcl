@@ -19,7 +19,7 @@ set_property top {BittWareXupVv8Pgp2fc} [get_filesets {sources_1}]
 set_property top {BittWareXupVv8Pgp2fcMultiFpgaTb} [get_filesets {sim_1}]
 
 set sysClkGeneric [get_property generic -object [current_fileset]]
-set clkGeneric "${sysClkGeneric}, SIMPLE_CLOCKING_G=false"
+set clkGeneric "${sysClkGeneric}, CLOCKING_TYPE_G=1"
 set_property generic ${clkGeneric} -object [current_fileset]
 
 set sysQuadGeneric [get_property generic -object [current_fileset]]

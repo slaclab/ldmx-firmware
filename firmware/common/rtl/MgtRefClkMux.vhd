@@ -32,7 +32,7 @@ entity MgtRefClkMux is
       TPD_G              : time    := 1 ns;
       PGP_QUADS_G        : integer := 1;
       PGP_LANES_G        : integer := 4;
-      SIMPLE_CLOCKING_G  : boolean := false;
+      CLOCKING_TYPE_G    : integer := 0; -- 0 is default - simple clocking
       BITTWARE_XUPVV8_G  : boolean := false;
       TRACKER_FRONTEND_G : boolean := false;
       APX_G              : boolean := false);
@@ -100,7 +100,7 @@ begin
       ---------------------------
       -- RXOUTCLK/TXOUTCLK Muxing
       ---------------------------
-      GEN_SIMPLE : if SIMPLE_CLOCKING_G generate
+      GEN_SIMPLE : if CLOCKING_TYPE_G = 0 generate
 
          GEN_QUADS : for quad in PGP_QUADS_G downto 1 generate
             pgpTxClk   ((quad*PGP_LANES_G)-1 downto (quad-1)*PGP_LANES_G) <=
@@ -111,7 +111,7 @@ begin
 
       end generate GEN_SIMPLE;
 
-      GEN_CLK_REC : if not(SIMPLE_CLOCKING_G) generate
+      GEN_CLK_REC : if CLOCKING_TYPE_G = 1 generate
 
          GEN_QUAD0 : if PGP_QUADS_G > 0 generate
             -- quad=0 (120) clocks itself
