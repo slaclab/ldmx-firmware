@@ -36,10 +36,11 @@ entity BittWareXupVv8Pgp2fc is
       TPD_G                : time                        := 1 ns;
       SIM_SPEEDUP_G        : boolean                     := true;
       ROGUE_SIM_EN_G       : boolean                     := false;
+      CLOCKING_TYPE_G      : string                      := "SIMPLE"; -- "SIMPLE", "CLK_RECOVERY"
       ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 8000;
       DMA_BURST_BYTES_G    : integer range 256 to 4096   := 4096;
       DMA_BYTE_WIDTH_G     : integer range 8 to 64       := 8;
-      PGP_QUADS_G          : integer                     := 1;
+      PGP_QUADS_G          : integer                     := 1; -- change xdc with clock groups if you change this
       BUILD_INFO_G         : BuildInfoType);
    port (
       ---------------------
@@ -48,6 +49,8 @@ entity BittWareXupVv8Pgp2fc is
       -- QSFP-DD Ports
       qsfpRefClkP : in  slv(PGP_QUADS_G-1 downto 0);
       qsfpRefClkN : in  slv(PGP_QUADS_G-1 downto 0);
+      qsfpRecClkP : out slv(PGP_QUADS_G-1 downto 0);
+      qsfpRecClkN : out slv(PGP_QUADS_G-1 downto 0);
       qsfpRxP     : in  slv(PGP_QUADS_G*4-1 downto 0);
       qsfpRxN     : in  slv(PGP_QUADS_G*4-1 downto 0);
       qsfpTxP     : out slv(PGP_QUADS_G*4-1 downto 0);
@@ -181,6 +184,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          SIM_SPEEDUP_G     => SIM_SPEEDUP_G,
+         CLOCKING_TYPE_G   => CLOCKING_TYPE_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
          PGP_QUADS_G       => PGP_QUADS_G,
          AXI_CLK_FREQ_G    => AXI_CLK_FREQ_C,
@@ -188,6 +192,8 @@ begin
       port map (
          qsfpRefClkP     => qsfpRefClkP,      -- [in]
          qsfpRefClkN     => qsfpRefClkN,      -- [in]
+         qsfpRecClkP     => qsfpRecClkP,      -- [out]
+         qsfpRecClkN     => qsfpRecClkN,      -- [out]
          qsfpRxP         => qsfpRxP,          -- [in]
          qsfpRxN         => qsfpRxN,          -- [in]
          qsfpTxP         => qsfpTxP,          -- [out]

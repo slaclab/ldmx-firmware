@@ -2,10 +2,10 @@
 -- Title      : Testbench for design "BittWareXupVv8Pgp2fc"
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of pgp-pcie-apps. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory
@@ -49,6 +49,8 @@ architecture sim of BittWareXupVv8Pgp2fcTb is
    -- component ports
    signal qsfpRefClkP    : slv(PGP_QUADS_G-1 downto 0);    -- [in]
    signal qsfpRefClkN    : slv(PGP_QUADS_G-1 downto 0);    -- [in]
+   signal qsfpRecClkP    : slv(PGP_QUADS_G-1 downto 0);    -- [out]
+   signal qsfpRecClkN    : slv(PGP_QUADS_G-1 downto 0);    -- [out]
    signal qsfpRxP        : slv(PGP_QUADS_G*4-1 downto 0);  -- [in]
    signal qsfpRxN        : slv(PGP_QUADS_G*4-1 downto 0);  -- [in]
    signal qsfpTxP        : slv(PGP_QUADS_G*4-1 downto 0);  -- [out]
@@ -80,6 +82,8 @@ begin
       port map (
          qsfpRefClkP    => qsfpRefClkP,     -- [in]
          qsfpRefClkN    => qsfpRefClkN,     -- [in]
+         qsfpRecClkP    => qsfpRecClkP,     -- [out]
+         qsfpRecClkN    => qsfpRecClkN,     -- [out]
          qsfpRxP        => qsfpRxP,         -- [in]
          qsfpRxN        => qsfpRxN,         -- [in]
          qsfpTxP        => qsfpTxP,         -- [out]

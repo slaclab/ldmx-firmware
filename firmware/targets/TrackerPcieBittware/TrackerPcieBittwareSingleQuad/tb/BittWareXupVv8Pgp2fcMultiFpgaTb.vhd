@@ -59,6 +59,8 @@ architecture sim of BittWareXupVv8Pgp2fcMultiFpgaTb is
    signal qsfpLane       : QsfpLaneArray   := (others => (others => '0'));
    signal qsfpRefClkP    : QsfpRefClkArray := (others => (others => '0')); -- [in]
    signal qsfpRefClkN    : QsfpRefClkArray := (others => (others => '0')); -- [in]
+   signal qsfpRecClkP    : QsfpRefClkArray := (others => (others => '0')); -- [in]
+   signal qsfpRecClkN    : QsfpRefClkArray := (others => (others => '0')); -- [in]
    signal fpgaI2cMasterL : slv(PGP_FPGAS_G-1 downto 0) := (others => '0'); -- [out]
    signal userClkP       : sl := '0';  -- [in]
    signal userClkN       : sl := '0';  -- [in]
@@ -89,6 +91,8 @@ GEN_FPGA : for fpga in 0 to PGP_FPGAS_G-1 generate
       port map (
          qsfpRefClkP    => qsfpRefClkP(fpga),    -- [in]
          qsfpRefClkN    => qsfpRefClkN(fpga),    -- [in]
+         qsfpRecClkP    => qsfpRecClkP(fpga),    -- [in]
+         qsfpRecClkN    => qsfpRecClkN(fpga),    -- [in]
          qsfpRxP        => qsfpLane(0+4*fpga),   -- [in]
          qsfpRxN        => qsfpLane(1+4*fpga),   -- [in]
          qsfpTxP        => qsfpLane(2+4*fpga),   -- [out]

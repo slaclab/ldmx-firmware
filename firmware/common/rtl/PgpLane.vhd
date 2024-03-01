@@ -50,6 +50,11 @@ entity PgpLane is
       pgpRefClk       : in  sl;
       pgpFabricRefClk : in  sl;
       pgpUserRefClk   : in  sl;
+      rxRecClk        : out sl;
+      pgpTxOutClk     : out sl;
+      pgpRxOutClk     : out sl;
+      pgpTxClk        : in  sl;
+      pgpRxClk        : in  sl;
       -- DMA Interface (dmaClk domain)
       dmaClk          : in  sl;
       dmaRst          : in  sl;
@@ -95,13 +100,9 @@ architecture mapping of PgpLane is
    signal pgpRxMasters : AxiStreamMasterArray(3 downto 0);
    signal pgpRxCtrl    : AxiStreamCtrlArray(3 downto 0);
 
-   signal pgpTxOutClk    : sl;
-   signal pgpTxClk       : sl;
    signal pgpTxRst       : sl;
    signal pgpTxResetDone : sl;
 
-   signal pgpRxOutClk    : sl;
-   signal pgpRxClk       : sl;
    signal pgpRxRst       : sl;
    signal pgpRxResetDone : sl;
 
@@ -172,6 +173,7 @@ begin
          gtRefClk        => pgpRefClk,
          gtFabricRefClk  => pgpFabricRefClk,
          gtUserRefClk    => pgpUserRefClk,
+         rxRecClk        => rxRecClk,
          -- Gt Serial IO
          pgpGtTxP        => pgpTxP,
          pgpGtTxN        => pgpTxN,
@@ -208,10 +210,6 @@ begin
          axilReadSlave   => axilReadSlaves(GT_INDEX_C),
          axilWriteMaster => axilWriteMasters(GT_INDEX_C),
          axilWriteSlave  => axilWriteSlaves(GT_INDEX_C));
-
-   -- clocks are buffered via a BUFG_GT further down in the hierarchy; no need for BUFG
-   pgpTxClk <= pgpTxOutClk;
-   pgpRxClk <= pgpRxOutClk;
 
    --------------
    -- PGP Monitor
