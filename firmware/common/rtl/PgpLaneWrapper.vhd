@@ -35,7 +35,7 @@ entity PgpLaneWrapper is
    generic (
       TPD_G             : time             := 1 ns;
       SIM_SPEEDUP_G     : boolean          := false;
-      CLOCKING_TYPE_G   : integer          := 0; -- 0 is default - simple clocking
+      CLOCKING_TYPE_G   : string           := "SIMPLE"; -- "SIMPLE", "CLK_RECOVERY"
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
       PGP_QUADS_G       : integer          := 8;
       AXI_CLK_FREQ_G    : real             := 125.0e6;
