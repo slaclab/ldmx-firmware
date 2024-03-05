@@ -7,7 +7,7 @@ loadRuckusTcl $::env(TOP_DIR)/submodules/axi-pcie-core/hardware/BittWareXupVv8
 loadRuckusTcl $::env(TOP_DIR)/common
 
 set masterSourceDir "$::DIR_PATH/../TrackerPcieBittwareSingleQuad"
-set localSourceDir  "$::DIR_PATH/../TrackerPcieBittwareMultiQuadClkSimple"
+set localSourceDir  "$::DIR_PATH/../TrackerPcieBittwareMultiQuad"
 
 # Load local source Code and constraints
 loadSource           -lib ldmx -dir "$masterSourceDir/hdl"
