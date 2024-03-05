@@ -162,7 +162,7 @@ class BoardHandler():
         self._alignStatusFormatter()
         system('clear')
         for i in range(len(self.quads)):
-            print(self._format.format(self.quads[i], self.lanes[i], '{0:.5f}'.format(self.rxClkFreq[i]), self.retryCnt[i], self.lockFlag[i], self.rxLocalLinkReady[i], self.rxRemLinkReady[i], self.rxLinkErrorCnt[i]))
+            print(self._format.format(self.quads[i], self.lanes[i], '{0:.5f}'.format(self.rxClkFreq[i]), self.retryCnt[i], self.rxLocalLinkReady[i], self.rxRemLinkReady[i], self.rxLinkErrorCnt[i]))
 
     def _prbsStatusPrinter(self):
         self._prbsStatusFormatter()
