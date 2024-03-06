@@ -24,20 +24,24 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+
 library ldmx;
 use ldmx.FcPkg.all;
 
-entity S30xlApx is
+entity S30xlAPx is
 
    generic (
-      TPD_G              : time             := 1 ns;
-      BUILD_INFO_G       : BuildInfoType    := BUILD_INFO_DEFAULT_SLV_C;
-      SIMULATION_G       : boolean          := false;
-      SIM_PORT_NUM_G     : integer          := 9000;
-      DHCP_G             : boolean          := false;        -- true = DHCP, false = static address
-      IP_ADDR_G          : slv(31 downto 0) := x"0A01A8C0";  -- 192.168.1.10 (before DHCP)
-      MAC_ADDR_G         : slv(47 downto 0) := x"00_00_16_56_00_08";
-      TIMING_HUB_QUADS_G : integer          := 1);
+      TPD_G               : time             := 1 ns;
+      BUILD_INFO_G        : BuildInfoType    := BUILD_INFO_DEFAULT_SLV_C;
+      SIMULATION_G        : boolean          := false;
+      SIM_SRP_PORT_NUM_G  : integer          := 9000;
+      SIM_DATA_PORT_NUM_G : integer          := 9100;
+      DHCP_G              : boolean          := false;        -- true = DHCP, false = static address
+      IP_ADDR_G           : slv(31 downto 0) := x"0A01A8C0";  -- 192.168.1.10 (before DHCP)
+      MAC_ADDR_G          : slv(47 downto 0) := x"00_00_16_56_00_08";
+      TIMING_HUB_QUADS_G  : integer          := 1);
 
    port (
       -- 185 MHz Ref Clk for timing recovery
@@ -61,7 +65,7 @@ entity S30xlApx is
       fcHubTxP : out slv(TIMING_HUB_QUADS_G*4-1 downto 0);
       fcHubTxN : out slv(TIMING_HUB_QUADS_G*4-1 downto 0);
       fcHubRxP : in  slv(TIMING_HUB_QUADS_G*4-1 downto 0);
-      fcHubRxP : in  slv(TIMING_HUB_QUADS_G*4-1 downto 0);
+      fcHubRxN : in  slv(TIMING_HUB_QUADS_G*4-1 downto 0);
 
       -- FC Receiver
       -- (Looped back from fcHub IO)
@@ -86,9 +90,9 @@ entity S30xlApx is
 
       );
 
-end entity S30xlApx;
+end entity S30xlAPx;
 
-architecture rtl of S30xlApx is
+architecture rtl of S30xlAPx is
 
    constant AXIL_CLK_FREQ_C : real := 156.25e6;
 
@@ -100,17 +104,21 @@ architecture rtl of S30xlApx is
 
    constant AXIL_XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(AXIL_NUM_C-1 downto 0) := (
       AXIL_VERSION_C     => (
-         baseAddr        => AXIL_BASE_ADDR_G + X"000000",
+         baseAddr        => X"00000000",
          addrBits        => 12,
          connectivity    => X"FFFF"),
       AXIL_ETH_C         => (
-         baseAddr        => AXIL_BASE_ADDR_G + X"010000",
+         baseAddr        => X"00010000",
          addrBits        => 16,
          connectivity    => X"FFFF"),
       AXIL_LCLS_TIMING_C => (
-         baseAddr        => AXIL_BASE_ADDR_G + X"100000",
-         addrBits        => 20,
+         baseAddr        => X"01000000",
+         addrBits        => 24,
          connectivity    => X"FFFF"));
+
+   signal axilClk : sl;
+   signal axilRst : sl;
+
 
    signal ethAxilReadMaster  : AxiLiteReadMasterType;
    signal ethAxilReadSlave   : AxiLiteReadSlaveType;
@@ -143,8 +151,8 @@ begin
          NUM_MASTER_SLOTS_G => AXIL_NUM_C,
          MASTERS_CONFIG_G   => AXIL_XBAR_CONFIG_C)
       port map (
-         axiClk              => ethClk,
-         axiClkRst           => ethRst,
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
          sAxiWriteMasters(0) => ethAxilWriteMaster,
          sAxiWriteSlaves(0)  => ethAxilWriteSlave,
          sAxiReadMasters(0)  => ethAxilReadMaster,
@@ -163,13 +171,14 @@ begin
    -------------------------------------------------------------------------------------------------
    U_TenGigEthGtyCore_1 : entity ldmx.TenGigEthGtyCore
       generic map (
-         TPD_G              => TPD_G,
-         SIMULATION_G       => SIMULATION_G,
-         SIM_SRP_PORT_NUM_G => SIM_PORT_NUM_G,
-         AXIL_BASE_ADDR_G   => AXIL_XBAR_CONFIG_C(AXIL_ETH_C).baseAddr,
-         DHCP_G             => DHCP_G,
-         IP_ADDR_G          => IP_ADDR_G,
-         MAC_ADDR_G         => MAC_ADDR_G)
+         TPD_G               => TPD_G,
+         SIMULATION_G        => SIMULATION_G,
+         SIM_SRP_PORT_NUM_G  => SIM_SRP_PORT_NUM_G,
+         SIM_DATA_PORT_NUM_G => SIM_DATA_PORT_NUM_G,
+         AXIL_BASE_ADDR_G    => AXIL_XBAR_CONFIG_C(AXIL_ETH_C).baseAddr,
+         DHCP_G              => DHCP_G,
+         IP_ADDR_G           => IP_ADDR_G,
+         MAC_ADDR_G          => MAC_ADDR_G)
       port map (
          extRst           => '0',                              -- [in] -- might need PwrUpRst here
          ethGtRefClkP     => ethGtRefClkP,                     -- [in]
@@ -190,8 +199,8 @@ begin
          sAxilReadSlave   => locAxilReadSlaves(AXIL_ETH_C),    -- [out]
          sAxilWriteMaster => locAxilWriteMasters(AXIL_ETH_C),  -- [in]
          sAxilWriteSlave  => locAxilWriteSlaves(AXIL_ETH_C),   -- [out]
-         axisClk          => ethClk,                           -- [in]
-         axisRst          => ethRst,                           -- [in]
+         axisClk          => axilClk,                          -- [in]
+         axisRst          => axilRst,                          -- [in]
          dataTxAxisMaster => dataTxAxisMaster,                 -- [in]
          dataTxAxisSlave  => dataTxAxisSlave);                 -- [out]
 
@@ -226,7 +235,8 @@ begin
          TPD_G             => TPD_G,
          TIME_GEN_EXTREF_G => true,
          RX_CLK_MMCM_G     => false,
-         USE_TPGMINI_G     => true)
+         USE_TPGMINI_G     => true,
+         AXIL_BASE_ADDR_G  => AXIL_XBAR_CONFIG_C(AXIL_LCLS_TIMING_C).baseAddr)
       port map (
          stableClk        => axilClk,   -- [in] -- axilClk from TenGigEth core is not mmcm
          stableRst        => axilRst,   -- [in]
