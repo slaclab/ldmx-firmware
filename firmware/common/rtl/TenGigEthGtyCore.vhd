@@ -18,48 +18,52 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
 entity TenGigEthGtyCore is
    generic(
-      TPD_G            : time             := 1 ns;
-      SIMULATION_G     : boolean          := false;
-      SIM_PORT_NUM_G   : integer          := 9000;
-      AXIL_BASE_ADDR_G : slv(31 downto 0) := X"00000000";
-      DHCP_G           : boolean          := false;        -- true = DHCP, false = static address
-      IP_ADDR_G        : slv(31 downto 0) := x"0A01A8C0";  -- 192.168.1.10 (before DHCP)
-      MAC_ADDR_G       : slv(47 downto 0) := x"00_00_16_56_00_08");
+      TPD_G               : time             := 1 ns;
+      SIMULATION_G        : boolean          := false;
+      SIM_SRP_PORT_NUM_G  : integer          := 9000;
+      SIM_DATA_PORT_NUM_G : integer          := 9100;
+      AXIL_BASE_ADDR_G    : slv(31 downto 0) := X"00000000";
+      DHCP_G              : boolean          := false;        -- true = DHCP, false = static address
+      IP_ADDR_G           : slv(31 downto 0) := x"0A01A8C0";  -- 192.168.1.10 (before DHCP)
+      MAC_ADDR_G          : slv(47 downto 0) := x"00_00_16_56_00_08");
    port (
-      extRst                : in  sl                    := '0';
+      extRst           : in  sl                    := '0';
       -- GT ports and clock
-      ethGtRefClkP          : in  sl;                      -- GT Ref Clock 156.25 MHz
-      ethGtRefClkN          : in  sl;
-      ethRxP                : in  sl;
-      ethRxN                : in  sl;
-      ethTxP                : out sl;
-      ethTxN                : out sl;
+      ethGtRefClkP     : in  sl;                              -- GT Ref Clock 156.25 MHz
+      ethGtRefClkN     : in  sl;
+      ethRxP           : in  sl;
+      ethRxN           : in  sl;
+      ethTxP           : out sl;
+      ethTxN           : out sl;
       -- Eth/RSSI Status
-      phyReady              : out sl;
-      rssiStatus            : out slv7Array(1 downto 0);
+      phyReady         : out sl;
+      rssiStatus       : out slv7Array(1 downto 0);
       -- AXI-Lite Interface for local register access
-      axilClk               : out sl;
-      axilRst               : out sl;
-      mAxilReadMaster       : out AxiLiteReadMasterType;
-      mAxilReadSlave        : in  AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
-      mAxilWriteMaster      : out AxiLiteWriteMasterType;
-      mAxilWriteSlave       : in  AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
-      sAxilReadMaster       : in  AxiLiteReadMasterType;
-      sAxilReadSlave        : out AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
-      sAxilWriteMaster      : in  AxiLiteWriteMasterType;
-      sAxilWriteSlave       : out AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+      axilClk          : out sl;
+      axilRst          : out sl;
+      mAxilReadMaster  : out AxiLiteReadMasterType;
+      mAxilReadSlave   : in  AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      mAxilWriteMaster : out AxiLiteWriteMasterType;
+      mAxilWriteSlave  : in  AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+      sAxilReadMaster  : in  AxiLiteReadMasterType;
+      sAxilReadSlave   : out AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      sAxilWriteMaster : in  AxiLiteWriteMasterType;
+      sAxilWriteSlave  : out AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
       -- IO Streams
-      axisClk               : in  sl;
-      axisRst               : in  sl;
+      axisClk          : in  sl;
+      axisRst          : in  sl;
       dataTxAxisMaster : in  AxiStreamMasterType;
       dataTxAxisSlave  : out AxiStreamSlaveType);
 
@@ -112,13 +116,17 @@ architecture rtl of TenGigEthGtyCore is
          addrBits      => 12,
          connectivity  => X"FFFF"));
 
+   signal ethClk : sl;
+   signal ethRst : sl;
+
    signal efuse    : slv(31 downto 0);
    signal localMac : slv(47 downto 0);
 
-   signal rxMaster : AxiStreamMasterType;
-   signal rxSlave  : AxiStreamSlaveType;
-   signal txMaster : AxiStreamMasterType;
-   signal txSlave  : AxiStreamSlaveType;
+   signal ethMacIbMaster : AxiStreamMasterType;
+   signal ethMacIbSlave  : AxiStreamSlaveType;
+   signal ethMacObMaster : AxiStreamMasterType;
+   signal ethMacObSlave  : AxiStreamSlaveType;
+
 
    signal ibServerMasters : AxiStreamMasterArray(SERVER_SIZE_C-1 downto 0);
    signal ibServerSlaves  : AxiStreamSlaveArray(SERVER_SIZE_C-1 downto 0);
@@ -204,43 +212,43 @@ begin
             TPD_G             => TPD_G,
             NUM_LANE_G        => 1,
             JUMBO_G           => true,
-            PAUSE_EN_G        => true,                               -- Check this
-            QPLL_REFCLK_SEL_G => "001",                              -- Check this
+            PAUSE_EN_G        => true,                                  -- Check this
+            QPLL_REFCLK_SEL_G => "001",                                 -- Check this
             EN_AXI_REG_G      => true,
             AXIS_CONFIG_G     => (others => EMAC_AXIS_CONFIG_C))
          port map (
-            localMac            => localMac,                         -- [in]
-            dmaClk              => ethClk,                           -- [in]
-            dmaRst              => ethRst,                           -- [in]
-            dmaIbMasters(0)     => ethMacIbMaster,                   -- [out]
-            dmaIbSlaves(0)      => ethMacIbSlave,                    -- [in]
-            dmaObMasters(0)     => ethMacObMaster,                   -- [in]
-            dmaObSlaves(0)      => ethMacObSlave,                    -- [out]
-            axiLiteClk          => ethClk,                           -- [in]
-            axiLiteRst          => ethRst,                           -- [in]
-            axiLiteReadMasters  => locAxilReadMasters(AXIL_ETH_C),   -- [in]
-            axiLiteReadSlaves   => locAxilReadSlaves(AXIL_ETH_C),    -- [out]
-            axiLiteWriteMasters => locAxilWriteMasters(AXIL_ETH_C),  -- [in]
-            axiLiteWriteSlaves  => locAxilWriteSlaves(AXIL_ETH_C),   -- [out]
-            extRst              => extRst,                           -- [in]
-            coreClk             => ethClk,                           -- [out]
-            coreRst             => ethRst,                           -- [out]
-            phyClk              => open,                             -- [out]
-            phyRst              => open,                             -- [out]
-            phyReady            => phyReady,                         -- [out]
-            gtClk               => open,                             -- [out]
+            localMac(0)            => localMac,                         -- [in]
+            dmaClk(0)              => ethClk,                           -- [in]
+            dmaRst(0)              => ethRst,                           -- [in]
+            dmaIbMasters(0)        => ethMacIbMaster,                   -- [out]
+            dmaIbSlaves(0)         => ethMacIbSlave,                    -- [in]
+            dmaObMasters(0)        => ethMacObMaster,                   -- [in]
+            dmaObSlaves(0)         => ethMacObSlave,                    -- [out]
+            axiLiteClk(0)          => ethClk,                           -- [in]
+            axiLiteRst(0)          => ethRst,                           -- [in]
+            axiLiteReadMasters(0)  => locAxilReadMasters(AXIL_ETH_C),   -- [in]
+            axiLiteReadSlaves(0)   => locAxilReadSlaves(AXIL_ETH_C),    -- [out]
+            axiLiteWriteMasters(0) => locAxilWriteMasters(AXIL_ETH_C),  -- [in]
+            axiLiteWriteSlaves(0)  => locAxilWriteSlaves(AXIL_ETH_C),   -- [out]
+            extRst                 => extRst,                           -- [in]
+            coreClk                => ethClk,                           -- [out]
+            coreRst                => ethRst,                           -- [out]
+            phyClk                 => open,                             -- [out]
+            phyRst                 => open,                             -- [out]
+            phyReady(0)            => phyReady,                         -- [out]
+            gtClk                  => open,                             -- [out]
 --          gtTxPreCursor       => gtTxPreCursor,        -- [in]
 --          gtTxPostCursor      => gtTxPostCursor,       -- [in]
 --          gtTxDiffCtrl        => gtTxDiffCtrl,         -- [in]
 --          gtRxPolarity        => gtRxPolarity,         -- [in]
 --          gtTxPolarity        => gtTxPolarity,         -- [in]
 --          gtRefClk            => gtRefClk,             -- [in]
-            gtClkP              => ethGtRefClkP,                     -- [in]
-            gtClkN              => ethGtRefClkN,                     -- [in]
-            gtTxP(0)            => ethTxP,                           -- [out]
-            gtTxN(0)            => ethTxN,                           -- [out]
-            gtRxP(0)            => ethRxP,                           -- [in]
-            gtRxN(0)            => ethRxN);                          -- [in]      
+            gtClkP                 => ethGtRefClkP,                     -- [in]
+            gtClkN                 => ethGtRefClkN,                     -- [in]
+            gtTxP(0)               => ethTxP,                           -- [out]
+            gtTxN(0)               => ethTxN,                           -- [out]
+            gtRxP(0)               => ethRxP,                           -- [in]
+            gtRxN(0)               => ethRxN);                          -- [in]      
 
 
       ----------------------
@@ -265,10 +273,10 @@ begin
             localMac        => localMac,
             localIp         => IP_ADDR_G,
             -- Interface to Ethernet Media Access Controller (MAC)
-            obMacMaster     => rxMaster,
-            obMacSlave      => rxSlave,
-            ibMacMaster     => txMaster,
-            ibMacSlave      => txSlave,
+            obMacMaster     => ethMacIbMaster,
+            obMacSlave      => ethMacIbSlave,
+            ibMacMaster     => ethMacObMaster,
+            ibMacSlave      => ethMacObSlave,
             -- Interface to UDP Server engine(s)
             obServerMasters => obServerMasters,
             obServerSlaves  => obServerSlaves,
@@ -288,24 +296,24 @@ begin
       ------------------------------------------
       U_RssiServer_SRP : entity surf.RssiCoreWrapper
          generic map (
-            TPD_G                 => TPD_G,
-            APP_ILEAVE_EN_G       => true,
-            ILEAVE_ON_NOTVALID_G  => true,
-            MAX_SEG_SIZE_G        => 1024,
-            SEGMENT_ADDR_SIZE_G   => 7,
-            APP_STREAMS_G         => RSSI_SIZE_C,
-            APP_STREAM_ROUTES_G   => RSSI_ROUTES_C,
-            APP_STREAM_PRIORITY_G => RSSI_PRIORITY_C,
-            APP_AXIS_CONFIG_G     => RSSI_AXIS_CONFIG_C,
-            CLK_FREQUENCY_G       => ETH_CLK_FREQ_C,
-            TIMEOUT_UNIT_G        => 1.0E-3,  -- In units of seconds
-            SERVER_G              => true,
-            RETRANSMIT_ENABLE_G   => true,
-            BYPASS_CHUNKER_G      => false,
-            WINDOW_ADDR_SIZE_G    => 3,
-            PIPE_STAGES_G         => 0,
-            TSP_AXIS_CONFIG_G     => EMAC_AXIS_CONFIG_C,
-            INIT_SEQ_N_G          => 16#80#)
+            TPD_G                => TPD_G,
+            APP_ILEAVE_EN_G      => true,
+            ILEAVE_ON_NOTVALID_G => true,
+            MAX_SEG_SIZE_G       => 1024,
+            SEGMENT_ADDR_SIZE_G  => 7,
+            APP_STREAMS_G        => RSSI_SIZE_C,
+            APP_STREAM_ROUTES_G  => RSSI_ROUTES_C,
+--            APP_STREAM_PRIORITY_G => RSSI_PRIORITY_C,
+            APP_AXIS_CONFIG_G    => RSSI_AXIS_CONFIG_C,
+            CLK_FREQUENCY_G      => ETH_CLK_FREQ_C,
+            TIMEOUT_UNIT_G       => 1.0E-3,  -- In units of seconds
+            SERVER_G             => true,
+            RETRANSMIT_ENABLE_G  => true,
+            BYPASS_CHUNKER_G     => false,
+            WINDOW_ADDR_SIZE_G   => 3,
+            PIPE_STAGES_G        => 0,
+            TSP_AXIS_CONFIG_G    => EMAC_AXIS_CONFIG_C,
+            INIT_SEQ_N_G         => 16#80#)
          port map (
             clk_i             => ethClk,
             rst_i             => ethRst,
@@ -332,24 +340,24 @@ begin
 
       U_RssiServer_DATA : entity surf.RssiCoreWrapper
          generic map (
-            TPD_G                 => TPD_G,
-            APP_ILEAVE_EN_G       => true,
-            ILEAVE_ON_NOTVALID_G  => true,
-            MAX_SEG_SIZE_G        => 1024,
-            SEGMENT_ADDR_SIZE_G   => 7,
-            APP_STREAMS_G         => RSSI_SIZE_C,
-            APP_STREAM_ROUTES_G   => RSSI_ROUTES_C,
-            APP_STREAM_PRIORITY_G => RSSI_PRIORITY_C,
-            APP_AXIS_CONFIG_G     => RSSI_AXIS_CONFIG_C,
-            CLK_FREQUENCY_G       => ETH_CLK_FREQ_C,
-            TIMEOUT_UNIT_G        => 1.0E-3,  -- In units of seconds
-            SERVER_G              => true,
-            RETRANSMIT_ENABLE_G   => true,
-            BYPASS_CHUNKER_G      => false,
-            WINDOW_ADDR_SIZE_G    => 3,
-            PIPE_STAGES_G         => 0,
-            TSP_AXIS_CONFIG_G     => EMAC_AXIS_CONFIG_C,
-            INIT_SEQ_N_G          => 16#80#)
+            TPD_G                => TPD_G,
+            APP_ILEAVE_EN_G      => true,
+            ILEAVE_ON_NOTVALID_G => true,
+            MAX_SEG_SIZE_G       => 1024,
+            SEGMENT_ADDR_SIZE_G  => 7,
+            APP_STREAMS_G        => RSSI_SIZE_C,
+            APP_STREAM_ROUTES_G  => RSSI_ROUTES_C,
+--            APP_STREAM_PRIORITY_G => RSSI_PRIORITY_C,
+            APP_AXIS_CONFIG_G    => RSSI_AXIS_CONFIG_C,
+            CLK_FREQUENCY_G      => ETH_CLK_FREQ_C,
+            TIMEOUT_UNIT_G       => 1.0E-3,  -- In units of seconds
+            SERVER_G             => true,
+            RETRANSMIT_ENABLE_G  => true,
+            BYPASS_CHUNKER_G     => false,
+            WINDOW_ADDR_SIZE_G   => 3,
+            PIPE_STAGES_G        => 0,
+            TSP_AXIS_CONFIG_G    => EMAC_AXIS_CONFIG_C,
+            INIT_SEQ_N_G         => 16#80#)
          port map (
             clk_i             => ethClk,
             rst_i             => ethRst,
@@ -453,7 +461,7 @@ begin
             NUM_SLAVES_G         => RSSI_ROUTES_C'length,
             MODE_G               => "ROUTED",
             TDEST_ROUTES_G       => RSSI_ROUTES_C,
-            PRIORITY_G           => RSSI_PRIORITY_C,
+--            PRIORITY_G           => RSSI_PRIORITY_C,
             ILEAVE_EN_G          => true,
             ILEAVE_ON_NOTVALID_G => true,
             ILEAVE_REARB_G       => (512/8)-3)
@@ -506,7 +514,7 @@ begin
             NUM_SLAVES_G         => RSSI_ROUTES_C'length,
             MODE_G               => "ROUTED",
             TDEST_ROUTES_G       => RSSI_ROUTES_C,
-            PRIORITY_G           => RSSI_PRIORITY_C,
+--            PRIORITY_G           => RSSI_PRIORITY_C,
             ILEAVE_EN_G          => true,
             ILEAVE_ON_NOTVALID_G => true,
             ILEAVE_REARB_G       => (512/8)-3)
@@ -569,16 +577,16 @@ begin
          FIFO_ADDR_WIDTH_G   => 4,
          FIFO_FIXED_THRESH_G => true,
 --         FIFO_PAUSE_THRESH_G => 2**9-32,
-         SLAVE_AXI_CONFIG_G  => DATA_AXIS_CONFIG_C,
+         SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,  -- Change this to some package constant?
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
       port map (
-         sAxisClk    => axisClk,                                   -- [in]
-         sAxisRst    => axisRst,                                   -- [in]
-         sAxisMaster => localDataTxAxisMaster,                     -- [in]
-         sAxisSlave  => localDataTxAxisSlave,                      -- [out]
+         sAxisClk    => axisClk,        -- [in]
+         sAxisRst    => axisRst,        -- [in]
+         sAxisMaster => dataTxAxisMaster,       -- [in]
+         sAxisSlave  => dataTxAxisSlave,        -- [out]
 --         sAxisCtrl   => localTxAxisCtrl,                   -- [out]
-         mAxisClk    => ethClk,                                    -- [in]
-         mAxisRst    => ethRst,                                    -- [in]
+         mAxisClk    => ethClk,         -- [in]
+         mAxisRst    => ethRst,         -- [in]
          mAxisMaster => dataRssiIbMasters(DEST_LOCAL_SRP_DATA_C),  -- [out]
          mAxisSlave  => dataRssiIbSlaves(DEST_LOCAL_SRP_DATA_C));  -- [in]
 

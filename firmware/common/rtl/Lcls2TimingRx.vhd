@@ -37,7 +37,8 @@ entity Lcls2TimingRx is
       TPD_G             : time    := 1 ns;
       TIME_GEN_EXTREF_G : boolean := true;
       RX_CLK_MMCM_G     : boolean := false;
-      USE_TPGMINI_G     : boolean := true);
+      USE_TPGMINI_G     : boolean := true;
+      AXIL_BASE_ADDR_G : slv(31 downto 0) := X"00000000");
    port (
       stableClk        : in  sl;
       stableRst        : in  sl;
@@ -85,11 +86,11 @@ architecture rtl of Lcls2TimingRx is
 
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_C-1 downto 0) := (
       AXIL_CORE_INDEX_C => (
-         baseAddr       => (TIMING_ADDR_C+x"00000000"),
+         baseAddr       => (AXIL_BASE_ADDR_G+x"00000000"),
          addrBits       => 18,
          connectivity   => x"FFFF"),
       AXIL_GTH_INDEX_C  => (
-         baseAddr       => (TIMING_ADDR_C+x"00800000"),
+         baseAddr       => (AXIL_BASE_ADDR_G+x"00800000"),
          addrBits       => 23,
          connectivity   => x"FFFF"));
 
@@ -106,6 +107,7 @@ architecture rtl of Lcls2TimingRx is
    -- Recovered clocks
    signal timingRxOutClkGt : sl;
    signal timingRxOutClk   : sl;
+   signal timingRxOutRst : sl;
    signal timingRxRecClk   : sl;
 
    -- Rx ports
@@ -114,7 +116,6 @@ architecture rtl of Lcls2TimingRx is
    signal rxCdrStable    : sl;
    signal rxStatus       : TimingPhyStatusType;
    signal rxControl      : TimingPhyControlType;
-   signal rxUsrClk       : sl;
    signal rxData         : slv(15 downto 0);
    signal rxDataK        : slv(1 downto 0);
    signal rxDispErr      : slv(1 downto 0);
@@ -128,6 +129,8 @@ architecture rtl of Lcls2TimingRx is
    signal loopback       : slv(2 downto 0);
    signal refclksel      : slv(2 downto 0);
    signal appBus         : TimingBusType;
+   signal appTimingClk : sl;
+   signal appTimingRst : sl;
    signal appTimingMode  : sl;
    signal timingStrobe   : sl;
    signal timingValid    : sl;
@@ -142,8 +145,8 @@ begin
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
-         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
-         MASTERS_CONFIG_G   => AXIL_XBAR_CFG_C(NUM_AXIL_MASTERS_C-1 downto 0))
+         NUM_MASTER_SLOTS_G => NUM_AXIL_C,
+         MASTERS_CONFIG_G   => AXIL_XBAR_CFG_C(NUM_AXIL_C-1 downto 0))
       port map (
          axiClk              => axilClk,
          axiClkRst           => axilRst,
@@ -151,16 +154,19 @@ begin
          sAxiWriteSlaves(0)  => axilWriteSlave,
          sAxiReadMasters(0)  => axilReadMaster,
          sAxiReadSlaves(0)   => axilReadSlave,
-         mAxiWriteMasters    => axilWriteMasters(NUM_AXIL_MASTERS_C-1 downto 0),
-         mAxiWriteSlaves     => axilWriteSlaves(NUM_AXIL_MASTERS_C-1 downto 0),
-         mAxiReadMasters     => axilReadMasters(NUM_AXIL_MASTERS_C-1 downto 0),
-         mAxiReadSlaves      => axilReadSlaves(NUM_AXIL_MASTERS_C-1 downto 0));
+         mAxiWriteMasters    => axilWriteMasters(NUM_AXIL_C-1 downto 0),
+         mAxiWriteSlaves     => axilWriteSlaves(NUM_AXIL_C-1 downto 0),
+         mAxiReadMasters     => axilReadMasters(NUM_AXIL_C-1 downto 0),
+         mAxiReadSlaves      => axilReadSlaves(NUM_AXIL_C-1 downto 0));
 
    -------------------------------------------------------------------------------------------------
    -- Signal glue
    -------------------------------------------------------------------------------------------------
    recTimingClk <= timingRxOutClk;
    recTimingRst <= not(rxStatus.resetDone);
+
+   appTimingClk <= timingRxOutClk;
+   appTimingRst <= not rxStatus.resetDone;
 
    timingPhy <= coreTimingPhy;
 
@@ -226,7 +232,7 @@ begin
          rxStatus        => rxStatus,
          rxUsrClkActive  => rxUsrClkActive,
          rxCdrStable     => rxCdrStable,
-         rxUsrClk        => rxUsrClk,
+         rxUsrClk        => timingRxOutClk,
          rxData          => rxData,
          rxDataK         => rxDataK,
          rxDispErr       => rxDispErr,
@@ -266,14 +272,13 @@ begin
             clkOut(0) => timingRxOutClk,
             rstOut(0) => open,
             locked    => rxUsrClkActive);
+      
    end generate RX_CLK_MMCM_GEN;
 
    NO_RX_CLK_MMCM_GEN : if (not RX_CLK_MMCM_G) generate
       timingRxOutClk <= timingRxOutClk;
       rxUsrClkActive <= '1';
    end generate NO_RX_CLK_MMCM_GEN;
-
-   rxUsrClk <= timingRxOutClk;
 
    -- Output recovered clock from GT to GTREFCLK pins for jitter cleaning
    U_mgtRecClk : OBUFDS_GTE4
@@ -315,7 +320,7 @@ begin
          gtLoopback       => loopback,
          appTimingClk     => appTimingClk,
          appTimingRst     => appTimingRst,
-         appTimingMode    => appTimingMode,
+         appTimingMode    => open,
          appTimingBus     => appBus,
          tpgMiniTimingPhy => coreTimingPhy,
          timingClkSel     => open,
