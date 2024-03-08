@@ -69,6 +69,8 @@ entity S30xlAPx is
 
       -- FC Receiver
       -- (Looped back from fcHub IO)
+      appFcRefClkP : in sl;
+      appFcRefClkN : in sl;
       appFcRxP : in  sl;
       appFcRxN : in  sl;
       appFcTxP : out sl;
@@ -268,7 +270,7 @@ begin
    -------------------------------------------------------------------------------------------------
 
    -------------------------------------------------------------------------------------------------
-   -- S30XL Application
+   -- S30XL Application Core
    -------------------------------------------------------------------------------------------------
 
 end architecture rtl;
