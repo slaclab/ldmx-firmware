@@ -23,6 +23,10 @@ use surf.StdRtlPkg.all;
 
 package FcPkg is
 
+   -------------------------------------------------------------------------------------------------
+   -- Fast Control Messages sent on PGPFC are 80 bits, with fields defined here
+   -- FastControlMessageType encodes the fields into a record
+   -------------------------------------------------------------------------------------------------
    constant FC_LEN_C              : natural := 80;
    subtype MSG_TYPE_RANGE_C is natural range FC_LEN_C-1 downto 76;
    subtype BUNCH_CNT_RANGE_C is natural range 69 downto 64;
@@ -31,7 +35,7 @@ package FcPkg is
    subtype PULSE_ID_RANGE_C is natural range 63 downto 0;
 
    constant RUN_STATE_RESET_C       : slv(4 downto 0) := "00000";
-   constant RUN_STATE_CLOCK_ALIGN_C : slv(4 downto 0) := "00001";
+   constant RUN_STATE_CLOCK_ALIGN_C : slv(4 downto 0) := "00001";  -- T0
    constant RUN_STATE_PRESTART_C    : slv(4 downto 0) := "00010";
    constant RUN_STATE_RUNNING_C     : slv(4 downto 0) := "00011";
    constant RUN_STATE_STOPPED_C     : slv(4 downto 0) := "00100";
@@ -63,6 +67,55 @@ package FcPkg is
 
    function FcEncode (fieldsIn : FastControlMessageType) return slv;
    function FcDecode (fcIn     : slv(FC_LEN_C-1 downto 0); valid : in sl := '1') return FastControlMessageType;
+
+   -------------------------------------------------------------------------------------------------
+   -- Readout Request Fields
+   -------------------------------------------------------------------------------------------------
+   type FcReadoutRequestType is record
+      valid    : sl;
+      bunchCnt : slv(5 downto 0);
+      pulseId  : slv(63 downto 0);
+   end record FcReadoutRequestType;
+
+   -------------------------------------------------------------------------------------------------
+   -- The Fast control receiver block outputs a bus of fast control data on this record
+   -------------------------------------------------------------------------------------------------
+   type FastControlBusType is record
+      -- FC Rx status
+      rxLinkStatus : sl;
+
+      -- Placed on bus with each TM received
+      pulseStrobe  : sl;
+      pulseId      : slv(63 downto 0);
+      state        : slv(4 downto 0);
+      stateChanged : sl;
+
+      -- These are counted based on Timing messages
+      bunchClk       : sl;
+      bunchClkRst    : sl;
+      bunchStrobePre : sl;              -- Pulsed 1 cycle before bunchCount increments
+      bunchStrobe    : sl;              -- Pulsed on cycle that bunchCount increments
+      bunchCount     : slv(5 downto 0);
+
+      -- 185 MHz counter from T0
+      runTime : slv(63 downto 0);
+
+      -- Readout request data placed on this bus as received
+      readoutRequest : FcReadoutRequestType;
+
+      -- All FC messages placed on this bus as they are received
+      -- Might not be useful
+      fcMsg : FastControlMessageType;
+   end record FastControlBusType;
+
+   -------------------------------------------------------------------------------------------------
+   -- Fast control feedback
+   -- Only busy for now but more could be added
+   -------------------------------------------------------------------------------------------------
+   type FastControlFeedbackType is record
+      busy : sl;
+   end record FastControlFeedbackType;
+
 
 end FcPkg;
 
