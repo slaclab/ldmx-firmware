@@ -33,13 +33,16 @@ use unisim.vcomponents.all;
 
 entity TrackerPgpFcLaneWrapper is
    generic (
-      TPD_G             : time             := 1 ns;
-      SIM_SPEEDUP_G     : boolean          := false;
+      TPD_G             : time                 := 1 ns;
+      SIM_SPEEDUP_G     : boolean              := false;
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
-      PGP_LANES_G       : integer          := 4;
-      PGP_QUADS_G       : integer          := 8;
-      AXI_CLK_FREQ_G    : real             := 125.0e6;
-      AXI_BASE_ADDR_G   : slv(31 downto 0) := (others => '0'));
+      PGP_LANES_G       : integer              := 4;
+      PGP_QUADS_G       : integer              := 8;
+      AXI_CLK_FREQ_G    : real                 := 125.0e6;
+      AXI_BASE_ADDR_G   : slv(31 downto 0)     := (others => '0');
+      TX_ENABLE_G       : boolean              := true;
+      RX_ENABLE_G       : boolean              := true;
+      NUM_VC_EN_G       : integer range 0 to 4 := 4);
    port (
       -- QSFP-DD Ports
       qsfpRefClkP     : in  slv(PGP_QUADS_G-1 downto 0);
@@ -92,7 +95,6 @@ architecture mapping of TrackerPgpFcLaneWrapper is
    signal pgpObSlaves      : AxiStreamSlaveArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
    signal pgpIbMasters     : AxiStreamMasterArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
    signal pgpIbSlaves      : AxiStreamSlaveArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
-
 
 begin
 
@@ -154,7 +156,10 @@ begin
                DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G,
                LANE_G            => quad*PGP_LANES_G+lane,
                AXI_CLK_FREQ_G    => AXI_CLK_FREQ_G,
-               AXI_BASE_ADDR_G   => AXI_CONFIG_C(quad*PGP_LANES_G+lane).baseAddr)
+               AXI_BASE_ADDR_G   => AXI_CONFIG_C(quad*PGP_LANES_G+lane).baseAddr,
+               TX_ENABLE_G       => TX_ENABLE_G,
+               RX_ENABLE_G       => RX_ENABLE_G,
+               NUM_VC_EN_G       => NUM_VC_EN_G)
             port map (
                -- PGP Serial Ports
                pgpRxP          => qsfpRxP(quad*PGP_LANES_G+lane),

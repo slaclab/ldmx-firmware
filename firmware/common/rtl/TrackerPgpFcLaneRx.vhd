@@ -30,6 +30,7 @@ entity TrackerPgpFcLaneRx is
    generic (
       TPD_G             : time    := 1 ns;
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
+      NUM_VC_EN_G       : integer range 0 to 4 := 4;
       LANE_G            : natural := 0);
    port (
       -- DMA Interface (dmaClk domain)
@@ -42,18 +43,18 @@ entity TrackerPgpFcLaneRx is
       pgpRxClk        : in  sl;
       pgpRxRst        : in  sl;
       pgpRxOut        : in  Pgp2fcRxOutType;
-      pgpRxMasters    : in  AxiStreamMasterArray(3 downto 0);
-      pgpRxSlaves     : out AxiStreamSlaveArray(3 downto 0);
-      pgpRxCtrl       : out AxiStreamCtrlArray(3 downto 0));
+      pgpRxMasters    : in  AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
+      pgpRxSlaves     : out AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0);
+      pgpRxCtrl       : out AxiStreamCtrlArray(NUM_VC_EN_G-1 downto 0));
 end TrackerPgpFcLaneRx;
 
 architecture mapping of TrackerPgpFcLaneRx is
 
-   signal pgpMasters   : AxiStreamMasterArray(3 downto 0);
-   signal rxMasters    : AxiStreamMasterArray(3 downto 0);
-   signal rxSlaves     : AxiStreamSlaveArray(3 downto 0);
-   signal locBuffPause : slv(3 downto 0);
-   signal disableSel   : slv(3 downto 0);
+   signal pgpMasters   : AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
+   signal rxMasters    : AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
+   signal rxSlaves     : AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0);
+   signal disableSel   : slv(NUM_VC_EN_G-1 downto 0);
+   signal locBuffPause : slv(NUM_VC_EN_G-1 downto 0);
 
    signal rxMaster : AxiStreamMasterType;
    signal rxSlave  : AxiStreamSlaveType;
@@ -61,11 +62,11 @@ architecture mapping of TrackerPgpFcLaneRx is
 begin
 
    BLOWOFF_FILTER : process (pgpRxMasters, pgpRxOut) is
-      variable tmp : AxiStreamMasterArray(3 downto 0);
+      variable tmp : AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
       variable i   : natural;
    begin
       tmp := pgpRxMasters;
-      for i in 3 downto 0 loop
+      for i in NUM_VC_EN_G-1 downto 0 loop
          if (pgpRxOut.linkReady = '0') then
             tmp(i).tValid := '0';
          end if;
@@ -74,7 +75,7 @@ begin
    end process;
 
    GEN_VEC :
-   for i in 3 downto 0 generate
+   for i in NUM_VC_EN_G-1 downto 0 generate
 
       PGP_FIFO : entity surf.AxiStreamFifoV2
          generic map (
@@ -111,7 +112,7 @@ begin
    U_Mux : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_G,
-         NUM_SLAVES_G         => 4,
+         NUM_SLAVES_G         => NUM_VC_EN_G,
          MODE_G               => "INDEXED",
          TID_MODE_G           => "INDEXED",
          ILEAVE_EN_G          => true,
@@ -130,11 +131,12 @@ begin
          mAxisMaster  => rxMaster,
          mAxisSlave   => rxSlave);
 
-   locBuffPause <= dmaBuffGrpPause(3 downto 0) when (LANE_G mod 2 = 0) else dmaBuffGrpPause(7 downto 4);
+   locBuffPause <= dmaBuffGrpPause(NUM_VC_EN_G-1 downto 0) when (LANE_G mod 2 = 0) else dmaBuffGrpPause(7 downto 8-NUM_VC_EN_G);
+
    U_disableSel : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
-         WIDTH_G => 4)
+         WIDTH_G => NUM_VC_EN_G)
       port map (
          clk     => pgpRxClk,
          dataIn  => locBuffPause,
