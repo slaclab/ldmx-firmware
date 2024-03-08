@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : PgpLaneTx.vhd
+-- File       : TrackerPgpFcLaneTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -26,10 +26,11 @@ use surf.Pgp2fcPkg.all;
 library axi_pcie_core;
 use axi_pcie_core.AxiPciePkg.all;
 
-entity PgpLaneTx is
+entity TrackerPgpFcLaneTx is
    generic (
       TPD_G             : time := 1 ns;
-      DMA_AXIS_CONFIG_G : AxiStreamConfigType);
+      DMA_AXIS_CONFIG_G : AxiStreamConfigType;
+      NUM_VC_EN_G       : integer range 0 to 4 := 4);
    port (
       -- DMA Interface (dmaClk domain)
       dmaClk       : in  sl;
@@ -41,11 +42,11 @@ entity PgpLaneTx is
       pgpTxRst     : in  sl;
       pgpRxOut     : in  Pgp2fcRxOutType;
       pgpTxOut     : in  Pgp2fcTxOutType;
-      pgpTxMasters : out AxiStreamMasterArray(3 downto 0);
-      pgpTxSlaves  : in  AxiStreamSlaveArray(3 downto 0));
-end PgpLaneTx;
+      pgpTxMasters : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
+      pgpTxSlaves  : in  AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0));
+end TrackerPgpFcLaneTx;
 
-architecture mapping of PgpLaneTx is
+architecture mapping of TrackerPgpFcLaneTx is
 
    signal dmaMaster : AxiStreamMasterType;
    signal dmaCtrl   : AxiStreamCtrlType;
@@ -138,10 +139,10 @@ begin
    U_DeMux : entity surf.AxiStreamDeMux
       generic map (
          TPD_G         => TPD_G,
-         NUM_MASTERS_G => 4,
+         NUM_MASTERS_G => NUM_VC_EN_G,
          MODE_G        => "INDEXED",
          PIPE_STAGES_G => 1,
-         TDEST_HIGH_G  => 3,
+         TDEST_HIGH_G  => NUM_VC_EN_G-1, -- TO-DO: is this correct?
          TDEST_LOW_G   => 0)
       port map (
          -- Clock and reset
