@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : PgpLane.vhd
+-- File       : TrackerPgpFcLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -33,7 +33,7 @@ use ldmx.AppPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity PgpLane is
+entity TrackerPgpFcLane is
    generic (
       TPD_G             : time             := 1 ns;
       SIM_SPEEDUP_G     : boolean          := false;
@@ -70,9 +70,9 @@ entity PgpLane is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end PgpLane;
+end TrackerPgpFcLane;
 
-architecture mapping of PgpLane is
+architecture mapping of TrackerPgpFcLane is
 
    constant NUM_AXI_MASTERS_C : natural := 4;
 
@@ -242,26 +242,6 @@ begin
          axilWriteMaster => axilWriteMasters(PGP2FC_INDEX_C),
          axilWriteSlave  => axilWriteSlaves(PGP2FC_INDEX_C));
 
-   ------------
-   -- Misc Core
-   ------------
---    U_PgpMiscCtrl : entity work.PgpMiscCtrl
---       generic map (
---          TPD_G         => TPD_G,
---          SIM_SPEEDUP_G => SIM_SPEEDUP_G)
---       port map (
---          -- Control/Status  (axilClk domain)
---          config          => config,
---          txUserRst       => txUserRst,
---          rxUserRst       => rxUserRst,
---          -- AXI Lite interface
---          axilClk         => axilClk,
---          axilRst         => axilRst,
---          axilReadMaster  => axilReadMasters(CTRL_INDEX_C),
---          axilReadSlave   => axilReadSlaves(CTRL_INDEX_C),
---          axilWriteMaster => axilWriteMasters(CTRL_INDEX_C),
---          axilWriteSlave  => axilWriteSlaves(CTRL_INDEX_C));
-
    U_RstSync_Tx : entity surf.RstSync
       generic map (
          TPD_G => TPD_G)
@@ -278,14 +258,10 @@ begin
          asyncRst => '0',               -- [in]
          syncRst  => pgpRxRst);         -- [out]
 
---    pgpTxRst <= '0';
---    pgpRxRst <= '0';
-
-
    --------------
    -- PGP TX Path
    --------------
-   U_Tx : entity ldmx.PgpLaneTx
+   U_Tx : entity ldmx.TrackerPgpFcLaneTx
       generic map (
          TPD_G             => TPD_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G)
@@ -306,7 +282,7 @@ begin
    --------------
    -- PGP RX Path
    --------------
-   U_Rx : entity ldmx.PgpLaneRx
+   U_Rx : entity ldmx.TrackerPgpFcLaneRx
       generic map (
          TPD_G             => TPD_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G,

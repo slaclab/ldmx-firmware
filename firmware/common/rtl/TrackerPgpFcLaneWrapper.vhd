@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : PgpLaneWrapper.vhd
+-- File       : TrackerPgpFcLaneWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -31,7 +31,7 @@ use axi_pcie_core.AxiPciePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity PgpLaneWrapper is
+entity TrackerPgpFcLaneWrapper is
    generic (
       TPD_G             : time             := 1 ns;
       SIM_SPEEDUP_G     : boolean          := false;
@@ -65,9 +65,9 @@ entity PgpLaneWrapper is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end PgpLaneWrapper;
+end TrackerPgpFcLaneWrapper;
 
-architecture mapping of PgpLaneWrapper is
+architecture mapping of TrackerPgpFcLaneWrapper is
 
    constant NUM_AXI_MASTERS_C : natural := PGP_QUADS_G*PGP_LANES_G;
 
@@ -147,7 +147,7 @@ begin
    GEN_QUAD : for quad in PGP_QUADS_G-1 downto 0 generate
 
       GEN_LANE : for lane in PGP_LANES_G-1 downto 0 generate
-         U_Lane : entity ldmx.PgpLane
+         U_Lane : entity ldmx.TrackerPgpFcLane
             generic map (
                TPD_G             => TPD_G,
                SIM_SPEEDUP_G     => SIM_SPEEDUP_G,

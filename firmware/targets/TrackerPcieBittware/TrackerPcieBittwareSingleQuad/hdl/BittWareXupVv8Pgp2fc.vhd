@@ -180,7 +180,7 @@ begin
          pciTxP          => pciTxP,
          pciTxN          => pciTxN);
 
-   U_PgpLaneWrapper : entity ldmx.PgpLaneWrapper
+   U_PgpLaneWrapper : entity ldmx.TrackerPgpFcLaneWrapper
       generic map (
          TPD_G             => TPD_G,
          SIM_SPEEDUP_G     => SIM_SPEEDUP_G,

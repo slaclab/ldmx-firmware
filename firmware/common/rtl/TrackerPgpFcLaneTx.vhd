@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : PgpLaneTx.vhd
+-- File       : TrackerPgpFcLaneTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -26,7 +26,7 @@ use surf.Pgp2fcPkg.all;
 library axi_pcie_core;
 use axi_pcie_core.AxiPciePkg.all;
 
-entity PgpLaneTx is
+entity TrackerPgpFcLaneTx is
    generic (
       TPD_G             : time := 1 ns;
       DMA_AXIS_CONFIG_G : AxiStreamConfigType);
@@ -43,9 +43,9 @@ entity PgpLaneTx is
       pgpTxOut     : in  Pgp2fcTxOutType;
       pgpTxMasters : out AxiStreamMasterArray(3 downto 0);
       pgpTxSlaves  : in  AxiStreamSlaveArray(3 downto 0));
-end PgpLaneTx;
+end TrackerPgpFcLaneTx;
 
-architecture mapping of PgpLaneTx is
+architecture mapping of TrackerPgpFcLaneTx is
 
    signal dmaMaster : AxiStreamMasterType;
    signal dmaCtrl   : AxiStreamCtrlType;
