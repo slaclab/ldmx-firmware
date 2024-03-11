@@ -46,10 +46,10 @@ entity MgtRefClkMux is
       mgtRefClk   : out slv(PGP_QUADS_G-1 downto 0);
       userRefClk  : out slv(PGP_QUADS_G-1 downto 0);
       -- RX/TXCLK
-      pgpTxOutClk : in  slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
-      pgpRxOutClk : in  slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
-      pgpTxClk    : out slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
-      pgpRxClk    : out slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0));
+      txOutClk    : in  slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
+      rxOutClk    : in  slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
+      txUsrClk    : out slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
+      rxUsrClk    : out slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0));
 end entity MgtRefClkMux;
 
 architecture mapping of MgtRefClkMux is
@@ -100,7 +100,7 @@ begin
       -- RXOUTCLK/TXOUTCLK Muxing
       ---------------------------
       -- Every GT uses their own rxoutclk as their rxusrclk;
-      pgpRxClk <= pgpRxOutClk;
+      rxUsrClk <= rxOutClk;
 
       -- The GTs that recover the timing stream provide an rxoutclk;
       -- (These GTs are in quad=0 and quad=2 for the BittWare)
@@ -110,48 +110,48 @@ begin
 
       GEN_QUAD0_TXUSRCLK : if PGP_QUADS_G > 0 generate
          -- quad=0 (120) clocks itself
-         pgpTxClk(3 downto 0) <= pgpTxOutClk(3 downto 0);
+         txUsrClk(3 downto 0) <= txOutClk(3 downto 0);
       end generate GEN_QUAD0_TXUSRCLK;
 
       GEN_QUAD1_TXUSRCLK : if PGP_QUADS_G > 1 generate
          -- quad=1 (121) is clocked by 120/lane=0
          -- (120/lane=0 also provides the recClk to the external jitter cleaner)
-         pgpTxClk(7 downto 4) <= (others => pgpRxOutClk(0));
+         txUsrClk(7 downto 4) <= (others => rxOutClk(0));
       end generate GEN_QUAD1_TXUSRCLK;
 
       GEN_QUAD2_TXUSRCLK : if PGP_QUADS_G > 2 generate
          -- quad=2 (122) clocks itself
-         pgpTxClk(11 downto 8) <= pgpTxOutClk(11 downto 8);
+         txUsrClk(11 downto 8) <= txOutClk(11 downto 8);
       end generate GEN_QUAD2_TXUSRCLK;
 
       GEN_QUAD3_TXUSRCLK : if PGP_QUADS_G > 3 generate
          -- quad=3 (123) is clocked by 122/lane=0
          -- (122/lane=0 also provides the recClk to the external jitter cleaner)
-         pgpTxClk(15 downto 12) <= (others => pgpRxOutClk(8));
+         txUsrClk(15 downto 12) <= (others => rxOutClk(8));
       end generate GEN_QUAD3_TXUSRCLK;
 
       GEN_QUAD4_TXUSRCLK : if PGP_QUADS_G > 4 generate
          -- quad=4 (124) is clocked by 120/lane=0
          -- (120/lane=0 also provides the recClk to the external jitter cleaner)
-         pgpTxClk(19 downto 16) <= (others => pgpRxOutClk(0));
+         txUsrClk(19 downto 16) <= (others => rxOutClk(0));
       end generate GEN_QUAD4_TXUSRCLK;
 
       GEN_QUAD5_TXUSRCLK : if PGP_QUADS_G > 5 generate
          -- quad=5 (125) is clocked by 120/lane=0
          -- (120/lane=0 also provides the recClk to the external jitter cleaner)
-         pgpTxClk(23 downto 20) <= (others => pgpRxOutClk(0));
+         txUsrClk(23 downto 20) <= (others => rxOutClk(0));
       end generate GEN_QUAD5_TXUSRCLK;
 
       GEN_QUAD6_TXUSRCLK : if PGP_QUADS_G > 6 generate
          -- quad=6 (127) is clocked by 122/lane=0
          -- (122/lane=0 also provides the recClk to the external jitter cleaner)
-         pgpTxClk(27 downto 24) <= (others => pgpRxOutClk(8));
+         txUsrClk(27 downto 24) <= (others => rxOutClk(8));
       end generate GEN_QUAD6_TXUSRCLK;
 
       GEN_QUAD7_TXUSRCLK : if PGP_QUADS_G > 7 generate
          -- quad=7 (131) is clocked by 122/lane=0
          -- (122/lane=0 also provides the recClk to the external jitter cleaner)
-         pgpTxClk(31 downto 28) <= (others => pgpRxOutClk(8));
+         txUsrClk(31 downto 28) <= (others => rxOutClk(8));
       end generate GEN_QUAD7_TXUSRCLK;
 
 

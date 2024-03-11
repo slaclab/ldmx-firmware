@@ -24,6 +24,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
 library ldmx;
+use ldmx.FcPkg.all;
 
 library axi_pcie_core;
 use axi_pcie_core.AxiPciePkg.all;
@@ -72,7 +73,10 @@ end TrackerPgpFcLaneWrapper;
 
 architecture mapping of TrackerPgpFcLaneWrapper is
 
-   constant NUM_AXI_MASTERS_C : natural := PGP_QUADS_G*PGP_LANES_G;
+   constant PHYSICAL_LANE_AXI_INDEX_C : natural := PGP_QUADS_G*PGP_LANES_G;
+   constant FC_EMULATOR_AXI_INDEX_C   : natural := PHYSICAL_LANE_AXI_INDEX_C + 1;
+   constant NUM_AXI_MASTERS_C         : natural := PHYSICAL_LANE_AXI_INDEX_C +
+                                                   FC_EMULATOR_AXI_INDEX_C;
 
    constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXI_BASE_ADDR_G, 21, 16);
 
@@ -84,17 +88,21 @@ architecture mapping of TrackerPgpFcLaneWrapper is
    signal mgtRefClk        : slv(PGP_QUADS_G-1   downto 0);
    signal mgtUserRefClk    : slv(PGP_QUADS_G-1   downto 0);
    signal userRefClk       : slv(PGP_QUADS_G-1   downto 0);
-   signal rxRecClk         : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
+   signal pgpRxRecClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
 
    signal pgpTxOutClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
    signal pgpRxOutClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
-   signal pgpTxClk         : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
-   signal pgpRxClk         : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
+   signal pgpTxUsrClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
+   signal pgpRxUsrClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
 
    signal pgpObMasters     : AxiStreamMasterArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
    signal pgpObSlaves      : AxiStreamSlaveArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
    signal pgpIbMasters     : AxiStreamMasterArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
    signal pgpIbSlaves      : AxiStreamSlaveArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
+
+   signal fcClk185         : sl;
+   signal fcRst185         : sl;
+   signal fcBus            : FastControlBusType;
 
 begin
 
@@ -134,14 +142,14 @@ begin
          qsfpRecClkP => qsfpRecClkP,
          qsfpRecClkN => qsfpRecClkN,
          -- MGT I/O
-         rxRecClk    => rxRecClk,
+         rxRecClk    => pgpRxRecClk,
          mgtRefClk   => mgtRefClk,
          userRefClk  => userRefClk,
          -- RX/TXCLK
-         pgpTxOutClk => pgpTxOutClk,
-         pgpRxOutClk => pgpRxOutClk,
-         pgpTxClk    => pgpTxClk,
-         pgpRxClk    => pgpRxClk);
+         txOutClk    => pgpTxOutClk,
+         rxOutClk    => pgpRxOutClk,
+         txUsrClk    => pgpTxUsrClk,
+         rxUsrClk    => pgpRxUsrClk);
 
    ------------
    -- PGP Lanes
@@ -166,14 +174,18 @@ begin
                pgpRxN          => qsfpRxN(quad*PGP_LANES_G+lane),
                pgpTxP          => qsfpTxP(quad*PGP_LANES_G+lane),
                pgpTxN          => qsfpTxN(quad*PGP_LANES_G+lane),
+               -- Fast Control Interface
+               fcClk185        => fcClk185,
+               fcRst185        => fcRst185,
+               fcBus           => fcBus,
+               -- GT Clocking
                pgpRefClk       => mgtRefClk(quad),
-               pgpFabricRefClk => '0', -- placeholder
                pgpUserRefClk   => userRefClk(quad),
-               rxRecClk        => rxRecClk(quad*PGP_LANES_G+lane),
+               pgpRxRecClk     => pgpRxRecClk(quad*PGP_LANES_G+lane),
                pgpTxOutClk     => pgpTxOutClk(quad*PGP_LANES_G+lane),
                pgpRxOutClk     => pgpRxOutClk(quad*PGP_LANES_G+lane),
-               pgpTxClk        => pgpTxClk(quad*PGP_LANES_G+lane),
-               pgpRxClk        => pgpRxClk(quad*PGP_LANES_G+lane),
+               pgpTxUsrClk     => pgpTxUsrClk(quad*PGP_LANES_G+lane),
+               pgpRxUsrClk     => pgpRxUsrClk(quad*PGP_LANES_G+lane),
                -- DMA Interface (dmaClk domain)
                dmaClk          => dmaClk,
                dmaRst          => dmaRst,
@@ -191,6 +203,29 @@ begin
                axilWriteSlave  => axilWriteSlaves(quad*PGP_LANES_G+lane));
 
       end generate GEN_LANE;
+
+      ------------------------
+      -- Fast-Control Emulator
+      ------------------------
+      -- TO-DO: deploy
+      --U_Emu : entity ldmx.FcEmu
+      --   port map(
+      --      -- Clock and Reset
+      --      fcClk           => fcClk,
+      --      fcRst           => fcRst,
+      --      -- Fast-Control Message Interface
+      --      fcMsg           => fcMsg,
+      --      -- Bunch Clock
+      --      bunchClk        => bunchClk,
+      --      bunchStrobe     => bunchStrobe,
+      --      -- AXI-Lite Interface
+      --      axilClk         => axilClk,
+      --      axilRst         => axilRst,
+      --      axilReadMaster  => axilReadMasters(FC_EMULATOR_AXI_INDEX_C),
+      --      axilReadSlave   => axilReadSlaves(FC_EMULATOR_AXI_INDEX_C),
+      --      axilWriteMaster => axilWriteMasters(FC_EMULATOR_AXI_INDEX_C),
+      --      axilWriteSlave  => axilWriteSlaves(FC_EMULATOR_AXI_INDEX_C));
+      --   );
 
       ----------------------------------------------------------------------------------------------
       -- Mux each quad of lanes together

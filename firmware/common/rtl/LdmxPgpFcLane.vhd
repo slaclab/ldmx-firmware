@@ -49,21 +49,21 @@ entity LdmxPgpFcLane is
       pgpUserRefClk   : in  sl;
       pgpRxRecClk     : out sl;         -- Tie to refclkout if used
       -- Rx Interface
-      pgpRsRstOut     : out sl;
+      pgpRxRstOut     : out sl;
       pgpRxOutClk     : out sl;
       pgpRxUsrClk     : in  sl;
       pgpRxIn         : in  Pgp2fcRxInType                               := PGP2FC_RX_IN_INIT_C;
       pgpRxOut        : out Pgp2fcRxOutType;
-      pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := AXI_STREAM_MASTER_INIT_C;
-      pgpRxCtrl       : in  AxiStreamCtrlArray(NUM_VC_EN_G-1 downto 0)   := AXI_STREAM_SLAVE_INIT_C;
+      pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpRxCtrl       : in  AxiStreamCtrlArray(NUM_VC_EN_G-1 downto 0)   := (others => AXI_STREAM_CTRL_INIT_C);
       -- Tx Interface
       pgpTxRst        : in  sl                                           := '0';
       pgpTxOutClk     : out sl;
       pgpTxUsrClk     : in  sl;
       pgpTxIn         : in  Pgp2fcTxInType                               := PGP2FC_TX_IN_INIT_C;
       pgpTxOut        : out Pgp2fcTxOutType;
-      pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := AXI_STREAM_MASTER_INIT_C;
-      pgpTxSlaves     : out AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0)  := AXI_STREAM_SLAVE_INIT_C;
+      pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpTxSlaves     : out AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -82,20 +82,32 @@ architecture mapping of LdmxPgpFcLane is
    constant TX_MON_INDEX_C : natural := 2;
    constant RX_MON_INDEX_C : natural := 3;
 
-   constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXI_BASE_ADDR_G, 16, 14);
+   constant AXI_CONFIG_C   : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXIL_BASE_ADDR_G, 16, 14);
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXI_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
-   signal pgpTxInGt : Pgp2fcTxInType;
-   signal pgpRxInGt : Pgp2fcRxInType;
+   signal pgpTxInGt        : Pgp2fcTxInType;
+   signal pgpRxInGt        : Pgp2fcRxInType;
 
-   signal pgpTxResetDone : sl;
+   signal pgpTxResetDone   : sl;
 
-   signal pgpRxResetDone : sl;
-   signal pgpRxRst       : sl;
+   signal pgpRxResetDone   : sl;
+   signal pgpRxRst         : sl;
+
+   signal pgpTxOutGt       : Pgp2fcTxOutType := PGP2FC_TX_OUT_INIT_C;
+   signal pgpRxOutGt       : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
+
+   signal pgpTxMastersGt   : AxiStreamMasterArray(3 downto 0) :=
+                                                 (others => AXI_STREAM_MASTER_INIT_C);
+   signal pgpTxSlavesGt    : AxiStreamSlaveArray(3 downto 0):=
+                                                 (others => AXI_STREAM_SLAVE_INIT_C);
+   signal pgpRxMastersGt   : AxiStreamMasterArray(3 downto 0):=
+                                                 (others => AXI_STREAM_MASTER_INIT_C);
+   signal pgpRxCtrlGt      : AxiStreamCtrlArray(3 downto 0):=
+                                                 (others => AXI_STREAM_CTRL_INIT_C);
 
 begin
 
@@ -127,8 +139,8 @@ begin
       generic map (
          TPD_G           => TPD_G,
          SIMULATION_G    => SIM_SPEEDUP_G,
-         AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G,
-         AXI_BASE_ADDR_G => AXI_BASE_ADDR_G,
+         AXI_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
+         AXI_BASE_ADDR_G => AXIL_BASE_ADDR_G,
          TX_ENABLE_G     => TX_ENABLE_G,
          RX_ENABLE_G     => RX_ENABLE_G,
          FC_WORDS_G      => 5,
@@ -136,48 +148,48 @@ begin
          NUM_VC_EN_G     => ite(NUM_VC_EN_G = 0, 1, NUM_VC_EN_G))
       port map (
          -- GT Clocking
-         stableClk                            => axilClk,
-         stableRst                            => axilRst,
-         gtRefClk                             => pgpRefClk,
-         gtFabricRefClk                       => '0',
-         gtUserRefClk                         => pgpUserRefClk,
-         rxRecClk                             => pgpRxRecClk,
+         stableClk       => axilClk,
+         stableRst       => axilRst,
+         gtRefClk        => pgpRefClk,
+         gtFabricRefClk  => '0',
+         gtUserRefClk    => pgpUserRefClk,
+         rxRecClk        => pgpRxRecClk,
          -- Gt Serial IO
-         pgpGtTxP                             => pgpTxP,
-         pgpGtTxN                             => pgpTxN,
-         pgpGtRxP                             => pgpRxP,
-         pgpGtRxN                             => pgpRxN,
+         pgpGtTxP        => pgpTxP,
+         pgpGtTxN        => pgpTxN,
+         pgpGtRxP        => pgpRxP,
+         pgpGtRxN        => pgpRxN,
          -- Tx Clocking
-         pgpTxReset                           => pgpTxRst,
-         pgpTxResetDone                       => pgpTxResetDone,
-         pgpTxOutClk                          => pgpTxOutClk,
-         pgpTxClk                             => pgpTxUsrClk,
-         pgpTxMmcmLocked                      => '1',
+         pgpTxReset      => pgpTxRst,
+         pgpTxResetDone  => pgpTxResetDone,
+         pgpTxOutClk     => pgpTxOutClk,
+         pgpTxClk        => pgpTxUsrClk,
+         pgpTxMmcmLocked => '1',
          -- Rx clocking
-         pgpRxReset                           => pgpRxRst,
-         pgpRxResetDone                       => pgpRxResetDone,
-         pgpRxOutClk                          => pgpRxOutClk,
-         pgpRxClk                             => pgpRxUsrClk,
-         pgpRxMmcmLocked                      => '1',
+         pgpRxReset      => pgpRxRst,
+         pgpRxResetDone  => pgpRxResetDone,
+         pgpRxOutClk     => pgpRxOutClk,
+         pgpRxClk        => pgpRxUsrClk,
+         pgpRxMmcmLocked => '1',
          -- Non VC Rx Signals
-         pgpRxIn                              => pgpRxInGt,
-         pgpRxOut                             => pgpRxOut,
+         pgpRxIn         => pgpRxInGt,
+         pgpRxOut        => pgpRxOut,
          -- Non VC Tx Signals
-         pgpTxIn                              => pgpTxInGt,
-         pgpTxOut                             => pgpTxOut,
+         pgpTxIn         => pgpTxInGt,
+         pgpTxOut        => pgpTxOut,
          -- Frame Transmit Interface
-         pgpTxMasters(NUM_VC_EN_G-1 downto 0) => pgpTxMasters,
-         pgpTxSlaves(NUM_VC_EN_G-1 downto 0)  => pgpTxSlaves,
+         pgpTxMasters    => pgpTxMastersGt,
+         pgpTxSlaves     => pgpTxSlavesGt,
          -- Frame Receive Interface
-         pgpRxMasters(NUM_VC_EN_G-1 downto 0) => pgpRxMasters,
-         pgpRxCtrl(NUM_VC_EN_G-1 downto 0)    => pgpRxCtrl,
+         pgpRxMasters    => pgpRxMastersGt,
+         pgpRxCtrl       => pgpRxCtrlGt,
          -- AXI-Lite Interface
-         axilClk                              => axilClk,
-         axilRst                              => axilRst,
-         axilReadMaster                       => axilReadMasters(GT_INDEX_C),
-         axilReadSlave                        => axilReadSlaves(GT_INDEX_C),
-         axilWriteMaster                      => axilWriteMasters(GT_INDEX_C),
-         axilWriteSlave                       => axilWriteSlaves(GT_INDEX_C));
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMasters(GT_INDEX_C),
+         axilReadSlave   => axilReadSlaves(GT_INDEX_C),
+         axilWriteMaster => axilWriteMasters(GT_INDEX_C),
+         axilWriteSlave  => axilWriteSlaves(GT_INDEX_C));
 
    --------------
    -- PGP Monitor
@@ -188,22 +200,20 @@ begin
          COMMON_TX_CLK_G    => false,
          COMMON_RX_CLK_G    => false,
          WRITE_EN_G         => true,
-         AXI_CLK_FREQ_G     => AXI_CLK_FREQ_G,
+         AXI_CLK_FREQ_G     => AXIL_CLK_FREQ_G,
          STATUS_CNT_WIDTH_G => 12,
          ERROR_CNT_WIDTH_G  => 18)
       port map (
          -- TX PGP Interface (pgpTxClk)
-         pgpTxClk        => pgpTxClk,
+         pgpTxClk        => pgpTxUsrClk,
          pgpTxClkRst     => pgpTxRst,
-         pgpTxIn         => pgpTxInGt,
-         pgpTxOut        => pgpTxOut,
-         locTxIn         => pgpTxIn,
+         pgpTxIn         => open, -- unused
+         pgpTxOut        => pgpTxOutGt,
          -- RX PGP Interface (pgpRxClk)
          pgpRxClk        => pgpRxUsrClk,
          pgpRxClkRst     => pgpRxRst,
          pgpRxIn         => pgpRxInGt,
-         pgpRxOut        => pgpRxOut,
-         locRxIn         => pgpRxIn,
+         pgpRxOut        => pgpRxOutGt,
          -- AXI-Lite Register Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,
@@ -221,15 +231,15 @@ begin
          generic map(
             TPD_G            => TPD_G,
             COMMON_CLK_G     => false,
-            AXIS_CLK_FREQ_G  => AXI_CLK_FREQ_G,
+            AXIS_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
             AXIS_NUM_SLOTS_G => NUM_VC_EN_G,
             AXIS_CONFIG_G    => PGP2FC_AXIS_CONFIG_C)
          port map(
             -- AXIS Stream Interface
-            axisClk          => pgpTxClk,
+            axisClk          => pgpTxUsrClk,
             axisRst          => pgpTxRst,
-            axisMasters      => pgpTxMasters(NUM_VC_EN_G-1 downto 0),
-            axisSlaves       => pgpTxSlaves(NUM_VC_EN_G-1 downto 0),
+            axisMasters      => pgpTxMasters,
+            axisSlaves       => pgpTxSlavesGt(NUM_VC_EN_G-1 downto 0),
             -- AXI lite slave port for register access
             axilClk          => axilClk,
             axilRst          => axilRst,
@@ -245,14 +255,14 @@ begin
          generic map(
             TPD_G            => TPD_G,
             COMMON_CLK_G     => false,
-            AXIS_CLK_FREQ_G  => AXI_CLK_FREQ_G,
+            AXIS_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
             AXIS_NUM_SLOTS_G => NUM_VC_EN_G,
             AXIS_CONFIG_G    => PGP2FC_AXIS_CONFIG_C)
          port map(
             -- AXIS Stream Interface
-            axisClk          => pgpRxClk,
+            axisClk          => pgpRxUsrClk,
             axisRst          => pgpRxRst,
-            axisMasters      => pgpRxMasters(NUM_VC_EN_G-1 downto 0),
+            axisMasters      => pgpRxMastersGt(NUM_VC_EN_G-1 downto 0),
             axisSlaves       => (others => AXI_STREAM_SLAVE_FORCE_C),  -- SLAVE_READY_EN_G=false
             -- AXI lite slave port for register access
             axilClk          => axilClk,
@@ -262,13 +272,23 @@ begin
             sAxilReadMaster  => axilReadMasters(RX_MON_INDEX_C),
             sAxilReadSlave   => axilReadSlaves(RX_MON_INDEX_C));
 
+      pgpTxMastersGt(NUM_VC_EN_G-1 downto 0) <= pgpTxMasters(NUM_VC_EN_G-1 downto 0);
+      pgpRxCtrlGt(NUM_VC_EN_G-1 downto 0)    <= pgpRxCtrl(NUM_VC_EN_G-1 downto 0);
+      pgpTxSlaves(NUM_VC_EN_G-1 downto 0)    <= pgpTxSlavesGt(NUM_VC_EN_G-1 downto 0);
+      pgpRxMasters(NUM_VC_EN_G-1 downto 0)   <= pgpRxMastersGt(NUM_VC_EN_G-1 downto 0);
+
    end generate GEN_VC;
 
+   GEN_VC_CHECK : if NUM_VC_EN_G < 4 generate
+      -- gnd imputs
+      pgpTxMastersGt(3 downto NUM_VC_EN_G) <= (others => AXI_STREAM_MASTER_INIT_C);
+      pgpRxCtrlGt(3 downto NUM_VC_EN_G)    <= (others => AXI_STREAM_CTRL_INIT_C);
+   end generate GEN_VC_CHECK;
 
 --    U_Wtd : entity surf.WatchDogRst
 --       generic map(
 --          TPD_G      => TPD_G,
---          DURATION_G => getTimeRatio(AXI_CLK_FREQ_G, 0.2))  -- 5 s timeout
+--          DURATION_G => getTimeRatio(AXIL_CLK_FREQ_G, 0.2))  -- 5 s timeout
 --       port map (
 --          clk    => axilClk,
 --          monIn  => pgpRxOut.remLinkReady,
@@ -278,7 +298,7 @@ begin
 --       generic map (
 --          TPD_G         => TPD_G,
 --          SIM_SPEEDUP_G => false,
---          DURATION_G    => getTimeRatio(AXI_CLK_FREQ_G, 10.0))  -- 100 ms reset pulse
+--          DURATION_G    => getTimeRatio(AXIL_CLK_FREQ_G, 10.0))  -- 100 ms reset pulse
 --       port map (
 --          clk    => axilClk,
 --          arst   => wdtRst,
@@ -297,10 +317,13 @@ begin
          TPD_G         => TPD_G,
          IN_POLARITY_G => '0')
       port map (
-         clk      => pgpRxClk,          -- [in]
-         asyncRst => pgpRxRstDone,      -- [in]
+         clk      => pgpRxUsrClk,       -- [in]
+         asyncRst => pgpTxResetDone,    -- [in]
          syncRst  => pgpRxRst);         -- [out]
 
-   pgpRxRstOut <= pgpRxRst;
+   pgpRxRstOut  <= pgpRxRst;
+   pgpTxOut     <= pgpTxOutGt;
+   pgpRxOut     <= pgpRxOutGt;
+   pgpTxInGt    <= pgpTxIn;
 
 end mapping;

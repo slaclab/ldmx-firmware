@@ -54,7 +54,7 @@ entity TsDataRx is
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 
 
 end entity TsDataRx;

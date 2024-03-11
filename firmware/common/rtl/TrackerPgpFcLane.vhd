@@ -29,6 +29,7 @@ use axi_pcie_core.AxiPciePkg.all;
 
 library ldmx;
 use ldmx.AppPkg.all;
+use ldmx.FcPkg.all;
 
 entity TrackerPgpFcLane is
    generic (
@@ -38,6 +39,8 @@ entity TrackerPgpFcLane is
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
       AXI_CLK_FREQ_G    : real                 := 125.0e6;
       AXI_BASE_ADDR_G   : slv(31 downto 0)     := (others => '0');
+      TX_ENABLE_G       : boolean              := true;
+      RX_ENABLE_G       : boolean              := true;
       NUM_VC_EN_G       : integer range 0 to 4 := 4);
    port (
       -- PGP Serial Ports
@@ -45,12 +48,18 @@ entity TrackerPgpFcLane is
       pgpTxN          : out sl;
       pgpRxP          : in  sl;
       pgpRxN          : in  sl;
-      pgpRefClk       : in  sl;
-      pgpUserRefClk   : in  sl;
       -- Fast Control Interface
       fcClk185        : in  sl;         -- Drivers TXUSRCLK
-      fcClkRst        : in  sl;
+      fcRst185        : in  sl;
       fcBus           : in  FastControlBusType;
+      -- GT Clocking
+      pgpRefClk       : in  sl;
+      pgpUserRefClk   : in  sl;
+      pgpRxRecClk     : out sl;
+      pgpTxOutClk     : out sl;
+      pgpRxOutClk     : out sl;
+      pgpTxUsrClk     : in  sl;
+      pgpRxUsrClk     : in  sl;
       -- DMA Interface (dmaClk domain)
       dmaClk          : in  sl;
       dmaRst          : in  sl;
@@ -70,11 +79,10 @@ end TrackerPgpFcLane;
 
 architecture mapping of TrackerPgpFcLane is
 
-   signal pgpRxOutClk : sl;
    signal pgpRxRstOut : sl;
 
 
-   -- Rx 
+   -- Rx
    signal pgpRxIn  : Pgp2fcRxInType  := PGP2FC_RX_IN_INIT_C;
    signal pgpRxOut : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
    signal pgpTxIn  : Pgp2fcTxInType  := PGP2FC_TX_IN_INIT_C;
@@ -90,8 +98,8 @@ architecture mapping of TrackerPgpFcLane is
 begin
 
    -- Glue logic
-   pgpTxIn.fcWord  <= fcBus.fcMsg.message;
-   pgpTxIn.fcValid <= fcBus.fcMsg.valid;
+   pgpTxIn.fcWord(FC_LEN_C-1 downto 0) <= fcBus.fcMsg.message;
+   pgpTxIn.fcValid                     <= fcBus.fcMsg.valid;
 
    -----------
    -- PGP Core
@@ -100,8 +108,8 @@ begin
       generic map (
          TPD_G            => TPD_G,
          SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
-         AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
-         AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G,
+         AXIL_CLK_FREQ_G  => AXI_CLK_FREQ_G,
+         AXIL_BASE_ADDR_G => AXI_BASE_ADDR_G,
          NUM_VC_EN_G      => NUM_VC_EN_G)
       port map (
          pgpTxP          => pgpTxP,           -- [out]
@@ -110,10 +118,10 @@ begin
          pgpRxN          => pgpRxN,           -- [in]
          pgpRefClk       => pgpRefClk,        -- [in]
          pgpUserRefClk   => pgpUserRefClk,    -- [in]
-         pgpRxRecClk     => open,             -- [out]
+         pgpRxRecClk     => pgpRxRecClk,      -- [out]
          pgpRxRstOut     => pgpRxRstOut,      -- [out]
          pgpRxOutClk     => pgpRxOutClk,      -- [out]
-         pgpRxUsrClk     => pgpRxOutClk,      -- [in] -- Wrap clock back
+         pgpRxUsrClk     => pgpRxUsrClk,      -- [in] -- Wrap clock back upstream
          pgpRxIn         => pgpRxIn,          -- [in]
          pgpRxOut        => pgpRxOut,         -- [out]
          pgpRxMasters    => pgpRxMasters,     -- [out]
@@ -174,11 +182,12 @@ begin
             dmaIbMaster     => dmaIbMaster,
             dmaIbSlave      => dmaIbSlave,
             -- PGP RX Interface (pgpRxClk domain)
-            pgpRxClk        => pgpRxOutClk,
+            pgpRxClk        => pgpRxUsrClk,
             pgpRxRst        => pgpRxRstOut,
             pgpRxOut        => pgpRxOut,
             pgpRxMasters    => pgpRxMasters,
             pgpRxCtrl       => pgpRxCtrl);
 
+   end generate GEN_VC;
 
    end mapping;
