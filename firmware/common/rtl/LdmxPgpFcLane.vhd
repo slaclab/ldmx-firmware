@@ -57,6 +57,7 @@ entity LdmxPgpFcLane is
       pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpRxCtrl       : in  AxiStreamCtrlArray(NUM_VC_EN_G-1 downto 0)   := (others => AXI_STREAM_CTRL_INIT_C);
       -- Tx Interface
+      pgpTxRstOut     : out sl;
       pgpTxRst        : in  sl                                           := '0';
       pgpTxOutClk     : out sl;
       pgpTxUsrClk     : in  sl;
@@ -318,8 +319,17 @@ begin
          IN_POLARITY_G => '0')
       port map (
          clk      => pgpRxUsrClk,       -- [in]
-         asyncRst => pgpTxResetDone,    -- [in]
+         asyncRst => pgpRxResetDone,    -- [in]
          syncRst  => pgpRxRst);         -- [out]
+
+   U_RstSync_Tx : entity surf.RstSync
+      generic map (
+         TPD_G         => TPD_G,
+         IN_POLARITY_G => '0')
+      port map (
+         clk      => pgpTxUsrClk,       -- [in]
+         asyncRst => pgpTxResetDone,    -- [in]
+         syncRst  => pgpTxRstOut);      -- [out]
 
    pgpRxRstOut  <= pgpRxRst;
    pgpTxOut     <= pgpTxOutGt;

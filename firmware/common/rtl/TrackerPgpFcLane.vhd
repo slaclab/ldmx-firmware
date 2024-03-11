@@ -53,7 +53,7 @@ entity TrackerPgpFcLane is
       fcRst185        : in  sl;
       fcBusTx         : in  FastControlBusType;
       fcBusRx         : out FastControlBusType;
-      -- GT Clocking
+      -- GT Clocking and Resets
       pgpRefClk       : in  sl;
       pgpUserRefClk   : in  sl;
       pgpRxRecClk     : out sl;
@@ -61,6 +61,7 @@ entity TrackerPgpFcLane is
       pgpRxOutClk     : out sl;
       pgpTxUsrClk     : in  sl;
       pgpRxUsrClk     : in  sl;
+      pgpTxRstOut     : out sl;
       -- DMA Interface (dmaClk domain)
       dmaClk          : in  sl;
       dmaRst          : in  sl;
@@ -131,6 +132,7 @@ begin
          pgpRxOut        => pgpRxOut,         -- [out]
          pgpRxMasters    => pgpRxMasters,     -- [out]
          pgpRxCtrl       => pgpRxCtrl,        -- [in]
+         pgpTxRstOut     => pgpTxRstOut,      -- [out]
          pgpTxRst        => fcRst185,         -- [in]
          pgpTxOutClk     => pgpTxOutClk,      -- [out]
          pgpTxUsrClk     => pgpTxUsrClk,      -- [in]

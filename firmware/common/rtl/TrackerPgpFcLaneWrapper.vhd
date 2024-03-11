@@ -43,6 +43,7 @@ entity TrackerPgpFcLaneWrapper is
       AXI_BASE_ADDR_G   : slv(31 downto 0)     := (others => '0');
       TX_ENABLE_G       : boolean              := true;
       RX_ENABLE_G       : boolean              := true;
+      DBG_RX_G          : boolean              := true;
       NUM_VC_EN_G       : integer range 0 to 4 := 4);
    port (
       -- QSFP-DD Ports
@@ -62,6 +63,8 @@ entity TrackerPgpFcLaneWrapper is
       dmaObSlaves     : out AxiStreamSlaveArray(PGP_QUADS_G-1 downto 0);
       dmaIbMasters    : out AxiStreamMasterArray(PGP_QUADS_G-1 downto 0);
       dmaIbSlaves     : in  AxiStreamSlaveArray(PGP_QUADS_G-1 downto 0);
+      -- Misc
+      dbgOut          : out sl;
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -74,9 +77,9 @@ end TrackerPgpFcLaneWrapper;
 architecture mapping of TrackerPgpFcLaneWrapper is
 
    constant PHYSICAL_LANE_AXI_INDEX_C : natural := PGP_QUADS_G*PGP_LANES_G;
-   constant FC_EMULATOR_AXI_INDEX_C   : natural := PHYSICAL_LANE_AXI_INDEX_C + 1;
+   constant FC_EMU_AXI_INDEX_C        : natural := PHYSICAL_LANE_AXI_INDEX_C + 1;
    constant NUM_AXI_MASTERS_C         : natural := PHYSICAL_LANE_AXI_INDEX_C +
-                                                   FC_EMULATOR_AXI_INDEX_C;
+                                                   FC_EMU_AXI_INDEX_C;
 
    constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXI_BASE_ADDR_G, 21, 16);
 
@@ -95,6 +98,8 @@ architecture mapping of TrackerPgpFcLaneWrapper is
    signal pgpTxUsrClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
    signal pgpRxUsrClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
 
+   signal pgpTxRstOut      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
+
    signal pgpObMasters     : AxiStreamMasterArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
    signal pgpObSlaves      : AxiStreamSlaveArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
    signal pgpIbMasters     : AxiStreamMasterArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
@@ -104,6 +109,19 @@ architecture mapping of TrackerPgpFcLaneWrapper is
    signal fcRst185         : sl;
    signal fcBusTx          : FastControlBusArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
    signal fcBusRx          : FastControlBusArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
+   signal bunchClk         : sl;
+   signal bunchStrobe      : sl;
+
+   -- TO-DO: route us!
+   -- TO-DO: also integrate emu to python!
+   signal validRx          : sl;
+   signal validTx          : sl;
+
+   -- can we use one clock for one emulator transmitting across all physical lanes?
+   -- need to opt this. Currently using one quad/lane for the emulator's reference clock;
+   constant FC_EMU_QUAD_C          : integer := 4;
+   constant FC_EMU_LANE_C          : integer := 0;
+   constant FC_EMU_PHYSICAL_LANE_C : integer := FC_EMU_QUAD_C*FC_EMU_LANE_C;
 
 begin
 
@@ -180,7 +198,7 @@ begin
                fcRst185        => fcRst185,
                fcBusTx         => fcBusTx(quad*PGP_LANES_G+lane),
                fcBusRx         => fcBusRx(quad*PGP_LANES_G+lane),
-               -- GT Clocking
+               -- GT Clocking and Resets
                pgpRefClk       => mgtRefClk(quad),
                pgpUserRefClk   => userRefClk(quad),
                pgpRxRecClk     => pgpRxRecClk(quad*PGP_LANES_G+lane),
@@ -188,6 +206,7 @@ begin
                pgpRxOutClk     => pgpRxOutClk(quad*PGP_LANES_G+lane),
                pgpTxUsrClk     => pgpTxUsrClk(quad*PGP_LANES_G+lane),
                pgpRxUsrClk     => pgpRxUsrClk(quad*PGP_LANES_G+lane),
+               pgpTxRstOut     => pgpTxRstOut(quad*PGP_LANES_G+lane),
                -- DMA Interface (dmaClk domain)
                dmaClk          => dmaClk,
                dmaRst          => dmaRst,
@@ -209,25 +228,26 @@ begin
       ------------------------
       -- Fast-Control Emulator
       ------------------------
-      -- TO-DO: deploy
-      --U_Emu : entity ldmx.FcEmu
-      --   port map(
-      --      -- Clock and Reset
-      --      fcClk           => fcClk,
-      --      fcRst           => fcRst,
-      --      -- Fast-Control Message Interface
-      --      fcMsg           => fcMsg,
-      --      -- Bunch Clock
-      --      bunchClk        => bunchClk,
-      --      bunchStrobe     => bunchStrobe,
-      --      -- AXI-Lite Interface
-      --      axilClk         => axilClk,
-      --      axilRst         => axilRst,
-      --      axilReadMaster  => axilReadMasters(FC_EMULATOR_AXI_INDEX_C),
-      --      axilReadSlave   => axilReadSlaves(FC_EMULATOR_AXI_INDEX_C),
-      --      axilWriteMaster => axilWriteMasters(FC_EMULATOR_AXI_INDEX_C),
-      --      axilWriteSlave  => axilWriteSlaves(FC_EMULATOR_AXI_INDEX_C));
-      --   );
+      U_Emu : entity ldmx.FcEmu
+         port map(
+            -- Clock and Reset
+            fcClk           => pgpTxUsrClk(FC_EMU_PHYSICAL_LANE_C),
+            fcRst           => pgpTxRstOut(FC_EMU_PHYSICAL_LANE_C),
+            -- Fast-Control Message Interface
+            fcMsg           => fcBusTx(FC_EMU_PHYSICAL_LANE_C).fcMsg,
+            -- Bunch Clock
+            bunchClk        => bunchClk,
+            bunchStrobe     => bunchStrobe,
+            -- AXI-Lite Interface
+            axilClk         => axilClk,
+            axilRst         => axilRst,
+            axilReadMaster  => axilReadMasters(FC_EMU_AXI_INDEX_C),
+            axilReadSlave   => axilReadSlaves(FC_EMU_AXI_INDEX_C),
+            axilWriteMaster => axilWriteMasters(FC_EMU_AXI_INDEX_C),
+            axilWriteSlave  => axilWriteSlaves(FC_EMU_AXI_INDEX_C));
+
+      dbgOut <= ite(DBG_RX_G, fcBusRx(FC_EMU_PHYSICAL_LANE_C).fcMsg.valid,
+                              fcBusTx(FC_EMU_PHYSICAL_LANE_C).fcMsg.valid);
 
       ----------------------------------------------------------------------------------------------
       -- Mux each quad of lanes together
