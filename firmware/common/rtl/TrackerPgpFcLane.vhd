@@ -106,6 +106,7 @@ begin
    -- RX (from GT to local host)
    fcBusRx.fcMsg.message               <= pgpRxOut.fcWord(FC_LEN_C-1 downto 0);
    fcBusRx.fcMsg.valid                 <= pgpRxOut.fcValid;
+   fcBusRx.rxLinkStatus                <= pgpRxOut.remLinkReady;
 
    -----------
    -- PGP Core

@@ -55,6 +55,12 @@ architecture sim of BittWareXupVv8Pgp2fcMultiFpgaTb is
 
    constant ROGUE_SIM_PORT_NUM_G : RoguePortArray := (12000, 11000);
 
+   type DbgRxArray is array (natural range PGP_FPGAS_G-1 downto 0) of boolean;
+
+   -- FPGA 0 -> TX
+   -- FPGA 1 -> RX
+   constant DBG_RX_G : DbgRxArray := (true, false);
+
    -- component ports
    signal qsfpLane       : QsfpLaneArray   := (others => (others => '0'));
    signal qsfpRefClkP    : QsfpRefClkArray := (others => (others => '0')); -- [in]
@@ -67,6 +73,7 @@ architecture sim of BittWareXupVv8Pgp2fcMultiFpgaTb is
    signal pciRstL        : sl := '1';  -- [in]
    signal pciRefClkP     : sl := '0';  -- [in]
    signal pciRefClkN     : sl := '0';  -- [in]
+   signal extPps         : slv(PGP_FPGAS_G-1 downto 0) := (others => '0');
    signal pciLane        : PciLaneArray := (others => (others => '0'));
 
    function toTimeOffset (BASE, OFFSET : real) return time is
@@ -87,6 +94,9 @@ GEN_FPGA : for fpga in 0 to PGP_FPGAS_G-1 generate
          DMA_BURST_BYTES_G    => DMA_BURST_BYTES_G,
          DMA_BYTE_WIDTH_G     => DMA_BYTE_WIDTH_G,
          PGP_QUADS_G          => PGP_QUADS_G,
+         FC_EMU_QUAD_G        => 0, -- only using quad=0 for tb
+         FC_EMU_LANE_G        => 0,
+         DBG_RX_G             => DBG_RX_G(fpga),
          BUILD_INFO_G         => BUILD_INFO_G)
       port map (
          qsfpRefClkP    => qsfpRefClkP(fpga),    -- [in]
@@ -100,6 +110,7 @@ GEN_FPGA : for fpga in 0 to PGP_FPGAS_G-1 generate
          fpgaI2cMasterL => fpgaI2cMasterL(fpga), -- [out]
          userClkP       => userClkP,             -- [in]
          userClkN       => userClkN,             -- [in]
+         extPps         => extPps(fpga),         -- [out]
          pciRstL        => pciRstL,              -- [in]
          pciRefClkP     => pciRefClkP,           -- [in]
          pciRefClkN     => pciRefClkN,           -- [in]

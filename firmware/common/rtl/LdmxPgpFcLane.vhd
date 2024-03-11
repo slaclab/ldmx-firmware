@@ -313,13 +313,14 @@ begin
 --          asyncRst => pgpTxRstAsync,     -- [in]
 --          syncRst  => pgpTxRst);         -- [out]
 
+   -- if one routes pgpRxResetDone to asyncRst -> perpetual RX RST
    U_RstSync_Rx : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          IN_POLARITY_G => '0')
       port map (
          clk      => pgpRxUsrClk,       -- [in]
-         asyncRst => pgpRxResetDone,    -- [in]
+         asyncRst => pgpTxResetDone,    -- [in]
          syncRst  => pgpRxRst);         -- [out]
 
    U_RstSync_Tx : entity surf.RstSync

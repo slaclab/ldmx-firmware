@@ -39,6 +39,8 @@ entity TrackerPgpFcLaneWrapper is
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
       PGP_LANES_G       : integer              := 4;
       PGP_QUADS_G       : integer              := 8;
+      FC_EMU_QUAD_G     : integer              := 4;
+      FC_EMU_LANE_G     : integer              := 0;
       AXI_CLK_FREQ_G    : real                 := 125.0e6;
       AXI_BASE_ADDR_G   : slv(31 downto 0)     := (others => '0');
       TX_ENABLE_G       : boolean              := true;
@@ -76,9 +78,9 @@ end TrackerPgpFcLaneWrapper;
 
 architecture mapping of TrackerPgpFcLaneWrapper is
 
-   constant PHYSICAL_LANE_AXI_INDEX_C : natural := PGP_QUADS_G*PGP_LANES_G;
-   constant FC_EMU_AXI_INDEX_C        : natural := PHYSICAL_LANE_AXI_INDEX_C + 1;
-   constant NUM_AXI_MASTERS_C         : natural := PHYSICAL_LANE_AXI_INDEX_C +
+   constant MAX_PHYS_LANE_AXI_INDEX_C : natural := (PGP_QUADS_G-1)*PGP_LANES_G + PGP_LANES_G;
+   constant FC_EMU_AXI_INDEX_C        : natural := MAX_PHYS_LANE_AXI_INDEX_C + 1;
+   constant NUM_AXI_MASTERS_C         : natural := MAX_PHYS_LANE_AXI_INDEX_C +
                                                    FC_EMU_AXI_INDEX_C;
 
    constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXI_BASE_ADDR_G, 21, 16);
@@ -107,21 +109,20 @@ architecture mapping of TrackerPgpFcLaneWrapper is
 
    signal fcClk185         : sl;
    signal fcRst185         : sl;
-   signal fcBusTx          : FastControlBusArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
-   signal fcBusRx          : FastControlBusArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
+   signal fcBusTx          : FastControlBusArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0)
+                           := (others => DEFAULT_FC_BUS_C);
+   signal fcBusRx          : FastControlBusArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0)
+                           := (others => DEFAULT_FC_BUS_C);
+   signal fcEmuMsg         : FastControlMessageType := DEFAULT_FC_MSG_C;
    signal bunchClk         : sl;
    signal bunchStrobe      : sl;
 
-   -- TO-DO: route us!
-   -- TO-DO: also integrate emu to python!
    signal validRx          : sl;
    signal validTx          : sl;
 
    -- can we use one clock for one emulator transmitting across all physical lanes?
    -- need to opt this. Currently using one quad/lane for the emulator's reference clock;
-   constant FC_EMU_QUAD_C          : integer := 4;
-   constant FC_EMU_LANE_C          : integer := 0;
-   constant FC_EMU_PHYSICAL_LANE_C : integer := FC_EMU_QUAD_C*FC_EMU_LANE_C;
+   constant FC_EMU_PHYSICAL_LANE_C : integer := FC_EMU_QUAD_G*FC_EMU_LANE_G;
 
 begin
 
@@ -234,7 +235,8 @@ begin
             fcClk           => pgpTxUsrClk(FC_EMU_PHYSICAL_LANE_C),
             fcRst           => pgpTxRstOut(FC_EMU_PHYSICAL_LANE_C),
             -- Fast-Control Message Interface
-            fcMsg           => fcBusTx(FC_EMU_PHYSICAL_LANE_C).fcMsg,
+            --fcMsg           => fcBusTx(FC_EMU_PHYSICAL_LANE_C).fcMsg,
+            fcMsg           => fcEmuMsg,
             -- Bunch Clock
             bunchClk        => bunchClk,
             bunchStrobe     => bunchStrobe,
@@ -246,8 +248,13 @@ begin
             axilWriteMaster => axilWriteMasters(FC_EMU_AXI_INDEX_C),
             axilWriteSlave  => axilWriteSlaves(FC_EMU_AXI_INDEX_C));
 
-      dbgOut <= ite(DBG_RX_G, fcBusRx(FC_EMU_PHYSICAL_LANE_C).fcMsg.valid,
-                              fcBusTx(FC_EMU_PHYSICAL_LANE_C).fcMsg.valid);
+      fcBusTx(FC_EMU_PHYSICAL_LANE_C).fcMsg        <= fcEmuMsg;
+      fcBusTx(FC_EMU_PHYSICAL_LANE_C).rxLinkStatus <=
+      fcBusRx(FC_EMU_PHYSICAL_LANE_C).rxLinkStatus;
+
+      dbgOut <= ite(DBG_RX_G,
+                    fcBusRx(FC_EMU_PHYSICAL_LANE_C).fcMsg.valid,
+                    fcEmuMsg.valid);
 
       ----------------------------------------------------------------------------------------------
       -- Mux each quad of lanes together

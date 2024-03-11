@@ -77,6 +77,12 @@ package FcPkg is
       pulseId  : slv(63 downto 0);
    end record FcReadoutRequestType;
 
+   constant DEFAULT_ROR_REQ_C : FcReadoutRequestType := (
+      valid    => '0',
+      bunchCnt => (others => '0'),
+      pulseId  => (others => '0')
+   );
+
    -------------------------------------------------------------------------------------------------
    -- The Fast control receiver block outputs a bus of fast control data on this record
    -------------------------------------------------------------------------------------------------
@@ -107,6 +113,22 @@ package FcPkg is
       -- Might not be useful
       fcMsg : FastControlMessageType;
    end record FastControlBusType;
+
+   constant DEFAULT_FC_BUS_C : FastControlBusType := (
+      rxLinkStatus   => '0',
+      pulseStrobe    => '0',
+      pulseId        => (others => '0'),
+      state          => (others => '0'),
+      stateChanged   => '0',
+      bunchClk       => '0',
+      bunchClkRst    => '0',
+      bunchStrobePre => '0',
+      bunchStrobe    => '0',
+      bunchCount     => (others => '0'),
+      runTime        => (others => '0'),
+      readoutRequest => DEFAULT_ROR_REQ_C,
+      fcMsg          => DEFAULT_FC_MSG_C
+   );
 
    -------------------------------------------------------------------------------------------------
    -- Fast control feedback
