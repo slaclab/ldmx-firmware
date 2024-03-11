@@ -51,7 +51,8 @@ entity TrackerPgpFcLane is
       -- Fast Control Interface
       fcClk185        : in  sl;         -- Drivers TXUSRCLK
       fcRst185        : in  sl;
-      fcBus           : in  FastControlBusType;
+      fcBusTx         : in  FastControlBusType;
+      fcBusRx         : out FastControlBusType;
       -- GT Clocking
       pgpRefClk       : in  sl;
       pgpUserRefClk   : in  sl;
@@ -98,8 +99,12 @@ architecture mapping of TrackerPgpFcLane is
 begin
 
    -- Glue logic
-   pgpTxIn.fcWord(FC_LEN_C-1 downto 0) <= fcBus.fcMsg.message;
-   pgpTxIn.fcValid                     <= fcBus.fcMsg.valid;
+   -- TX (from local host to GT)
+   pgpTxIn.fcWord(FC_LEN_C-1 downto 0) <= fcBusTx.fcMsg.message;
+   pgpTxIn.fcValid                     <= fcBusTx.fcMsg.valid;
+   -- RX (from GT to local host)
+   fcBusRx.fcMsg.message               <= pgpRxOut.fcWord(FC_LEN_C-1 downto 0);
+   fcBusRx.fcMsg.valid                 <= pgpRxOut.fcValid;
 
    -----------
    -- PGP Core

@@ -116,6 +116,7 @@ package FcPkg is
       busy : sl;
    end record FastControlFeedbackType;
 
+   type FastControlBusArray is array (natural range <>) of FastControlBusType;
 
 end FcPkg;
 

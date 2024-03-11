@@ -102,7 +102,8 @@ architecture mapping of TrackerPgpFcLaneWrapper is
 
    signal fcClk185         : sl;
    signal fcRst185         : sl;
-   signal fcBus            : FastControlBusType;
+   signal fcBusTx          : FastControlBusArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
+   signal fcBusRx          : FastControlBusArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
 
 begin
 
@@ -177,7 +178,8 @@ begin
                -- Fast Control Interface
                fcClk185        => fcClk185,
                fcRst185        => fcRst185,
-               fcBus           => fcBus,
+               fcBusTx         => fcBusTx(quad*PGP_LANES_G+lane),
+               fcBusRx         => fcBusRx(quad*PGP_LANES_G+lane),
                -- GT Clocking
                pgpRefClk       => mgtRefClk(quad),
                pgpUserRefClk   => userRefClk(quad),
