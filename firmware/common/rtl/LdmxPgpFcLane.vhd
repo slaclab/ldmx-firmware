@@ -173,10 +173,10 @@ begin
          pgpRxMmcmLocked => '1',
          -- Non VC Rx Signals
          pgpRxIn         => pgpRxInGt,
-         pgpRxOut        => pgpRxOut,
+         pgpRxOut        => pgpRxOutGt,
          -- Non VC Tx Signals
          pgpTxIn         => pgpTxInGt,
-         pgpTxOut        => pgpTxOut,
+         pgpTxOut        => pgpTxOutGt,
          -- Frame Transmit Interface
          pgpTxMasters    => pgpTxMastersGt,
          pgpTxSlaves     => pgpTxSlavesGt,
@@ -280,7 +280,7 @@ begin
    end generate GEN_VC;
 
    GEN_VC_CHECK : if NUM_VC_EN_G < 4 generate
-      -- gnd imputs
+      -- gnd inputs
       pgpTxMastersGt(3 downto NUM_VC_EN_G) <= (others => AXI_STREAM_MASTER_INIT_C);
       pgpRxCtrlGt(3 downto NUM_VC_EN_G)    <= (others => AXI_STREAM_CTRL_INIT_C);
    end generate GEN_VC_CHECK;
