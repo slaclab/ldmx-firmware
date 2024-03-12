@@ -56,7 +56,7 @@ entity S30xlAppCore is
 
       -- DAQ Stream
       axisClk       : in  sl;
-      axisRst       : in  sl
+      axisRst       : in  sl;
       daqDataMaster : out AxiStreamMasterType;
       daqDataSlave  : in  AxiStreamSlaveType);
 end entity S30xlAppCore;

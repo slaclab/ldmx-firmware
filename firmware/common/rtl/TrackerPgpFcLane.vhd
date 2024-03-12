@@ -24,11 +24,11 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Pgp2fcPkg.all;
 
-library axi_pcie_core;
-use axi_pcie_core.AxiPciePkg.all;
+-- library axi_pcie_core;
+-- use axi_pcie_core.AxiPciePkg.all;
 
 library ldmx;
-use ldmx.AppPkg.all;
+use ldmx.FcPkg.all;
 
 entity TrackerPgpFcLane is
    generic (
@@ -48,8 +48,9 @@ entity TrackerPgpFcLane is
       pgpRefClk       : in  sl;
       pgpUserRefClk   : in  sl;
       -- Fast Control Interface
-      fcClk185        : in  sl;         -- Drivers TXUSRCLK
-      fcClkRst        : in  sl;
+      -- Drives TX
+      fcClk185        : in  sl;
+      fcRst185        : in  sl;
       fcBus           : in  FastControlBusType;
       -- DMA Interface (dmaClk domain)
       dmaClk          : in  sl;
@@ -66,7 +67,7 @@ entity TrackerPgpFcLane is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end TrackerPgpFcLane;
+end entity TrackerPgpFcLane;
 
 architecture mapping of TrackerPgpFcLane is
 
@@ -133,7 +134,7 @@ begin
          axilWriteSlave  => axilWriteSlave);  -- [out]
 
 
-   GEN_VC : if NUM_VC_EN_G > 0 generate
+   GEN_BUFF : if NUM_VC_EN_G > 0 generate
 
       --------------
       -- PGP TX Path
@@ -179,6 +180,8 @@ begin
             pgpRxOut        => pgpRxOut,
             pgpRxMasters    => pgpRxMasters,
             pgpRxCtrl       => pgpRxCtrl);
+      
+   end generate GEN_BUF;
 
 
-   end mapping;
+end mapping;

@@ -91,11 +91,12 @@ package FcPkg is
       stateChanged : sl;
 
       -- These are counted based on Timing messages
-      bunchClk       : sl;
-      bunchClkRst    : sl;
-      bunchStrobePre : sl;              -- Pulsed 1 cycle before bunchCount increments
-      bunchStrobe    : sl;              -- Pulsed on cycle that bunchCount increments
-      bunchCount     : slv(5 downto 0);
+      bunchClk        : sl;
+      bunchClkRst     : sl;
+      bunchStrobePre  : sl;             -- Pulsed 1 cycle before bunchCount increments
+      bunchStrobe     : sl;             -- Pulsed on cycle that bunchCount increments
+      bunchCount      : slv(5 downto 0);
+      bunchClkAligned : sl;
 
       -- 185 MHz counter from T0
       runTime : slv(63 downto 0);
@@ -115,6 +116,9 @@ package FcPkg is
    type FastControlFeedbackType is record
       busy : sl;
    end record FastControlFeedbackType;
+
+   constant FC_FB_INIT_C : FastControlFeedbackType := (
+      busy => '0');
 
 
 end FcPkg;
