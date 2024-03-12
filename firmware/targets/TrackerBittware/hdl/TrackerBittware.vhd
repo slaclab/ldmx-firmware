@@ -15,6 +15,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -47,14 +49,14 @@ entity TrackerBittware is
       --  Application Ports
       ---------------------
       -- QSFP-DD Ports
-      qsfpRefClkP    : in  slv(PGP_QUADS_G-1 downto 0);
-      qsfpRefClkN    : in  slv(PGP_QUADS_G-1 downto 0);
-      qsfpRecClkP    : out slv(PGP_QUADS_G-1 downto 0);
-      qsfpRecClkN    : out slv(PGP_QUADS_G-1 downto 0);
-      qsfpRxP        : in  slv(PGP_QUADS_G*4-1 downto 0);
-      qsfpRxN        : in  slv(PGP_QUADS_G*4-1 downto 0);
-      qsfpTxP        : out slv(PGP_QUADS_G*4-1 downto 0);
-      qsfpTxN        : out slv(PGP_QUADS_G*4-1 downto 0);
+      qsfpRefClkP    : in  slv(7 downto 0);
+      qsfpRefClkN    : in  slv(7 downto 0);
+      qsfpRecClkP    : out slv(7 downto 0);
+      qsfpRecClkN    : out slv(7 downto 0);
+      qsfpRxP        : in  slv(31 downto 0);
+      qsfpRxN        : in  slv(31 downto 0);
+      qsfpTxP        : out slv(31 downto 0);
+      qsfpTxN        : out slv(31 downto 0);
       -- Fabric Clock Ports
       fabClkOutP     : out slv(1 downto 0);
       fabClkOutN     : out slv(1 downto 0);
@@ -104,6 +106,13 @@ architecture rtl of TrackerBittware is
    --------------
    signal userClk100 : sl;
    signal userRst100 : sl;
+
+   -----------------------------
+   -- Fast Control clock and bus
+   -----------------------------
+   signal fcClk185 : sl;
+   signal fcRst185 : sl;
+   signal fcBus    : FastControlBusType;
 
    -----------
    -- AXI Lite
@@ -263,10 +272,10 @@ begin
          fcBunchRst37    => open,             -- [out]
          axilClk         => axilClk,          -- [in]
          axilRst         => axilRst,          -- [in]
-         axilReadMaster  => axilReadMaster,   -- [in]
-         axilReadSlave   => axilReadSlave,    -- [out]
-         axilWriteMaster => axilWriteMaster,  -- [in]
-         axilWriteSlave  => axilWriteSlave);  -- [out]
+         axilReadMaster  => axilReadMasters(FC_RX_AXIL_C),   -- [in]
+         axilReadSlave   => axilReadSlaves(FC_RX_AXIL_C),    -- [out]
+         axilWriteMaster => axilWriteMasters(FC_RX_AXIL_C),  -- [in]
+         axilWriteSlave  => axilWriteSlaves(FC_RX_AXIL_C));  -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- PGP Interface to FEBs
@@ -278,8 +287,8 @@ begin
          SIM_SPEEDUP_G     => SIM_SPEEDUP_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
          PGP_QUADS_G       => 2,
-         AXI_CLK_FREQ_G    => AXI_CLK_FREQ_C,
-         AXI_BASE_ADDR_G   => AXIL_XBAR_CFG_C(FEB_PGP_AXIL_C).baseAddr)
+         AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_C,
+         AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(FEB_PGP_AXIL_C).baseAddr)
       port map (
          pgpFcRefClkP    => febPgpFcRefClkP,  -- [in]
          pgpFcRefClkN    => febPgpFcRefClkN,  -- [in]
@@ -299,10 +308,10 @@ begin
          dmaIbSlaves     => dmaIbSlaves,      -- [in]
          axilClk         => axilClk,          -- [in]
          axilRst         => axilRst,          -- [in]
-         axilReadMaster  => axilReadMaster,   -- [in]
-         axilReadSlave   => axilReadSlave,    -- [out]
-         axilWriteMaster => axilWriteMaster,  -- [in]
-         axilWriteSlave  => axilWriteSlave);  -- [out]
+         axilReadMaster  => axilReadMasters(FEB_PGP_AXIL_C),   -- [in]
+         axilReadSlave   => axilReadSlaves(FEB_PGP_AXIL_C),    -- [out]
+         axilWriteMaster => axilWriteMasters(FEB_PGP_AXIL_C),  -- [in]
+         axilWriteSlave  => axilWriteSlaves(FEB_PGP_AXIL_C));  -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Map DD-QSFP ports
@@ -336,6 +345,26 @@ begin
             clkOutP => fabClkOutP(i),   -- [out]
             clkOutN => fabClkOutN(i));  -- [out]
    end generate GEN_CLK_BUF;
+
+   -------------------------------------------------------------------------------------------------
+   -- Dummy GTs
+   -- Need dummy on every unused GTY in port IO
+   -------------------------------------------------------------------------------------------------
+--    DUMMY_GEN_1: for i in 3 downto 1 generate
+--    U_Gtye4ChannelDummy_1: entity surf.Gtye4ChannelDummy
+--       generic map (
+--          TPD_G        => TPD_G,
+--          SIMULATION_G => SIMULATION_G,
+--          WIDTH_G      => WIDTH_G)
+--       port map (
+--          refClk   => refClk,            -- [in]
+--          rxoutclk => rxoutclk,          -- [out]
+--          gtRxP    => gtRxP,             -- [in]
+--          gtRxN    => gtRxN,             -- [in]
+--          gtTxP    => gtTxP,             -- [out]
+--          gtTxN    => gtTxN);            -- [out]
+
+--    end generate DUMMY_GEN_1;
 
 
 

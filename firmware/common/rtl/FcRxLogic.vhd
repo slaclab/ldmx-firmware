@@ -57,37 +57,38 @@ architecture rtl of FcRxLogic is
    constant CLK_DIV_RISE_CNT_C : integer := 2;
 
    type RegType is record
-      divCounter   : slv(2 downto 0);
-      runTime      : slv(63 downto 0);
-      rorLatch     : sl;
-      fcClkLost    : sl;
-      fcBunchClk37 : sl;
-      fcRor        : sl;
-      rorCount     : slv(15 downto 0);
-      fcClkAxilRst : sl;
-      fcClk37Rst   : sl;
-      fcBus        : FastControlBusType;
-
-
+      divCounter     : slv(2 downto 0);
+      runTime        : slv(63 downto 0);
+      rorLatch       : sl;
+      fcClkLost      : sl;
+      fcBunchClk37   : sl;
+      rorCount       : slv(15 downto 0);
+      fcClkAxilRst   : sl;
+      fcClk37Rst     : sl;
+      fcBus          : FastControlBusType;
+      axilReadSlave  : AxiLiteReadSlaveType;
+      axilWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
 
    -- Timing comes up already enabled so that ADC can be read before sync is established
    constant REG_INIT_C : RegType := (
-      divCounter   => (others => '0'),
-      runTime      => (others => '0'),
-      rorLatch     => '0',
-      fcClkLost    => '1',
-      fcBunchClk37 => '0',
-      rorCount     => (others => '0'),
-      fcClkAxilRst => '0',
-      fcClk37Rst   => '0',
-      fcBus        => FAST_CONTROL_BUS_INIT_C);
+      divCounter     => (others => '0'),
+      runTime        => (others => '0'),
+      rorLatch       => '0',
+      fcClkLost      => '1',
+      fcBunchClk37   => '0',
+      rorCount       => (others => '0'),
+      fcClkAxilRst   => '0',
+      fcClk37Rst     => '0',
+      fcBus          => FC_BUS_INIT_C,
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal fcClk37Int : sl;
+   signal fcBunchClk37G : sl;
 
    signal syncAxilReadMaster  : AxiLiteReadMasterType;
    signal syncAxilReadSlave   : AxiLiteReadSlaveType;
@@ -118,7 +119,7 @@ begin
          mAxiWriteSlave  => syncAxilWriteSlave);  -- [in]
 
 
-   comb : process (fcMsg, r, syncAxilReadMaster, syncAxilWriteMaster) is
+   comb : process (fcValid, fcWord, r, syncAxilReadMaster, syncAxilWriteMaster) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
       variable fcMsg  : FastControlMessageType;
@@ -127,7 +128,6 @@ begin
 
       -- Pulsed signals
       v.fcClkLost                  := '0';
-      v.fifoWrEn                   := '0';
       v.fcBus.pulseStrobe          := '0';
       v.fcBus.readoutRequest.valid := '0';
 
@@ -139,13 +139,13 @@ begin
       -- to allow enough setup time for shfited hybrid clocks to see it.
       if (r.divCounter = CLK_DIV_FALL_CNT_C) then
          v.divCounter                 := (others => '0');
-         v.fcBus.bunchClk             := '0';
+         v.fcBunchClk37               := '0';
          v.fcBus.readoutRequest.valid := r.rorLatch;
          v.rorLatch                   := '0';
       end if;
 
       if (r.divCounter = CLK_DIV_RISE_CNT_C) then
-         v.fcBus.bunchClk := '1';
+         v.fcBunchClk37 := '1';
       end if;
 
       -- Decode incomming fast control messages from PGPFC
@@ -167,8 +167,8 @@ begin
                -- Output fields
                v.fcBus.pulseStrobe  := '1';
                v.fcBus.pulseId      := fcMsg.pulseId;
-               v.fcBus.bunchCnt     := fcMsg.bunchCnt;
-               v.fcBus.state        := fcMsg.state;
+               v.fcBus.bunchCount   := fcMsg.bunchCount;
+               v.fcBus.runState     := fcMsg.runState;
                v.fcBus.stateChanged := fcMsg.stateChanged;
 
                -- State specific actions
@@ -181,9 +181,9 @@ begin
                      when RUN_STATE_CLOCK_ALIGN_C =>
                         -- Algin Bunch clock
                         v.divCounter      := (others => '0');
-                        v.bunchClk37      := '0';
-                        v.bunchClkAligned := '1';
-                        v.fcClkLost       := '1';  -- Creats a bunchClkRst
+                        v.fcBunchClk37    := '0';
+                        v.fcClkLost       := '1';  -- Creats a bunchClkRst                        
+                        v.fcBus.bunchClkAligned := '1';
                      when RUN_STATE_RUNNING_C =>
                         -- Reset runtime timestamp counter
                         -- Might do this in an earlier state
@@ -197,9 +197,9 @@ begin
             when MSG_TYPE_ROR_C =>
                if (r.fcBus.runState = RUN_STATE_RUNNING_C) then
                   -- Place on output bus
-                  v.fcBus.readoutRequest.valid    := '1';
-                  v.fcBus.readoutRequest.bunchCnt := fcMsg.bunchCnt;
-                  v.fcBus.readoutRequest.pulseId  := fcMsg.pulseId;
+                  v.fcBus.readoutRequest.valid      := '1';
+                  v.fcBus.readoutRequest.bunchCount := fcMsg.bunchCount;
+                  v.fcBus.readoutRequest.pulseId    := fcMsg.pulseId;
 
                   v.rorLatch := '1';
                   v.rorCount := r.rorCount + 1;
@@ -246,10 +246,10 @@ begin
    -- Drive divided clock onto a BUFG
    BUFG_CLK41_RAW : BUFG
       port map (
-         I => r.fcClk37,
-         O => fcBunchClk37Int);
+         I => r.fcBunchClk37,
+         O => fcBunchClk37);
 
-   fcBunchClk37 <= fcBunchClk37Int;
+   fcBunchClk37 <= fcBunchClk37G;
 
    -- Provide a reset signal for downstream MMCMs
    RstSync_fcClk37Rst : entity surf.RstSync
@@ -259,7 +259,7 @@ begin
          OUT_POLARITY_G  => '1',
          RELEASE_DELAY_G => 5)
       port map (
-         clk      => fcClk37Int,
+         clk      => fcBunchClk37G,
          asyncRst => r.fcClk37Rst,
          syncRst  => fcBunchRst37);
 

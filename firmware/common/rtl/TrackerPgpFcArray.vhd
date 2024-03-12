@@ -25,6 +25,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
 library ldmx;
+use ldmx.FcPkg.all;
 
 -- library axi_pcie_core;
 -- use axi_pcie_core.AxiPciePkg.all;
@@ -38,8 +39,8 @@ entity TrackerPgpFcArray is
       SIM_SPEEDUP_G     : boolean              := false;
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
       PGP_QUADS_G       : integer range 1 to 4 := 2;
-      AXI_CLK_FREQ_G    : real                 := 125.0e6;
-      AXI_BASE_ADDR_G   : slv(31 downto 0)     := (others => '0');
+      AXIL_CLK_FREQ_G   : real                 := 125.0e6;
+      AXIL_BASE_ADDR_G  : slv(31 downto 0)     := (others => '0');
       NUM_VC_EN_G       : integer range 0 to 4 := 4);
    port (
       -- QSFP-DD Ports
@@ -74,22 +75,16 @@ architecture mapping of TrackerPgpFcArray is
 
    constant NUM_AXI_MASTERS_C : natural := PGP_QUADS_G*4;
 
-   constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXI_BASE_ADDR_G, 20, 16);
+   constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXIL_BASE_ADDR_G, 20, 16);
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
 
-   signal mgtRefClk     : slv(PGP_QUADS_G-1 downto 0);
-   signal mgtUserRefClk : slv(PGP_QUADS_G-1 downto 0);
-   signal userRefClk    : slv(PGP_QUADS_G-1 downto 0);
-   signal rxRecClk      : slv(PGP_QUADS_G*4-1 downto 0);
-
-   signal pgpTxOutClk : slv(PGP_QUADS_G*4-1 downto 0);
-   signal pgpRxOutClk : slv(PGP_QUADS_G*4-1 downto 0);
-   signal pgpTxClk    : slv(PGP_QUADS_G*4-1 downto 0);
-   signal pgpRxClk    : slv(PGP_QUADS_G*4-1 downto 0);
+   signal pgpFcRefClk          : slv(PGP_QUADS_G-1 downto 0);
+   signal pgpFcUserRefClkOdiv2 : slv(PGP_QUADS_G-1 downto 0);
+   signal pgpFcUserRefClk      : slv(PGP_QUADS_G-1 downto 0);
 
    signal pgpObMasters : AxiStreamMasterArray(PGP_QUADS_G*4-1 downto 0);
    signal pgpObSlaves  : AxiStreamSlaveArray(PGP_QUADS_G*4-1 downto 0);
@@ -135,12 +130,12 @@ begin
             I     => pgpFcRefClkP(quad),
             IB    => pgpFcRefClkN(quad),
             CEB   => '0',
-            ODIV2 => pgpFcUserRefClkTmp(quad),
+            ODIV2 => pgpFcUserRefClkOdiv2(quad),
             O     => pgpFcRefClk(quad));
 
       U_mgtUserRefClk : BUFG_GT
          port map (
-            I       => pgpFcUserRefClkTmp(quad),
+            I       => pgpFcUserRefClkOdiv2(quad),
             CE      => '1',
             CEMASK  => '1',
             CLR     => '0',
@@ -157,10 +152,8 @@ begin
                SIM_SPEEDUP_G     => SIM_SPEEDUP_G,
                DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G,
                LANE_G            => quad*4+lane,
-               AXI_CLK_FREQ_G    => AXI_CLK_FREQ_G,
-               AXI_BASE_ADDR_G   => AXI_CONFIG_C(quad*4+lane).baseAddr,
-               TX_ENABLE_G       => true,
-               RX_ENABLE_G       => true,
+               AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_G,
+               AXIL_BASE_ADDR_G  => AXI_CONFIG_C(quad*4+lane).baseAddr,
                NUM_VC_EN_G       => NUM_VC_EN_G)
             port map (
                -- PGP Serial Ports

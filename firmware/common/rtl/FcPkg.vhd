@@ -47,18 +47,18 @@ package FcPkg is
       valid        : sl;
       msgType      : slv(3 downto 0);
       -- reserved : slv(5 downto 0);
-      bunchCnt     : slv(5 downto 0);
+      bunchCount   : slv(5 downto 0);
       runState     : slv(4 downto 0);
       stateChanged : sl;
       pulseID      : slv(63 downto 0);
       message      : slv(FC_LEN_C-1 downto 0);
    end record;
 
-   constant DEFAULT_FC_MSG_C : FastControlMessageType := (
+   constant FC_MSG_INIT_C : FastControlMessageType := (
       valid        => '0',
       msgType      => (others => '0'),
       -- reserved => (others => '0'),
-      bunchCnt     => (others => '0'),
+      bunchCount   => (others => '0'),
       runState     => (others => '0'),
       stateChanged => '0',
       pulseID      => (others => '0'),
@@ -72,10 +72,15 @@ package FcPkg is
    -- Readout Request Fields
    -------------------------------------------------------------------------------------------------
    type FcReadoutRequestType is record
-      valid    : sl;
-      bunchCnt : slv(5 downto 0);
-      pulseId  : slv(63 downto 0);
+      valid      : sl;
+      bunchCount : slv(5 downto 0);
+      pulseId    : slv(63 downto 0);
    end record FcReadoutRequestType;
+
+   constant FC_ROR_INIT_C : FcReadoutRequestType := (
+      valid      => '0',
+      bunchCount => (others => '0'),
+      pulseId    => (others => '0'));
 
    -------------------------------------------------------------------------------------------------
    -- The Fast control receiver block outputs a bus of fast control data on this record
@@ -87,12 +92,10 @@ package FcPkg is
       -- Placed on bus with each TM received
       pulseStrobe  : sl;
       pulseId      : slv(63 downto 0);
-      state        : slv(4 downto 0);
+      runState        : slv(4 downto 0);
       stateChanged : sl;
 
       -- These are counted based on Timing messages
-      bunchClk        : sl;
-      bunchClkRst     : sl;
       bunchStrobePre  : sl;             -- Pulsed 1 cycle before bunchCount increments
       bunchStrobe     : sl;             -- Pulsed on cycle that bunchCount increments
       bunchCount      : slv(5 downto 0);
@@ -108,6 +111,21 @@ package FcPkg is
       -- Might not be useful
       fcMsg : FastControlMessageType;
    end record FastControlBusType;
+
+   constant FC_BUS_INIT_C : FastControlBusType := (
+      rxLinkStatus    => '0',
+      pulseStrobe     => '0',
+      pulseId         => (others => '0'),
+      runState           => (others => '0'),
+      stateChanged    => '0',
+      bunchStrobePre  => '0',
+      bunchStrobe     => '0',
+      bunchCount      => (others => '0'),
+      bunchClkAligned => '0',
+      runTime         => (others => '0'),
+      readoutRequest  => FC_ROR_INIT_C,
+      fcMsg           => FC_MSG_INIT_C);
+
 
    -------------------------------------------------------------------------------------------------
    -- Fast control feedback
@@ -133,7 +151,7 @@ package body FcPkg is
 
       if (fieldsIn.msgType = MSG_TYPE_ROR_C) then
          -- if RoR, transmit the bunch counter
-         retVar(BUNCH_CNT_RANGE_C) := fieldsIn.bunchCnt;
+         retVar(BUNCH_CNT_RANGE_C) := fieldsIn.bunchCount;
       else
          -- if non-RoR, transmit the state
          retVar(RUN_STATE_RANGE_C)     := fieldsIn.runState;
@@ -148,7 +166,7 @@ package body FcPkg is
    function FcDecode (fcIn : slv(FC_LEN_C-1 downto 0); valid : in sl := '1') return FastControlMessageType is
       variable retVar : FastControlMessageType;
    begin
-      retVar         := DEFAULT_FC_MSG_C;
+      retVar         := FC_MSG_INIT_C;
       retVar.valid   := valid;
       retVar.msgType := fcIn(MSG_TYPE_RANGE_C);
       -- no latches are inferred because retVar is initialized
@@ -157,7 +175,7 @@ package body FcPkg is
       -- check the message type
       if (retVar.msgType = MSG_TYPE_ROR_C) then
          -- if RoR, grab the bunch count
-         retVar.bunchCnt := fcIn(BUNCH_CNT_RANGE_C);
+         retVar.bunchCount := fcIn(BUNCH_CNT_RANGE_C);
       else
          -- if non-RoR, grab the state
          retVar.runState     := fcIn(RUN_STATE_RANGE_C);

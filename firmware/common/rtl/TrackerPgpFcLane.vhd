@@ -36,8 +36,8 @@ entity TrackerPgpFcLane is
       SIM_SPEEDUP_G     : boolean              := false;
       LANE_G            : natural              := 0;
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
-      AXI_CLK_FREQ_G    : real                 := 125.0e6;
-      AXI_BASE_ADDR_G   : slv(31 downto 0)     := (others => '0');
+      AXIL_CLK_FREQ_G   : real                 := 125.0e6;
+      AXIL_BASE_ADDR_G  : slv(31 downto 0)     := (others => '0');
       NUM_VC_EN_G       : integer range 0 to 4 := 4);
    port (
       -- PGP Serial Ports
@@ -91,8 +91,8 @@ architecture mapping of TrackerPgpFcLane is
 begin
 
    -- Glue logic
-   pgpTxIn.fcWord  <= fcBus.fcMsg.message;
-   pgpTxIn.fcValid <= fcBus.fcMsg.valid;
+   pgpTxIn.fcWord(FC_LEN_C-1 downto 0) <= fcBus.fcMsg.message;
+   pgpTxIn.fcValid                     <= fcBus.fcMsg.valid;
 
    -----------
    -- PGP Core
@@ -114,7 +114,6 @@ begin
          pgpRxRecClk     => open,             -- [out]
          pgpRxRstOut     => pgpRxRstOut,      -- [out]
          pgpRxOutClk     => pgpRxOutClk,      -- [out]
-         pgpRxUsrClk     => pgpRxOutClk,      -- [in] -- Wrap clock back
          pgpRxIn         => pgpRxIn,          -- [in]
          pgpRxOut        => pgpRxOut,         -- [out]
          pgpRxMasters    => pgpRxMasters,     -- [out]
@@ -180,8 +179,8 @@ begin
             pgpRxOut        => pgpRxOut,
             pgpRxMasters    => pgpRxMasters,
             pgpRxCtrl       => pgpRxCtrl);
-      
-   end generate GEN_BUF;
+
+   end generate GEN_BUFF;
 
 
 end mapping;
