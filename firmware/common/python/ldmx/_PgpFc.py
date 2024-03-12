@@ -16,7 +16,7 @@ class PgpFc(pr.Device):
                     numVc = numVc,
                     offset = _LaneOffset))
 
-        _emuOffset = 0x1_0000 * ((numQuads)*numLinks) + 0x1_0000
-        self.add(ldmx.FcEmu(
-            name   = "Fc Emulator",
-            offset = _emuOffset))
+        # _emuOffset = 0x1_0000 * ((numQuads)*numLinks) + 0x1_0000
+        # self.add(ldmx.FcEmu(
+        #     name   = "Fc Emulator",
+        #     offset = _emuOffset))

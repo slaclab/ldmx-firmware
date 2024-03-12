@@ -76,14 +76,12 @@ entity TrackerPgpFcLaneWrapper is
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 end TrackerPgpFcLaneWrapper;
 
+
 architecture mapping of TrackerPgpFcLaneWrapper is
 
-   constant PHYSICAL_LANE_AXI_INDEX_C : natural := PGP_QUADS_G*PGP_LANES_G;
-   constant FC_EMU_AXI_INDEX_C        : natural := PHYSICAL_LANE_AXI_INDEX_C + 1;
-   constant NUM_AXI_MASTERS_C         : natural := PHYSICAL_LANE_AXI_INDEX_C +
-                                                   FC_EMU_AXI_INDEX_C;
+   constant NUM_AXI_MASTERS_C : natural := PGP_QUADS_G*PGP_LANES_G;
 
-   constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXI_BASE_ADDR_G, 23, 16);
+   constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXI_BASE_ADDR_G, 21, 16);
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
@@ -117,6 +115,8 @@ architecture mapping of TrackerPgpFcLaneWrapper is
 
    signal validRx          : sl;
    signal validTx          : sl;
+
+   signal fcRst            : sl;
 
    -- can we use one clock for one emulator transmitting across all physical lanes?
    -- need to opt this. Currently using one quad/lane for the emulator's reference clock;
@@ -234,7 +234,6 @@ begin
             fcClk           => pgpTxUsrClk(FC_EMU_PHYSICAL_LANE_C),
             fcRst           => pgpTxRstOut(FC_EMU_PHYSICAL_LANE_C),
             -- Fast-Control Message Interface
-            --fcMsg           => fcBusTx(FC_EMU_PHYSICAL_LANE_C).fcMsg,
             fcMsg           => fcEmuMsg,
             -- Bunch Clock
             bunchClk        => bunchClk,
@@ -242,12 +241,15 @@ begin
             -- AXI-Lite Interface
             axilClk         => axilClk,
             axilRst         => axilRst,
-            axilReadMaster  => axilReadMasters(FC_EMU_AXI_INDEX_C),
-            axilReadSlave   => axilReadSlaves(FC_EMU_AXI_INDEX_C),
-            axilWriteMaster => axilWriteMasters(FC_EMU_AXI_INDEX_C),
-            axilWriteSlave  => axilWriteSlaves(FC_EMU_AXI_INDEX_C));
+            axilReadMaster  => AXI_LITE_READ_MASTER_INIT_C,
+            axilReadSlave   => open,
+            axilWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
+            axilWriteSlave  => open);
 
       fcBusTx(FC_EMU_PHYSICAL_LANE_C).fcMsg <= fcEmuMsg;
+
+      fcRst  <= pgpTxRstOut(FC_EMU_PHYSICAL_LANE_C) or
+                (not fcBusTx(FC_EMU_PHYSICAL_LANE_C).rxLinkStatus);
 
       dbgOut <= ite(DBG_RX_G,
                     fcBusRx(FC_EMU_PHYSICAL_LANE_C).fcMsg.valid,

@@ -30,7 +30,7 @@ entity FcEmu is
    generic (
       TPD_G                : time    := 1 ns;
       AXIL_CLK_IS_FC_CLK_G : boolean := false;
-      TIMING_MSG_PERIOD_G  : natural := 200;  -- should fit in 32 bits
+      TIMING_MSG_PERIOD_G  : natural := 2400;  -- should fit in 32 bits
       BUNCH_CNT_PERIOD_G   : natural := 5);   -- should fit in 6 bits
    port (
       -- Clock and Reset
@@ -75,8 +75,8 @@ architecture rtl of FcEmu is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      enableTimingMsg    => '0',
-      enableRoR          => '0',
+      enableTimingMsg    => '1',
+      enableRoR          => '1',
       usrRoR             => '0',
       timingMsgReq       => '0',
       bunchCntStrb       => '0',
@@ -132,7 +132,7 @@ begin
       v := r;
 
       -- Pulsed
-      v.usrRoR       := '0';      
+      v.usrRoR       := '0';
 
       ----------------------------------------------------------------------
       --                AXI-Lite Register Logic
