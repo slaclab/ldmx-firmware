@@ -49,8 +49,6 @@ entity TrackerPgpFcLane is
       pgpRxP          : in  sl;
       pgpRxN          : in  sl;
       -- Fast Control Interface
-      fcClk185        : in  sl;         -- Drivers TXUSRCLK
-      fcRst185        : in  sl;
       fcBusTx         : in  FastControlBusType;
       fcBusRx         : out FastControlBusType;
       -- GT Clocking and Resets
@@ -62,6 +60,7 @@ entity TrackerPgpFcLane is
       pgpTxUsrClk     : in  sl;
       pgpRxUsrClk     : in  sl;
       pgpTxRstOut     : out sl;
+      pgpRxRstOut     : out sl;
       -- DMA Interface (dmaClk domain)
       dmaClk          : in  sl;
       dmaRst          : in  sl;
@@ -81,17 +80,23 @@ end TrackerPgpFcLane;
 
 architecture mapping of TrackerPgpFcLane is
 
-   signal pgpRxRstOut : sl;
-
-
    -- Rx
-   signal pgpRxIn  : Pgp2fcRxInType  := PGP2FC_RX_IN_INIT_C;
-   signal pgpRxOut : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
-   signal pgpTxIn  : Pgp2fcTxInType  := PGP2FC_TX_IN_INIT_C;
-   signal pgpTxOut : Pgp2fcTxOutType := PGP2FC_TX_OUT_INIT_C;
+   signal pgpRxIn         : Pgp2fcRxInType  := PGP2FC_RX_IN_INIT_C;
+   signal pgpRxOut        : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
+   signal pgpTxIn         : Pgp2fcTxInType  := PGP2FC_TX_IN_INIT_C;
+   signal pgpTxOut        : Pgp2fcTxOutType := PGP2FC_TX_OUT_INIT_C;
+   signal pgpRxRst        : sl := '0';
+   signal pgpRxRstOutLane : sl := '0';
+   signal pgpRxResetDone  : sl := '0';
 
 
+   -- Tx
+   signal pgpTxRst        : sl := '0';
+   signal pgpTxRstOutLane : sl := '0';
+   signal pgpTxResetDone  : sl := '0';
 
+
+   -- DMA Stream
    signal pgpTxMasters : AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
    signal pgpTxSlaves  : AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0);
    signal pgpRxMasters : AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
@@ -107,6 +112,29 @@ begin
    fcBusRx.fcMsg.message               <= pgpRxOut.fcWord(FC_LEN_C-1 downto 0);
    fcBusRx.fcMsg.valid                 <= pgpRxOut.fcValid;
    fcBusRx.rxLinkStatus                <= pgpRxOut.remLinkReady;
+
+   -- Reset Management
+   -- If one routes 'pgpRxResetDone' to the RX reset, the align checker does not lock
+   U_RstSync_Rx : entity surf.RstSync
+      generic map (
+         TPD_G         => TPD_G,
+         IN_POLARITY_G => '0')
+      port map (
+         clk      => pgpRxUsrClk,       -- [in]
+         asyncRst => pgpTxResetDone,    -- [in]
+         syncRst  => pgpRxRst);         -- [out]
+
+   U_RstSync_Tx : entity surf.RstSync
+      generic map (
+         TPD_G         => TPD_G,
+         IN_POLARITY_G => '0')
+      port map (
+         clk      => pgpTxUsrClk,       -- [in]
+         asyncRst => pgpTxResetDone,    -- [in]
+         syncRst  => pgpTxRst);         -- [out]
+
+   pgpRxRstOut <= pgpRxRstOutLane;
+   pgpTxRstOut <= pgpTxRstOutLane;
 
    -----------
    -- PGP Core
@@ -125,16 +153,19 @@ begin
          pgpRxN          => pgpRxN,           -- [in]
          pgpRefClk       => pgpRefClk,        -- [in]
          pgpUserRefClk   => pgpUserRefClk,    -- [in]
+         pgpRxRst        => pgpRxRst,         -- [in]
          pgpRxRecClk     => pgpRxRecClk,      -- [out]
-         pgpRxRstOut     => pgpRxRstOut,      -- [out]
+         pgpRxRstOut     => pgpRxRstOutLane,  -- [out]
+         pgpRxResetDone  => pgpRxResetDone,   -- [out]
          pgpRxOutClk     => pgpRxOutClk,      -- [out]
          pgpRxUsrClk     => pgpRxUsrClk,      -- [in] -- Wrap clock back upstream
          pgpRxIn         => pgpRxIn,          -- [in]
          pgpRxOut        => pgpRxOut,         -- [out]
          pgpRxMasters    => pgpRxMasters,     -- [out]
          pgpRxCtrl       => pgpRxCtrl,        -- [in]
-         pgpTxRstOut     => pgpTxRstOut,      -- [out]
-         pgpTxRst        => fcRst185,         -- [in]
+         pgpTxRstOut     => pgpTxRstOutLane,  -- [out]
+         pgpTxRst        => pgpTxRst,         -- [in]
+         pgpTxResetDone  => pgpTxResetDone,   -- [out]
          pgpTxOutClk     => pgpTxOutClk,      -- [out]
          pgpTxUsrClk     => pgpTxUsrClk,      -- [in]
          pgpTxIn         => pgpTxIn,          -- [in]
@@ -166,8 +197,8 @@ begin
             dmaObMaster  => dmaObMaster,
             dmaObSlave   => dmaObSlave,
             -- PGP Interface
-            pgpTxClk     => fcClk185,
-            pgpTxRst     => fcRst185,
+            pgpTxClk     => pgpTxUsrClk,
+            pgpTxRst     => pgpTxRstOutLane,
             pgpRxOut     => pgpRxOut,
             pgpTxOut     => pgpTxOut,
             pgpTxMasters => pgpTxMasters,
@@ -191,7 +222,7 @@ begin
             dmaIbSlave      => dmaIbSlave,
             -- PGP RX Interface (pgpRxClk domain)
             pgpRxClk        => pgpRxUsrClk,
-            pgpRxRst        => pgpRxRstOut,
+            pgpRxRst        => pgpRxRstOutLane,
             pgpRxOut        => pgpRxOut,
             pgpRxMasters    => pgpRxMasters,
             pgpRxCtrl       => pgpRxCtrl);

@@ -107,8 +107,6 @@ architecture mapping of TrackerPgpFcLaneWrapper is
    signal pgpIbMasters     : AxiStreamMasterArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
    signal pgpIbSlaves      : AxiStreamSlaveArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
 
-   signal fcClk185         : sl;
-   signal fcRst185         : sl;
    signal fcBusTx          : FastControlBusArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0)
                            := (others => DEFAULT_FC_BUS_C);
    signal fcBusRx          : FastControlBusArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0)
@@ -195,8 +193,6 @@ begin
                pgpTxP          => qsfpTxP(quad*PGP_LANES_G+lane),
                pgpTxN          => qsfpTxN(quad*PGP_LANES_G+lane),
                -- Fast Control Interface
-               fcClk185        => fcClk185,
-               fcRst185        => fcRst185,
                fcBusTx         => fcBusTx(quad*PGP_LANES_G+lane),
                fcBusRx         => fcBusRx(quad*PGP_LANES_G+lane),
                -- GT Clocking and Resets
@@ -224,6 +220,9 @@ begin
                axilWriteMaster => axilWriteMasters(quad*PGP_LANES_G+lane),
                axilWriteSlave  => axilWriteSlaves(quad*PGP_LANES_G+lane));
 
+         fcBusTx(quad*PGP_LANES_G+lane).rxLinkStatus <=
+         fcBusRx(quad*PGP_LANES_G+lane).rxLinkStatus;
+
       end generate GEN_LANE;
 
       ------------------------
@@ -248,9 +247,7 @@ begin
             axilWriteMaster => axilWriteMasters(FC_EMU_AXI_INDEX_C),
             axilWriteSlave  => axilWriteSlaves(FC_EMU_AXI_INDEX_C));
 
-      fcBusTx(FC_EMU_PHYSICAL_LANE_C).fcMsg        <= fcEmuMsg;
-      fcBusTx(FC_EMU_PHYSICAL_LANE_C).rxLinkStatus <=
-      fcBusRx(FC_EMU_PHYSICAL_LANE_C).rxLinkStatus;
+      fcBusTx(FC_EMU_PHYSICAL_LANE_C).fcMsg <= fcEmuMsg;
 
       dbgOut <= ite(DBG_RX_G,
                     fcBusRx(FC_EMU_PHYSICAL_LANE_C).fcMsg.valid,

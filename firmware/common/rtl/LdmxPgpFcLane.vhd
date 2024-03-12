@@ -49,16 +49,19 @@ entity LdmxPgpFcLane is
       pgpUserRefClk   : in  sl;
       pgpRxRecClk     : out sl;         -- Tie to refclkout if used
       -- Rx Interface
+      pgpRxRst        : in  sl                                           := '0';
       pgpRxRstOut     : out sl;
       pgpRxOutClk     : out sl;
+      pgpRxResetDone  : out sl;
       pgpRxUsrClk     : in  sl;
       pgpRxIn         : in  Pgp2fcRxInType                               := PGP2FC_RX_IN_INIT_C;
       pgpRxOut        : out Pgp2fcRxOutType;
       pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpRxCtrl       : in  AxiStreamCtrlArray(NUM_VC_EN_G-1 downto 0)   := (others => AXI_STREAM_CTRL_INIT_C);
       -- Tx Interface
-      pgpTxRstOut     : out sl;
       pgpTxRst        : in  sl                                           := '0';
+      pgpTxRstOut     : out sl;
+      pgpTxResetDone  : out sl;
       pgpTxOutClk     : out sl;
       pgpTxUsrClk     : in  sl;
       pgpTxIn         : in  Pgp2fcTxInType                               := PGP2FC_TX_IN_INIT_C;
@@ -92,11 +95,6 @@ architecture mapping of LdmxPgpFcLane is
 
    signal pgpTxInGt        : Pgp2fcTxInType;
    signal pgpRxInGt        : Pgp2fcRxInType;
-
-   signal pgpTxResetDone   : sl;
-
-   signal pgpRxResetDone   : sl;
-   signal pgpRxRst         : sl;
 
    signal pgpTxOutGt       : Pgp2fcTxOutType := PGP2FC_TX_OUT_INIT_C;
    signal pgpRxOutGt       : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
@@ -305,34 +303,8 @@ begin
 --          arst   => wdtRst,
 --          rstOut => pwrUpRstOut);
 
---    U_RstSync_Tx : entity surf.RstSync
---       generic map (
---          TPD_G => TPD_G)
---       port map (
---          clk      => pgpTxClk,          -- [in]
---          asyncRst => pgpTxRstAsync,     -- [in]
---          syncRst  => pgpTxRst);         -- [out]
-
-   -- if one routes pgpRxResetDone to asyncRst -> perpetual RX RST
-   U_RstSync_Rx : entity surf.RstSync
-      generic map (
-         TPD_G         => TPD_G,
-         IN_POLARITY_G => '0')
-      port map (
-         clk      => pgpRxUsrClk,       -- [in]
-         asyncRst => pgpTxResetDone,    -- [in]
-         syncRst  => pgpRxRst);         -- [out]
-
-   U_RstSync_Tx : entity surf.RstSync
-      generic map (
-         TPD_G         => TPD_G,
-         IN_POLARITY_G => '0')
-      port map (
-         clk      => pgpTxUsrClk,       -- [in]
-         asyncRst => pgpTxResetDone,    -- [in]
-         syncRst  => pgpTxRstOut);      -- [out]
-
    pgpRxRstOut  <= pgpRxRst;
+   pgpTxRstOut  <= pgpTxRst;
    pgpTxOut     <= pgpTxOutGt;
    pgpRxOut     <= pgpRxOutGt;
    pgpTxInGt    <= pgpTxIn;
