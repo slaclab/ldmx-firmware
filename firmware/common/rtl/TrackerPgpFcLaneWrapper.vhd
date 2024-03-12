@@ -78,9 +78,9 @@ end TrackerPgpFcLaneWrapper;
 
 architecture mapping of TrackerPgpFcLaneWrapper is
 
-   constant MAX_PHYS_LANE_AXI_INDEX_C : natural := (PGP_QUADS_G-1)*PGP_LANES_G + PGP_LANES_G;
-   constant FC_EMU_AXI_INDEX_C        : natural := MAX_PHYS_LANE_AXI_INDEX_C + 1;
-   constant NUM_AXI_MASTERS_C         : natural := MAX_PHYS_LANE_AXI_INDEX_C +
+   constant PHYSICAL_LANE_AXI_INDEX_C : natural := PGP_QUADS_G*PGP_LANES_G;
+   constant FC_EMU_AXI_INDEX_C        : natural := PHYSICAL_LANE_AXI_INDEX_C + 1;
+   constant NUM_AXI_MASTERS_C         : natural := PHYSICAL_LANE_AXI_INDEX_C +
                                                    FC_EMU_AXI_INDEX_C;
 
    constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXI_BASE_ADDR_G, 21, 16);
