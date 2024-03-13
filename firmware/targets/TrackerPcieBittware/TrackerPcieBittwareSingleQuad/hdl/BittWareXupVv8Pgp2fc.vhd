@@ -42,7 +42,7 @@ entity BittWareXupVv8Pgp2fc is
       PGP_LANES_G          : integer                     := 4;
       PGP_QUADS_G          : integer                     := 1; -- change xdc with clock groups if you change this
       FC_EMU_LANE_G        : integer                     := 16;
-      FC_EMU_GEN_G         : boolean                     := true;
+      FC_EMU_GEN_G         : boolean                     := false;
       DBG_RX_G             : boolean                     := true;
       BUILD_INFO_G         : BuildInfoType);
    port (
