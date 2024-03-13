@@ -16,22 +16,26 @@ class PgpLane(pr.Device):
 
         self.add(surf.protocols.pgp.Pgp2fcAxi(
             name   = "Pgp2fcAxi",
-            offset = 0x4000))
+            offset = 0x2000))
 
         if numVc > 0:
             self.add(surf.axi.AxiStreamMonAxiL(
                 name = "TxStreamMon",
-                offset = 0x8000,
+                offset = 0x4000,
                 numberLanes = numVc,
                 hideConfig = False,
                 chName = None))
 
             self.add(surf.axi.AxiStreamMonAxiL(
                 name = "RxStreamMon",
-                offset = 0xC000,
+                offset = 0x6000,
                 numberLanes = numVc,
                 hideConfig = False,
                 chName = None))
+
+        self.add(ldmx.FcEmu(
+            name   = "FcEmu",
+            offset = 0x8000))
 
 class PgpLaneTb(pr.Root):
     def __init__(self, **kwargs):

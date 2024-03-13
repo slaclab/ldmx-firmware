@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
+use surf.Pgp2fcPkg.all;
 
 library ldmx;
 use ldmx.FcPkg.all;
@@ -39,8 +40,8 @@ entity TrackerPgpFcLaneWrapper is
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
       PGP_LANES_G       : integer              := 4;
       PGP_QUADS_G       : integer              := 8;
-      FC_EMU_QUAD_G     : integer              := 4;
       FC_EMU_LANE_G     : integer              := 0;
+      FC_EMU_GEN_G      : boolean              := false;
       AXI_CLK_FREQ_G    : real                 := 125.0e6;
       AXI_BASE_ADDR_G   : slv(31 downto 0)     := (others => '0');
       TX_ENABLE_G       : boolean              := true;
@@ -109,18 +110,11 @@ architecture mapping of TrackerPgpFcLaneWrapper is
                            := (others => DEFAULT_FC_BUS_C);
    signal fcBusRx          : FastControlBusArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0)
                            := (others => DEFAULT_FC_BUS_C);
-   signal fcEmuMsg         : FastControlMessageType := DEFAULT_FC_MSG_C;
-   signal bunchClk         : sl;
-   signal bunchStrobe      : sl;
+   signal pgpTxOut         : Pgp2fcTxOutArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0)
+                           := (others => PGP2FC_TX_OUT_INIT_C);
 
    signal validRx          : sl;
    signal validTx          : sl;
-
-   signal fcRst            : sl;
-
-   -- can we use one clock for one emulator transmitting across all physical lanes?
-   -- need to opt this. Currently using one quad/lane for the emulator's reference clock;
-   constant FC_EMU_PHYSICAL_LANE_C : integer := FC_EMU_QUAD_G*FC_EMU_LANE_G;
 
 begin
 
@@ -183,6 +177,8 @@ begin
                LANE_G            => quad*PGP_LANES_G+lane,
                AXI_CLK_FREQ_G    => AXI_CLK_FREQ_G,
                AXI_BASE_ADDR_G   => AXI_CONFIG_C(quad*PGP_LANES_G+lane).baseAddr,
+               FC_EMU_LANE_G     => FC_EMU_LANE_G,
+               FC_EMU_GEN_G      => FC_EMU_GEN_G,
                TX_ENABLE_G       => TX_ENABLE_G,
                RX_ENABLE_G       => RX_ENABLE_G,
                NUM_VC_EN_G       => NUM_VC_EN_G)
@@ -195,6 +191,7 @@ begin
                -- Fast Control Interface
                fcBusTx         => fcBusTx(quad*PGP_LANES_G+lane),
                fcBusRx         => fcBusRx(quad*PGP_LANES_G+lane),
+               pgpTxOut        => pgpTxOut(quad*PGP_LANES_G+lane),
                -- GT Clocking and Resets
                pgpRefClk       => mgtRefClk(quad),
                pgpUserRefClk   => userRefClk(quad),
@@ -220,40 +217,10 @@ begin
                axilWriteMaster => axilWriteMasters(quad*PGP_LANES_G+lane),
                axilWriteSlave  => axilWriteSlaves(quad*PGP_LANES_G+lane));
 
-         fcBusTx(quad*PGP_LANES_G+lane).rxLinkStatus <=
-         fcBusRx(quad*PGP_LANES_G+lane).rxLinkStatus;
-
       end generate GEN_LANE;
 
-      ------------------------
-      -- Fast-Control Emulator
-      ------------------------
-      U_Emu : entity ldmx.FcEmu
-         port map(
-            -- Clock and Reset
-            fcClk           => pgpTxUsrClk(FC_EMU_PHYSICAL_LANE_C),
-            fcRst           => pgpTxRstOut(FC_EMU_PHYSICAL_LANE_C),
-            -- Fast-Control Message Interface
-            fcMsg           => fcEmuMsg,
-            -- Bunch Clock
-            bunchClk        => bunchClk,
-            bunchStrobe     => bunchStrobe,
-            -- AXI-Lite Interface
-            axilClk         => axilClk,
-            axilRst         => axilRst,
-            axilReadMaster  => AXI_LITE_READ_MASTER_INIT_C,
-            axilReadSlave   => open,
-            axilWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
-            axilWriteSlave  => open);
-
-      fcBusTx(FC_EMU_PHYSICAL_LANE_C).fcMsg <= fcEmuMsg;
-
-      fcRst  <= pgpTxRstOut(FC_EMU_PHYSICAL_LANE_C) or
-                (not fcBusTx(FC_EMU_PHYSICAL_LANE_C).rxLinkStatus);
-
-      dbgOut <= ite(DBG_RX_G,
-                    fcBusRx(FC_EMU_PHYSICAL_LANE_C).fcMsg.valid,
-                    fcEmuMsg.valid);
+      dbgOut <= ite(DBG_RX_G, fcBusRx(FC_EMU_LANE_G).fcMsg.valid,
+                              pgpTxOut(FC_EMU_LANE_G).fcSent);
 
       ----------------------------------------------------------------------------------------------
       -- Mux each quad of lanes together

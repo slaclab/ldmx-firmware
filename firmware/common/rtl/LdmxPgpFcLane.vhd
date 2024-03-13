@@ -29,15 +29,19 @@ use axi_pcie_core.AxiPciePkg.all;
 
 library ldmx;
 use ldmx.AppPkg.all;
+use ldmx.FcPkg.all;
 
 entity LdmxPgpFcLane is
    generic (
       TPD_G            : time                 := 1 ns;
       SIM_SPEEDUP_G    : boolean              := false;
+      LANE_G           : natural              := 0;
       AXIL_CLK_FREQ_G  : real                 := 125.0e6;
       AXIL_BASE_ADDR_G : slv(31 downto 0)     := (others => '0');
       TX_ENABLE_G      : boolean              := true;
       RX_ENABLE_G      : boolean              := true;
+      FC_EMU_LANE_G    : integer              := 0;
+      FC_EMU_GEN_G     : boolean              := false;
       NUM_VC_EN_G      : integer range 0 to 4 := 4);
    port (
       -- PGP Serial Ports
@@ -48,6 +52,7 @@ entity LdmxPgpFcLane is
       pgpRefClk       : in  sl;
       pgpUserRefClk   : in  sl;
       pgpRxRecClk     : out sl;         -- Tie to refclkout if used
+      fcEmuValidOut   : out sl;
       -- Rx Interface
       pgpRxRst        : in  sl                                           := '0';
       pgpRxRstOut     : out sl;
@@ -79,22 +84,23 @@ end LdmxPgpFcLane;
 
 architecture mapping of LdmxPgpFcLane is
 
-   constant NUM_AXI_MASTERS_C : natural := 4;
+   constant NUM_AXI_MASTERS_C : natural := 5;
 
    constant GT_INDEX_C     : natural := 0;
    constant PGP2FC_INDEX_C : natural := 1;
    constant TX_MON_INDEX_C : natural := 2;
    constant RX_MON_INDEX_C : natural := 3;
+   constant EMU_INDEX_C    : natural := 4;
 
-   constant AXI_CONFIG_C   : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXIL_BASE_ADDR_G, 16, 14);
+   constant AXI_CONFIG_C   : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXIL_BASE_ADDR_G, 17, 13);
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXI_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
-   signal pgpTxInGt        : Pgp2fcTxInType;
-   signal pgpRxInGt        : Pgp2fcRxInType;
+   signal pgpTxInGt        : Pgp2fcTxInType := PGP2FC_TX_IN_INIT_C;
+   signal pgpRxInGt        : Pgp2fcRxInType := PGP2FC_RX_IN_INIT_C;
 
    signal pgpTxOutGt       : Pgp2fcTxOutType := PGP2FC_TX_OUT_INIT_C;
    signal pgpRxOutGt       : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
@@ -107,6 +113,14 @@ architecture mapping of LdmxPgpFcLane is
                                                  (others => AXI_STREAM_MASTER_INIT_C);
    signal pgpRxCtrlGt      : AxiStreamCtrlArray(3 downto 0):=
                                                  (others => AXI_STREAM_CTRL_INIT_C);
+
+   signal fcEmuMsg         : FastControlMessageType := DEFAULT_FC_MSG_C;
+   signal pgpTxInEmu       : Pgp2fcTxInType         := PGP2FC_TX_IN_INIT_C;
+   signal fcRstAsync       : sl := '1';
+   signal fcRst            : sl := '1';
+   signal bunchClk         : sl := '0';
+   signal bunchStrobe      : sl := '0';
+   signal selEmu           : sl := '0';
 
 begin
 
@@ -284,29 +298,54 @@ begin
       pgpRxCtrlGt(3 downto NUM_VC_EN_G)    <= (others => AXI_STREAM_CTRL_INIT_C);
    end generate GEN_VC_CHECK;
 
---    U_Wtd : entity surf.WatchDogRst
---       generic map(
---          TPD_G      => TPD_G,
---          DURATION_G => getTimeRatio(AXIL_CLK_FREQ_G, 0.2))  -- 5 s timeout
---       port map (
---          clk    => axilClk,
---          monIn  => pgpRxOut.remLinkReady,
---          rstOut => wdtRst);
+   ------------------------
+   -- Fast-Control Emulator
+   ------------------------
+   GEN_EMU: if LANE_G = FC_EMU_LANE_G and FC_EMU_GEN_G = true generate
 
---    U_PwrUpRst : entity surf.PwrUpRst
---       generic map (
---          TPD_G         => TPD_G,
---          SIM_SPEEDUP_G => false,
---          DURATION_G    => getTimeRatio(AXIL_CLK_FREQ_G, 10.0))  -- 100 ms reset pulse
---       port map (
---          clk    => axilClk,
---          arst   => wdtRst,
---          rstOut => pwrUpRstOut);
+      U_Emu : entity ldmx.FcEmu
+         port map(
+            -- Clock and Reset
+            fcClk           => pgpTxUsrClk,
+            fcRst           => fcRst,
+            -- Fast-Control Message Interface
+            fcMsg           => fcEmuMsg,
+            -- Bunch Clock
+            bunchClk        => bunchClk,
+            bunchStrobe     => bunchStrobe,
+            -- AXI-Lite Interface
+            axilClk         => axilClk,
+            axilRst         => axilRst,
+            axilReadMaster  => axilReadMasters(EMU_INDEX_C),
+            axilReadSlave   => axilReadSlaves(EMU_INDEX_C),
+            axilWriteMaster => axilWriteMasters(EMU_INDEX_C),
+            axilWriteSlave  => axilWriteSlaves(EMU_INDEX_C));
 
-   pgpRxRstOut  <= pgpRxRst;
-   pgpTxRstOut  <= pgpTxRst;
-   pgpTxOut     <= pgpTxOutGt;
-   pgpRxOut     <= pgpRxOutGt;
-   pgpTxInGt    <= pgpTxIn;
+      fcRstAsync <= pgpTxRst or pgpRxRst or (not pgpRxOutGt.remLinkReady);
+
+      U_RstSync_Emu : entity surf.RstSync
+         generic map (
+            TPD_G         => TPD_G,
+            IN_POLARITY_G => '1')
+         port map (
+            clk      => pgpTxUsrClk,
+            asyncRst => fcRstAsync,
+            syncRst  => fcRst);
+
+      pgpTxInEmu.fcWord(FC_LEN_C-1 downto 0) <= fcEmuMsg.message;
+      pgpTxInEmu.fcValid                     <= fcEmuMsg.valid;
+      selEmu                                 <= '1'; -- GND otherwise (signal initialized)
+
+   end generate GEN_EMU;
+
+   --------------------------
+   -- Port/Signal Assignments
+   --------------------------
+   pgpRxRstOut   <= pgpRxRst;
+   pgpTxRstOut   <= pgpTxRst;
+   pgpTxOut      <= pgpTxOutGt;
+   pgpRxOut      <= pgpRxOutGt;
+   pgpTxInGt     <= pgpTxInEmu when selEmu = '1' else pgpTxIn;
+   fcEmuValidOut <= fcEmuMsg.valid when selEmu = '1' else '0';
 
 end mapping;

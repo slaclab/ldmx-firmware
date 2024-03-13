@@ -45,6 +45,8 @@ architecture sim of BittWareXupVv8Pgp2fcMultiFpgaTb is
    constant DMA_BYTE_WIDTH_G     : integer range 8 to 64       := 8;
    constant PGP_QUADS_G          : integer                     := 1;
    constant PGP_FPGAS_G          : integer                     := 2;
+   constant FC_EMU_LANE_G        : integer                     := 0;
+   constant FC_EMU_GEN_G         : boolean                     := true;
    constant BUILD_INFO_G         : BuildInfoType               := BUILD_INFO_C;
 
    type PciLaneArray    is array (natural range PGP_FPGAS_G*4-1 downto 0) of slv(15 downto 0);
@@ -94,8 +96,8 @@ GEN_FPGA : for fpga in 0 to PGP_FPGAS_G-1 generate
          DMA_BURST_BYTES_G    => DMA_BURST_BYTES_G,
          DMA_BYTE_WIDTH_G     => DMA_BYTE_WIDTH_G,
          PGP_QUADS_G          => PGP_QUADS_G,
-         FC_EMU_QUAD_G        => 0, -- only using quad=0 for tb
-         FC_EMU_LANE_G        => 0,
+         FC_EMU_LANE_G        => FC_EMU_LANE_G,
+         FC_EMU_GEN_G         => FC_EMU_GEN_G,
          DBG_RX_G             => DBG_RX_G(fpga),
          BUILD_INFO_G         => BUILD_INFO_G)
       port map (

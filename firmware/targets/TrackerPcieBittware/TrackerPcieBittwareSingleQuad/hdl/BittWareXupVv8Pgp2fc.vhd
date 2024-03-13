@@ -41,8 +41,8 @@ entity BittWareXupVv8Pgp2fc is
       DMA_BYTE_WIDTH_G     : integer range 8 to 64       := 8;
       PGP_LANES_G          : integer                     := 4;
       PGP_QUADS_G          : integer                     := 1; -- change xdc with clock groups if you change this
-      FC_EMU_QUAD_G        : integer                     := 4;
-      FC_EMU_LANE_G        : integer                     := 0;
+      FC_EMU_LANE_G        : integer                     := 16;
+      FC_EMU_GEN_G         : boolean                     := true;
       DBG_RX_G             : boolean                     := true;
       BUILD_INFO_G         : BuildInfoType);
    port (
@@ -191,8 +191,8 @@ begin
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
          PGP_LANES_G       => PGP_LANES_G,
          PGP_QUADS_G       => PGP_QUADS_G,
-         FC_EMU_QUAD_G     => FC_EMU_QUAD_G,
          FC_EMU_LANE_G     => FC_EMU_LANE_G,
+         FC_EMU_GEN_G      => FC_EMU_GEN_G,
          AXI_CLK_FREQ_G    => AXI_CLK_FREQ_C,
          AXI_BASE_ADDR_G   => X"0080_0000",
          DBG_RX_G          => DBG_RX_G)

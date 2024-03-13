@@ -39,6 +39,8 @@ entity TrackerPgpFcLane is
       DMA_AXIS_CONFIG_G : AxiStreamConfigType;
       AXI_CLK_FREQ_G    : real                 := 125.0e6;
       AXI_BASE_ADDR_G   : slv(31 downto 0)     := (others => '0');
+      FC_EMU_LANE_G     : integer              := 0;
+      FC_EMU_GEN_G      : boolean              := false;
       TX_ENABLE_G       : boolean              := true;
       RX_ENABLE_G       : boolean              := true;
       NUM_VC_EN_G       : integer range 0 to 4 := 4);
@@ -51,6 +53,8 @@ entity TrackerPgpFcLane is
       -- Fast Control Interface
       fcBusTx         : in  FastControlBusType;
       fcBusRx         : out FastControlBusType;
+      -- PGP Interface
+      pgpTxOut        : out Pgp2fcTxOutType;
       -- GT Clocking and Resets
       pgpRefClk       : in  sl;
       pgpUserRefClk   : in  sl;
@@ -84,7 +88,7 @@ architecture mapping of TrackerPgpFcLane is
    signal pgpRxIn         : Pgp2fcRxInType  := PGP2FC_RX_IN_INIT_C;
    signal pgpRxOut        : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
    signal pgpTxIn         : Pgp2fcTxInType  := PGP2FC_TX_IN_INIT_C;
-   signal pgpTxOut        : Pgp2fcTxOutType := PGP2FC_TX_OUT_INIT_C;
+   signal pgpTxOutLane    : Pgp2fcTxOutType := PGP2FC_TX_OUT_INIT_C;
    signal pgpRxRst        : sl := '0';
    signal pgpRxRstOutLane : sl := '0';
    signal pgpRxResetDone  : sl := '0';
@@ -143,8 +147,11 @@ begin
       generic map (
          TPD_G            => TPD_G,
          SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
+         LANE_G           => LANE_G,
          AXIL_CLK_FREQ_G  => AXI_CLK_FREQ_G,
          AXIL_BASE_ADDR_G => AXI_BASE_ADDR_G,
+         FC_EMU_LANE_G    => FC_EMU_LANE_G,
+         FC_EMU_GEN_G     => FC_EMU_GEN_G,
          NUM_VC_EN_G      => NUM_VC_EN_G)
       port map (
          pgpTxP          => pgpTxP,           -- [out]
@@ -169,7 +176,7 @@ begin
          pgpTxOutClk     => pgpTxOutClk,      -- [out]
          pgpTxUsrClk     => pgpTxUsrClk,      -- [in]
          pgpTxIn         => pgpTxIn,          -- [in]
-         pgpTxOut        => pgpTxOut,         -- [out]
+         pgpTxOut        => pgpTxOutLane,     -- [out]
          pgpTxMasters    => pgpTxMasters,     -- [in]
          pgpTxSlaves     => pgpTxSlaves,      -- [out]
          axilClk         => axilClk,          -- [in]
@@ -200,7 +207,7 @@ begin
             pgpTxClk     => pgpTxUsrClk,
             pgpTxRst     => pgpTxRstOutLane,
             pgpRxOut     => pgpRxOut,
-            pgpTxOut     => pgpTxOut,
+            pgpTxOut     => pgpTxOutLane,
             pgpTxMasters => pgpTxMasters,
             pgpTxSlaves  => pgpTxSlaves);
 
@@ -228,5 +235,7 @@ begin
             pgpRxCtrl       => pgpRxCtrl);
 
    end generate GEN_VC;
+
+   pgpTxOut <= pgpTxOutLane;
 
    end mapping;
