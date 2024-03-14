@@ -246,6 +246,28 @@ begin
          pciTxP          => pciTxP,
          pciTxN          => pciTxN);
 
+   ---------------------
+   -- AXI-Lite Crossbar
+   ---------------------
+   U_XBAR : entity surf.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
+         MASTERS_CONFIG_G   => AXIL_XBAR_CFG_C)
+      port map (
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
+         sAxiWriteMasters(0) => axilWriteMaster,
+         sAxiWriteSlaves(0)  => axilWriteSlave,
+         sAxiReadMasters(0)  => axilReadMaster,
+         sAxiReadSlaves(0)   => axilReadSlave,
+         mAxiWriteMasters    => axilWriteMasters,
+         mAxiWriteSlaves     => axilWriteSlaves,
+         mAxiReadMasters     => axilReadMasters,
+         mAxiReadSlaves      => axilReadSlaves);
+
+
    -------------------------------------------------------------------------------------------------
    -- Fast Control Receiver
    -------------------------------------------------------------------------------------------------
@@ -256,22 +278,22 @@ begin
          AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_C,
          AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(FC_RX_AXIL_C).baseAddr)
       port map (
-         fcRefClk185P    => fcRefClk185P,     -- [in]
-         fcRefClk185N    => fcRefClk185N,     -- [in]
-         fcRecClkP       => fcRecClkP,        -- [out]
-         fcRecClkN       => fcRecClkN,        -- [out]
-         fcTxP           => fcTxP,            -- [out]
-         fcTxN           => fcTxN,            -- [out]
-         fcRxP           => fcRxP,            -- [in]
-         fcRxN           => fcRxN,            -- [in]
-         fcClk185        => fcClk185,         -- [out]
-         fcRst185        => fcRst185,         -- [out]
-         fcBus           => fcBus,            -- [out]
-         fcFb            => FC_FB_INIT_C,     -- [in]
-         fcBunchClk37    => open,             -- [out]
-         fcBunchRst37    => open,             -- [out]
-         axilClk         => axilClk,          -- [in]
-         axilRst         => axilRst,          -- [in]
+         fcRefClk185P    => fcRefClk185P,                    -- [in]
+         fcRefClk185N    => fcRefClk185N,                    -- [in]
+         fcRecClkP       => fcRecClkP,                       -- [out]
+         fcRecClkN       => fcRecClkN,                       -- [out]
+         fcTxP           => fcTxP,                           -- [out]
+         fcTxN           => fcTxN,                           -- [out]
+         fcRxP           => fcRxP,                           -- [in]
+         fcRxN           => fcRxN,                           -- [in]
+         fcClk185        => fcClk185,                        -- [out]
+         fcRst185        => fcRst185,                        -- [out]
+         fcBus           => fcBus,                           -- [out]
+         fcFb            => FC_FB_INIT_C,                    -- [in]
+         fcBunchClk37    => open,                            -- [out]
+         fcBunchRst37    => open,                            -- [out]
+         axilClk         => axilClk,                         -- [in]
+         axilRst         => axilRst,                         -- [in]
          axilReadMaster  => axilReadMasters(FC_RX_AXIL_C),   -- [in]
          axilReadSlave   => axilReadSlaves(FC_RX_AXIL_C),    -- [out]
          axilWriteMaster => axilWriteMasters(FC_RX_AXIL_C),  -- [in]
@@ -290,24 +312,24 @@ begin
          AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_C,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(FEB_PGP_AXIL_C).baseAddr)
       port map (
-         pgpFcRefClkP    => febPgpFcRefClkP,  -- [in]
-         pgpFcRefClkN    => febPgpFcRefClkN,  -- [in]
-         pgpFcRxP        => febPgpFcRxP,      -- [in]
-         pgpFcRxN        => febPgpFcRxN,      -- [in]
-         pgpFcTxP        => febPgpFcTxP,      -- [out]
-         pgpFcTxN        => febPgpFcTxN,      -- [out]
-         fcClk185        => fcClk185,         -- [in]
-         fcRst185        => fcRst185,         -- [in]
-         fcBus           => fcBus,            -- [in]
-         dmaClk          => dmaClk,           -- [in]
-         dmaRst          => dmaRst,           -- [in]
-         dmaBuffGrpPause => dmaBuffGrpPause,  -- [in]
-         dmaObMasters    => dmaObMasters,     -- [in]
-         dmaObSlaves     => dmaObSlaves,      -- [out]
-         dmaIbMasters    => dmaIbMasters,     -- [out]
-         dmaIbSlaves     => dmaIbSlaves,      -- [in]
-         axilClk         => axilClk,          -- [in]
-         axilRst         => axilRst,          -- [in]
+         pgpFcRefClkP    => febPgpFcRefClkP,                   -- [in]
+         pgpFcRefClkN    => febPgpFcRefClkN,                   -- [in]
+         pgpFcRxP        => febPgpFcRxP,                       -- [in]
+         pgpFcRxN        => febPgpFcRxN,                       -- [in]
+         pgpFcTxP        => febPgpFcTxP,                       -- [out]
+         pgpFcTxN        => febPgpFcTxN,                       -- [out]
+         fcClk185        => fcClk185,                          -- [in]
+         fcRst185        => fcRst185,                          -- [in]
+         fcBus           => fcBus,                             -- [in]
+         dmaClk          => dmaClk,                            -- [in]
+         dmaRst          => dmaRst,                            -- [in]
+         dmaBuffGrpPause => dmaBuffGrpPause,                   -- [in]
+         dmaObMasters    => dmaObMasters,                      -- [in]
+         dmaObSlaves     => dmaObSlaves,                       -- [out]
+         dmaIbMasters    => dmaIbMasters,                      -- [out]
+         dmaIbSlaves     => dmaIbSlaves,                       -- [in]
+         axilClk         => axilClk,                           -- [in]
+         axilRst         => axilRst,                           -- [in]
          axilReadMaster  => axilReadMasters(FEB_PGP_AXIL_C),   -- [in]
          axilReadSlave   => axilReadSlaves(FEB_PGP_AXIL_C),    -- [out]
          axilWriteMaster => axilWriteMasters(FEB_PGP_AXIL_C),  -- [in]

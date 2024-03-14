@@ -73,14 +73,14 @@ end TrackerPgpFcArray;
 
 architecture mapping of TrackerPgpFcArray is
 
-   constant NUM_AXI_MASTERS_C : natural := PGP_QUADS_G*4;
+   constant NUM_AXIL_MASTERS_C : natural := PGP_QUADS_G*4;
 
-   constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXIL_BASE_ADDR_G, 20, 16);
+   constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 20, 16);
 
-   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
-   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
-   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
-   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
+   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
 
    signal pgpFcRefClk          : slv(PGP_QUADS_G-1 downto 0);
    signal pgpFcUserRefClkOdiv2 : slv(PGP_QUADS_G-1 downto 0);
@@ -100,8 +100,8 @@ begin
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
-         NUM_MASTER_SLOTS_G => NUM_AXI_MASTERS_C,
-         MASTERS_CONFIG_G   => AXI_CONFIG_C)
+         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
+         MASTERS_CONFIG_G   => AXIL_XBAR_CFG_C)
       port map (
          axiClk              => axilClk,
          axiClkRst           => axilRst,
@@ -153,7 +153,7 @@ begin
                DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G,
                LANE_G            => quad*4+lane,
                AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_G,
-               AXIL_BASE_ADDR_G  => AXI_CONFIG_C(quad*4+lane).baseAddr,
+               AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(quad*4+lane).baseAddr,
                NUM_VC_EN_G       => NUM_VC_EN_G)
             port map (
                -- PGP Serial Ports
