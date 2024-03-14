@@ -292,5 +292,4 @@ begin
    pgpTxIn.fcWord(FC_LEN_C-1 downto 0) <= fcMsg.message;
 
 
-
 end architecture rtl;

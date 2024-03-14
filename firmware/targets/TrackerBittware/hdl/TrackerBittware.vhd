@@ -372,22 +372,48 @@ begin
    -- Dummy GTs
    -- Need dummy on every unused GTY in port IO
    -------------------------------------------------------------------------------------------------
---    DUMMY_GEN_1: for i in 3 downto 1 generate
---    U_Gtye4ChannelDummy_1: entity surf.Gtye4ChannelDummy
---       generic map (
---          TPD_G        => TPD_G,
---          SIMULATION_G => SIMULATION_G,
---          WIDTH_G      => WIDTH_G)
---       port map (
---          refClk   => refClk,            -- [in]
---          rxoutclk => rxoutclk,          -- [out]
---          gtRxP    => gtRxP,             -- [in]
---          gtRxN    => gtRxN,             -- [in]
---          gtTxP    => gtTxP,             -- [out]
---          gtTxN    => gtTxN);            -- [out]
+   DUMMY_GEN_1 : for i in 3 downto 1 generate
+      U_Gtye4ChannelDummy_1 : entity surf.Gtye4ChannelDummy
+         generic map (
+            TPD_G        => TPD_G,
+            SIMULATION_G => SIMULATION_G,
+            WIDTH_G      => WIDTH_G)
+         port map (
+            refClk => axilCLk,          -- [in]
+            gtRxP  => qsfpRxP(i),       -- [in]
+            gtRxN  => qsfpRxN(i),       -- [in]
+            gtTxP  => qsfpTxP(i),       -- [out]
+            gtTxN  => qsfpTxN(i));      -- [out]
+   end generate DUMMY_GEN_1;
 
---    end generate DUMMY_GEN_1;
+   DUMMY_GEN_2 : for i in 15 downto 4 generate
+      U_Gtye4ChannelDummy_1 : entity surf.Gtye4ChannelDummy
+         generic map (
+            TPD_G        => TPD_G,
+            SIMULATION_G => SIMULATION_G,
+            WIDTH_G      => WIDTH_G)
+         port map (
+            refClk => axilCLk,          -- [in]
+            gtRxP  => qsfpRxP(i),       -- [in]
+            gtRxN  => qsfpRxN(i),       -- [in]
+            gtTxP  => qsfpTxP(i),       -- [out]
+            gtTxN  => qsfpTxN(i));      -- [out]
+   end generate DUMMY_GEN_2;
 
+   DUMMY_GEN_3 : for i in 31 downto 24 generate
+      U_Gtye4ChannelDummy_1 : entity surf.Gtye4ChannelDummy
+         generic map (
+            TPD_G        => TPD_G,
+            SIMULATION_G => SIMULATION_G,
+            WIDTH_G      => WIDTH_G)
+         port map (
+            refClk => axilCLk,          -- [in]
+            gtRxP  => qsfpRxP(i),       -- [in]
+            gtRxN  => qsfpRxN(i),       -- [in]
+            gtTxP  => qsfpTxP(i),       -- [out]
+            gtTxN  => qsfpTxN(i));      -- [out]
+   end generate DUMMY_GEN_3;
+   
 
 
 end rtl;
