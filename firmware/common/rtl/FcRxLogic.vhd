@@ -62,8 +62,8 @@ architecture rtl of FcRxLogic is
       rorLatch       : sl;
       fcClkLost      : sl;
       fcBunchClk37   : sl;
-      rorCount       : slv(15 downto 0);
-      fcClkAxilRst   : sl;
+      rorCount       : slv(31 downto 0);
+      bunchClkAxiRst   : sl;
       fcClk37Rst     : sl;
       fcBus          : FastControlBusType;
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -78,7 +78,7 @@ architecture rtl of FcRxLogic is
       fcClkLost      => '1',
       fcBunchClk37   => '0',
       rorCount       => (others => '0'),
-      fcClkAxilRst   => '0',
+      bunchClkAxiRst   => '0',
       fcClk37Rst     => '0',
       fcBus          => FC_BUS_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
@@ -217,12 +217,12 @@ begin
       axiSlaveRegisterR(axilEp, X"00", 0, r.fcBus.bunchClkAligned);
       axiSlaveRegisterR(axilEp, X"04", 0, r.rorCount);
       axiSlaveRegisterR(axilEp, X"10", 0, r.fcBus.fcMsg.message);
-      axiSlaveRegister(axilEp, X"24", 0, v.fcClkAxilRst);  -- Allows software reprogramming of CM
+      axiSlaveRegister(axilEp, X"24", 0, v.bunchClkAxiRst);  -- Allows software reprogramming of CM
       -- Add trigger enable register to replace feb config equivalent?
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
-      v.fcClk37Rst := r.fcClkAxilRst or r.fcClkLost;
+      v.fcClk37Rst := r.bunchClkAxiRst or r.fcClkLost;
 
       syncAxilReadSlave  <= r.axilReadSlave;
       syncAxilWriteSlave <= r.axilWriteSlave;
