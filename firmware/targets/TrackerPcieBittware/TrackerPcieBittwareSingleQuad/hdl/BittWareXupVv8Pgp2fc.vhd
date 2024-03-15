@@ -42,8 +42,7 @@ entity BittWareXupVv8Pgp2fc is
       PGP_LANES_G          : integer                     := 4;
       PGP_QUADS_G          : integer                     := 1; -- change xdc with clock groups if you change this
       FC_EMU_LANE_G        : integer                     := 16;
-      FC_EMU_GEN_G         : boolean                     := false;
-      DBG_RX_G             : boolean                     := true;
+      FC_EMU_GEN_G         : boolean                     := true;
       BUILD_INFO_G         : BuildInfoType);
    port (
       ---------------------
@@ -66,7 +65,7 @@ entity BittWareXupVv8Pgp2fc is
       -- System Ports
       userClkP       : in  sl;
       userClkN       : in  sl;
-      extPps         : out sl;
+      ledL           : out slv(3 downto 0);
       -- PCIe Ports
       pciRstL        : in  sl;
       pciRefClkP     : in  sl;
@@ -194,8 +193,7 @@ begin
          FC_EMU_LANE_G     => FC_EMU_LANE_G,
          FC_EMU_GEN_G      => FC_EMU_GEN_G,
          AXI_CLK_FREQ_G    => AXI_CLK_FREQ_C,
-         AXI_BASE_ADDR_G   => X"0080_0000",
-         DBG_RX_G          => DBG_RX_G)
+         AXI_BASE_ADDR_G   => X"0080_0000")
       port map (
          qsfpRefClkP     => qsfpRefClkP,      -- [in]
          qsfpRefClkN     => qsfpRefClkN,      -- [in]
@@ -212,7 +210,9 @@ begin
          dmaObSlaves     => dmaObSlaves,      -- [out]
          dmaIbMasters    => dmaIbMasters,     -- [out]
          dmaIbSlaves     => dmaIbSlaves,      -- [in]
-         dbgOut          => extPps,           -- [out]
+         dbgRorTx        => ledL(3),          -- [out]
+         dbgRorRx        => ledL(2),          -- [out]
+         dbgRecClk       => ledL(1),          -- [out]
          axilClk         => axilClk,          -- [in]
          axilRst         => axilRst,          -- [in]
          axilReadMaster  => axilReadMaster,   -- [in]

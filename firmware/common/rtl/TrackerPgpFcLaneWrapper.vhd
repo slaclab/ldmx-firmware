@@ -46,7 +46,6 @@ entity TrackerPgpFcLaneWrapper is
       AXI_BASE_ADDR_G   : slv(31 downto 0)     := (others => '0');
       TX_ENABLE_G       : boolean              := true;
       RX_ENABLE_G       : boolean              := true;
-      DBG_RX_G          : boolean              := true;
       NUM_VC_EN_G       : integer range 0 to 4 := 4);
    port (
       -- QSFP-DD Ports
@@ -67,7 +66,9 @@ entity TrackerPgpFcLaneWrapper is
       dmaIbMasters    : out AxiStreamMasterArray(PGP_QUADS_G-1 downto 0);
       dmaIbSlaves     : in  AxiStreamSlaveArray(PGP_QUADS_G-1 downto 0);
       -- Misc
-      dbgOut          : out sl;
+      dbgRorTx        : out sl;
+      dbgRorRx        : out sl;
+      dbgRecClk       : out sl;
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -89,17 +90,17 @@ architecture mapping of TrackerPgpFcLaneWrapper is
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
 
-   signal mgtRefClk        : slv(PGP_QUADS_G-1   downto 0);
-   signal mgtUserRefClk    : slv(PGP_QUADS_G-1   downto 0);
-   signal userRefClk       : slv(PGP_QUADS_G-1   downto 0);
-   signal pgpRxRecClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
+   signal mgtRefClk        : slv(PGP_QUADS_G-1   downto 0) := (others => '0');
+   signal mgtUserRefClk    : slv(PGP_QUADS_G-1   downto 0) := (others => '0');
+   signal userRefClk       : slv(PGP_QUADS_G-1   downto 0) := (others => '0');
+   signal pgpRxRecClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0) := (others => '0');
 
-   signal pgpTxOutClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
-   signal pgpRxOutClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
-   signal pgpTxUsrClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
-   signal pgpRxUsrClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
+   signal pgpTxOutClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0) := (others => '0');
+   signal pgpRxOutClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0) := (others => '0');
+   signal pgpTxUsrClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0) := (others => '0');
+   signal pgpRxUsrClk      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0) := (others => '0');
 
-   signal pgpTxRstOut      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
+   signal pgpTxRstOut      : slv(PGP_QUADS_G*PGP_LANES_G-1 downto 0) := (others => '0');
 
    signal pgpObMasters     : AxiStreamMasterArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
    signal pgpObSlaves      : AxiStreamSlaveArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0);
@@ -112,9 +113,6 @@ architecture mapping of TrackerPgpFcLaneWrapper is
                            := (others => DEFAULT_FC_BUS_C);
    signal pgpTxOut         : Pgp2fcTxOutArray(PGP_QUADS_G*PGP_LANES_G-1 downto 0)
                            := (others => PGP2FC_TX_OUT_INIT_C);
-
-   signal validRx          : sl;
-   signal validTx          : sl;
 
 begin
 
@@ -219,8 +217,13 @@ begin
 
       end generate GEN_LANE;
 
-      dbgOut <= ite(DBG_RX_G, fcBusRx(FC_EMU_LANE_G).fcMsg.valid,
-                              pgpTxOut(FC_EMU_LANE_G).fcSent);
+      dbgRorTx  <= pgpTxOut(FC_EMU_LANE_G).fcSent;
+      dbgRorRx  <= fcBusRx(FC_EMU_LANE_G).fcMsg.valid;
+
+      -- debug recovered clock if multiQuad scenario
+      GEN_DBG_RECCLK : if PGP_QUADS_G >= 4 generate
+         dbgRecClk <= userRefClk(4); -- hardcode to quad=4
+      end generate GEN_DBG_RECCLK;
 
       ----------------------------------------------------------------------------------------------
       -- Mux each quad of lanes together

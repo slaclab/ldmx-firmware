@@ -18,6 +18,9 @@ import ldmx
 
 rogue.Logging.setFilter('pyrogue.SrpV3', rogue.Logging.Debug)
 
+def intList(arg):
+    return list(map(int, arg.split(',')))
+
 ##########################################################################
 # inherit everything from the original parser and add a couple more stuff
 ##########################################################################
@@ -43,9 +46,18 @@ class PgpLaneHealthCheckerParser(ldmx.TrackerPciePgpFcArgParser):
             default = False)
 
         self.add_argument(
+            "--verbose",
+            action = 'store_true',
+            default = False)
+
+        self.add_argument(
             "--rstCnt",
             action = 'store_true',
             default = False)
+
+        self.add_argument(
+            "--quadRstList",
+            type=intList)
 
 
 ####################################################################################################
@@ -54,14 +66,16 @@ class PgpLaneHealthCheckerParser(ldmx.TrackerPciePgpFcArgParser):
 class BoardHandler():
     def __init__(self, board, args):
         # arguments
-        self.board = board
-        self.args  = args
+        self.board   = board
+        self.args    = args
+        self.verbose = self.args.verbose
 
         # nodes and variables
         self.lanes            = []
         self.quads            = []
 
         self.alignChecker     = []
+        self.pgp2fc           = []
         self.lockFlag         = []
         self.rxClkFreq        = []
         self.retryCnt         = []
@@ -120,6 +134,20 @@ class BoardHandler():
     def alignCheckerAppend(self, quad, lane):
         self.alignChecker.append(self.board.PgpFc.PgpLane[quad][lane].PgpFcGtyCoreWrapper.GtRxAlignCheck)
 
+    def rstQuads(self, quadRstList):
+        for quad in range(len(quadRstList)):
+            print(f"Resetting all Lanes of Quad = {quad}...")
+            for lane in range(4):
+                print(f"Lane = {lane}")
+                print("Issue ResetGt")
+                self.board.PgpFc.PgpLane[quad][lane].Pgp2fcAxi.ResetGt()
+                time.sleep(1.0)
+                print("Issue ResetTx")
+                self.board.PgpFc.PgpLane[quad][lane].Pgp2fcAxi.ResetTx()
+                time.sleep(1.0)
+                print("Issue ResetRx")
+                self.board.PgpFc.PgpLane[quad][lane].Pgp2fcAxi.ResetRx()
+
     def alignCheckerRead(self):
         for alignCheckerNode in range(len(self.alignChecker)):
             self.lockFlag.append(self.alignChecker[alignCheckerNode].Locked.get())
@@ -164,6 +192,12 @@ class BoardHandler():
         for i in range(len(self.quads)):
             print(self._format.format(self.quads[i], self.lanes[i], '{0:.5f}'.format(self.rxClkFreq[i]), self.retryCnt[i], self.lockFlag[i], self.rxLocalLinkReady[i], self.rxRemLinkReady[i], self.rxLinkErrorCnt[i]))
 
+    def _simpleAlignStatusPrinter(self):
+        self._alignStatusFormatter()
+        system('clear')
+        for i in range(len(self.quads)):
+            print(f"Quad = {self.quads[i]}, Lane = {self.lanes[i]}, LocalUp = {self.lockFlag[i] and self.rxLocalLinkReady[i]}, RemoteUp = {self.rxRemLinkReady[i]}")
+
     def _prbsStatusPrinter(self):
         self._prbsStatusFormatter()
         system('clear')
@@ -191,10 +225,15 @@ class BoardHandler():
         self.prbsRxCnts.clear()
 
     def _doAllChecks(self):
+        if self.args.quadRstList:
+            self.rstQuads(quadRstList=self.args.quadRstList)
         self.alignStatusParser()
         self.alignCheckerRead()
         self.pgpMonRead()
-        self._alignStatusPrinter()
+        if self.vebose:
+            self._alignStatusPrinter()
+        else:
+            self._simpleAlignStatusPrinter()
         self.cntReset()
         self._clearAll()
 

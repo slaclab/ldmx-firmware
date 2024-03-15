@@ -26,6 +26,7 @@ class TrackerPciePgpFcRoot(pr.Root):
     def __init__(
             self,
             dev = '/dev/datadev_0',
+            pollEn = False,
             sim = False,
             prbsEn = False,
             numLanes = 1,
@@ -35,6 +36,8 @@ class TrackerPciePgpFcRoot(pr.Root):
         super().__init__(**kwargs)
 
 #################################################################
+
+        self._pollEn   = pollEn
 
         self.dmaStream = [[None for x in range(numVc)] for y in range(numLanes)]
         self.prbsRx    = [[None for x in range(numVc)] for y in range(numLanes)]
