@@ -196,7 +196,7 @@ class BoardHandler():
         self._alignStatusFormatter()
         system('clear')
         for i in range(len(self.quads)):
-            print(f"Quad = {self.quads[i]}, Lane = {self.lanes[i]}, LocalUp = {self.lockFlag[i] and self.rxLocalLinkReady[i]}, RemoteUp = {self.rxRemLinkReady[i]}")
+            print(f"Quad = {self.quads[i]}, Lane = {self.lanes[i]}, LocalUp = {int(self.lockFlag[i] and self.rxLocalLinkReady[i])}, RemoteUp = {int(self.rxRemLinkReady[i])}")
 
     def _prbsStatusPrinter(self):
         self._prbsStatusFormatter()
@@ -225,12 +225,10 @@ class BoardHandler():
         self.prbsRxCnts.clear()
 
     def _doAllChecks(self):
-        if self.args.quadRstList:
-            self.rstQuads(quadRstList=self.args.quadRstList)
         self.alignStatusParser()
         self.alignCheckerRead()
         self.pgpMonRead()
-        if self.vebose:
+        if self.verbose:
             self._alignStatusPrinter()
         else:
             self._simpleAlignStatusPrinter()
@@ -252,6 +250,9 @@ args = parser.parse_args()
 
 with ldmx.TrackerPciePgpFcRoot(dev=args.dev, sim=args.sim, prbsEn=args.prbsEn, numLanes=args.numLanes) as root:
     handler = BoardHandler(board=root, args=args)
+
+    if args.quadRstList:
+            handler.rstQuads(quadRstList=args.quadRstList)
 
     if args.oneRead:
         handler._doAllChecks()
