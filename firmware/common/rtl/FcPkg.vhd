@@ -46,7 +46,7 @@ package FcPkg is
    type FastControlMessageType is record
       valid        : sl;
       msgType      : slv(3 downto 0);
-      -- reserved : slv(5 downto 0);
+      -- reserxved : slv(5 downto 0);
       bunchCount   : slv(5 downto 0);
       runState     : slv(4 downto 0);
       stateChanged : sl;

@@ -41,10 +41,10 @@ entity S30xlAppCore is
       appFcTxN     : out sl;
 
       -- TS Interface
-      tsRefClkP : in sl;
-      tsRefClkN : in sl;
-      tsRxP     : in sl;
-      tsRxN     : in sl;
+      tsRefClk250P : in sl;
+      tsRefClk250N : in sl;
+      tsDataRxP     : in sl;
+      tsDataRxN     : in sl;
 
       -- AXI Lite interface
       axilClk         : in  sl;
@@ -88,9 +88,6 @@ begin
    -- (Encodes trigger data for transmission to GT)
    -------------------------------------------------------------------------------------------------
 
-   -------------------------------------------------------------------------------------------------
-   -- Global Trigger Emulator Block? Or does this go outside?
-   -------------------------------------------------------------------------------------------------
 
 end architecture rtl;
 

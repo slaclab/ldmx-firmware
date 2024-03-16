@@ -37,9 +37,9 @@ entity FcRxLogic is
       fcRst185     : in  sl;
       fcValid      : in  sl;
       fcWord       : in  slv(FC_LEN_C-1 downto 0);
+      fcBus        : out FastControlBusType;      
       fcBunchClk37 : out sl;
       fcBunchRst37 : out sl;
-      fcBus        : out FastControlBusType;
 
       -- Axil inteface
       axilClk         : in  sl;
