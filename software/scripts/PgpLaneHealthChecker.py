@@ -135,7 +135,8 @@ class BoardHandler():
         self.alignChecker.append(self.board.PgpFc.PgpLane[quad][lane].PgpFcGtyCoreWrapper.GtRxAlignCheck)
 
     def rstQuads(self, quadRstList):
-        for quad in range(len(quadRstList)):
+        for i in range(len(quadRstList)):
+            quad = quadRstList[i]
             print(f"Resetting all Lanes of Quad = {quad}...")
             for lane in range(4):
                 print(f"Lane = {lane}")
