@@ -161,6 +161,29 @@ begin
          txUsrClk    => pgpTxUsrClk,
          rxUsrClk    => pgpRxUsrClk);
 
+   U_StretchDbgRorTx : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 10)
+      port map (
+         clk     => pgpTxUsrClk(FC_EMU_LANE_G),
+         dataIn  => pgpTxOut(FC_EMU_LANE_G).fcSent,
+         dataOut => dbgRorTx);
+
+   U_StretchDbgRorRx : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 10)
+      port map (
+         clk     => pgpRxUsrClk(FC_EMU_LANE_G),
+         dataIn  => fcBusRx(FC_EMU_LANE_G).fcMsg.valid,
+         dataOut => dbgRorRx);
+
+   -- debug recovered clock if multiQuad scenario
+   GEN_DBG_RECCLK : if PGP_QUADS_G >= 4 generate
+      dbgRecClk <= userRefClk(4); -- hardcode to quad=4
+   end generate GEN_DBG_RECCLK;
+
    ------------
    -- PGP Lanes
    ------------
@@ -216,29 +239,6 @@ begin
                axilWriteSlave  => axilWriteSlaves(quad*PGP_LANES_G+lane));
 
       end generate GEN_LANE;
-
-      U_StretchDbgRorTx : entity surf.SynchronizerOneShot
-         generic map (
-            TPD_G         => TPD_G,
-            PULSE_WIDTH_G => 10)
-         port map (
-            clk     => pgpTxUsrClk(FC_EMU_LANE_G),
-            dataIn  => pgpTxOut(FC_EMU_LANE_G).fcSent,
-            dataOut => dbgRorTx);
-
-      U_StretchDbgRorRx : entity surf.SynchronizerOneShot
-         generic map (
-            TPD_G         => TPD_G,
-            PULSE_WIDTH_G => 10)
-         port map (
-            clk     => pgpRxUsrClk(FC_EMU_LANE_G),
-            dataIn  => fcBusRx(FC_EMU_LANE_G).fcMsg.valid,
-            dataOut => dbgRorRx);
-
-      -- debug recovered clock if multiQuad scenario
-      GEN_DBG_RECCLK : if PGP_QUADS_G >= 4 generate
-         dbgRecClk <= userRefClk(4); -- hardcode to quad=4
-      end generate GEN_DBG_RECCLK;
 
       ----------------------------------------------------------------------------------------------
       -- Mux each quad of lanes together
