@@ -217,8 +217,23 @@ begin
 
       end generate GEN_LANE;
 
-      dbgRorTx  <= pgpTxOut(FC_EMU_LANE_G).fcSent;
-      dbgRorRx  <= fcBusRx(FC_EMU_LANE_G).fcMsg.valid;
+      U_StretchDbgRorTx : entity surf.SynchronizerOneShot
+         generic map (
+            TPD_G         => TPD_G,
+            PULSE_WIDTH_G => 10)
+         port map (
+            clk     => pgpTxUsrClk(FC_EMU_LANE_G),
+            dataIn  => pgpTxOut(FC_EMU_LANE_G).fcSent,
+            dataOut => dbgRorTx);
+
+      U_StretchDbgRorRx : entity surf.SynchronizerOneShot
+         generic map (
+            TPD_G         => TPD_G,
+            PULSE_WIDTH_G => 10)
+         port map (
+            clk     => pgpRxUsrClk(FC_EMU_LANE_G),
+            dataIn  => fcBusRx(FC_EMU_LANE_G).fcMsg.valid,
+            dataOut => dbgRorRx);
 
       -- debug recovered clock if multiQuad scenario
       GEN_DBG_RECCLK : if PGP_QUADS_G >= 4 generate
