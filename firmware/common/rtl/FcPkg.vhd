@@ -71,16 +71,20 @@ package FcPkg is
    -------------------------------------------------------------------------------------------------
    -- Readout Request Fields
    -------------------------------------------------------------------------------------------------
-   type FcReadoutRequestType is record
+   type FcTimestampType is record
       valid      : sl;
       bunchCount : slv(5 downto 0);
       pulseId    : slv(63 downto 0);
-   end record FcReadoutRequestType;
+   end record FcTimestampType;
 
-   constant FC_ROR_INIT_C : FcReadoutRequestType := (
+   constant FC_ROR_INIT_C : FcTimestampType := (
       valid      => '0',
       bunchCount => (others => '0'),
       pulseId    => (others => '0'));
+
+   function toSlv (
+      fcTimestamp : FcTimestampType)
+      return slv;
 
    -------------------------------------------------------------------------------------------------
    -- The Fast control receiver block outputs a bus of fast control data on this record
@@ -105,7 +109,7 @@ package FcPkg is
       runTime : slv(63 downto 0);
 
       -- Readout request data placed on this bus as received
-      readoutRequest : FcReadoutRequestType;
+      readoutRequest : FcTimestampType;
 
       -- All FC messages placed on this bus as they are received
       -- Might not be useful
