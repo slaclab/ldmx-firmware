@@ -30,6 +30,9 @@ entity S30xlAppCore is
    generic (
       TPD_G            : time             := 1 ns;
       SIM_SPEEDUP_G    : boolean          := false;
+      TS_LANES_G       : integer          := 2;
+      TS_REFCLKS_G     : integer          := 1;
+      TS_REFCLK_MAP_G  : IntegerArray     := (0 => 0, 1 => 0);  -- Map a refclk index to each fiber
       AXIL_BASE_ADDR_G : slv(31 downto 0) := X"00000000");
    port (
       -- FC Receiver
@@ -42,10 +45,10 @@ entity S30xlAppCore is
       appFcTxN     : out sl;
 
       -- TS Interface
-      tsRefClk250P : in sl;
-      tsRefClk250N : in sl;
-      tsDataRxP    : in sl;
-      tsDataRxN    : in sl;
+      tsRefClk250P : in slv(TS_REFCLKS_G-1 downto 0);
+      tsRefClk250N : in slv(TS_REFCLKS_G-1 downto 0);
+      tsDataRxP    : in slv(TS_LANES_G-1 downto 0);
+      tsDataRxN    : in slv(TS_LANES_G-1 downto 0);
 
       -- AXI Lite interface
       axilClk         : in  sl;
@@ -73,19 +76,19 @@ architecture rtl of S30xlAppCore is
 
    constant AXIL_XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(AXIL_NUM_C-1 downto 0) := (
       AXIL_FC_RX_C    => (
-         baseAddr     => X"00000000",
+         baseAddr     => X"0000_0000",
          addrBits     => 20,
          connectivity => X"FFFF"),
       AXIL_TS_RX_C    => (
-         baseAddr     => X"00100000",
-         addrBits     => 20,
+         baseAddr     => X"0100_0000",
+         addrBits     => 24,
          connectivity => X"FFFF"),
       AXIL_TS_DAQ_C   => (
-         baseAddr     => X"00200000",
+         baseAddr     => X"00100000",
          addrBits     => 8,
          connectivity => X"FFFF"),
       AXIL_TS_TRIG_C  => (
-         baseAddr     => X"00200100",
+         baseAddr     => X"00100100",
          addrBits     => 8,
          connectivity => X"FFFF"));
 
@@ -144,13 +147,16 @@ begin
    U_TsDataRx_1 : entity ldmx.TsDataRx
       generic map (
          TPD_G            => TPD_G,
+         TS_LANES_G       => TS_LANES_G,
+         TS_REFCLKS_G     => TS_REFCLKS_G,
+         TS_REFCLK_MAP_G  => TS_REFCLK_MAP_G,
          AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
          AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(AXIL_TS_RX_C).baseAddr)
       port map (
          tsRefClkP       => tsRefClkP,                          -- [in]
          tsRefClkN       => tsRefClkN,                          -- [in]
-         tsRxP           => tsRxP,                              -- [in]
-         tsRxN           => tsRxN,                              -- [in]
+         tsDataRxP       => tsDataRxP,                          -- [in]
+         tsDataRxN       => tsDataRxN,                          -- [in]
          fcClk185        => fcClk185,                           -- [in]
          fcRst185        => fcRst185,                           -- [in]
          fcBus           => fcBus,                              -- [in]

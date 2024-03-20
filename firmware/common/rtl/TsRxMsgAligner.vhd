@@ -33,11 +33,12 @@ use ldmx.FcPkg.all;
 entity TsRxMsgAligner is
 
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G      : time    := 1 ns;
+      TS_LANES_G : integer := 2);
    port (
-      tsClk250 : in sl;
-      tsRst250 : in sl;
-      tsRxMsg  : in TsData6ChMsgType;
+      tsRecClks : in slv(TS_LANES_G-1 downto 0);
+      tsRecRsts : in slv(TS_LANES_G-1 downto 0);
+      tsRxMsgs  : in TsData6ChMsgArray(TS_LANES_G-1 downto 0);
 
       -----------------------------
       -- Fast Control clock and bus
@@ -47,8 +48,8 @@ entity TsRxMsgAligner is
       fcBus    : in FastControlBusType;
 
       -- Output Sync'd to fcClk185
-      fcTsRxMsg : TsData6ChMsgType;
-      fcMsgTime : FcReadoutRequestType;
+      fcTsRxMsgs : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
+      fcMsgTime  : FcTimestampType;
 
       -- Axil inteface
       axilClk         : in  sl;
@@ -66,23 +67,31 @@ architecture rtl of TsRxMsgAligner is
    signal tsRxMsgSlv : slv(TS_DATA_6CH_MSG_SIZE_C-1 downto 0);
 
    -- fcClk185 signals
-   type TsRegType is record
-      tsMsgFifoRdEn       : sl;
+   type RegType is record
+      tsMsgFifoRdEn       : slv(TS_LANES_G-1 downto 0);
       timestampFifoRdEn   : sl;
       timestampFifoWrEn   : sl;
       timestampFifoWrData : slv(69 downto 0);
+      fcTsRxMsgs          : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
+      fcMsgTime           : FcTimestampType;
    end record RegType;
 
-   constant TS_REG_INIT_C : TsRegType := (
-      msgFifoWrEn => '0');
+   constant REG_INIT_C : RegType := (
+      tsMsgFifoRdEn       => (others => '0'),
+      timestampFifoRdEn   => '0',
+      timestampFifoWrEn   => '0',
+      timestampFifoWrData => (others => '0'),
+      fcTsRxMsgs          => (others => TS_DATA_8CH_MSG_INIT_C),
+      fcMsgTime           => FC_TIMESTAMP_INIT_C);
 
-   signal tsR   : TsRegType := REG_INIT_C;
-   signal tsRin : TsRegType;
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
    -- Ts Msg FIFO
-   signal tsMsgFifoRdData : slv(TS_DATA_6CH_MSG_SIZE_C-1 downto 0);
-   signal tsMsgFifoValid  : sl;
-   signal tsMsgFifoMsg    : TsData6ChMsgType;
+   signal tsMsgFifoWrData : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
+   signal tsMsgFifoRdData : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
+   signal tsMsgFifoValid  : slv(TS_LANES_G-1 downto 0);
+   signal tsMsgFifoMsgs   : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
 
    -- Timestamp FIFO
    signal timestampFifoRdData : slv(69 downto 0);
@@ -91,34 +100,37 @@ architecture rtl of TsRxMsgAligner is
 begin
 
    -------------------------------------------------------------------------------------------------
-   -- Incomming TS messages go into FIFO
+   -- Incomming TS messages go into FIFOs
    -- This should always have 0 or 1 entries since it is always read out.
    -- It's purpose is to align TS data to the FC clock
    -------------------------------------------------------------------------------------------------
-   tsRxMsgSlv <= toSlv(tsRxMsg);
-   U_Fifo_TsData : entity surf.Fifo
-      generic map (
-         TPD_G           => TPD_G,
-         GEN_SYNC_FIFO_G => false,
-         FWFT_EN_G       => true,
-         SYNTH_MODE_G    => "inferred",
-         MEMORY_TYPE_G   => "distributed",
-         PIPE_STAGES_G   => 0,
-         DATA_WIDTH_G    => TS_DATA_6CH_MSG_SIZE_C,
-         ADDR_WIDTH_G    => 4)
-      port map (
-         rst           => rst,              -- [in]
-         wr_clk        => tsClk250,         -- [in]
-         wr_en         => tsRxMsg.strobe,   -- [in]
-         din           => txRxMsgSlv,       -- [in]
-         wr_data_count => open,             -- [out]
-         rd_clk        => fcClk185,         -- [in]
-         rd_en         => r.tsMsgFifoRdEn,  -- [in]
-         dout          => tsMsgFifoRdData,  -- [out]
-         rd_data_count => open,             -- [out]
-         valid         => tsMsgFifoValid);  -- [out]
+   GEN_TS_RX_FIFOS : for i in TS_LANES_G-1 downto 0 generate
+      -- Convert to SLV for FIFO
+      tsMsgFifoWrData(i) <= toSlv(tsRxMsgs(i));
+      U_Fifo_TsData : entity surf.Fifo
+         generic map (
+            TPD_G           => TPD_G,
+            GEN_SYNC_FIFO_G => false,
+            FWFT_EN_G       => true,
+            SYNTH_MODE_G    => "inferred",
+            MEMORY_TYPE_G   => "distributed",
+            PIPE_STAGES_G   => 0,
+            DATA_WIDTH_G    => TS_DATA_6CH_MSG_SIZE_C,
+            ADDR_WIDTH_G    => 4)
+         port map (
+            rst           => tsRecClks(i),        -- [in]
+            wr_clk        => tsRecRsts(i),        -- [in]
+            wr_en         => tsRxMsgs(i).strobe,  -- [in]
+            din           => tsMsgFifoWrData(i),  -- [in]
+            wr_data_count => open,                -- [out]
+            rd_clk        => fcClk185,            -- [in]
+            rd_en         => r.tsMsgFifoRdEn(i),  -- [in]
+            dout          => tsMsgFifoRdData(i),  -- [out]
+            rd_data_count => open,                -- [out]
+            valid         => tsMsgFifoValid(i));  -- [out]
 
-   tsMsgFifoMsg <= toTsData6ChMsg(tsMsgFifoRdData, tsMsgFifoValid);
+      tsMsgFifoMsgs(i) <= toTsData6ChMsg(tsMsgFifoRdData(i), tsMsgFifoValid(i));
+   end generate GEN_TS_RX_FIFOS;
 
    -------------------------------------------------------------------------------------------------
    -- Timestamp FIFO
@@ -148,7 +160,7 @@ begin
          valid         => timestampFifoValid);    -- [out]   
 
 
-   comb : process (r, tsRst250, tsRxData, tsRxDataK) is
+   comb : process (fcBus, fcRst185, r, timestampFifoRdData, tsMsgFifoMsgs) is
       variable v : RegType := REG_INIT_C;
    begin
       v := r;
@@ -157,15 +169,17 @@ begin
       v.timestampFifoRdEn := '0';
       v.timestampFifoWrEn := '0';
 
-      v.fcTsRxMsg.strobe := '0';
-      v.fcMsgTime.valid  := '0';
+      STB_LOOP : for i in TS_LANES_G-1 downto 0 loop
+         v.fcTsRxMsg(i).strobe := '0';
+      end loop STB_LOOP;
+      v.fcMsgTime.valid := '0';
 
 
       case r.state is
          when WAIT_CLOCK_ALIGN_S =>
             -- Bleed off both fifo's when in reset state
             if (fcBus.runState = RUN_STATE_RESET_C) then
-               v.tsMsgFifoRdEn     := '1';
+               v.tsMsgFifoRdEn     := (others => '1');
                v.timestampFifoRdEn := '1';
             end if;
 
@@ -176,7 +190,7 @@ begin
                -- Start writing timestamps
                v.timestampFifoWrEn   := '1';
                v.timestampFifoWrData := fcBus.pulseId & fcBus.bunchClk;
-               v.state               := WAIT_BC0_S
+               v.state               := WAIT_BC0_S;
             end if;
 
          when WAIT_BC0_S =>
@@ -185,16 +199,18 @@ begin
                v.timestampFifoWrEn   := '1';
                v.timestampFifoWrData := fcBus.pulseId & fcBus.bunchClk;
 
-               -- Read a message from ts data fifo
-               v.tsMsgFifoRdEn := '1';
+               -- Read a message from ts data fifos
+               v.tsMsgFifoRdEn := (others => '1');
 
                -- If current message has BC0 set, then done aligning
-               if (fcTsRxMsg.valid = '1' and fcTsRxMsg.bc0 = '1') then
+               -- Punt on making sure multiple TS fibers are aligned for now
+               if (fcTsRxMsg(0).valid = '1' and fcTsRxMsg.bc0(0) = '1') then
                   -- Read from timestamp fifo and output ts data and fc timestamp together
                   v.timestampFifoRdEn    := '1';
-                  v.fcTsRxMsg            := fcTsRxMsg;
+                  v.fcTsRxMsgs           := tsMsgFifoMsgs;
                   v.fcMsgTime.pulseId    := timestampFifoRdData(70 downto 6);
                   v.fcMsgTime.bunchCount := timestampFifoRdData(5 downto 0);
+                  v.fcMsgTime.valid      := '1';
                   v.state                := ALIGNED_S;
                end if;
             end if;
@@ -211,11 +227,12 @@ begin
                v.timestampFifoWrData := fcBus.pulseId & fcBus.bunchClk;
 
                -- Read timestamp and rs data each bunch clock
-               v.tsMsgFifoRdEn        := '1';
+               v.tsMsgFifoRdEn        := (others => '1');
                v.timestampFifoRdEn    := '1';
-               v.fcTsRxMsg            := fcTsRxMsg;
+               v.fcTsRxMsgs           := tsMsgFifoMsgs;
                v.fcMsgTime.pulseId    := timestampFifoRdData(70 downto 6);
                v.fcMsgTime.bunchCount := timestampFifoRdData(5 downto 0);
+               v.fcMsgTime.valid      := '1';
             end if;
 
             -- Reset alignment when run state goes to reset
@@ -228,13 +245,13 @@ begin
       end case;
 
       -- Reset
-      if (fcClk185 = '1') then
+      if (fcRst185 = '1') then
          v := REG_INIT_C;
       end if;
 
       -- Outputs
-      fcTsRxMsg <= r.fcTsRxMsg;
-      fcMsgTime <= r.fcMsgTime;
+      fcTsRxMsgs <= r.fcTsRxMsgs;
+      fcMsgTime  <= r.fcMsgTime;
 
       rin <= v;
 

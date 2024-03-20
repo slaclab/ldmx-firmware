@@ -39,6 +39,8 @@ entity TsRxLogic is
    port (
       tsClk250  : in  sl;
       tsRst250  : in  sl;
+      tsPhyInit : out sl;
+      tsPhyResetDone : in sl;
       tsRxData  : in  slv(15 downto 0);
       tsRxDataK : in  slv(1 downto 0);
       tsRxMsg   : out TsData6ChMsgType;
@@ -47,9 +49,9 @@ entity TsRxLogic is
       axilClk         : in  sl;
       axilRst         : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilReadSlave   : out AxiLiteReadSlaveType := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+      axilWriteSlave  : out AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
 end entity TsRxLogic;
 

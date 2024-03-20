@@ -41,6 +41,9 @@ entity S30xlAPx is
       DHCP_G                   : boolean              := false;  -- true = DHCP, false = static address
       IP_ADDR_G                : slv(31 downto 0)     := x"0A01A8C0";  -- 192.168.1.10 (before DHCP)
       MAC_ADDR_G               : slv(47 downto 0)     := x"00_00_16_56_00_08";
+      TS_FIBERS_G              : integer              := 2;
+      TS_REFCLKS_G             : integer              := 1;
+      TS_REFCLK_MAP_G          : IntegerArray         := (0 => 0, 1 => 0);  -- Map a refclk index to each fiber
       FC_HUB_REFCLKS_G         : integer range 1 to 4 := 2;
       FC_HUB_QUADS_G           : integer range 1 to 4 := 4;
       FC_HUB_QUAD_REFCLK_MAP_G : IntegerArray         := (0 => 0, 1 => 0, 2 => 1, 3 => 1));  -- Map a refclk for each quad
@@ -59,8 +62,8 @@ entity S30xlAPx is
       lclsTimingTxP        : out sl;
       lclsTimingTxN        : out sl;
       -- Recovered Clock output for jitter cleaning
-      lclsTimingRecClkOutP : out slv(1 downto 0);
-      lclsTimingRecClkOutN : out slv(1 downto 0);
+      lclsTimingRecClkOutP : out slv(TS_FIBERS_G-1 downto 0);
+      lclsTimingRecClkOutN : out slv(TS_FIBERS_G-1 downto 0);
 
       ----------------------------------------------------------------------------------------------
       -- FC HUB Interface
@@ -90,10 +93,10 @@ entity S30xlAPx is
       ----------------------------------------------------------------------------------------------
       -- App TS Interface
       ----------------------------------------------------------------------------------------------
-      tsRefClk250P : in sl;
-      tsRefClk250N : in sl;
-      tsDataRxP    : in sl;
-      tsDataRxN    : in sl;
+      tsRefClk250P : in slv(TS_REFCLKS_G-1 downto 0);
+      tsRefClk250N : in slv(TS_REFCLKS_G-1 downto 0);
+      tsDataRxP    : in slv(TS_FIBERS_G-1 downto 0);
+      tsDataRxN    : in slv(TS_FIBERS_G-1 downto 0);
 
       ----------------------------------------------------------------------------------------------
       -- Ethernet refclk and interface
@@ -298,6 +301,9 @@ begin
    U_S30xlAppCore_1 : entity ldmx.S30xlAppCore
       generic map (
          TPD_G            => TPD_G,
+         TS_FIBERS_G      => TS_FIBERS_G,
+         TS_REFCLKS_G     => TS_REFCLKS_G,
+         TS_REFCLK_MAP_G  => TS_REFCLK_MAP_G,
          AXIL_BASE_ADDR_G => AXIL_XBAR_CONFIG_C(AXIL_APP_CORE_C).baseAddr)
       port map (
          appFcRefClkP    => appFcRefClkP,     -- [in]

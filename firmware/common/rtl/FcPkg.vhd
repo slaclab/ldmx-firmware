@@ -77,7 +77,7 @@ package FcPkg is
       pulseId    : slv(63 downto 0);
    end record FcTimestampType;
 
-   constant FC_ROR_INIT_C : FcTimestampType := (
+   constant FC_TIMESTAMP_INIT_C : FcTimestampType := (
       valid      => '0',
       bunchCount => (others => '0'),
       pulseId    => (others => '0'));

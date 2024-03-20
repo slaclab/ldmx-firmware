@@ -42,6 +42,8 @@ package TsPkg is
       adc    => (others => (others => '0')),
       tdc    => (others => (others => '0')));
 
+   type TsData8ChMsgArray is array (natural range <>) of TsData8ChMsgType ;  
+
 
    type TsData6ChMsgType is record
       strobe : sl;                      -- Indicates new data
@@ -60,7 +62,12 @@ package TsPkg is
       adc    => (others => (others => '0')),
       tdc    => (others => (others => '0')));
 
+   type TsData6ChMsgArray is array (natural range <>) of TsData6ChMsgType;
+
    constant TS_DATA_6CH_MSG_SIZE_C : integer := 88;
+
+   subtype TsData6ChMsgSlvType is slv(TS_DATA_6CH_MSG_SIZE_C-1 downto 0);
+   type TsData6ChMsgSlvArray is array (natural range <>) of TsData6ChMsgSlvType;
 
    function toSlv (
       tsData : TsData6ChMsgType)
@@ -96,7 +103,7 @@ package body TsPkg is
    end function toSlv;
 
    function toTsData6ChMsg (
-      vector : slv(TS_DATA_6CH_MSG_SIZE_C-1 downto 0),
+      vector : slv(TS_DATA_6CH_MSG_SIZE_C-1 downto 0);
       valid  : sl := '0')
       return TsData6ChMsgType
    is
