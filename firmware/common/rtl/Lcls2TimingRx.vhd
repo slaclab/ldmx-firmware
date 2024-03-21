@@ -270,7 +270,7 @@ begin
             clkIn     => timingRxOutClkGt,
             rstIn     => rxStatus.resetDone,
             clkOut(0) => timingRxOutClk,
-            rstOut(0) => open,
+--            rstOut(0) => open,
             locked    => rxUsrClkActive);
       
    end generate RX_CLK_MMCM_GEN;

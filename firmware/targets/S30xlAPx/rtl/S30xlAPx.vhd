@@ -41,7 +41,7 @@ entity S30xlAPx is
       DHCP_G                   : boolean              := false;  -- true = DHCP, false = static address
       IP_ADDR_G                : slv(31 downto 0)     := x"0A01A8C0";  -- 192.168.1.10 (before DHCP)
       MAC_ADDR_G               : slv(47 downto 0)     := x"00_00_16_56_00_08";
-      TS_FIBERS_G              : integer              := 2;
+      TS_LANES_G               : integer              := 2;
       TS_REFCLKS_G             : integer              := 1;
       TS_REFCLK_MAP_G          : IntegerArray         := (0 => 0, 1 => 0);  -- Map a refclk index to each fiber
       FC_HUB_REFCLKS_G         : integer range 1 to 4 := 2;
@@ -62,16 +62,15 @@ entity S30xlAPx is
       lclsTimingTxP        : out sl;
       lclsTimingTxN        : out sl;
       -- Recovered Clock output for jitter cleaning
-      lclsTimingRecClkOutP : out slv(TS_FIBERS_G-1 downto 0);
-      lclsTimingRecClkOutN : out slv(TS_FIBERS_G-1 downto 0);
+      lclsTimingRecClkOutP : out slv(1 downto 0);
+      lclsTimingRecClkOutN : out slv(1 downto 0);
 
       ----------------------------------------------------------------------------------------------
       -- FC HUB Interface
+      -- Refclks are jitter cleaned lclsTimingRefClkOut
       ----------------------------------------------------------------------------------------------
-      -- Recovered LCLS clock jitter cleaning
       lclsTimingRecClkInP : in  slv(FC_HUB_REFCLKS_G-1 downto 0);
       lclsTimingRecClkInN : in  slv(FC_HUB_REFCLKS_G-1 downto 0);
-      -- Timing Hub PGP FC Ports
       fcHubTxP            : out slv(FC_HUB_QUADS_G*4-1 downto 0);
       fcHubTxN            : out slv(FC_HUB_QUADS_G*4-1 downto 0);
       fcHubRxP            : in  slv(FC_HUB_QUADS_G*4-1 downto 0);
@@ -79,10 +78,10 @@ entity S30xlAPx is
 
       ----------------------------------------------------------------------------------------------
       -- App FC Interface
-      ----------------------------------------------------------------------------------------------
       -- FC Receiver
       -- (Looped back from fcHub IO)
       -- Could use lclsTimingRefClk185 if QUAD is close enough
+      ----------------------------------------------------------------------------------------------
       appFcRefClkP : in  sl;
       appFcRefClkN : in  sl;
       appFcRxP     : in  sl;
@@ -95,8 +94,8 @@ entity S30xlAPx is
       ----------------------------------------------------------------------------------------------
       tsRefClk250P : in slv(TS_REFCLKS_G-1 downto 0);
       tsRefClk250N : in slv(TS_REFCLKS_G-1 downto 0);
-      tsDataRxP    : in slv(TS_FIBERS_G-1 downto 0);
-      tsDataRxN    : in slv(TS_FIBERS_G-1 downto 0);
+      tsDataRxP    : in slv(TS_LANES_G-1 downto 0);
+      tsDataRxN    : in slv(TS_LANES_G-1 downto 0);
 
       ----------------------------------------------------------------------------------------------
       -- Ethernet refclk and interface
@@ -301,31 +300,31 @@ begin
    U_S30xlAppCore_1 : entity ldmx.S30xlAppCore
       generic map (
          TPD_G            => TPD_G,
-         TS_FIBERS_G      => TS_FIBERS_G,
+         TS_LANES_G       => TS_LANES_G,
          TS_REFCLKS_G     => TS_REFCLKS_G,
          TS_REFCLK_MAP_G  => TS_REFCLK_MAP_G,
          AXIL_BASE_ADDR_G => AXIL_XBAR_CONFIG_C(AXIL_APP_CORE_C).baseAddr)
       port map (
-         appFcRefClkP    => appFcRefClkP,     -- [in]
-         appFcRefClkN    => appFcRefClkN,     -- [in]
-         appFcRxP        => appFcRxP,         -- [in]
-         appFcRxN        => appFcRxN,         -- [in]
-         appFcTxP        => appFcTxP,         -- [out]
-         appFcTxN        => appFcTxN,         -- [out]
-         tsRefClk250P    => tsRefClk250P,     -- [in]
-         tsRefClk250N    => tsRefClk250N,     -- [in]
-         tsDataRxP       => tsDataRxP,        -- [in]
-         tsDataRxN       => tsDataRxN,        -- [in]
-         axilClk         => axilClk,          -- [in]
-         axilRst         => axilRst,          -- [in]
-         axilReadMaster  => axilReadMaster,   -- [in]
-         axilReadSlave   => axilReadSlave,    -- [out]
-         axilWriteMaster => axilWriteMaster,  -- [in]
-         axilWriteSlave  => axilWriteSlave,   -- [out]
-         axisClk         => axilClk,          -- [in]
-         axisRst         => axilRst,          -- [in]
-         daqDataMaster   => daqDataMaster,    -- [out]
-         daqDataSlave    => daqDataSlave);    -- [in]
+         appFcRefClkP    => appFcRefClkP,                          -- [in]
+         appFcRefClkN    => appFcRefClkN,                          -- [in]
+         appFcRxP        => appFcRxP,                              -- [in]
+         appFcRxN        => appFcRxN,                              -- [in]
+         appFcTxP        => appFcTxP,                              -- [out]
+         appFcTxN        => appFcTxN,                              -- [out]
+         tsRefClk250P    => tsRefClk250P,                          -- [in]
+         tsRefClk250N    => tsRefClk250N,                          -- [in]
+         tsDataRxP       => tsDataRxP,                             -- [in]
+         tsDataRxN       => tsDataRxN,                             -- [in]
+         axilClk         => axilClk,                               -- [in]
+         axilRst         => axilRst,                               -- [in]
+         axilReadMaster  => locAxilReadMasters(AXIL_APP_CORE_C),   -- [in]
+         axilReadSlave   => locAxilReadSlave(AXIL_APP_CORE_C)s,    -- [out]
+         axilWriteMaster => locAxilWriteMasters(AXIL_APP_CORE_C),  -- [in]
+         axilWriteSlave  => locAxilWriteSlaves(AXIL_APP_CORE_C),   -- [out]
+         axisClk         => axilClk,                               -- [in]
+         axisRst         => axilRst,                               -- [in]
+         daqDataMaster   => daqDataMaster,                         -- [out]
+         daqDataSlave    => daqDataSlave);                         -- [in]
 
 
 end architecture rtl;

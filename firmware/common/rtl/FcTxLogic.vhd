@@ -22,7 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
-use surf.Pgp2FcPkg.all;
+--use surf.Pgp2FcPkg.all;
 
 library lcls_timing_core;
 use lcls_timing_core.TimingPkg.all;
@@ -39,7 +39,7 @@ entity FcTxLogic is
       lclsTimingClk    : in  sl;
       lclsTimingRst    : in  sl;
       lclsTimingBus    : in  TimingBusType;
-      globalTriggerRor : in  FcReadoutRequestType;
+      globalTriggerRor : in  FcTimestampType;
       fcMsg            : out FastControlMessageType;
 
       -- Axil inteface
@@ -72,6 +72,11 @@ architecture rtl of FcTxLogic is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal syncAxilReadMaster  : AxiLiteReadMasterType;
+   signal syncAxilReadSlave   : AxiLiteReadSlaveType;
+   signal syncAxilWriteMaster : AxiLiteWriteMasterType;
+   signal syncAxilWriteSlave  : AxiLiteWriteSlaveType;
+
 begin
 
    U_AxiLiteAsync_1 : entity surf.AxiLiteAsync
@@ -94,7 +99,8 @@ begin
          mAxiWriteSlave  => syncAxilWriteSlave);  -- [in]
 
    comb : process (globalTriggerRor, lclsTimingBus, r, syncAxilReadMaster, syncAxilWriteMaster) is
-      variable v : RegType;
+      variable v      : RegType;
+      variable axilEp : AxiLiteEndpointType;
    begin
 
       v := r;
@@ -104,13 +110,13 @@ begin
       -- Currently Timing Messages take priority
       -- Not sure if this is correct
       if (lclsTimingBus.strobe = '1') then
-         v.fcMsg.valid       := '1';
-         v.fcMsg.msgType     := MSG_TYPE_TIMING_C;
-         v.fcMsg.pulseId     := lclsTimingBus.message.pulseId;
-         v.fcMsg.runState    := r.runState;
-         v.fcMsg.stateChange := r.stateChanged;
-         v.stateChanged      := '0';
-         v.fcMsg.message     := FcEncode(v.fcMsg);
+         v.fcMsg.valid        := '1';
+         v.fcMsg.msgType      := MSG_TYPE_TIMING_C;
+         v.fcMsg.pulseId      := lclsTimingBus.message.pulseId;
+         v.fcMsg.runState     := r.runState;
+         v.fcMsg.stateChanged := r.stateChanged;
+         v.stateChanged       := '0';
+         v.fcMsg.message      := FcEncode(v.fcMsg);
 
       elsif (globalTriggerRor.valid = '1') then
          v.fcMsg.valid      := '1';

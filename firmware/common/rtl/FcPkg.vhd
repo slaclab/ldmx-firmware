@@ -96,7 +96,7 @@ package FcPkg is
       -- Placed on bus with each TM received
       pulseStrobe  : sl;
       pulseId      : slv(63 downto 0);
-      runState        : slv(4 downto 0);
+      runState     : slv(4 downto 0);
       stateChanged : sl;
 
       -- These are counted based on Timing messages
@@ -120,14 +120,14 @@ package FcPkg is
       rxLinkStatus    => '0',
       pulseStrobe     => '0',
       pulseId         => (others => '0'),
-      runState           => (others => '0'),
+      runState        => (others => '0'),
       stateChanged    => '0',
       bunchStrobePre  => '0',
       bunchStrobe     => '0',
       bunchCount      => (others => '0'),
       bunchClkAligned => '0',
       runTime         => (others => '0'),
-      readoutRequest  => FC_ROR_INIT_C,
+      readoutRequest  => FC_TIMESTAMP_INIT_C,
       fcMsg           => FC_MSG_INIT_C);
 
 
@@ -190,6 +190,16 @@ package body FcPkg is
 
       return retVar;
    end function FcDecode;
+
+   function toSlv (
+      fcTimestamp : FcTimestampType)
+      return slv is
+      variable ret : slv(69 downto 0);
+   begin
+      ret(69 downto 6) := fcTimestamp.pulseId;
+      ret(5 downto 0)  := fcTimestamp.bunchCount;
+      return ret;
+   end function toSlv;
 
 
 end package body FcPkg;

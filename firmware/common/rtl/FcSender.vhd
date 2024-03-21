@@ -86,12 +86,8 @@ architecture rtl of FcSender is
    signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
    -- Clocks and resets
-   signal pgpRefClk          : sl;      -- Refclk after buffering   
-   signal pgpUserRefClkOdiv2 : sl;      -- Refclk ODIV2
-   signal pgpUserRefClk      : sl;      -- ODIV2+BUFG_GT - Used to clock TX
-   signal pgpUserRefRst      : sl;
-   signal fcRxClk            : sl;      -- Recovered RX clock for local use
-   signal fcRxRst            : sl;
+   signal fcRxClk185            : sl;      -- Recovered RX clock for local use
+   signal fcRxRst185            : sl;
 
    -- PGP IO
    signal pgpRxIn  : Pgp2fcRxInType  := PGP2FC_RX_IN_INIT_C;
@@ -127,59 +123,6 @@ begin
          mAxiReadMasters     => locAxilReadMasters,
          mAxiReadSlaves      => locAxilReadSlaves);
 
-
-   -------------------------------------------------------------------------------------------------
-   -- Clock Input and Output Buffers
-   -------------------------------------------------------------------------------------------------
-   U_mgtRefClk : IBUFDS_GTE4
-      generic map (
-         REFCLK_EN_TX_PATH  => '0',
-         REFCLK_HROW_CK_SEL => "00",    -- 2'b00: ODIV2 = O
-         REFCLK_ICNTL_RX    => "00")
-      port map (
-         I     => fcRefClk185P,
-         IB    => fcRefClk185N,
-         CEB   => '0',
-         ODIV2 => pgpUserRefClkOdiv2,
-         O     => pgpRefClk);
-
-   U_mgtUserRefClk : BUFG_GT
-      port map (
-         I       => pgpUserRefClkOdiv2,
-         CE      => '1',
-         CEMASK  => '1',
-         CLR     => '0',
-         CLRMASK => '1',
-         DIV     => "000",
-         O       => pgpUserRefClk);
-
-   -- Output recovered clock on gt clock pins
-   -- Might need generic around this
-   U_mgtRecClk : OBUFDS_GTE4
-      generic map (
-         REFCLK_EN_TX_PATH => '1',
-         REFCLK_ICNTL_TX   => "00000")
-      port map (
-         O   => fcRecClkP,
-         OB  => fcRecClkN,
-         CEB => '0',
-         I   => pgpRxRecClk);           -- using rxRecClk from Channel=0
-
-   -------------------------------------------------------------------------------------------------
-   -- Create a reset for pgpUserRefClk
-   -------------------------------------------------------------------------------------------------
-   RstSync_1 : entity surf.RstSync
-      generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => '1',
-         OUT_POLARITY_G  => '1',
-         RELEASE_DELAY_G => 5)
-      port map (
-         clk      => pgpUserRefClk,
-         asyncRst => '0',
-         syncRst  => pgpUserRefRst);
-
-
    -------------------------------------------------------------------------------------------------
    -- LDMX FC PGP LANE
    -------------------------------------------------------------------------------------------------
@@ -194,12 +137,12 @@ begin
          NUM_VC_EN_G      => 0,
          RX_CLK_MMCM_G    => false)
       port map (
-         pgpTxP          => fcTxP,                                    -- [out]
-         pgpTxN          => fcTxN,                                    -- [out]
-         pgpRxP          => fcRxP,                                    -- [in]
-         pgpRxN          => fcRxN,                                    -- [in]
-         pgpRefClk       => pgpRefClk,                                -- [in]
-         pgpUserRefClk   => pgpUserRefClk,                            -- [in]
+         pgpTxP          => fcHubTxP,                                    -- [out]
+         pgpTxN          => fcHubTxN,                                    -- [out]
+         pgpRxP          => fcHubRxP,                                    -- [in]
+         pgpRxN          => fcHubRxN,                                    -- [in]
+         pgpRefClk       => lclsTimingRecClkIn,                                -- [in]
+         pgpUserRefClk   => lclsTimingUserClk,                            -- [in]
          pgpRxRecClk     => open,                                     -- [out]
          pgpRxRstOut     => fcRxRst185,                               -- [out]
          pgpRxOutClk     => fcRxClk185,                               -- [out]
@@ -207,9 +150,9 @@ begin
          pgpRxOut        => pgpRxOut,                                 -- [out]
          pgpRxMasters    => open,                                     -- [out]
          pgpRxCtrl       => (others => AXI_STREAM_CTRL_UNUSED_C),     -- [in]
-         pgpTxRst        => fcRst185,                                 -- [in]
+         pgpTxRst        => lclsTimingUserRst,                                 -- [in]
          pgpTxOutClk     => open,                                     -- [out]
-         pgpTxUsrClk     => fcClk185,                                 -- [in]
+         pgpTxUsrClk     => lclsTimingUserClk,                                 -- [in]
          pgpTxIn         => pgpTxIn,                                  -- [in]
          pgpTxOut        => pgpTxOut,                                 -- [out]
          pgpTxMasters    => (others => AXI_STREAM_MASTER_INIT_C),     -- [in]

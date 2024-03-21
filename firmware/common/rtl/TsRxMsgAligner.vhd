@@ -208,7 +208,7 @@ begin
                   -- Read from timestamp fifo and output ts data and fc timestamp together
                   v.timestampFifoRdEn    := '1';
                   v.fcTsRxMsgs           := tsMsgFifoMsgs;
-                  v.fcMsgTime.pulseId    := timestampFifoRdData(70 downto 6);
+                  v.fcMsgTime.pulseId    := timestampFifoRdData(69 downto 6);
                   v.fcMsgTime.bunchCount := timestampFifoRdData(5 downto 0);
                   v.fcMsgTime.valid      := '1';
                   v.state                := ALIGNED_S;
@@ -230,7 +230,7 @@ begin
                v.tsMsgFifoRdEn        := (others => '1');
                v.timestampFifoRdEn    := '1';
                v.fcTsRxMsgs           := tsMsgFifoMsgs;
-               v.fcMsgTime.pulseId    := timestampFifoRdData(70 downto 6);
+               v.fcMsgTime.pulseId    := timestampFifoRdData(69 downto 6);
                v.fcMsgTime.bunchCount := timestampFifoRdData(5 downto 0);
                v.fcMsgTime.valid      := '1';
             end if;

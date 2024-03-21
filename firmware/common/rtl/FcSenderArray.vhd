@@ -33,8 +33,8 @@ entity FcSenderArray is
    generic (
       TPD_G             : time                 := 1 ns;
       SIM_SPEEDUP_G     : boolean              := false;
-      REFCLKS_G  : integer range 1 to 4 := 2;
-      QUADS_G    : integer range 1 to 4 := 4;
+      REFCLKS_G         : integer range 1 to 4 := 2;
+      QUADS_G           : integer range 1 to 4 := 4;
       QUAD_REFCLK_MAP_G : IntegerArray         := (0      => 0, 1 => 0, 2 => 1, 3 => 1);  -- Map a refclk for each quad
       AXIL_CLK_FREQ_G   : real                 := 125.0e6;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)     := (others => '0'));
@@ -103,7 +103,7 @@ begin
 --             CLR     => '0',
 --             CLRMASK => '1',
 --             DIV     => "000",
---             O       => lclsTimingRecUserClk(i));
+--             O       => lclsTimingUserClk(i));
    end generate;
 
    -------------------------------------------------------------------------------------------------
