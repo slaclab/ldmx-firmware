@@ -42,7 +42,7 @@ package TsPkg is
       adc    => (others => (others => '0')),
       tdc    => (others => (others => '0')));
 
-   type TsData8ChMsgArray is array (natural range <>) of TsData8ChMsgType ;  
+   type TsData8ChMsgArray is array (natural range <>) of TsData8ChMsgType;
 
 
    type TsData6ChMsgType is record
@@ -74,7 +74,8 @@ package TsPkg is
       return slv;
 
    function toTsData6ChMsg (
-      vector : slv(TS_DATA_6CH_MSG_SIZE_C-1 downto 0))
+      vector : slv(TS_DATA_6CH_MSG_SIZE_C-1 downto 0);
+      strobe : sl := '0')
       return TsData6ChMsgType;
 
 
@@ -86,12 +87,12 @@ package body TsPkg is
       tsData : TsData6ChMsgType)
       return slv
    is
-      variable ret : slv(TS_DATA_6CH_MSG_SIZE_C-1 downto 0);
-      variable i   : integer := 0;
+      variable ret : slv(TS_DATA_6CH_MSG_SIZE_C-1 downto 0) := (others => '0');
+      variable i   : integer                                := 0;
    begin
       i := 0;
       assignSlv(i, ret, tsData.capId);
-      assignSlv(i, ret. tsData.ce);
+      assignSlv(i, ret, tsData.ce);
       assignSlv(i, ret, tsData.bc0);
       for j in 5 downto 0 loop
          assignSlv(i, ret, tsData.adc(j));
@@ -104,10 +105,10 @@ package body TsPkg is
 
    function toTsData6ChMsg (
       vector : slv(TS_DATA_6CH_MSG_SIZE_C-1 downto 0);
-      valid  : sl := '0')
+      strobe : sl := '0')
       return TsData6ChMsgType
    is
-      variable ret : TsData8ChMsgType;
+      variable ret : TsData6ChMsgType;
       variable i   : integer := 0;
    begin
       i := 0;
@@ -120,9 +121,9 @@ package body TsPkg is
       for j in 5 downto 0 loop
          assignRecord(i, vector, ret.tdc(j));
       end loop;
-      ret.valid := valid;
+      ret.strobe := strobe;
       return ret;
 
-   end function toTsData6Ch;
+   end function toTsData6ChMsg;
 
 end package body TsPkg;

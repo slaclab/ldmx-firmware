@@ -165,6 +165,9 @@ architecture rtl of S30xlAPx is
    signal lclsTimingClk : sl;
    signal lclsTimingRst : sl;
 
+   -- Gloabl Trigger
+   signal globalTriggerRor : FcTimestampType := FC_TIMESTAMP_INIT_C;
+
 
 begin
 
@@ -208,8 +211,8 @@ begin
          MAC_ADDR_G          => MAC_ADDR_G)
       port map (
          extRst           => '0',                              -- [in] -- might need PwrUpRst here
-         ethGtRefClkP     => ethGtRefClkP,                     -- [in]
-         ethGtRefClkN     => ethGtRefClkN,                     -- [in]
+         ethGtRefClkP     => ethRefClk156P,                    -- [in]
+         ethGtRefClkN     => ethRefClk156N,                    -- [in]
          ethRxP           => ethRxP,                           -- [in]
          ethRxN           => ethRxN,                           -- [in]
          ethTxP           => ethTxP,                           -- [out]
@@ -264,7 +267,7 @@ begin
    U_FcHub_1 : entity ldmx.FcHub
       generic map (
          TPD_G             => TPD_G,
-         SIM_SPEEDUP_G     => SIM_SPEEDUP_G,
+         SIM_SPEEDUP_G     => SIMULATION_G,
          REFCLKS_G         => FC_HUB_REFCLKS_G,
          QUADS_G           => FC_HUB_QUADS_G,
          QUAD_REFCLK_MAP_G => FC_HUB_QUAD_REFCLK_MAP_G,
@@ -303,6 +306,7 @@ begin
          TS_LANES_G       => TS_LANES_G,
          TS_REFCLKS_G     => TS_REFCLKS_G,
          TS_REFCLK_MAP_G  => TS_REFCLK_MAP_G,
+         AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_C,
          AXIL_BASE_ADDR_G => AXIL_XBAR_CONFIG_C(AXIL_APP_CORE_C).baseAddr)
       port map (
          appFcRefClkP    => appFcRefClkP,                          -- [in]
@@ -318,7 +322,7 @@ begin
          axilClk         => axilClk,                               -- [in]
          axilRst         => axilRst,                               -- [in]
          axilReadMaster  => locAxilReadMasters(AXIL_APP_CORE_C),   -- [in]
-         axilReadSlave   => locAxilReadSlave(AXIL_APP_CORE_C)s,    -- [out]
+         axilReadSlave   => locAxilReadSlaves(AXIL_APP_CORE_C),    -- [out]
          axilWriteMaster => locAxilWriteMasters(AXIL_APP_CORE_C),  -- [in]
          axilWriteSlave  => locAxilWriteSlaves(AXIL_APP_CORE_C),   -- [out]
          axisClk         => axilClk,                               -- [in]

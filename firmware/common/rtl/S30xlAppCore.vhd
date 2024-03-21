@@ -25,6 +25,7 @@ use surf.AxiStreamPkg.all;
 
 library ldmx;
 use ldmx.FcPkg.all;
+use ldmx.TsPkg.all;
 
 entity S30xlAppCore is
    generic (
@@ -33,6 +34,7 @@ entity S30xlAppCore is
       TS_LANES_G       : integer          := 2;
       TS_REFCLKS_G     : integer          := 1;
       TS_REFCLK_MAP_G  : IntegerArray     := (0 => 0, 1 => 0);  -- Map a refclk index to each fiber
+      AXIL_CLK_FREQ_G  : real             := 125.0e6;
       AXIL_BASE_ADDR_G : slv(31 downto 0) := X"00000000");
    port (
       -- FC Receiver
@@ -74,7 +76,7 @@ architecture rtl of S30xlAppCore is
    constant AXIL_TS_DAQ_C  : integer := 2;
    constant AXIL_TS_TRIG_C : integer := 3;
 
-   constant AXIL_XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(AXIL_NUM_C-1 downto 0) := (
+   constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(AXIL_NUM_C-1 downto 0) := (
       AXIL_FC_RX_C    => (
          baseAddr     => X"0000_0000",
          addrBits     => 20,
@@ -92,8 +94,6 @@ architecture rtl of S30xlAppCore is
          addrBits     => 8,
          connectivity => X"FFFF"));
 
-   signal axilClk             : sl;
-   signal axilRst             : sl;
    signal locAxilReadMasters  : AxiLiteReadMasterArray(AXIL_NUM_C-1 downto 0);
    signal locAxilReadSlaves   : AxiLiteReadSlaveArray(AXIL_NUM_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
    signal locAxilWriteMasters : AxiLiteWriteMasterArray(AXIL_NUM_C-1 downto 0);
@@ -106,6 +106,13 @@ architecture rtl of S30xlAppCore is
    signal fcRst185 : sl;
    signal fcBus    : FastControlBusType;
 
+   ----------
+   -- TS Data
+   ----------
+   signal fcTsRxMsgs : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
+   signal fcMsgTime  : FcTimestampType;
+
+
 
 begin
 
@@ -116,17 +123,17 @@ begin
       generic map (
          TPD_G            => TPD_G,
          SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
-         AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_C,
+         AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
          AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(AXIL_FC_RX_C).baseAddr)
       port map (
-         fcRefClk185P    => fcRefClk185P,                       -- [in]
-         fcRefClk185N    => fcRefClk185N,                       -- [in]
+         fcRefClk185P    => appFcRefClkP,                       -- [in]
+         fcRefClk185N    => appFcRefClkN,                       -- [in]
          fcRecClkP       => open,                               -- [out]
          fcRecClkN       => open,                               -- [out]
-         fcTxP           => fcTxP,                              -- [out]
-         fcTxN           => fcTxN,                              -- [out]
-         fcRxP           => fcRxP,                              -- [in]
-         fcRxN           => fcRxN,                              -- [in]
+         fcTxP           => appFcTxP,                           -- [out]
+         fcTxN           => appFcTxN,                           -- [out]
+         fcRxP           => appFcRxP,                           -- [in]
+         fcRxN           => appFcRxN,                           -- [in]
          fcClk185        => fcClk185,                           -- [out]
          fcRst185        => fcRst185,                           -- [out]
          fcBus           => fcBus,                              -- [out]
@@ -147,20 +154,21 @@ begin
    U_TsDataRx_1 : entity ldmx.TsDataRx
       generic map (
          TPD_G            => TPD_G,
+         SIMULATION_G     => SIM_SPEEDUP_G,
          TS_LANES_G       => TS_LANES_G,
          TS_REFCLKS_G     => TS_REFCLKS_G,
          TS_REFCLK_MAP_G  => TS_REFCLK_MAP_G,
          AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
          AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(AXIL_TS_RX_C).baseAddr)
       port map (
-         tsRefClkP       => tsRefClkP,                          -- [in]
-         tsRefClkN       => tsRefClkN,                          -- [in]
+         tsRefClk250P    => tsRefClk250P,                       -- [in]
+         tsRefClk250N    => tsRefClk250N,                       -- [in]
          tsDataRxP       => tsDataRxP,                          -- [in]
          tsDataRxN       => tsDataRxN,                          -- [in]
          fcClk185        => fcClk185,                           -- [in]
          fcRst185        => fcRst185,                           -- [in]
          fcBus           => fcBus,                              -- [in]
-         fcTsRxMsg       => fcTsRxMsg,                          -- [out]
+         fcTsRxMsgs      => fcTsRxMsgs,                         -- [out]
          fcMsgTime       => fcMsgTime,                          -- [out]
          axilClk         => axilClk,                            -- [in]
          axilRst         => axilRst,                            -- [in]

@@ -38,56 +38,31 @@ entity FcSender is
       AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
       -- Reference clock
-      lclsTimingRecClkIn : in sl;
+      lclsTimingRecClkIn : in  sl;
       -- PGP FC serial IO
-      fcHubTxP            : out sl;
-      fcHubTxN            : out sl;
-      fcHubRxP            : in  sl;
-      fcHubRxN            : in  sl;
+      fcHubTxP           : out sl;
+      fcHubTxN           : out sl;
+      fcHubRxP           : in  sl;
+      fcHubRxN           : in  sl;
       -- Interface to Global Trigger and LCLS Timing
-      lclsTimingUserClk   : in  sl;
-      lclsTimingUserRst   : in  sl;
-      fcTxMsg             : in  FastControlMessageType;
+      lclsTimingUserClk  : in  sl;
+      lclsTimingUserRst  : in  sl;
+      fcTxMsg            : in  FastControlMessageType;
       -- Axil inteface
-      axilClk             : in  sl;
-      axilRst             : in  sl;
-      axilReadMaster      : in  AxiLiteReadMasterType;
-      axilReadSlave       : out AxiLiteReadSlaveType;
-      axilWriteMaster     : in  AxiLiteWriteMasterType;
-      axilWriteSlave      : out AxiLiteWriteSlaveType);
+      axilClk            : in  sl;
+      axilRst            : in  sl;
+      axilReadMaster     : in  AxiLiteReadMasterType;
+      axilReadSlave      : out AxiLiteReadSlaveType;
+      axilWriteMaster    : in  AxiLiteWriteMasterType;
+      axilWriteSlave     : out AxiLiteWriteSlaveType);
 
 end entity FcSender;
 
 architecture rtl of FcSender is
 
-   -- AXI Lite
-   constant NUM_AXIL_MASTERS_C : natural := 3;
-   constant PGP_FC_LANE_AXIL_C : natural := 0;
-   constant FC_RX_LOGIC_AXIL_C : natural := 1;
-   constant FC_EMU_AXIL_C      : natural := 2;
-
-   constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
-      PGP_FC_LANE_AXIL_C => (
-         baseAddr        => AXIL_BASE_ADDR_G + X"0_0000",
-         addrBits        => 16,
-         connectivity    => X"FFFF"),
-      FC_RX_LOGIC_AXIL_C => (
-         baseAddr        => AXIL_BASE_ADDR_G + X"1_0000",
-         addrBits        => 8,
-         connectivity    => X"FFFF"),
-      FC_EMU_AXIL_C      => (
-         baseAddr        => AXIL_BASE_ADDR_G + X"2_0000",
-         addrBits        => 8,
-         connectivity    => X"FFFF"));
-
-   signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
-   signal locAxilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
-
    -- Clocks and resets
-   signal fcRxClk185            : sl;      -- Recovered RX clock for local use
-   signal fcRxRst185            : sl;
+   signal fcRxClk185 : sl;              -- Recovered RX clock for local use
+   signal fcRxRst185 : sl;
 
    -- PGP IO
    signal pgpRxIn  : Pgp2fcRxInType  := PGP2FC_RX_IN_INIT_C;
@@ -102,27 +77,6 @@ architecture rtl of FcSender is
 
 begin
 
-   ---------------------
-   -- AXI-Lite Crossbar
-   ---------------------
-   U_XBAR : entity surf.AxiLiteCrossbar
-      generic map (
-         TPD_G              => TPD_G,
-         NUM_SLAVE_SLOTS_G  => 1,
-         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
-         MASTERS_CONFIG_G   => AXIL_XBAR_CFG_C)
-      port map (
-         axiClk              => axilClk,
-         axiClkRst           => axilRst,
-         sAxiWriteMasters(0) => axilWriteMaster,
-         sAxiWriteSlaves(0)  => axilWriteSlave,
-         sAxiReadMasters(0)  => axilReadMaster,
-         sAxiReadSlaves(0)   => axilReadSlave,
-         mAxiWriteMasters    => locAxilWriteMasters,
-         mAxiWriteSlaves     => locAxilWriteSlaves,
-         mAxiReadMasters     => locAxilReadMasters,
-         mAxiReadSlaves      => locAxilReadSlaves);
-
    -------------------------------------------------------------------------------------------------
    -- LDMX FC PGP LANE
    -------------------------------------------------------------------------------------------------
@@ -131,38 +85,38 @@ begin
          TPD_G            => TPD_G,
          SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
          AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
-         AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(PGP_FC_LANE_AXIL_C).baseAddr,
+         AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G,
          TX_ENABLE_G      => true,
          RX_ENABLE_G      => true,
          NUM_VC_EN_G      => 0,
          RX_CLK_MMCM_G    => false)
       port map (
-         pgpTxP          => fcHubTxP,                                    -- [out]
-         pgpTxN          => fcHubTxN,                                    -- [out]
-         pgpRxP          => fcHubRxP,                                    -- [in]
-         pgpRxN          => fcHubRxN,                                    -- [in]
-         pgpRefClk       => lclsTimingRecClkIn,                                -- [in]
-         pgpUserRefClk   => lclsTimingUserClk,                            -- [in]
-         pgpRxRecClk     => open,                                     -- [out]
-         pgpRxRstOut     => fcRxRst185,                               -- [out]
-         pgpRxOutClk     => fcRxClk185,                               -- [out]
-         pgpRxIn         => pgpRxIn,                                  -- [in]
-         pgpRxOut        => pgpRxOut,                                 -- [out]
-         pgpRxMasters    => open,                                     -- [out]
-         pgpRxCtrl       => (others => AXI_STREAM_CTRL_UNUSED_C),     -- [in]
-         pgpTxRst        => lclsTimingUserRst,                                 -- [in]
-         pgpTxOutClk     => open,                                     -- [out]
-         pgpTxUsrClk     => lclsTimingUserClk,                                 -- [in]
-         pgpTxIn         => pgpTxIn,                                  -- [in]
-         pgpTxOut        => pgpTxOut,                                 -- [out]
-         pgpTxMasters    => (others => AXI_STREAM_MASTER_INIT_C),     -- [in]
-         pgpTxSlaves     => open,                                     -- [out]
-         axilClk         => axilClk,                                  -- [in]
-         axilRst         => axilRst,                                  -- [in]
-         axilReadMaster  => locAxilReadMasters(PGP_FC_LANE_AXIL_C),   -- [in]
-         axilReadSlave   => locAxilReadSlaves(PGP_FC_LANE_AXIL_C),    -- [out]
-         axilWriteMaster => locAxilWriteMasters(PGP_FC_LANE_AXIL_C),  -- [in]
-         axilWriteSlave  => locAxilWriteSlaves(PGP_FC_LANE_AXIL_C));  -- [out]
+         pgpTxP          => fcHubTxP,                              -- [out]
+         pgpTxN          => fcHubTxN,                              -- [out]
+         pgpRxP          => fcHubRxP,                              -- [in]
+         pgpRxN          => fcHubRxN,                              -- [in]
+         pgpRefClk       => lclsTimingRecClkIn,                    -- [in]
+         pgpUserRefClk   => lclsTimingUserClk,                     -- [in]
+         pgpRxRecClk     => open,                                  -- [out]
+         pgpRxRstOut     => fcRxRst185,                            -- [out]
+         pgpRxOutClk     => fcRxClk185,                            -- [out]
+         pgpRxIn         => pgpRxIn,                               -- [in]
+         pgpRxOut        => pgpRxOut,                              -- [out]
+         pgpRxMasters    => open,                                  -- [out]
+         pgpRxCtrl       => (others => AXI_STREAM_CTRL_UNUSED_C),  -- [in]
+         pgpTxRst        => lclsTimingUserRst,                     -- [in]
+         pgpTxOutClk     => open,                                  -- [out]
+         pgpTxUsrClk     => lclsTimingUserClk,                     -- [in]
+         pgpTxIn         => pgpTxIn,                               -- [in]
+         pgpTxOut        => pgpTxOut,                              -- [out]
+         pgpTxMasters    => (others => AXI_STREAM_MASTER_INIT_C),  -- [in]
+         pgpTxSlaves     => open,                                  -- [out]
+         axilClk         => axilClk,                               -- [in]
+         axilRst         => axilRst,                               -- [in]
+         axilReadMaster  => axilReadMaster,                        -- [in]
+         axilReadSlave   => axilReadSlave,                         -- [out]
+         axilWriteMaster => axilWriteMaster,                       -- [in]
+         axilWriteSlave  => axilWriteSlave);                       -- [out]
 
 
    -------------------------------------------------------------------------------------------------
@@ -175,8 +129,8 @@ begin
 
 
    -- Glue fcMsg to pgpTxIn
-   pgpTxIn.fcValid                     <= fcMsg.valid;
-   pgpTxIn.fcWord(FC_LEN_C-1 downto 0) <= fcMsg.message;
+   pgpTxIn.fcValid                     <= fcTxMsg.valid;
+   pgpTxIn.fcWord(FC_LEN_C-1 downto 0) <= fcTxMsg.message;
 
 
 end architecture rtl;

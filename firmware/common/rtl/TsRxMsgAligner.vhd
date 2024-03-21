@@ -48,8 +48,8 @@ entity TsRxMsgAligner is
       fcBus    : in FastControlBusType;
 
       -- Output Sync'd to fcClk185
-      fcTsRxMsgs : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
-      fcMsgTime  : FcTimestampType;
+      fcTsRxMsgs : out TsData6ChMsgArray(TS_LANES_G-1 downto 0);
+      fcMsgTime  : out FcTimestampType;
 
       -- Axil inteface
       axilClk         : in  sl;
@@ -66,8 +66,14 @@ architecture rtl of TsRxMsgAligner is
    -- tsClk250 signals
    signal tsRxMsgSlv : slv(TS_DATA_6CH_MSG_SIZE_C-1 downto 0);
 
+   type StateType is (
+      WAIT_CLOCK_ALIGN_S,
+      WAIT_BC0_S,
+      ALIGNED_S);
+
    -- fcClk185 signals
    type RegType is record
+      state               : StateType;
       tsMsgFifoRdEn       : slv(TS_LANES_G-1 downto 0);
       timestampFifoRdEn   : sl;
       timestampFifoWrEn   : sl;
@@ -77,11 +83,12 @@ architecture rtl of TsRxMsgAligner is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      state               => WAIT_CLOCK_ALIGN_S,
       tsMsgFifoRdEn       => (others => '0'),
       timestampFifoRdEn   => '0',
       timestampFifoWrEn   => '0',
       timestampFifoWrData => (others => '0'),
-      fcTsRxMsgs          => (others => TS_DATA_8CH_MSG_INIT_C),
+      fcTsRxMsgs          => (others => TS_DATA_6CH_MSG_INIT_C),
       fcMsgTime           => FC_TIMESTAMP_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
@@ -148,14 +155,14 @@ begin
          DATA_WIDTH_G    => 70,
          ADDR_WIDTH_G    => 8)
       port map (
-         rst           => rst,                    -- [in]
+         rst           => fcRst185,               -- [in]
          wr_clk        => fcClk185,               -- [in]
          wr_en         => r.timestampFifoWrEn,    -- [in]
          din           => r.timestampFifoWrData,  -- [in]
          wr_data_count => open,                   -- [out]
          rd_clk        => fcClk185,               -- [in]
          rd_en         => r.timestampFifoRdEn,    -- [in]
-         dout          => timstampFifoRdData,     -- [out]
+         dout          => timestampFifoRdData,    -- [out]
          rd_data_count => open,                   -- [out]
          valid         => timestampFifoValid);    -- [out]   
 
@@ -165,12 +172,12 @@ begin
    begin
       v := r;
 
-      v.tsMsgFifoRdEn     := '0';
+      v.tsMsgFifoRdEn     := (others => '0');
       v.timestampFifoRdEn := '0';
       v.timestampFifoWrEn := '0';
 
       STB_LOOP : for i in TS_LANES_G-1 downto 0 loop
-         v.fcTsRxMsg(i).strobe := '0';
+         v.fcTsRxMsgs(i).strobe := '0';
       end loop STB_LOOP;
       v.fcMsgTime.valid := '0';
 
@@ -184,12 +191,12 @@ begin
             end if;
 
             -- Start alignment when FC runState moves to CLOCK_ALIGN state
-            if (fcBus.pulseStrobe = '1' and fcBus.stateChange = '1' and fcBus.runState = RUN_STATE_CLOCK_ALIGN_C) then
+            if (fcBus.pulseStrobe = '1' and fcBus.stateChanged = '1' and fcBus.runState = RUN_STATE_CLOCK_ALIGN_C) then
                -- Stop bleeding the timestamp fifo
                v.timestampFifoRdEn   := '0';
                -- Start writing timestamps
                v.timestampFifoWrEn   := '1';
-               v.timestampFifoWrData := fcBus.pulseId & fcBus.bunchClk;
+               v.timestampFifoWrData := fcBus.pulseId & fcBus.bunchCount;
                v.state               := WAIT_BC0_S;
             end if;
 
@@ -197,14 +204,14 @@ begin
             if (fcBus.bunchStrobe = '1') then
                -- Write a new timestamp with each bunch strobe
                v.timestampFifoWrEn   := '1';
-               v.timestampFifoWrData := fcBus.pulseId & fcBus.bunchClk;
+               v.timestampFifoWrData := fcBus.pulseId & fcBus.bunchCount;
 
                -- Read a message from ts data fifos
                v.tsMsgFifoRdEn := (others => '1');
 
                -- If current message has BC0 set, then done aligning
                -- Punt on making sure multiple TS fibers are aligned for now
-               if (fcTsRxMsg(0).valid = '1' and fcTsRxMsg.bc0(0) = '1') then
+               if (tsMsgFifoMsgs(0).strobe = '1' and tsMsgFifoMsgs(0).bc0 = '1') then
                   -- Read from timestamp fifo and output ts data and fc timestamp together
                   v.timestampFifoRdEn    := '1';
                   v.fcTsRxMsgs           := tsMsgFifoMsgs;
@@ -217,14 +224,14 @@ begin
 
             -- Reset alignment if run state transitions before BC0
             if (fcBus.runState /= RUN_STATE_CLOCK_ALIGN_C) then
-               v.runState := WAIT_CLOCK_ALIGN_S;
+               v.state := WAIT_CLOCK_ALIGN_S;
             end if;
 
          when ALIGNED_S =>
             if (fcBus.bunchStrobe = '1') then
                -- Write timestamp each bunch clock
                v.timestampFifoWrEn   := '1';
-               v.timestampFifoWrData := fcBus.pulseId & fcBus.bunchClk;
+               v.timestampFifoWrData := fcBus.pulseId & fcBus.bunchCount;
 
                -- Read timestamp and rs data each bunch clock
                v.tsMsgFifoRdEn        := (others => '1');

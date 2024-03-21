@@ -37,19 +37,19 @@ entity TsRxLogic is
    generic (
       TPD_G : time := 1 ns);
    port (
-      tsClk250  : in  sl;
-      tsRst250  : in  sl;
-      tsPhyInit : out sl;
-      tsPhyResetDone : in sl;
-      tsRxData  : in  slv(15 downto 0);
-      tsRxDataK : in  slv(1 downto 0);
-      tsRxMsg   : out TsData6ChMsgType;
+      tsClk250       : in  sl;
+      tsRst250       : in  sl;
+      tsPhyInit      : out sl;
+      tsPhyResetDone : in  sl;
+      tsRxData       : in  slv(15 downto 0);
+      tsRxDataK      : in  slv(1 downto 0);
+      tsRxMsg        : out TsData6ChMsgType;
 
       -- Axil inteface
       axilClk         : in  sl;
       axilRst         : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axilReadSlave   : out AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
@@ -59,11 +59,21 @@ architecture rtl of TsRxLogic is
 
    constant K28_5_C : slv(7 downto 0) := "10111100";  -- K28.5, 0xBC
 
+   type StateType is (
+      WAIT_COMMA_S,
+      WORD_1_S,
+      WORD_2_S,
+      WORD_3_S,
+      WORD_4_S,
+      WORD_5_S);
+
    type RegType is record
+      state   : StateType;
       tsRxMsg : TsData6ChMsgType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      state   => WAIT_COMMA_S,
       tsRxMsg => TS_DATA_6CH_MSG_INIT_C);
 
    signal r   : RegType := REG_INIT_C;

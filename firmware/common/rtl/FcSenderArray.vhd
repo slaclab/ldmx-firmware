@@ -40,13 +40,13 @@ entity FcSenderArray is
       AXIL_BASE_ADDR_G  : slv(31 downto 0)     := (others => '0'));
    port (
       -- Reference clock
-      lclsTimingRecClkInP : in  slv(FC_HUB_REFCLKS_G-1 downto 0);
-      lclsTimingRecClkInN : in  slv(FC_HUB_REFCLKS_G-1 downto 0);
+      lclsTimingRecClkInP : in  slv(REFCLKS_G-1 downto 0);
+      lclsTimingRecClkInN : in  slv(REFCLKS_G-1 downto 0);
       -- PGP FC serial IO
-      fcHubTxP            : out slv(FC_HUB_QUADS_G*4-1 downto 0);
-      fcHubTxN            : out slv(FC_HUB_QUADS_G*4-1 downto 0);
-      fcHubRxP            : in  slv(FC_HUB_QUADS_G*4-1 downto 0);
-      fcHubRxN            : in  slv(FC_HUB_QUADS_G*4-1 downto 0);
+      fcHubTxP            : out slv(QUADS_G*4-1 downto 0);
+      fcHubTxN            : out slv(QUADS_G*4-1 downto 0);
+      fcHubRxP            : in  slv(QUADS_G*4-1 downto 0);
+      fcHubRxN            : in  slv(QUADS_G*4-1 downto 0);
       -- Interface to Global Trigger and LCLS Timing
       lclsTimingClk       : in  sl;
       lclsTimingRst       : in  sl;
@@ -59,11 +59,11 @@ entity FcSenderArray is
       axilWriteMaster     : in  AxiLiteWriteMasterType;
       axilWriteSlave      : out AxiLiteWriteSlaveType);
 
-end entity FcSender;
+end entity FcSenderArray;
 
 architecture rtl of FcSenderArray is
    -- AXI Lite
-   constant NUM_AXIL_MASTERS_C : natural := FC_HUB_QUADS_G*4;
+   constant NUM_AXIL_MASTERS_C : natural := QUADS_G*4;
 
    -- 20 Bits for each FC Sender
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 24, 20);
@@ -73,16 +73,16 @@ architecture rtl of FcSenderArray is
    signal locAxilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
---   signal lclsTimingRecClkOdiv2 :    slv(FC_HUB_REFCLKS_G-1 downto 0);
-   signal lclsTimingRecClk : slv(FC_HUB_REFCLKS_G-1 downto 0);
---   signal lclsTimingRecUserClk  : in slv(FC_HUB_REFCLKS_G-1 downto 0);
+--   signal lclsTimingRecClkOdiv2 :    slv(REFCLKS_G-1 downto 0);
+   signal lclsTimingRecClk : slv(REFCLKS_G-1 downto 0);
+--   signal lclsTimingRecUserClk  : in slv(REFCLKS_G-1 downto 0);
 
 begin
 
    -------------------------------------------------------------------------------------------------
    -- Clock Input buffers for each refclk
    -------------------------------------------------------------------------------------------------
-   REFCLK_BUFS : for i in FC_HUB_REFCLKS_G-1 downto 0 generate
+   REFCLK_BUFS : for i in REFCLKS_G-1 downto 0 generate
       U_mgtRefClk : IBUFDS_GTE4
          generic map (
             REFCLK_EN_TX_PATH  => '0',
@@ -92,24 +92,14 @@ begin
             I     => lclsTimingRecClkInP(i),
             IB    => lclsTimingRecClkInN(i),
             CEB   => '0',
-            ODIV2 => lclsTimingRecClkOdiv2(i),
+            ODIV2 => open,
             O     => lclsTimingRecClk(i));
-
---       U_mgtUserRefClk : BUFG_GT
---          port map (
---             I       => lclsTimingRecClkOdiv2(i),
---             CE      => '1',
---             CEMASK  => '1',
---             CLR     => '0',
---             CLRMASK => '1',
---             DIV     => "000",
---             O       => lclsTimingUserClk(i));
    end generate;
 
    -------------------------------------------------------------------------------------------------
    -- FC Senders
    -------------------------------------------------------------------------------------------------
-   GEN_QUADS : for quad in FC_HUB_QUADS_G-1 downto 0 generate
+   GEN_QUADS : for quad in QUADS_G-1 downto 0 generate
       GEN_CHANNELS : for ch in 3 downto 0 generate
          U_FcSender_1 : entity ldmx.FcSender
             generic map (

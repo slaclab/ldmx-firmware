@@ -36,6 +36,7 @@ use ldmx.TsPkg.all;
 entity TsDataRxLaneArray is
    generic (
       TPD_G            : time                  := 1 ns;
+      SIMULATION_G     : boolean               := false;
       TS_LANES_G       : integer range 1 to 24 := 2;
       TS_REFCLKS_G     : integer range 1 to 24 := 1;
       TS_REFCLK_MAP_G  : IntegerArray          := (0 => 0, 1 => 0);  -- Map a refclk index to each fiber
@@ -135,6 +136,7 @@ begin
       U_TsDataRxLane_1 : entity ldmx.TsDataRxLane
          generic map (
             TPD_G            => TPD_G,
+            SIMULATION_G     => SIMULATION_G,
             AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
             AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(i).baseAddr)
          port map (
@@ -144,7 +146,7 @@ begin
             tsDataRxN       => tsDataRxN(i),                      -- [in]
             tsRecClk        => tsRecClks(i),                      -- [out]
             tsRecRst        => tsRecRsts(i),                      -- [out]
-            tsRxMsg         => tsRxMsg(i),                        -- [out]
+            tsRxMsg         => tsRxMsgs(i),                       -- [out]
             axilClk         => axilClk,                           -- [in]
             axilRst         => axilRst,                           -- [in]
             axilReadMaster  => locAxilReadMasters(i),             -- [in]

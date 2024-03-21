@@ -17,6 +17,8 @@
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -30,6 +32,7 @@ use ldmx.TsPkg.all;
 entity TsDataRx is
    generic (
       TPD_G            : time             := 1 ns;
+      SIMULATION_G     : boolean          := false;
       TS_LANES_G       : integer          := 2;
       TS_REFCLKS_G     : integer          := 1;
       TS_REFCLK_MAP_G  : IntegerArray     := (0 => 0, 1 => 0);  -- Map a refclk index to each fiber
@@ -37,10 +40,10 @@ entity TsDataRx is
       AXIL_BASE_ADDR_G : slv(31 downto 0) := X"00000000");
    port (
       -- TS Interface
-      tsRefClkP : in sl;
-      tsRefClkN : in sl;
-      tsDataRxP : in slv(TS_LANES_G-1 downto 0);
-      tsDataRxN : in slv(TS_LANES_G-1 downto 0);
+      tsRefClk250P : in slv(TS_REFCLKS_G-1 downto 0);
+      tsRefClk250N : in slv(TS_REFCLKS_G-1 downto 0);
+      tsDataRxP    : in slv(TS_LANES_G-1 downto 0);
+      tsDataRxN    : in slv(TS_LANES_G-1 downto 0);
 
       -- Fast Control Interface
       fcClk185 : in sl;
@@ -66,10 +69,9 @@ end entity TsDataRx;
 architecture rtl of TsDataRx is
 
    -- AXI Lite
-   constant NUM_AXIL_MASTERS_C   : natural := 3;
-   constant AXIL_GTY_C           : natural := 0;
-   constant AXIL_TS_RX_LOGIC_C   : natural := 1;
-   constant AXIL_TS_RX_ALIGNER_C : natural := 2;
+   constant NUM_AXIL_MASTERS_C      : natural := 2;
+   constant AXIL_TS_RX_LANE_ARRAY_C : natural := 0;
+   constant AXIL_TS_RX_ALIGNER_C    : natural := 1;
 
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
       AXIL_TS_RX_LANE_ARRAY_C => (
@@ -90,7 +92,7 @@ architecture rtl of TsDataRx is
    -- Local signals
    signal tsRecClks : slv(TS_LANES_G-1 downto 0);
    signal tsRecRsts : slv(TS_LANES_G-1 downto 0);
-   signal tsRxMsgs : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
+   signal tsRxMsgs  : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
 
 
 begin
@@ -122,6 +124,7 @@ begin
    U_TsDataRxLaneArray_1 : entity ldmx.TsDataRxLaneArray
       generic map (
          TPD_G            => TPD_G,
+         SIMULATION_G     => SIMULATION_G,
          TS_LANES_G       => TS_LANES_G,
          TS_REFCLKS_G     => TS_REFCLKS_G,
          TS_REFCLK_MAP_G  => TS_REFCLK_MAP_G,

@@ -17,6 +17,8 @@
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -24,12 +26,12 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
 library ldmx;
-use ldmx.FcPkg.all;
 use ldmx.TsPkg.all;
 
 entity TsDataRxLane is
    generic (
       TPD_G            : time             := 1 ns;
+      SIMULATION_G     : boolean          := false;
       AXIL_CLK_FREQ_G  : real             := 125.0e6;
       AXIL_BASE_ADDR_G : slv(31 downto 0) := X"00000000");
    port (
@@ -56,7 +58,7 @@ architecture rtl of TsDataRxLane is
 
    constant NUM_AXIL_MASTERS_C : natural := 2;
    constant AXIL_GTY_C         : natural := 0;
-   constant AXIL_TS_RX_LOGIC_C : natural := 1;
+   constant AXIL_TS_RX_C       : natural := 1;
 
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
       AXIL_GTY_C      => (
@@ -73,12 +75,18 @@ architecture rtl of TsDataRxLane is
    signal locAxilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
+   signal tsRecClkGt         : sl;
+   signal tsRecClkMmcm       : sl;
+   signal tsRecClkMmcmLocked : sl;
+   signal tsRecClkRst        : sl;
 
    signal tsPhyInit      : sl;
    signal tsPhyInitSync  : sl;
    signal tsPhyResetDone : sl;
    signal tsRxData       : slv(15 downto 0);
    signal tsRxDataK      : slv(1 downto 0);
+   signal tsRxDispErr    : slv(1 downto 0);
+   signal tsRxDecErr     : slv(1 downto 0);
 
 begin
 
@@ -142,7 +150,7 @@ begin
          rxDispErr       => tsRxDispErr,                      -- [out]
          rxDecErr        => tsRxDecErr,                       -- [out]
          rxPolarity      => '0',                              -- [in]
-         rxOutClk        => tsRecClk,                         -- [out]
+         rxOutClk        => tsRecClkGt,                       -- [out]
          axilClk         => axilClk,                          -- [in]
          axilRst         => axilRst,                          -- [in]
          axilReadMaster  => locAxilReadMasters(AXIL_GTY_C),   -- [in]
@@ -151,7 +159,7 @@ begin
          axilWriteSlave  => locAxilWriteSlaves(AXIL_GTY_C));  -- [out]
 
    -- For now don't use MMCM
-   tsRecClkMmcm       <= tsRecClk;
+   tsRecClkMmcm       <= tsRecClkGt;
    tsRecClkMmcmLocked <= '1';
 
    RstSync_1 : entity surf.RstSync
@@ -165,6 +173,8 @@ begin
          asyncRst => tsRecClkMmcmLocked,
          syncRst  => tsRecClkRst);
 
+   tsRecClk <= tsRecClkMmcm;
+
    -------------------------------------------------------------------------------------------------
    -- TS Message Decoder
    -- Decodes 8b10b stream into TS messages
@@ -173,18 +183,18 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         tsClk250        => tsRecClkMmcm,                             -- [in]
-         tsRst250        => tsRecClkRst,                              -- [in]
-         tsPhyInit       => tsPhyInit,                                -- [out]
-         tsPhyResetDone  => tsPhyResetDone,                           -- [in]
-         tsRxData        => tsRxData,                                 -- [in]
-         tsRxDataK       => tsRxDataK,                                -- [in]
-         tsRxMsg         => tsRxMsg,                                  -- [out]
-         axilClk         => axilClk,                                  -- [in]
-         axilRst         => axilRst,                                  -- [in]
-         axilReadMaster  => locAxilReadMasters(AXIL_TS_RX_LOGIC_C),   -- [in]
-         axilReadSlave   => locAxilReadSlaves(AXIL_TS_RX_LOGIC_C),    -- [out]
-         axilWriteMaster => locAxilWriteMasters(AXIL_TS_RX_LOGIC_C),  -- [in]
-         axilWriteSlave  => locAxilWriteSlaves(AXIL_TS_RX_LOGIC_C));  -- [out]
+         tsClk250        => tsRecClkMmcm,                       -- [in]
+         tsRst250        => tsRecClkRst,                        -- [in]
+         tsPhyInit       => tsPhyInit,                          -- [out]
+         tsPhyResetDone  => tsPhyResetDone,                     -- [in]
+         tsRxData        => tsRxData,                           -- [in]
+         tsRxDataK       => tsRxDataK,                          -- [in]
+         tsRxMsg         => tsRxMsg,                            -- [out]
+         axilClk         => axilClk,                            -- [in]
+         axilRst         => axilRst,                            -- [in]
+         axilReadMaster  => locAxilReadMasters(AXIL_TS_RX_C),   -- [in]
+         axilReadSlave   => locAxilReadSlaves(AXIL_TS_RX_C),    -- [out]
+         axilWriteMaster => locAxilWriteMasters(AXIL_TS_RX_C),  -- [in]
+         axilWriteSlave  => locAxilWriteSlaves(AXIL_TS_RX_C));  -- [out]
 
 end architecture rtl;

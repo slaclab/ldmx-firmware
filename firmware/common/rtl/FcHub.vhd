@@ -59,19 +59,19 @@ entity FcHub is
       -- LCLS Recovered Clock Output to pins
       lclsTimingClkOut     : out sl;
       lclsTimingRstOut     : out sl;
-      globalTriggerRor     :     FcReadoutRequestType;
+      globalTriggerRor     : in FcTimestampType;
 
       ----------------------------------------------------------------------------------------------
       -- FC HUB
       ----------------------------------------------------------------------------------------------
       -- Recovered and retimed LCLS Reference clock
-      lclsTimingRecClkInP : in  slv(FC_HUB_REFCLKS_G-1 downto 0);
-      lclsTimingRecClkInN : in  slv(FC_HUB_REFCLKS_G-1 downto 0);
+      lclsTimingRecClkInP : in  slv(REFCLKS_G-1 downto 0);
+      lclsTimingRecClkInN : in  slv(REFCLKS_G-1 downto 0);
       -- PGP FC serial IO
-      fcHubTxP            : out slv(FC_HUB_QUADS_G*4-1 downto 0);
-      fcHubTxN            : out slv(FC_HUB_QUADS_G*4-1 downto 0);
-      fcHubRxP            : in  slv(FC_HUB_QUADS_G*4-1 downto 0);
-      fcHubRxN            : in  slv(FC_HUB_QUADS_G*4-1 downto 0);
+      fcHubTxP            : out slv(QUADS_G*4-1 downto 0);
+      fcHubTxN            : out slv(QUADS_G*4-1 downto 0);
+      fcHubRxP            : in  slv(QUADS_G*4-1 downto 0);
+      fcHubRxN            : in  slv(QUADS_G*4-1 downto 0);
 
       ----------------------------------------------------------------------------------------------
       -- AXI Lite
@@ -107,8 +107,6 @@ architecture rtl of FcHub is
          addrBits        => 24,
          connectivity    => X"FFFF"));
 
-   signal axilClk             : sl;
-   signal axilRst             : sl;
    signal locAxilReadMasters  : AxiLiteReadMasterArray(AXIL_NUM_C-1 downto 0);
    signal locAxilReadSlaves   : AxiLiteReadSlaveArray(AXIL_NUM_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
    signal locAxilWriteMasters : AxiLiteWriteMasterArray(AXIL_NUM_C-1 downto 0);
