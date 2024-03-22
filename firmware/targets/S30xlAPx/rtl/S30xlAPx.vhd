@@ -51,6 +51,14 @@ entity S30xlAPx is
 
    port (
       ----------------------------------------------------------------------------------------------
+      -- Clock 125MHz Passthrough
+      ----------------------------------------------------------------------------------------------
+      clk125InP  : in  sl;
+      clk125InN  : in  sl;
+      clk125OutP : out slv(1 downto 0);
+      clk125OutN : out slv(1 downto 0);
+
+      ----------------------------------------------------------------------------------------------
       -- LCLS Timing Interface
       ----------------------------------------------------------------------------------------------
       -- 185 MHz Ref Clk for LCLS timing recovery
@@ -69,12 +77,12 @@ entity S30xlAPx is
       -- FC HUB Interface
       -- Refclks are jitter cleaned lclsTimingRefClkOut
       ----------------------------------------------------------------------------------------------
-      lclsTimingRecClkInP : in  slv(FC_HUB_REFCLKS_G-1 downto 0);
-      lclsTimingRecClkInN : in  slv(FC_HUB_REFCLKS_G-1 downto 0);
-      fcHubTxP            : out slv(FC_HUB_QUADS_G*4-1 downto 0);
-      fcHubTxN            : out slv(FC_HUB_QUADS_G*4-1 downto 0);
-      fcHubRxP            : in  slv(FC_HUB_QUADS_G*4-1 downto 0);
-      fcHubRxN            : in  slv(FC_HUB_QUADS_G*4-1 downto 0);
+      fcHubRefClkP : in  slv(FC_HUB_REFCLKS_G-1 downto 0);
+      fcHubRefClkN : in  slv(FC_HUB_REFCLKS_G-1 downto 0);
+      fcHubTxP     : out slv(FC_HUB_QUADS_G*4-1 downto 0);
+      fcHubTxN     : out slv(FC_HUB_QUADS_G*4-1 downto 0);
+      fcHubRxP     : in  slv(FC_HUB_QUADS_G*4-1 downto 0);
+      fcHubRxN     : in  slv(FC_HUB_QUADS_G*4-1 downto 0);
 
       ----------------------------------------------------------------------------------------------
       -- App FC Interface
@@ -168,8 +176,29 @@ architecture rtl of S30xlAPx is
    -- Gloabl Trigger
    signal globalTriggerRor : FcTimestampType := FC_TIMESTAMP_INIT_C;
 
+   signal clk125In : sl;
 
 begin
+
+   -------------------------------------------------------------------------------------------------
+   -- Clock 125MHz Passthrough
+   -------------------------------------------------------------------------------------------------
+   U_IBUFGDS_1 : IBUFGDS
+      port map (
+         i  => clk125InP,
+         ib => clk125InN,
+         o  => clk125In);
+
+   GEN_CLKOUT_125 : for i in 1 downto 0 generate
+      U_ClkOutBufDiff_1 : entity surf.ClkOutBufDiff
+         generic map (
+            TPD_G        => TPD_G,
+            XIL_DEVICE_G => "ULTRASCALE_PLUS")
+         port map (
+            clkIn   => clk125In,        -- [in]
+            clkOutP => clk125OutP(i),   -- [out]
+            clkOutN => clk125OutN(i));  -- [out]
+   end generate GEN_CLKOUT_125;
 
    -------------------------------------------------------------------------------------------------
    -- Top Level AXI-Lite crossbar
@@ -283,8 +312,8 @@ begin
          lclsTimingClkOut     => lclsTimingClk,                       -- [out]
          lclsTimingRstOut     => lclsTimingRst,                       -- [out]
          globalTriggerRor     => globalTriggerRor,
-         lclsTimingRecClkInP  => lclsTimingRecClkInP,                 -- [in]
-         lclsTimingRecClkInN  => lclsTimingRecClkInN,                 -- [in]
+         fcHubRefClkP         => fcHubRefClkP,                        -- [in]
+         fcHubRefClkN         => fcHubRefClkN,                        -- [in]
          fcHubTxP             => fcHubTxP,                            -- [out]
          fcHubTxN             => fcHubTxN,                            -- [out]
          fcHubRxP             => fcHubRxP,                            -- [in]

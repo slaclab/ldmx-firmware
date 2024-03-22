@@ -57,21 +57,21 @@ entity FcHub is
       -- Global Trigger Interface
       ----------------------------------------------------------------------------------------------
       -- LCLS Recovered Clock Output to pins
-      lclsTimingClkOut     : out sl;
-      lclsTimingRstOut     : out sl;
-      globalTriggerRor     : in FcTimestampType;
+      lclsTimingClkOut : out sl;
+      lclsTimingRstOut : out sl;
+      globalTriggerRor : in  FcTimestampType;
 
       ----------------------------------------------------------------------------------------------
       -- FC HUB
       ----------------------------------------------------------------------------------------------
       -- Recovered and retimed LCLS Reference clock
-      lclsTimingRecClkInP : in  slv(REFCLKS_G-1 downto 0);
-      lclsTimingRecClkInN : in  slv(REFCLKS_G-1 downto 0);
+      fcHubRefClkP : in  slv(REFCLKS_G-1 downto 0);
+      fcHubRefClkN : in  slv(REFCLKS_G-1 downto 0);
       -- PGP FC serial IO
-      fcHubTxP            : out slv(QUADS_G*4-1 downto 0);
-      fcHubTxN            : out slv(QUADS_G*4-1 downto 0);
-      fcHubRxP            : in  slv(QUADS_G*4-1 downto 0);
-      fcHubRxN            : in  slv(QUADS_G*4-1 downto 0);
+      fcHubTxP     : out slv(QUADS_G*4-1 downto 0);
+      fcHubTxN     : out slv(QUADS_G*4-1 downto 0);
+      fcHubRxP     : in  slv(QUADS_G*4-1 downto 0);
+      fcHubRxN     : in  slv(QUADS_G*4-1 downto 0);
 
       ----------------------------------------------------------------------------------------------
       -- AXI Lite
@@ -187,21 +187,21 @@ begin
          AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_G,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CONFIG_C(AXIL_FC_ARRAY_C).baseAddr)
       port map (
-         lclsTimingRecClkInP => lclsTimingRecClkInP,                   -- [in]
-         lclsTimingRecClkInN => lclsTimingRecClkInN,                   -- [in]
-         fcHubTxP            => fcHubTxP,                              -- [out]
-         fcHubTxN            => fcHubTxN,                              -- [out]
-         fcHubRxP            => fcHubRxP,                              -- [in]
-         fcHubRxN            => fcHubRxN,                              -- [in]
-         lclsTimingClk       => lclsTimingClk,                         -- [in]
-         lclsTimingRst       => lclsTimingRst,                         -- [in]
-         fcTxMsg             => fcTxMsg,                               -- [in]
-         axilClk             => axilClk,                               -- [in]
-         axilRst             => axilRst,                               -- [in]
-         axilReadMaster      => locAxilReadMasters(AXIL_FC_ARRAY_C),   -- [in]
-         axilReadSlave       => locAxilReadSlaves(AXIL_FC_ARRAY_C),    -- [out]
-         axilWriteMaster     => locAxilWriteMasters(AXIL_FC_ARRAY_C),  -- [in]
-         axilWriteSlave      => locAxilWriteSlaves(AXIL_FC_ARRAY_C));  -- [out]
+         fcHubRefClkP    => fcHubRefClkP,                          -- [in]
+         fcHubRefClkN    => fcHubRefClkN,                          -- [in]
+         fcHubTxP        => fcHubTxP,                              -- [out]
+         fcHubTxN        => fcHubTxN,                              -- [out]
+         fcHubRxP        => fcHubRxP,                              -- [in]
+         fcHubRxN        => fcHubRxN,                              -- [in]
+         lclsTimingClk   => lclsTimingClk,                         -- [in]
+         lclsTimingRst   => lclsTimingRst,                         -- [in]
+         fcTxMsg         => fcTxMsg,                               -- [in]
+         axilClk         => axilClk,                               -- [in]
+         axilRst         => axilRst,                               -- [in]
+         axilReadMaster  => locAxilReadMasters(AXIL_FC_ARRAY_C),   -- [in]
+         axilReadSlave   => locAxilReadSlaves(AXIL_FC_ARRAY_C),    -- [out]
+         axilWriteMaster => locAxilWriteMasters(AXIL_FC_ARRAY_C),  -- [in]
+         axilWriteSlave  => locAxilWriteSlaves(AXIL_FC_ARRAY_C));  -- [out]
 
 
 end rtl;
