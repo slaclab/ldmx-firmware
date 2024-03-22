@@ -44,9 +44,9 @@ entity S30xlAPx is
       TS_LANES_G               : integer              := 2;
       TS_REFCLKS_G             : integer              := 1;
       TS_REFCLK_MAP_G          : IntegerArray         := (0 => 0, 1 => 0);  -- Map a refclk index to each fiber
-      FC_HUB_REFCLKS_G         : integer range 1 to 4 := 2;
-      FC_HUB_QUADS_G           : integer range 1 to 4 := 4;
-      FC_HUB_QUAD_REFCLK_MAP_G : IntegerArray         := (0 => 0, 1 => 0, 2 => 1, 3 => 1));  -- Map a refclk for each quad
+      FC_HUB_REFCLKS_G         : integer range 1 to 4 := 1;
+      FC_HUB_QUADS_G           : integer range 1 to 4 := 1;
+      FC_HUB_QUAD_REFCLK_MAP_G : IntegerArray         := (0 => 0));  --, 1 => 0, 2 => 1, 3 => 1));  -- Map a refclk for each quad
 
 
    port (
@@ -166,8 +166,11 @@ architecture rtl of S30xlAPx is
    signal locAxilWriteMasters : AxiLiteWriteMasterArray(AXIL_NUM_C-1 downto 0);
    signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(AXIL_NUM_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
-   signal daqDataMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal daqDataSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal tsDaqRawAxisMaster  : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal tsDaqRawAxisSlave   : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal tsDaqTrigAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal tsDaqTrigAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+
 
    -- Timing hub
    signal lclsTimingClk : sl;
@@ -239,29 +242,31 @@ begin
          IP_ADDR_G           => IP_ADDR_G,
          MAC_ADDR_G          => MAC_ADDR_G)
       port map (
-         extRst           => '0',                              -- [in] -- might need PwrUpRst here
-         ethGtRefClkP     => ethRefClk156P,                    -- [in]
-         ethGtRefClkN     => ethRefClk156N,                    -- [in]
-         ethRxP           => ethRxP,                           -- [in]
-         ethRxN           => ethRxN,                           -- [in]
-         ethTxP           => ethTxP,                           -- [out]
-         ethTxN           => ethTxN,                           -- [out]
-         phyReady         => open,                             -- [out]
-         rssiStatus       => open,                             -- [out]
-         axilClk          => axilClk,                          -- [out]
-         axilRst          => axilRst,                          -- [out]
-         mAxilReadMaster  => ethAxilReadMaster,                -- [out]
-         mAxilReadSlave   => ethAxilReadSlave,                 -- [in]
-         mAxilWriteMaster => ethAxilWriteMaster,               -- [out]
-         mAxilWriteSlave  => ethAxilWriteSlave,                -- [in]
-         sAxilReadMaster  => locAxilReadMasters(AXIL_ETH_C),   -- [in]
-         sAxilReadSlave   => locAxilReadSlaves(AXIL_ETH_C),    -- [out]
-         sAxilWriteMaster => locAxilWriteMasters(AXIL_ETH_C),  -- [in]
-         sAxilWriteSlave  => locAxilWriteSlaves(AXIL_ETH_C),   -- [out]
-         axisClk          => axilClk,                          -- [in]
-         axisRst          => axilRst,                          -- [in]
-         dataTxAxisMaster => daqDataMaster,                    -- [in]
-         dataTxAxisSlave  => daqDataSlave);                    -- [out]
+         extRst              => '0',    -- [in] -- might need PwrUpRst here
+         ethGtRefClkP        => ethRefClk156P,                    -- [in]
+         ethGtRefClkN        => ethRefClk156N,                    -- [in]
+         ethRxP              => ethRxP,                           -- [in]
+         ethRxN              => ethRxN,                           -- [in]
+         ethTxP              => ethTxP,                           -- [out]
+         ethTxN              => ethTxN,                           -- [out]
+         phyReady            => open,   -- [out]
+         rssiStatus          => open,   -- [out]
+         axilClk             => axilClk,                          -- [out]
+         axilRst             => axilRst,                          -- [out]
+         mAxilReadMaster     => ethAxilReadMaster,                -- [out]
+         mAxilReadSlave      => ethAxilReadSlave,                 -- [in]
+         mAxilWriteMaster    => ethAxilWriteMaster,               -- [out]
+         mAxilWriteSlave     => ethAxilWriteSlave,                -- [in]
+         sAxilReadMaster     => locAxilReadMasters(AXIL_ETH_C),   -- [in]
+         sAxilReadSlave      => locAxilReadSlaves(AXIL_ETH_C),    -- [out]
+         sAxilWriteMaster    => locAxilWriteMasters(AXIL_ETH_C),  -- [in]
+         sAxilWriteSlave     => locAxilWriteSlaves(AXIL_ETH_C),   -- [out]
+         axisClk             => axilClk,                          -- [in]
+         axisRst             => axilRst,                          -- [in]
+         tsDaqRawAxisMaster  => tsDaqRawAxisMaster,               -- [in]
+         tsDaqRawAxisSlave   => tsDaqRawAxisSlave,                -- [out]
+         tsDaqTrigAxisMaster => tsDaqTrigAxisMaster,              -- [in]
+         tsDaqTrigAxisSlave  => tsDaqTrigAxisSlave);              -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- AXI Version
@@ -338,26 +343,27 @@ begin
          AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_C,
          AXIL_BASE_ADDR_G => AXIL_XBAR_CONFIG_C(AXIL_APP_CORE_C).baseAddr)
       port map (
-         appFcRefClkP    => appFcRefClkP,                          -- [in]
-         appFcRefClkN    => appFcRefClkN,                          -- [in]
-         appFcRxP        => appFcRxP,                              -- [in]
-         appFcRxN        => appFcRxN,                              -- [in]
-         appFcTxP        => appFcTxP,                              -- [out]
-         appFcTxN        => appFcTxN,                              -- [out]
-         tsRefClk250P    => tsRefClk250P,                          -- [in]
-         tsRefClk250N    => tsRefClk250N,                          -- [in]
-         tsDataRxP       => tsDataRxP,                             -- [in]
-         tsDataRxN       => tsDataRxN,                             -- [in]
-         axilClk         => axilClk,                               -- [in]
-         axilRst         => axilRst,                               -- [in]
-         axilReadMaster  => locAxilReadMasters(AXIL_APP_CORE_C),   -- [in]
-         axilReadSlave   => locAxilReadSlaves(AXIL_APP_CORE_C),    -- [out]
-         axilWriteMaster => locAxilWriteMasters(AXIL_APP_CORE_C),  -- [in]
-         axilWriteSlave  => locAxilWriteSlaves(AXIL_APP_CORE_C),   -- [out]
-         axisClk         => axilClk,                               -- [in]
-         axisRst         => axilRst,                               -- [in]
-         daqDataMaster   => daqDataMaster,                         -- [out]
-         daqDataSlave    => daqDataSlave);                         -- [in]
-
+         appFcRefClkP        => appFcRefClkP,                          -- [in]
+         appFcRefClkN        => appFcRefClkN,                          -- [in]
+         appFcRxP            => appFcRxP,                              -- [in]
+         appFcRxN            => appFcRxN,                              -- [in]
+         appFcTxP            => appFcTxP,                              -- [out]
+         appFcTxN            => appFcTxN,                              -- [out]
+         tsRefClk250P        => tsRefClk250P,                          -- [in]
+         tsRefClk250N        => tsRefClk250N,                          -- [in]
+         tsDataRxP           => tsDataRxP,                             -- [in]
+         tsDataRxN           => tsDataRxN,                             -- [in]
+         axilClk             => axilClk,                               -- [in]
+         axilRst             => axilRst,                               -- [in]
+         axilReadMaster      => locAxilReadMasters(AXIL_APP_CORE_C),   -- [in]
+         axilReadSlave       => locAxilReadSlaves(AXIL_APP_CORE_C),    -- [out]
+         axilWriteMaster     => locAxilWriteMasters(AXIL_APP_CORE_C),  -- [in]
+         axilWriteSlave      => locAxilWriteSlaves(AXIL_APP_CORE_C),   -- [out]
+         axisClk             => axilClk,                               -- [in]
+         axisRst             => axilRst,                               -- [in]
+         tsDaqRawAxisMaster  => tsDaqRawAxisMaster,                    -- [in]
+         tsDaqRawAxisSlave   => tsDaqRawAxisSlave,                     -- [out]
+         tsDaqTrigAxisMaster => tsDaqTrigAxisMaster,                   -- [in]
+         tsDaqTrigAxisSlave  => tsDaqTrigAxisSlave);                   -- [out]
 
 end architecture rtl;

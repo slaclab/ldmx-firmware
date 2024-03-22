@@ -39,45 +39,49 @@ entity TenGigEthGtyCore is
       IP_ADDR_G           : slv(31 downto 0) := x"0A01A8C0";  -- 192.168.1.10 (before DHCP)
       MAC_ADDR_G          : slv(47 downto 0) := x"00_00_16_56_00_08");
    port (
-      extRst           : in  sl                    := '0';
+      extRst              : in  sl                    := '0';
       -- GT ports and clock
-      ethGtRefClkP     : in  sl;                              -- GT Ref Clock 156.25 MHz
-      ethGtRefClkN     : in  sl;
-      ethRxP           : in  sl;
-      ethRxN           : in  sl;
-      ethTxP           : out sl;
-      ethTxN           : out sl;
+      ethGtRefClkP        : in  sl;                           -- GT Ref Clock 156.25 MHz
+      ethGtRefClkN        : in  sl;
+      ethRxP              : in  sl;
+      ethRxN              : in  sl;
+      ethTxP              : out sl;
+      ethTxN              : out sl;
       -- Eth/RSSI Status
-      phyReady         : out sl;
-      rssiStatus       : out slv7Array(1 downto 0);
+      phyReady            : out sl;
+      rssiStatus          : out slv7Array(1 downto 0);
       -- AXI-Lite Interface for local register access
-      axilClk          : out sl;
-      axilRst          : out sl;
-      mAxilReadMaster  : out AxiLiteReadMasterType;
-      mAxilReadSlave   : in  AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
-      mAxilWriteMaster : out AxiLiteWriteMasterType;
-      mAxilWriteSlave  : in  AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
-      sAxilReadMaster  : in  AxiLiteReadMasterType;
-      sAxilReadSlave   : out AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
-      sAxilWriteMaster : in  AxiLiteWriteMasterType;
-      sAxilWriteSlave  : out AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+      axilClk             : out sl;
+      axilRst             : out sl;
+      mAxilReadMaster     : out AxiLiteReadMasterType;
+      mAxilReadSlave      : in  AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      mAxilWriteMaster    : out AxiLiteWriteMasterType;
+      mAxilWriteSlave     : in  AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+      sAxilReadMaster     : in  AxiLiteReadMasterType;
+      sAxilReadSlave      : out AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      sAxilWriteMaster    : in  AxiLiteWriteMasterType;
+      sAxilWriteSlave     : out AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
       -- IO Streams
-      axisClk          : in  sl;
-      axisRst          : in  sl;
-      dataTxAxisMaster : in  AxiStreamMasterType;
-      dataTxAxisSlave  : out AxiStreamSlaveType);
+      axisClk             : in  sl;
+      axisRst             : in  sl;
+      tsDaqAxisMaster     : in  AxiStreamMasterType;
+      tsDaqAxisSlave      : out AxiStreamSlaveType;
+      tsDaqTrigAxisMaster : in  AxiStreamMasterType;
+      tsDaqTrigAxisSlave  : out AxiStreamSlaveType);
 
 end entity TenGigEthGtyCore;
 
 architecture rtl of TenGigEthGtyCore is
    constant ETH_CLK_FREQ_C : real := 156.25e6;
 
-   constant SERVER_SIZE_C     : natural := 2;
-   constant SRP_RSSI_INDEX_C  : natural := 0;
-   constant DATA_RSSI_INDEX_C : natural := 1;
+   constant SERVER_SIZE_C          : natural := 3;
+   constant SRP_RSSI_INDEX_C       : natural := 0;
+   constant RAW_DATA_RSSI_INDEX_C  : natural := 1;
+   constant TRIG_DATA_RSSI_INDEX_C : natural := 1;
    constant SERVER_PORTS_C : PositiveArray(1 downto 0) := (
-      SRP_RSSI_INDEX_C  => 8192,
-      DATA_RSSI_INDEX_C => 8193);
+      SRP_RSSI_INDEX_C       => 8192,
+      RAW_DATA_RSSI_INDEX_C  => 8193,
+      TRIG_DATA_RSSI_INDEX_C => 8194);
 
    -- Both RSSI ports use the same TDEST and stream config
    constant RSSI_SIZE_C   : positive            := 1;
@@ -85,36 +89,38 @@ architecture rtl of TenGigEthGtyCore is
 
    constant RSSI_AXIS_CONFIG_C : AxiStreamConfigArray(RSSI_SIZE_C-1 downto 0) := (others => AXIS_CONFIG_C);
 
-   -- Need to throttle down to simulate GigEth bandwidth
-   constant ROGUE_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 1, tDestBits => 8, tUserBits => 8);
-
    constant DEST_LOCAL_SRP_DATA_C : integer := 0;
 
    constant RSSI_ROUTES_C : Slv8Array(RSSI_SIZE_C-1 downto 0) := (0 => X"00");
 
-   constant AXIL_NUM_C       : integer := 4;
-   constant AXIL_ETH_C       : integer := 0;
-   constant AXIL_UDP_C       : integer := 1;
-   constant AXIL_RSSI_SRP_C  : integer := 2;
-   constant AXIL_RSSI_DATA_C : integer := 3;
+   constant AXIL_NUM_C            : integer := 5;
+   constant AXIL_ETH_C            : integer := 0;
+   constant AXIL_UDP_C            : integer := 1;
+   constant AXIL_RSSI_SRP_C       : integer := 2;
+   constant AXIL_RSSI_RAW_DATA_C  : integer := 3;
+   constant AXIL_RSSI_TRIG_DATA_C : integer := 4;
 
    constant AXIL_XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(AXIL_NUM_C-1 downto 0) := (
-      AXIL_ETH_C       => (
-         baseAddr      => AXIL_BASE_ADDR_G + X"000000",
-         addrBits      => 16,
-         connectivity  => X"FFFF"),
-      AXIL_UDP_C       => (
-         baseAddr      => AXIL_BASE_ADDR_G + X"010000",
-         addrBits      => 12,
-         connectivity  => X"FFFF"),
-      AXIL_RSSI_SRP_C  => (
-         baseAddr      => AXIL_BASE_ADDR_G + X"011000",
-         addrBits      => 12,
-         connectivity  => X"FFFF"),
-      AXIL_RSSI_DATA_C => (
-         baseAddr      => AXIL_BASE_ADDR_G + X"012000",
-         addrBits      => 12,
-         connectivity  => X"FFFF"));
+      AXIL_ETH_C            => (
+         baseAddr           => AXIL_BASE_ADDR_G + X"000000",
+         addrBits           => 16,
+         connectivity       => X"FFFF"),
+      AXIL_UDP_C            => (
+         baseAddr           => AXIL_BASE_ADDR_G + X"010000",
+         addrBits           => 12,
+         connectivity       => X"FFFF"),
+      AXIL_RSSI_SRP_C       => (
+         baseAddr           => AXIL_BASE_ADDR_G + X"011000",
+         addrBits           => 12,
+         connectivity       => X"FFFF"),
+      AXIL_RSSI_RAW_DATA_C  => (
+         baseAddr           => AXIL_BASE_ADDR_G + X"012000",
+         addrBits           => 12,
+         connectivity       => X"FFFF"),
+      AXIL_RSSI_TRIG_DATA_C => (
+         baseAddr           => AXIL_BASE_ADDR_G + X"013000",
+         addrBits           => 12,
+         connectivity       => X"FFFF"));
 
    signal ethClk : sl;
    signal ethRst : sl;
@@ -138,10 +144,16 @@ architecture rtl of TenGigEthGtyCore is
    signal srpRssiObMasters : AxiStreamMasterArray(RSSI_SIZE_C-1 downto 0);
    signal srpRssiObSlaves  : AxiStreamSlaveArray(RSSI_SIZE_C-1 downto 0);
 
-   signal dataRssiIbMasters : AxiStreamMasterArray(RSSI_SIZE_C-1 downto 0);
-   signal dataRssiIbSlaves  : AxiStreamSlaveArray(RSSI_SIZE_C-1 downto 0);
-   signal dataRssiObMasters : AxiStreamMasterArray(RSSI_SIZE_C-1 downto 0);
-   signal dataRssiObSlaves  : AxiStreamSlaveArray(RSSI_SIZE_C-1 downto 0);
+   signal rawDataRssiIbMasters : AxiStreamMasterArray(RSSI_SIZE_C-1 downto 0);
+   signal rawDataRssiIbSlaves  : AxiStreamSlaveArray(RSSI_SIZE_C-1 downto 0);
+   signal rawDataRssiObMasters : AxiStreamMasterArray(RSSI_SIZE_C-1 downto 0);
+   signal rawDataRssiObSlaves  : AxiStreamSlaveArray(RSSI_SIZE_C-1 downto 0);
+
+   signal trigDataRssiIbMasters : AxiStreamMasterArray(RSSI_SIZE_C-1 downto 0);
+   signal trigDataRssiIbSlaves  : AxiStreamSlaveArray(RSSI_SIZE_C-1 downto 0);
+   signal trigDataRssiObMasters : AxiStreamMasterArray(RSSI_SIZE_C-1 downto 0);
+   signal trigDataRssiObSlaves  : AxiStreamSlaveArray(RSSI_SIZE_C-1 downto 0);
+
 
    signal rogueIbMasters : AxiStreamMasterArray(SERVER_SIZE_C-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
    signal rogueIbSlaves  : AxiStreamSlaveArray(SERVER_SIZE_C-1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
@@ -338,7 +350,7 @@ begin
             -- Internal statuses
             statusReg_o       => rssiStatus(SRP_RSSI_INDEX_C));
 
-      U_RssiServer_DATA : entity surf.RssiCoreWrapper
+      U_RssiServer_RAW_DATA : entity surf.RssiCoreWrapper
          generic map (
             TPD_G                => TPD_G,
             APP_ILEAVE_EN_G      => true,
@@ -368,19 +380,64 @@ begin
             mAppAxisMasters_o => dataRssiObMasters,
             mAppAxisSlaves_i  => dataRssiObSlaves,
             -- Transport Layer Interface
-            sTspAxisMaster_i  => obServerMasters(DATA_RSSI_INDEX_C),
-            sTspAxisSlave_o   => obServerSlaves(DATA_RSSI_INDEX_C),
-            mTspAxisMaster_o  => ibServerMasters(DATA_RSSI_INDEX_C),
-            mTspAxisSlave_i   => ibServerSlaves(DATA_RSSI_INDEX_C),
+            sTspAxisMaster_i  => obServerMasters(RAW_DATA_RSSI_INDEX_C),
+            sTspAxisSlave_o   => obServerSlaves(RAW_DATA_RSSI_INDEX_C),
+            mTspAxisMaster_o  => ibServerMasters(RAW_DATA_RSSI_INDEX_C),
+            mTspAxisSlave_i   => ibServerSlaves(RAW_DATA_RSSI_INDEX_C),
             -- AXI-Lite Interface
             axiClk_i          => ethClk,
             axiRst_i          => ethRst,
-            axilReadMaster    => locAxilReadMasters(AXIL_RSSI_DATA_C),
-            axilReadSlave     => locAxilReadSlaves(AXIL_RSSI_DATA_C),
-            axilWriteMaster   => locAxilWriteMasters(AXIL_RSSI_DATA_C),
-            axilWriteSlave    => locAxilWriteSlaves(AXIL_RSSI_DATA_C),
+            axilReadMaster    => locAxilReadMasters(RAW_AXIL_RSSI_DATA_C),
+            axilReadSlave     => locAxilReadSlaves(RAW_AXIL_RSSI_DATA_C),
+            axilWriteMaster   => locAxilWriteMasters(RAW_AXIL_RSSI_DATA_C),
+            axilWriteSlave    => locAxilWriteSlaves(RAW_AXIL_RSSI_DATA_C),
             -- Internal statuses
-            statusReg_o       => rssiStatus(DATA_RSSI_INDEX_C));
+            statusReg_o       => rssiStatus(RAW_DATA_RSSI_INDEX_C));
+
+      U_RssiServer_TRIG_DATA : entity surf.RssiCoreWrapper
+         generic map (
+            TPD_G                => TPD_G,
+            APP_ILEAVE_EN_G      => true,
+            ILEAVE_ON_NOTVALID_G => true,
+            MAX_SEG_SIZE_G       => 1024,
+            SEGMENT_ADDR_SIZE_G  => 7,
+            APP_STREAMS_G        => RSSI_SIZE_C,
+            APP_STREAM_ROUTES_G  => RSSI_ROUTES_C,
+--            APP_STREAM_PRIORITY_G => RSSI_PRIORITY_C,
+            APP_AXIS_CONFIG_G    => RSSI_AXIS_CONFIG_C,
+            CLK_FREQUENCY_G      => ETH_CLK_FREQ_C,
+            TIMEOUT_UNIT_G       => 1.0E-3,  -- In units of seconds
+            SERVER_G             => true,
+            RETRANSMIT_ENABLE_G  => true,
+            BYPASS_CHUNKER_G     => false,
+            WINDOW_ADDR_SIZE_G   => 3,
+            PIPE_STAGES_G        => 0,
+            TSP_AXIS_CONFIG_G    => EMAC_AXIS_CONFIG_C,
+            INIT_SEQ_N_G         => 16#80#)
+         port map (
+            clk_i             => ethClk,
+            rst_i             => ethRst,
+            openRq_i          => '1',
+            -- Application Layer Interface
+            sAppAxisMasters_i => dataRssiIbMasters,
+            sAppAxisSlaves_o  => dataRssiIbSlaves,
+            mAppAxisMasters_o => dataRssiObMasters,
+            mAppAxisSlaves_i  => dataRssiObSlaves,
+            -- Transport Layer Interface
+            sTspAxisMaster_i  => obServerMasters(TRIG_DATA_RSSI_INDEX_C),
+            sTspAxisSlave_o   => obServerSlaves(TRIG_DATA_RSSI_INDEX_C),
+            mTspAxisMaster_o  => ibServerMasters(TRIG_DATA_RSSI_INDEX_C),
+            mTspAxisSlave_i   => ibServerSlaves(TRIG_DATA_RSSI_INDEX_C),
+            -- AXI-Lite Interface
+            axiClk_i          => ethClk,
+            axiRst_i          => ethRst,
+            axilReadMaster    => locAxilReadMasters(TRIG_AXIL_RSSI_DATA_C),
+            axilReadSlave     => locAxilReadSlaves(TRIG_AXIL_RSSI_DATA_C),
+            axilWriteMaster   => locAxilWriteMasters(TRIG_AXIL_RSSI_DATA_C),
+            axilWriteSlave    => locAxilWriteSlaves(TRIG_AXIL_RSSI_DATA_C),
+            -- Internal statuses
+            statusReg_o       => rssiStatus(TRIG_DATA_RSSI_INDEX_C));
+
 
 
    end generate REAL_ETH_GEN;
@@ -473,14 +530,14 @@ begin
             mAxisMaster  => rogueMuxAxisMasters(SRP_RSSI_INDEX_C),  -- [out]
             mAxisSlave   => rogueMuxAxisSlaves(SRP_RSSI_INDEX_C));  -- [in]
 
-      -- Data
-      U_RogueTcpStreamWrap_DATA : entity surf.RogueTcpStreamWrap
+      -- RAW Data
+      U_RogueTcpStreamWrap_RAW_DATA : entity surf.RogueTcpStreamWrap
          generic map (
             TPD_G         => TPD_G,
             PORT_NUM_G    => SIM_DATA_PORT_NUM_G,
             SSI_EN_G      => true,
             CHAN_MASK_G   => CHAN_MASK_C,
-            AXIS_CONFIG_G => ROGUE_AXIS_CONFIG_C)
+            AXIS_CONFIG_G => AXIS_CONFIG_C)
          port map (
             axisClk     => ethClk,                             -- [in]
             axisRst     => ethRst,                             -- [in]
@@ -494,7 +551,7 @@ begin
       rogueIbMasters(DATA_RSSI_INDEX_C)        <= rogueMuxAxisMasters(DATA_RSSI_INDEX_C);
       rogueMuxAxisSlaves(DATA_RSSI_INDEX_C)    <= rogueIbSlaves(DATA_RSSI_INDEX_C);
 
-      U_AxiStreamDeMux_DATA : entity surf.AxiStreamDeMux
+      U_AxiStreamDeMux_RAW_DATA : entity surf.AxiStreamDeMux
          generic map (
             TPD_G          => TPD_G,
             NUM_MASTERS_G  => RSSI_ROUTES_C'length,
@@ -508,7 +565,7 @@ begin
             mAxisMasters => dataRssiObMasters,                         -- [out]
             mAxisSlaves  => dataRssiObSlaves);                         -- [in]
 
-      U_AxiStreamMux_DATA : entity surf.AxiStreamMux
+      U_AxiStreamMux_RAW_DATA : entity surf.AxiStreamMux
          generic map (
             TPD_G                => TPD_G,
             NUM_SLAVES_G         => RSSI_ROUTES_C'length,
@@ -524,7 +581,60 @@ begin
             sAxisMasters => dataRssiIbMasters,                       -- [in]
             sAxisSlaves  => dataRssiIbSlaves,                        -- [out]
             mAxisMaster  => rogueMuxAxisMasters(DATA_RSSI_INDEX_C),  -- [out]
-            mAxisSlave   => rogueMuxAxisSlaves(DATA_RSSI_INDEX_C));  -- [in]      
+            mAxisSlave   => rogueMuxAxisSlaves(DATA_RSSI_INDEX_C));  -- [in]
+                                                                     --
+      -- TRIG Data
+      U_RogueTcpStreamWrap_TRIG_DATA : entity surf.RogueTcpStreamWrap
+         generic map (
+            TPD_G         => TPD_G,
+            PORT_NUM_G    => SIM_DATA_PORT_NUM_G,
+            SSI_EN_G      => true,
+            CHAN_MASK_G   => CHAN_MASK_C,
+            AXIS_CONFIG_G => AXIS_CONFIG_C)
+         port map (
+            axisClk     => ethClk,                                   -- [in]
+            axisRst     => ethRst,                                   -- [in]
+            sAxisMaster => rogueIbMasters(DATA_RSSI_INDEX_C),        -- [in]
+            sAxisSlave  => rogueIbSlaves(DATA_RSSI_INDEX_C),         -- [out]
+            mAxisMaster => rogueObMasters(DATA_RSSI_INDEX_C),        -- [out]
+            mAxisSlave  => rogueObSlaves(DATA_RSSI_INDEX_C));        -- [in]
+
+      rogueDemuxAxisMasters(DATA_RSSI_INDEX_C) <= rogueObMasters(DATA_RSSI_INDEX_C);
+      rogueObSlaves(DATA_RSSI_INDEX_C)         <= rogueDemuxAxisSlaves(DATA_RSSI_INDEX_C);
+      rogueIbMasters(DATA_RSSI_INDEX_C)        <= rogueMuxAxisMasters(DATA_RSSI_INDEX_C);
+      rogueMuxAxisSlaves(DATA_RSSI_INDEX_C)    <= rogueIbSlaves(DATA_RSSI_INDEX_C);
+
+      U_AxiStreamDeMux_TRIG_DATA : entity surf.AxiStreamDeMux
+         generic map (
+            TPD_G          => TPD_G,
+            NUM_MASTERS_G  => RSSI_ROUTES_C'length,
+            MODE_G         => "ROUTED",
+            TDEST_ROUTES_G => RSSI_ROUTES_C)
+         port map (
+            axisClk      => ethClk,                                    -- [in]
+            axisRst      => ethRst,                                    -- [in]
+            sAxisMaster  => rogueDemuxAxisMasters(DATA_RSSI_INDEX_C),  -- [in]
+            sAxisSlave   => rogueDemuxAxisSlaves(DATA_RSSI_INDEX_C),   -- [out]
+            mAxisMasters => dataRssiObMasters,                         -- [out]
+            mAxisSlaves  => dataRssiObSlaves);                         -- [in]
+
+      U_AxiStreamMux_TRIG_DATA : entity surf.AxiStreamMux
+         generic map (
+            TPD_G                => TPD_G,
+            NUM_SLAVES_G         => RSSI_ROUTES_C'length,
+            MODE_G               => "ROUTED",
+            TDEST_ROUTES_G       => RSSI_ROUTES_C,
+--            PRIORITY_G           => RSSI_PRIORITY_C,
+            ILEAVE_EN_G          => true,
+            ILEAVE_ON_NOTVALID_G => true,
+            ILEAVE_REARB_G       => (512/8)-3)
+         port map (
+            axisClk      => ethClk,     -- [in]
+            axisRst      => ethRst,     -- [in]
+            sAxisMasters => dataRssiIbMasters,                       -- [in]
+            sAxisSlaves  => dataRssiIbSlaves,                        -- [out]
+            mAxisMaster  => rogueMuxAxisMasters(DATA_RSSI_INDEX_C),  -- [out]
+            mAxisSlave   => rogueMuxAxisSlaves(DATA_RSSI_INDEX_C));  -- [in]                                                                           --
 
    end generate SIM_GEN;
 
@@ -560,7 +670,7 @@ begin
          mAxilWriteSlave  => mAxilWriteSlave);
 
    -----------------------------------------------------
-   -- DATA RSSI TDEST 0x00 - Local Streaming Data TX buffer
+   -- RAW DATA RSSI TDEST 0x00 - Local Streaming Data TX buffer
    -- For clock transition
    -----------------------------------------------------
    U_AxiStreamFifoV2_LOC_TX : entity surf.AxiStreamFifoV2
@@ -582,12 +692,44 @@ begin
       port map (
          sAxisClk    => axisClk,        -- [in]
          sAxisRst    => axisRst,        -- [in]
-         sAxisMaster => dataTxAxisMaster,       -- [in]
-         sAxisSlave  => dataTxAxisSlave,        -- [out]
+         sAxisMaster => tsDaqRawAxisMaster,     -- [in]
+         sAxisSlave  => tsDaqRawAxisSlave,      -- [out]
 --         sAxisCtrl   => localTxAxisCtrl,                   -- [out]
          mAxisClk    => ethClk,         -- [in]
          mAxisRst    => ethRst,         -- [in]
-         mAxisMaster => dataRssiIbMasters(DEST_LOCAL_SRP_DATA_C),  -- [out]
-         mAxisSlave  => dataRssiIbSlaves(DEST_LOCAL_SRP_DATA_C));  -- [in]
+         mAxisMaster => rawDataRssiIbMasters(DEST_LOCAL_SRP_DATA_C),  -- [out]
+         mAxisSlave  => rawDataRssiIbSlaves(DEST_LOCAL_SRP_DATA_C));  -- [in]
+
+   -----------------------------------------------------
+   -- TRIG DATA RSSI TDEST 0x00 - Local Streaming Data TX buffer
+   -- For clock transition
+   -----------------------------------------------------
+   U_AxiStreamFifoV2_LOC_TX : entity surf.AxiStreamFifoV2
+      generic map (
+         TPD_G               => TPD_G,
+         INT_PIPE_STAGES_G   => 1,
+         PIPE_STAGES_G       => 0,
+         SLAVE_READY_EN_G    => true,
+         VALID_THOLD_G       => 1,
+         VALID_BURST_MODE_G  => false,
+         SYNTH_MODE_G        => "inferred",
+         MEMORY_TYPE_G       => "distributed",
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => 4,
+         FIFO_FIXED_THRESH_G => true,
+--         FIFO_PAUSE_THRESH_G => 2**9-32,
+         SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,  -- Change this to some package constant?
+         MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
+      port map (
+         sAxisClk    => axisClk,        -- [in]
+         sAxisRst    => axisRst,        -- [in]
+         sAxisMaster => tsDaqTrigAxisMaster,    -- [in]
+         sAxisSlave  => tsDaqTrigAxisSlave,     -- [out]
+--         sAxisCtrl   => localTxAxisCtrl,                   -- [out]
+         mAxisClk    => ethClk,         -- [in]
+         mAxisRst    => ethRst,         -- [in]
+         mAxisMaster => trigDataRssiIbMasters(DEST_LOCAL_SRP_DATA_C),  -- [out]
+         mAxisSlave  => trigDataRssiIbSlaves(DEST_LOCAL_SRP_DATA_C));  -- [in]
+
 
 end architecture rtl;

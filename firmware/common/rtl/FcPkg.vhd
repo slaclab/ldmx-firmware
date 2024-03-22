@@ -82,6 +82,8 @@ package FcPkg is
       bunchCount => (others => '0'),
       pulseId    => (others => '0'));
 
+   constant FC_TIMESTAMP_SIZE_C : integer := 70;
+
    function toSlv (
       fcTimestamp : FcTimestampType)
       return slv;

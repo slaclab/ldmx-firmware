@@ -61,10 +61,13 @@ entity S30xlAppCore is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
       -- DAQ Stream
-      axisClk       : in  sl;
-      axisRst       : in  sl;
-      daqDataMaster : out AxiStreamMasterType;
-      daqDataSlave  : in  AxiStreamSlaveType);
+      axisClk             : in  sl;
+      axisRst             : in  sl;
+      tsDaqRawAxisMaster  : out AxiStreamMasterType;
+      tsDaqRawAxisSlave   : in  AxiStreamSlaveType;
+      tsDaqTrigAxisMaster : out AxiStreamMasterType;
+      tsDaqTrigAxisSlave  : in  AxiStreamSlaveType);
+
 end entity S30xlAppCore;
 
 architecture rtl of S30xlAppCore is
@@ -181,10 +184,37 @@ begin
    -- DAQ Block Shell
    -- (Probably includes Data to DAQ sender and Common block for LDMX event header/trailer)
    -------------------------------------------------------------------------------------------------
+   U_TsDaq_1 : entity ldmx.TsDaq
+      generic map (
+         TPD_G      => TPD_G,
+         TS_LANES_G => TS_LANES_G)
+      port map (
+         fcClk185        => fcClk185,            -- [in]
+         fcRst185        => fcRst185,            -- [in]
+         fcTsRxMsgs      => fcTsRxMsgs,          -- [in]
+         fcMsgTime       => fcMsgTime,           -- [in]
+         axisClk         => axisClk,             -- [in]
+         axisRst         => axisRst,             -- [in]
+         tsDaqAxisMaster => tsDaqRawAxisMaster,  -- [out]
+         tsDaqAxisSlave  => tsDaqRawAxisSlave);  -- [in]
 
    -------------------------------------------------------------------------------------------------
    -- Trigger algorithm block
+   -- Use another DAQ block as placeholder
    -------------------------------------------------------------------------------------------------
+   U_TsDaq_TRIG : entity ldmx.TsDaq
+      generic map (
+         TPD_G      => TPD_G,
+         TS_LANES_G => TS_LANES_G)
+      port map (
+         fcClk185        => fcClk185,            -- [in]
+         fcRst185        => fcRst185,            -- [in]
+         fcTsRxMsgs      => fcTsRxMsgs,          -- [in]
+         fcMsgTime       => fcMsgTime,           -- [in]
+         axisClk         => axisClk,             -- [in]
+         axisRst         => axisRst,             -- [in]
+         tsDaqAxisMaster => tsDaqTrigAxisMaster,  -- [out]
+         tsDaqAxisSlave  => tsDaqTrigAxisSlave);  -- [in]   
 
    -------------------------------------------------------------------------------------------------
    -- Data to GT Sender

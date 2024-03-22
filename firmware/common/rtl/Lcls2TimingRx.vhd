@@ -181,7 +181,7 @@ begin
    U_IBUFDS_GT : IBUFDS_GTE4
       generic map (
          REFCLK_EN_TX_PATH  => '0',     -- Refer to Transceiver User Guide
-         REFCLK_HROW_CK_SEL => "01",    -- Refer to Transceiver User Guide
+         REFCLK_HROW_CK_SEL => "00",    -- ODIV2 = 0
          REFCLK_ICNTL_RX    => "00")    -- Refer to Transceiver User Guide
       port map (
          O     => timingRefClk,         -- 1-bit output: Refer to Transceiver User Guide

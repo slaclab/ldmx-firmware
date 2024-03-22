@@ -1,3 +1,47 @@
+# Clocks
+create_clock -name clk125In -period 8.0 [get_ports clk125InP];
+create_clock -name lclsTimingRefClk -period 5.384 [get_ports lclsTimingRefClk185P]
+create_clock -name fcHubRefClk0 -period 5.384 [get_ports fcHubRefClkP[0]]
+create_clock -name fcHubRefClk1 -period 5.384 [get_ports fcHubRefClkP[1]]
+create_clock -name appFcRefClk -period 5.384 [get_ports appFcRefClkP]
+create_clock -name tsRefClk250 -period 4.0 [get_ports tsRefClk250P]
+create_clock -name ethRefClk156 -period 6.4 [get_ports ethRefClk156P]
+
+create_generated_clock -name appFcRecClkMmcm [get_pins U_S30xlAppCore_1/U_FcReceiver_1/U_LdmxPgpFcLane_1/RX_CLK_MMCM_GEN.U_ClockManager/MmcmGen.U_Mmcm/CLKOUT0]
+
+# LCLS Timing
+create_generated_clock -name lclsTimingTxUsrClk [get_pins U_FcHub_1/U_Lcls2TimingRx_1/U_BUFG_GT_DIV2/O]
+
+# FC Hub Rec Clocks
+create_clock -name fcHubRxOutClk0  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[0]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk1  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[1]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk2  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[2]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk3  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[3]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk4  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[0]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk5  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[1]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk6  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[2]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk7  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[3]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk8  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[0]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk9  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[1]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk10 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[2]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk11 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[3]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk12 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[0]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk13 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[1]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk14 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[2]*/*/RXOUTCLK}]
+create_clock -name fcHubRxOutClk15 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[3]*/*/RXOUTCLK}]
+
+# TS Rec Clocks
+create_clock -name tsRxOutClk0 -period 4.0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[0]*/RXOUTCLK}]
+create_clock -name tsRxOutClk1 -period 4.0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[1]*/RXOUTCLK}]
+
+create_generated_clock -name tsTxOutClk0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[0]*/TXOUTCLK}]
+create_generated_clock -name tsTxOutClk1 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[1]*/TXOUTCLK}]
+
+
+# Eth TxOutClk
+create_generated_clock -name ethTxOutClk [get_pins -hier * -filter {name=~U_TenGigEthGtyCore_1/*/TXOUTCLK}]
+
+
 # 125 MHz OSC Clock In
 set_property -dict {PACKAGE_PIN H28 IOSTANDARD LVDS DIFF_TERM TRUE} [get_ports clk125InP]
 set_property -dict {PACKAGE_PIN H29 IOSTANDARD LVDS DIFF_TERM TRUE} [get_ports clk125InN]

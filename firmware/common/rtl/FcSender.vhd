@@ -38,23 +38,23 @@ entity FcSender is
       AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
       -- Reference clock
-      lclsTimingRecClkIn : in  sl;
+      fcHubRefClk       : in  sl;
       -- PGP FC serial IO
-      fcHubTxP           : out sl;
-      fcHubTxN           : out sl;
-      fcHubRxP           : in  sl;
-      fcHubRxN           : in  sl;
+      fcHubTxP          : out sl;
+      fcHubTxN          : out sl;
+      fcHubRxP          : in  sl;
+      fcHubRxN          : in  sl;
       -- Interface to Global Trigger and LCLS Timing
-      lclsTimingUserClk  : in  sl;
-      lclsTimingUserRst  : in  sl;
-      fcTxMsg            : in  FastControlMessageType;
+      lclsTimingUserClk : in  sl;
+      lclsTimingUserRst : in  sl;
+      fcTxMsg           : in  FastControlMessageType;
       -- Axil inteface
-      axilClk            : in  sl;
-      axilRst            : in  sl;
-      axilReadMaster     : in  AxiLiteReadMasterType;
-      axilReadSlave      : out AxiLiteReadSlaveType;
-      axilWriteMaster    : in  AxiLiteWriteMasterType;
-      axilWriteSlave     : out AxiLiteWriteSlaveType);
+      axilClk           : in  sl;
+      axilRst           : in  sl;
+      axilReadMaster    : in  AxiLiteReadMasterType;
+      axilReadSlave     : out AxiLiteReadSlaveType;
+      axilWriteMaster   : in  AxiLiteWriteMasterType;
+      axilWriteSlave    : out AxiLiteWriteSlaveType);
 
 end entity FcSender;
 
@@ -95,7 +95,7 @@ begin
          pgpTxN          => fcHubTxN,                              -- [out]
          pgpRxP          => fcHubRxP,                              -- [in]
          pgpRxN          => fcHubRxN,                              -- [in]
-         pgpRefClk       => lclsTimingRecClkIn,                    -- [in]
+         pgpRefClk       => fcHubRefClk,                    -- [in]
          pgpUserRefClk   => lclsTimingUserClk,                     -- [in]
          pgpRxRecClk     => open,                                  -- [out]
          pgpRxRstOut     => fcRxRst185,                            -- [out]
