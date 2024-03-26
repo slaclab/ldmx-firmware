@@ -64,8 +64,8 @@ entity TenGigEthGtyCore is
       -- IO Streams
       axisClk             : in  sl;
       axisRst             : in  sl;
-      tsDaqAxisMaster     : in  AxiStreamMasterType;
-      tsDaqAxisSlave      : out AxiStreamSlaveType;
+      tsDaqRawAxisMaster  : in  AxiStreamMasterType;
+      tsDaqRawAxisSlave   : out AxiStreamSlaveType;
       tsDaqTrigAxisMaster : in  AxiStreamMasterType;
       tsDaqTrigAxisSlave  : out AxiStreamSlaveType);
 
@@ -77,8 +77,8 @@ architecture rtl of TenGigEthGtyCore is
    constant SERVER_SIZE_C          : natural := 3;
    constant SRP_RSSI_INDEX_C       : natural := 0;
    constant RAW_DATA_RSSI_INDEX_C  : natural := 1;
-   constant TRIG_DATA_RSSI_INDEX_C : natural := 1;
-   constant SERVER_PORTS_C : PositiveArray(1 downto 0) := (
+   constant TRIG_DATA_RSSI_INDEX_C : natural := 2;
+   constant SERVER_PORTS_C : PositiveArray(2 downto 0) := (
       SRP_RSSI_INDEX_C       => 8192,
       RAW_DATA_RSSI_INDEX_C  => 8193,
       TRIG_DATA_RSSI_INDEX_C => 8194);
@@ -375,10 +375,10 @@ begin
             rst_i             => ethRst,
             openRq_i          => '1',
             -- Application Layer Interface
-            sAppAxisMasters_i => dataRssiIbMasters,
-            sAppAxisSlaves_o  => dataRssiIbSlaves,
-            mAppAxisMasters_o => dataRssiObMasters,
-            mAppAxisSlaves_i  => dataRssiObSlaves,
+            sAppAxisMasters_i => rawDataRssiIbMasters,
+            sAppAxisSlaves_o  => rawDataRssiIbSlaves,
+            mAppAxisMasters_o => rawDataRssiObMasters,
+            mAppAxisSlaves_i  => rawDataRssiObSlaves,
             -- Transport Layer Interface
             sTspAxisMaster_i  => obServerMasters(RAW_DATA_RSSI_INDEX_C),
             sTspAxisSlave_o   => obServerSlaves(RAW_DATA_RSSI_INDEX_C),
@@ -387,56 +387,56 @@ begin
             -- AXI-Lite Interface
             axiClk_i          => ethClk,
             axiRst_i          => ethRst,
-            axilReadMaster    => locAxilReadMasters(RAW_AXIL_RSSI_DATA_C),
-            axilReadSlave     => locAxilReadSlaves(RAW_AXIL_RSSI_DATA_C),
-            axilWriteMaster   => locAxilWriteMasters(RAW_AXIL_RSSI_DATA_C),
-            axilWriteSlave    => locAxilWriteSlaves(RAW_AXIL_RSSI_DATA_C),
+            axilReadMaster    => locAxilReadMasters(AXIL_RSSI_RAW_DATA_C),
+            axilReadSlave     => locAxilReadSlaves(AXIL_RSSI_RAW_DATA_C),
+            axilWriteMaster   => locAxilWriteMasters(AXIL_RSSI_RAW_DATA_C),
+            axilWriteSlave    => locAxilWriteSlaves(AXIL_RSSI_RAW_DATA_C),
             -- Internal statuses
             statusReg_o       => rssiStatus(RAW_DATA_RSSI_INDEX_C));
 
-      U_RssiServer_TRIG_DATA : entity surf.RssiCoreWrapper
-         generic map (
-            TPD_G                => TPD_G,
-            APP_ILEAVE_EN_G      => true,
-            ILEAVE_ON_NOTVALID_G => true,
-            MAX_SEG_SIZE_G       => 1024,
-            SEGMENT_ADDR_SIZE_G  => 7,
-            APP_STREAMS_G        => RSSI_SIZE_C,
-            APP_STREAM_ROUTES_G  => RSSI_ROUTES_C,
---            APP_STREAM_PRIORITY_G => RSSI_PRIORITY_C,
-            APP_AXIS_CONFIG_G    => RSSI_AXIS_CONFIG_C,
-            CLK_FREQUENCY_G      => ETH_CLK_FREQ_C,
-            TIMEOUT_UNIT_G       => 1.0E-3,  -- In units of seconds
-            SERVER_G             => true,
-            RETRANSMIT_ENABLE_G  => true,
-            BYPASS_CHUNKER_G     => false,
-            WINDOW_ADDR_SIZE_G   => 3,
-            PIPE_STAGES_G        => 0,
-            TSP_AXIS_CONFIG_G    => EMAC_AXIS_CONFIG_C,
-            INIT_SEQ_N_G         => 16#80#)
-         port map (
-            clk_i             => ethClk,
-            rst_i             => ethRst,
-            openRq_i          => '1',
-            -- Application Layer Interface
-            sAppAxisMasters_i => dataRssiIbMasters,
-            sAppAxisSlaves_o  => dataRssiIbSlaves,
-            mAppAxisMasters_o => dataRssiObMasters,
-            mAppAxisSlaves_i  => dataRssiObSlaves,
-            -- Transport Layer Interface
-            sTspAxisMaster_i  => obServerMasters(TRIG_DATA_RSSI_INDEX_C),
-            sTspAxisSlave_o   => obServerSlaves(TRIG_DATA_RSSI_INDEX_C),
-            mTspAxisMaster_o  => ibServerMasters(TRIG_DATA_RSSI_INDEX_C),
-            mTspAxisSlave_i   => ibServerSlaves(TRIG_DATA_RSSI_INDEX_C),
-            -- AXI-Lite Interface
-            axiClk_i          => ethClk,
-            axiRst_i          => ethRst,
-            axilReadMaster    => locAxilReadMasters(TRIG_AXIL_RSSI_DATA_C),
-            axilReadSlave     => locAxilReadSlaves(TRIG_AXIL_RSSI_DATA_C),
-            axilWriteMaster   => locAxilWriteMasters(TRIG_AXIL_RSSI_DATA_C),
-            axilWriteSlave    => locAxilWriteSlaves(TRIG_AXIL_RSSI_DATA_C),
-            -- Internal statuses
-            statusReg_o       => rssiStatus(TRIG_DATA_RSSI_INDEX_C));
+--       U_RssiServer_TRIG_DATA : entity surf.RssiCoreWrapper
+--          generic map (
+--             TPD_G                => TPD_G,
+--             APP_ILEAVE_EN_G      => true,
+--             ILEAVE_ON_NOTVALID_G => true,
+--             MAX_SEG_SIZE_G       => 1024,
+--             SEGMENT_ADDR_SIZE_G  => 7,
+--             APP_STREAMS_G        => RSSI_SIZE_C,
+--             APP_STREAM_ROUTES_G  => RSSI_ROUTES_C,
+-- --            APP_STREAM_PRIORITY_G => RSSI_PRIORITY_C,
+--             APP_AXIS_CONFIG_G    => RSSI_AXIS_CONFIG_C,
+--             CLK_FREQUENCY_G      => ETH_CLK_FREQ_C,
+--             TIMEOUT_UNIT_G       => 1.0E-3,  -- In units of seconds
+--             SERVER_G             => true,
+--             RETRANSMIT_ENABLE_G  => true,
+--             BYPASS_CHUNKER_G     => false,
+--             WINDOW_ADDR_SIZE_G   => 3,
+--             PIPE_STAGES_G        => 0,
+--             TSP_AXIS_CONFIG_G    => EMAC_AXIS_CONFIG_C,
+--             INIT_SEQ_N_G         => 16#80#)
+--          port map (
+--             clk_i             => ethClk,
+--             rst_i             => ethRst,
+--             openRq_i          => '1',
+--             -- Application Layer Interface
+--             sAppAxisMasters_i => trigDataRssiIbMasters,
+--             sAppAxisSlaves_o  => trigDataRssiIbSlaves,
+--             mAppAxisMasters_o => trigDataRssiObMasters,
+--             mAppAxisSlaves_i  => trigDataRssiObSlaves,
+--             -- Transport Layer Interface
+--             sTspAxisMaster_i  => obServerMasters(TRIG_DATA_RSSI_INDEX_C),
+--             sTspAxisSlave_o   => obServerSlaves(TRIG_DATA_RSSI_INDEX_C),
+--             mTspAxisMaster_o  => ibServerMasters(TRIG_DATA_RSSI_INDEX_C),
+--             mTspAxisSlave_i   => ibServerSlaves(TRIG_DATA_RSSI_INDEX_C),
+--             -- AXI-Lite Interface
+--             axiClk_i          => ethClk,
+--             axiRst_i          => ethRst,
+--             axilReadMaster    => locAxilReadMasters(AXIL_RSSI_TRIG_DATA_C),
+--             axilReadSlave     => locAxilReadSlaves(AXIL_RSSI_TRIG_DATA_C),
+--             axilWriteMaster   => locAxilWriteMasters(AXIL_RSSI_TRIG_DATA_C),
+--             axilWriteSlave    => locAxilWriteSlaves(AXIL_RSSI_TRIG_DATA_C),
+--             -- Internal statuses
+--             statusReg_o       => rssiStatus(TRIG_DATA_RSSI_INDEX_C));
 
 
 
@@ -476,165 +476,165 @@ begin
             rstOut => ethRst);
 
       -- SRP
-      U_RogueTcpStreamWrap_SRP : entity surf.RogueTcpStreamWrap
-         generic map (
-            TPD_G         => TPD_G,
-            PORT_NUM_G    => SIM_SRP_PORT_NUM_G,
-            SSI_EN_G      => true,
-            CHAN_COUNT_G  => 1,
-            AXIS_CONFIG_G => AXIS_CONFIG_C)
-         port map (
-            axisClk     => ethClk,                            -- [in]
-            axisRst     => ethRst,                            -- [in]
-            sAxisMaster => rogueIbMasters(SRP_RSSI_INDEX_C),  -- [in]
-            sAxisSlave  => rogueIbSlaves(SRP_RSSI_INDEX_C),   -- [out]
-            mAxisMaster => rogueObMasters(SRP_RSSI_INDEX_C),  -- [out]
-            mAxisSlave  => rogueObSlaves(SRP_RSSI_INDEX_C));  -- [in]
+--       U_RogueTcpStreamWrap_SRP : entity surf.RogueTcpStreamWrap
+--          generic map (
+--             TPD_G         => TPD_G,
+--             PORT_NUM_G    => SIM_SRP_PORT_NUM_G,
+--             SSI_EN_G      => true,
+--             CHAN_COUNT_G  => 1,
+--             AXIS_CONFIG_G => AXIS_CONFIG_C)
+--          port map (
+--             axisClk     => ethClk,                            -- [in]
+--             axisRst     => ethRst,                            -- [in]
+--             sAxisMaster => srpRssiObMasters(SRP_RSSI_INDEX_C),  -- [in]
+--             sAxisSlave  => srpRssiObSlaves(SRP_RSSI_INDEX_C),   -- [out]
+--             mAxisMaster => srpRssiIbMasters(SRP_RSSI_INDEX_C),  -- [out]
+--             mAxisSlave  => srpRssiIbSlaves(SRP_RSSI_INDEX_C));  -- [in]
 
-      -- No resize to throttle to 1G
-      rogueDemuxAxisMasters(SRP_RSSI_INDEX_C) <= rogueObMasters(SRP_RSSI_INDEX_C);
-      rogueObSlaves(SRP_RSSI_INDEX_C)         <= rogueDemuxAxisSlaves(SRP_RSSI_INDEX_C);
-      rogueIbMasters(SRP_RSSI_INDEX_C)        <= rogueMuxAxisMasters(SRP_RSSI_INDEX_C);
-      rogueMuxAxisSlaves(SRP_RSSI_INDEX_C)    <= rogueIbSlaves(SRP_RSSI_INDEX_C);
+--       -- No resize to throttle to 1G
+--       rogueDemuxAxisMasters(SRP_RSSI_INDEX_C) <= rogueObMasters(SRP_RSSI_INDEX_C);
+--       rogueObSlaves(SRP_RSSI_INDEX_C)         <= rogueDemuxAxisSlaves(SRP_RSSI_INDEX_C);
+--       rogueIbMasters(SRP_RSSI_INDEX_C)        <= rogueMuxAxisMasters(SRP_RSSI_INDEX_C);
+--       rogueMuxAxisSlaves(SRP_RSSI_INDEX_C)    <= rogueIbSlaves(SRP_RSSI_INDEX_C);
 
-      -- Only using 1 TDEST for now but might expand later
-      U_AxiStreamDeMux_SRP : entity surf.AxiStreamDeMux
-         generic map (
-            TPD_G          => TPD_G,
-            NUM_MASTERS_G  => RSSI_ROUTES_C'length,
-            MODE_G         => "ROUTED",
-            TDEST_ROUTES_G => RSSI_ROUTES_C)
-         port map (
-            axisClk      => ethClk,                                   -- [in]
-            axisRst      => ethRst,                                   -- [in]
-            sAxisMaster  => rogueDemuxAxisMasters(SRP_RSSI_INDEX_C),  -- [in]
-            sAxisSlave   => rogueDemuxAxisSlaves(SRP_RSSI_INDEX_C),   -- [out]
-            mAxisMasters => srpRssiObMasters,                         -- [out]
-            mAxisSlaves  => srpRssiObSlaves);                         -- [in]
+--       -- Only using 1 TDEST for now but might expand later
+--       U_AxiStreamDeMux_SRP : entity surf.AxiStreamDeMux
+--          generic map (
+--             TPD_G          => TPD_G,
+--             NUM_MASTERS_G  => RSSI_ROUTES_C'length,
+--             MODE_G         => "ROUTED",
+--             TDEST_ROUTES_G => RSSI_ROUTES_C)
+--          port map (
+--             axisClk      => ethClk,                                   -- [in]
+--             axisRst      => ethRst,                                   -- [in]
+--             sAxisMaster  => rogueDemuxAxisMasters(SRP_RSSI_INDEX_C),  -- [in]
+--             sAxisSlave   => rogueDemuxAxisSlaves(SRP_RSSI_INDEX_C),   -- [out]
+--             mAxisMasters => srpRssiObMasters,                         -- [out]
+--             mAxisSlaves  => srpRssiObSlaves);                         -- [in]
 
-      U_AxiStreamMux_SRP : entity surf.AxiStreamMux
-         generic map (
-            TPD_G                => TPD_G,
-            NUM_SLAVES_G         => RSSI_ROUTES_C'length,
-            MODE_G               => "ROUTED",
-            TDEST_ROUTES_G       => RSSI_ROUTES_C,
---            PRIORITY_G           => RSSI_PRIORITY_C,
-            ILEAVE_EN_G          => true,
-            ILEAVE_ON_NOTVALID_G => true,
-            ILEAVE_REARB_G       => (512/8)-3)
-         port map (
-            axisClk      => ethClk,                                 -- [in]
-            axisRst      => ethRst,                                 -- [in]
-            sAxisMasters => srpRssiIbMasters,                       -- [in]
-            sAxisSlaves  => srpRssiIbSlaves,                        -- [out]
-            mAxisMaster  => rogueMuxAxisMasters(SRP_RSSI_INDEX_C),  -- [out]
-            mAxisSlave   => rogueMuxAxisSlaves(SRP_RSSI_INDEX_C));  -- [in]
+--       U_AxiStreamMux_SRP : entity surf.AxiStreamMux
+--          generic map (
+--             TPD_G                => TPD_G,
+--             NUM_SLAVES_G         => RSSI_ROUTES_C'length,
+--             MODE_G               => "ROUTED",
+--             TDEST_ROUTES_G       => RSSI_ROUTES_C,
+-- --            PRIORITY_G           => RSSI_PRIORITY_C,
+--             ILEAVE_EN_G          => true,
+--             ILEAVE_ON_NOTVALID_G => true,
+--             ILEAVE_REARB_G       => (512/8)-3)
+--          port map (
+--             axisClk      => ethClk,                                 -- [in]
+--             axisRst      => ethRst,                                 -- [in]
+--             sAxisMasters => srpRssiIbMasters,                       -- [in]
+--             sAxisSlaves  => srpRssiIbSlaves,                        -- [out]
+--             mAxisMaster  => rogueMuxAxisMasters(SRP_RSSI_INDEX_C),  -- [out]
+--             mAxisSlave   => rogueMuxAxisSlaves(SRP_RSSI_INDEX_C));  -- [in]
 
-      -- RAW Data
-      U_RogueTcpStreamWrap_RAW_DATA : entity surf.RogueTcpStreamWrap
-         generic map (
-            TPD_G         => TPD_G,
-            PORT_NUM_G    => SIM_DATA_PORT_NUM_G,
-            SSI_EN_G      => true,
-            CHAN_MASK_G   => CHAN_MASK_C,
-            AXIS_CONFIG_G => AXIS_CONFIG_C)
-         port map (
-            axisClk     => ethClk,                             -- [in]
-            axisRst     => ethRst,                             -- [in]
-            sAxisMaster => rogueIbMasters(DATA_RSSI_INDEX_C),  -- [in]
-            sAxisSlave  => rogueIbSlaves(DATA_RSSI_INDEX_C),   -- [out]
-            mAxisMaster => rogueObMasters(DATA_RSSI_INDEX_C),  -- [out]
-            mAxisSlave  => rogueObSlaves(DATA_RSSI_INDEX_C));  -- [in]
+--       -- RAW Data
+--       U_RogueTcpStreamWrap_RAW_DATA : entity surf.RogueTcpStreamWrap
+--          generic map (
+--             TPD_G         => TPD_G,
+--             PORT_NUM_G    => SIM_DATA_PORT_NUM_G,
+--             SSI_EN_G      => true,
+--             CHAN_MASK_G   => CHAN_MASK_C,
+--             AXIS_CONFIG_G => AXIS_CONFIG_C)
+--          port map (
+--             axisClk     => ethClk,                                 -- [in]
+--             axisRst     => ethRst,                                 -- [in]
+--             sAxisMaster => rogueIbMasters(RAW_DATA_RSSI_INDEX_C),  -- [in]
+--             sAxisSlave  => rogueIbSlaves(RAW_DATA_RSSI_INDEX_C),   -- [out]
+--             mAxisMaster => rogueObMasters(RAW_DATA_RSSI_INDEX_C),  -- [out]
+--             mAxisSlave  => rogueObSlaves(RAW_DATA_RSSI_INDEX_C));  -- [in]
 
-      rogueDemuxAxisMasters(DATA_RSSI_INDEX_C) <= rogueObMasters(DATA_RSSI_INDEX_C);
-      rogueObSlaves(DATA_RSSI_INDEX_C)         <= rogueDemuxAxisSlaves(DATA_RSSI_INDEX_C);
-      rogueIbMasters(DATA_RSSI_INDEX_C)        <= rogueMuxAxisMasters(DATA_RSSI_INDEX_C);
-      rogueMuxAxisSlaves(DATA_RSSI_INDEX_C)    <= rogueIbSlaves(DATA_RSSI_INDEX_C);
+--       rogueDemuxAxisMasters(RAW_DATA_RSSI_INDEX_C) <= rogueObMasters(RAW_DATA_RSSI_INDEX_C);
+--       rogueObSlaves(RAW_DATA_RSSI_INDEX_C)         <= rogueDemuxAxisSlaves(RAW_DATA_RSSI_INDEX_C);
+--       rogueIbMasters(RAW_DATA_RSSI_INDEX_C)        <= rogueMuxAxisMasters(RAW_DATA_RSSI_INDEX_C);
+--       rogueMuxAxisSlaves(RAW_DATA_RSSI_INDEX_C)    <= rogueIbSlaves(RAW_DATA_RSSI_INDEX_C);
 
-      U_AxiStreamDeMux_RAW_DATA : entity surf.AxiStreamDeMux
-         generic map (
-            TPD_G          => TPD_G,
-            NUM_MASTERS_G  => RSSI_ROUTES_C'length,
-            MODE_G         => "ROUTED",
-            TDEST_ROUTES_G => RSSI_ROUTES_C)
-         port map (
-            axisClk      => ethClk,                                    -- [in]
-            axisRst      => ethRst,                                    -- [in]
-            sAxisMaster  => rogueDemuxAxisMasters(DATA_RSSI_INDEX_C),  -- [in]
-            sAxisSlave   => rogueDemuxAxisSlaves(DATA_RSSI_INDEX_C),   -- [out]
-            mAxisMasters => dataRssiObMasters,                         -- [out]
-            mAxisSlaves  => dataRssiObSlaves);                         -- [in]
+--       U_AxiStreamDeMux_RAW_DATA : entity surf.AxiStreamDeMux
+--          generic map (
+--             TPD_G          => TPD_G,
+--             NUM_MASTERS_G  => RSSI_ROUTES_C'length,
+--             MODE_G         => "ROUTED",
+--             TDEST_ROUTES_G => RSSI_ROUTES_C)
+--          port map (
+--             axisClk      => ethClk,                                        -- [in]
+--             axisRst      => ethRst,                                        -- [in]
+--             sAxisMaster  => rogueDemuxAxisMasters(RAW_DATA_RSSI_INDEX_C),  -- [in]
+--             sAxisSlave   => rogueDemuxAxisSlaves(RAW_DATA_RSSI_INDEX_C),   -- [out]
+--             mAxisMasters => rawDataRssiObMasters,                          -- [out]
+--             mAxisSlaves  => rawDataRssiObSlaves);                          -- [in]
 
-      U_AxiStreamMux_RAW_DATA : entity surf.AxiStreamMux
-         generic map (
-            TPD_G                => TPD_G,
-            NUM_SLAVES_G         => RSSI_ROUTES_C'length,
-            MODE_G               => "ROUTED",
-            TDEST_ROUTES_G       => RSSI_ROUTES_C,
---            PRIORITY_G           => RSSI_PRIORITY_C,
-            ILEAVE_EN_G          => true,
-            ILEAVE_ON_NOTVALID_G => true,
-            ILEAVE_REARB_G       => (512/8)-3)
-         port map (
-            axisClk      => ethClk,                                  -- [in]
-            axisRst      => ethRst,                                  -- [in]
-            sAxisMasters => dataRssiIbMasters,                       -- [in]
-            sAxisSlaves  => dataRssiIbSlaves,                        -- [out]
-            mAxisMaster  => rogueMuxAxisMasters(DATA_RSSI_INDEX_C),  -- [out]
-            mAxisSlave   => rogueMuxAxisSlaves(DATA_RSSI_INDEX_C));  -- [in]
-                                                                     --
-      -- TRIG Data
-      U_RogueTcpStreamWrap_TRIG_DATA : entity surf.RogueTcpStreamWrap
-         generic map (
-            TPD_G         => TPD_G,
-            PORT_NUM_G    => SIM_DATA_PORT_NUM_G,
-            SSI_EN_G      => true,
-            CHAN_MASK_G   => CHAN_MASK_C,
-            AXIS_CONFIG_G => AXIS_CONFIG_C)
-         port map (
-            axisClk     => ethClk,                                   -- [in]
-            axisRst     => ethRst,                                   -- [in]
-            sAxisMaster => rogueIbMasters(DATA_RSSI_INDEX_C),        -- [in]
-            sAxisSlave  => rogueIbSlaves(DATA_RSSI_INDEX_C),         -- [out]
-            mAxisMaster => rogueObMasters(DATA_RSSI_INDEX_C),        -- [out]
-            mAxisSlave  => rogueObSlaves(DATA_RSSI_INDEX_C));        -- [in]
+--       U_AxiStreamMux_RAW_DATA : entity surf.AxiStreamMux
+--          generic map (
+--             TPD_G                => TPD_G,
+--             NUM_SLAVES_G         => RSSI_ROUTES_C'length,
+--             MODE_G               => "ROUTED",
+--             TDEST_ROUTES_G       => RSSI_ROUTES_C,
+-- --            PRIORITY_G           => RSSI_PRIORITY_C,
+--             ILEAVE_EN_G          => true,
+--             ILEAVE_ON_NOTVALID_G => true,
+--             ILEAVE_REARB_G       => (512/8)-3)
+--          port map (
+--             axisClk      => ethClk,                                      -- [in]
+--             axisRst      => ethRst,                                      -- [in]
+--             sAxisMasters => rawDataRssiIbMasters,                        -- [in]
+--             sAxisSlaves  => rawDataRssiIbSlaves,                         -- [out]
+--             mAxisMaster  => rogueMuxAxisMasters(RAW_DATA_RSSI_INDEX_C),  -- [out]
+--             mAxisSlave   => rogueMuxAxisSlaves(RAW_DATA_RSSI_INDEX_C));  -- [in]
+--                                                                          --
+--       -- TRIG Data
+--       U_RogueTcpStreamWrap_TRIG_DATA : entity surf.RogueTcpStreamWrap
+--          generic map (
+--             TPD_G         => TPD_G,
+--             PORT_NUM_G    => SIM_DATA_PORT_NUM_G,
+--             SSI_EN_G      => true,
+--             CHAN_MASK_G   => CHAN_MASK_C,
+--             AXIS_CONFIG_G => AXIS_CONFIG_C)
+--          port map (
+--             axisClk     => ethClk,                                       -- [in]
+--             axisRst     => ethRst,                                       -- [in]
+--             sAxisMaster => rogueIbMasters(TRIG_DATA_RSSI_INDEX_C),       -- [in]
+--             sAxisSlave  => rogueIbSlaves(TRIG_DATA_RSSI_INDEX_C),        -- [out]
+--             mAxisMaster => rogueObMasters(TRIG_DATA_RSSI_INDEX_C),       -- [out]
+--             mAxisSlave  => rogueObSlaves(TRIG_DATA_RSSI_INDEX_C));       -- [in]
 
-      rogueDemuxAxisMasters(DATA_RSSI_INDEX_C) <= rogueObMasters(DATA_RSSI_INDEX_C);
-      rogueObSlaves(DATA_RSSI_INDEX_C)         <= rogueDemuxAxisSlaves(DATA_RSSI_INDEX_C);
-      rogueIbMasters(DATA_RSSI_INDEX_C)        <= rogueMuxAxisMasters(DATA_RSSI_INDEX_C);
-      rogueMuxAxisSlaves(DATA_RSSI_INDEX_C)    <= rogueIbSlaves(DATA_RSSI_INDEX_C);
+--       rogueDemuxAxisMasters(TRIG_DATA_RSSI_INDEX_C) <= rogueObMasters(TRIG_DATA_RSSI_INDEX_C);
+--       rogueObSlaves(TRIG_DATA_RSSI_INDEX_C)         <= rogueDemuxAxisSlaves(TRIG_DATA_RSSI_INDEX_C);
+--       rogueIbMasters(TRIG_DATA_RSSI_INDEX_C)        <= rogueMuxAxisMasters(TRIG_DATA_RSSI_INDEX_C);
+--       rogueMuxAxisSlaves(TRIG_DATA_RSSI_INDEX_C)    <= rogueIbSlaves(TRIG_DATA_RSSI_INDEX_C);
 
-      U_AxiStreamDeMux_TRIG_DATA : entity surf.AxiStreamDeMux
-         generic map (
-            TPD_G          => TPD_G,
-            NUM_MASTERS_G  => RSSI_ROUTES_C'length,
-            MODE_G         => "ROUTED",
-            TDEST_ROUTES_G => RSSI_ROUTES_C)
-         port map (
-            axisClk      => ethClk,                                    -- [in]
-            axisRst      => ethRst,                                    -- [in]
-            sAxisMaster  => rogueDemuxAxisMasters(DATA_RSSI_INDEX_C),  -- [in]
-            sAxisSlave   => rogueDemuxAxisSlaves(DATA_RSSI_INDEX_C),   -- [out]
-            mAxisMasters => dataRssiObMasters,                         -- [out]
-            mAxisSlaves  => dataRssiObSlaves);                         -- [in]
+--       U_AxiStreamDeMux_TRIG_DATA : entity surf.AxiStreamDeMux
+--          generic map (
+--             TPD_G          => TPD_G,
+--             NUM_MASTERS_G  => RSSI_ROUTES_C'length,
+--             MODE_G         => "ROUTED",
+--             TDEST_ROUTES_G => RSSI_ROUTES_C)
+--          port map (
+--             axisClk      => ethClk,                                         -- [in]
+--             axisRst      => ethRst,                                         -- [in]
+--             sAxisMaster  => rogueDemuxAxisMasters(TRIG_DATA_RSSI_INDEX_C),  -- [in]
+--             sAxisSlave   => rogueDemuxAxisSlaves(TRIG_DATA_RSSI_INDEX_C),   -- [out]
+--             mAxisMasters => trigDataRssiObMasters,                          -- [out]
+--             mAxisSlaves  => trigDataRssiObSlaves);                          -- [in]
 
-      U_AxiStreamMux_TRIG_DATA : entity surf.AxiStreamMux
-         generic map (
-            TPD_G                => TPD_G,
-            NUM_SLAVES_G         => RSSI_ROUTES_C'length,
-            MODE_G               => "ROUTED",
-            TDEST_ROUTES_G       => RSSI_ROUTES_C,
---            PRIORITY_G           => RSSI_PRIORITY_C,
-            ILEAVE_EN_G          => true,
-            ILEAVE_ON_NOTVALID_G => true,
-            ILEAVE_REARB_G       => (512/8)-3)
-         port map (
-            axisClk      => ethClk,     -- [in]
-            axisRst      => ethRst,     -- [in]
-            sAxisMasters => dataRssiIbMasters,                       -- [in]
-            sAxisSlaves  => dataRssiIbSlaves,                        -- [out]
-            mAxisMaster  => rogueMuxAxisMasters(DATA_RSSI_INDEX_C),  -- [out]
-            mAxisSlave   => rogueMuxAxisSlaves(DATA_RSSI_INDEX_C));  -- [in]                                                                           --
+--       U_AxiStreamMux_TRIG_DATA : entity surf.AxiStreamMux
+--          generic map (
+--             TPD_G                => TPD_G,
+--             NUM_SLAVES_G         => RSSI_ROUTES_C'length,
+--             MODE_G               => "ROUTED",
+--             TDEST_ROUTES_G       => RSSI_ROUTES_C,
+-- --            PRIORITY_G           => RSSI_PRIORITY_C,
+--             ILEAVE_EN_G          => true,
+--             ILEAVE_ON_NOTVALID_G => true,
+--             ILEAVE_REARB_G       => (512/8)-3)
+--          port map (
+--             axisClk      => ethClk,     -- [in]
+--             axisRst      => ethRst,     -- [in]
+--             sAxisMasters => trigDataRssiIbMasters,                        -- [in]
+--             sAxisSlaves  => trigDataRssiIbSlaves,                         -- [out]
+--             mAxisMaster  => rogueMuxAxisMasters(TRIG_DATA_RSSI_INDEX_C),  -- [out]
+--             mAxisSlave   => rogueMuxAxisSlaves(TRIG_DATA_RSSI_INDEX_C));  -- [in]                                                                           --
 
    end generate SIM_GEN;
 
@@ -673,7 +673,7 @@ begin
    -- RAW DATA RSSI TDEST 0x00 - Local Streaming Data TX buffer
    -- For clock transition
    -----------------------------------------------------
-   U_AxiStreamFifoV2_LOC_TX : entity surf.AxiStreamFifoV2
+   U_AxiStreamFifoV2_RAW_DATA : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          INT_PIPE_STAGES_G   => 1,
@@ -704,7 +704,7 @@ begin
    -- TRIG DATA RSSI TDEST 0x00 - Local Streaming Data TX buffer
    -- For clock transition
    -----------------------------------------------------
-   U_AxiStreamFifoV2_LOC_TX : entity surf.AxiStreamFifoV2
+   U_AxiStreamFifoV2_TRIG_DATA : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          INT_PIPE_STAGES_G   => 1,

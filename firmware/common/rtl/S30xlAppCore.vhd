@@ -228,12 +228,12 @@ begin
          TPD_G      => TPD_G,
          TS_LANES_G => TS_LANES_G)
       port map (
-         fcClk185        => fcClk185,            -- [in]
-         fcRst185        => fcRst185,            -- [in]
-         fcTsRxMsgs      => fcTsRxMsgs,          -- [in]
-         fcMsgTime       => fcMsgTime,           -- [in]
-         axisClk         => axisClk,             -- [in]
-         axisRst         => axisRst,             -- [in]
+         fcClk185        => fcClk185,             -- [in]
+         fcRst185        => fcRst185,             -- [in]
+         fcTsRxMsgs      => fcTsRxMsgs,           -- [in]
+         fcMsgTime       => fcMsgTime,            -- [in]
+         axisClk         => axisClk,              -- [in]
+         axisRst         => axisRst,              -- [in]
          tsDaqAxisMaster => tsDaqTrigAxisMaster,  -- [out]
          tsDaqAxisSlave  => tsDaqTrigAxisSlave);  -- [in]   
 

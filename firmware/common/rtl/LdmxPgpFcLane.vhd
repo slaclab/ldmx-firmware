@@ -109,6 +109,8 @@ architecture rtl of LdmxPgpFcLane is
 
 begin
 
+
+
    ---------------------
    -- AXI-Lite Crossbar
    ---------------------
@@ -227,6 +229,10 @@ begin
       pgpRxUsrClk     <= pgpRxOutClkGt;
       pgpRxMmcmLocked <= '1';
    end generate NO_RX_CLK_MMCM_GEN;
+
+   -- Output the recovered clock
+   pgpRxOutClk <= pgpRxUsrClk;
+   
    --------------
    -- PGP Monitor
    --------------

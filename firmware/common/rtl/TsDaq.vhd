@@ -46,6 +46,8 @@ entity TsDaq is
       fcTsRxMsgs : in TsData6ChMsgArray(TS_LANES_G-1 downto 0);
       fcMsgTime  : in FcTimestampType;
 
+      tsRor : out FcTimestampType;
+
       -- Streaming interface to ETH
       axisClk         : in  sl;
       axisRst         : in  sl;
@@ -60,16 +62,16 @@ architecture rtl of TsDaq is
    constant AXIS_BYTES_C     : integer             := wordCount(FIFO_WIDTH_C, 8);
    constant SLAVE_AXIS_CFG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => AXIS_BYTES_C, tDestBits => 0);
 
-   signal sAxisMaster : AxiStreamMasterType := ssiMasterInit(SLAVE_AXIS_CFG_C);
+   signal sAxisMaster : AxiStreamMasterType := axiStreamMasterInit(SLAVE_AXIS_CFG_C);
 
 begin
 
-   sAxisMaster.tData(69 downto 0) := toSlv(fcMsgTime);
+   sAxisMaster.tData(69 downto 0) <= toSlv(fcMsgTime);
    GEN_DATA : for i in 0 to TS_LANES_G-1 generate
-      sAxisMaster.tData(72+(2*i*TS_DATA_6CH_MSG_SIZE_C)-1 downto 72+(i*TS_DATA_6CH_MSG_SIZE_C)) := toSlv(fcTsRxMsgs(i));
+      sAxisMaster.tData(72+(2*i*TS_DATA_6CH_MSG_SIZE_C)-1 downto 72+(i*TS_DATA_6CH_MSG_SIZE_C)) <= toSlv(fcTsRxMsgs(i));
    end generate GEN_DATA;
 
-   sAxisMaster.tValid := fcMsgTime.valid;
+   sAxisMaster.tValid <= fcMsgTime.valid;
 
 
    U_AxiStreamFifoV2_1 : entity surf.AxiStreamFifoV2
@@ -107,6 +109,22 @@ begin
          mAxisSlave  => tsDaqAxisSlave,   -- [in]
          mTLastTUser => open);            -- [out]
 
+   tsRor.valid <= toSl(fcTsRxMsgs(0).strobe = '1' and
+                  fcTsRxMsgs(0).adc(0) = X"00" and
+                  fcTsRxMsgs(0).adc(1) = X"01" and
+                  fcTsRxMsgs(0).adc(2) = X"02" and
+                  fcTsRxMsgs(0).adc(3) = X"03" and
+                  fcTsRxMsgs(0).adc(4) = X"04" and
+                  fcTsRxMsgs(0).adc(5) = X"05" and
+                  fcTsRxMsgs(1).strobe = '1' and
+                  fcTsRxMsgs(1).adc(0) = X"101010" and
+                  fcTsRxMsgs(1).adc(1) = X"101010" and
+                  fcTsRxMsgs(1).adc(2) = X"101010" and
+                  fcTsRxMsgs(1).adc(3) = X"101010" and
+                  fcTsRxMsgs(1).adc(4) = X"101010" and
+                  fcTsRxMsgs(1).adc(5) = X"101010");
 
+   tsRor.pulseId    <= fcMsgTime.pulseId;
+   tsRor.bunchCount <= fcMsgTime.bunchCount;
 
 end architecture rtl;
