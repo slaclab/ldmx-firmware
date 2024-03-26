@@ -1,9 +1,4 @@
--------------------------------------------------------------------------------
--- Company    : SLAC National Accelerator Laboratory
--------------------------------------------------------------------------------
--- Description:
--------------------------------------------------------------------------------
--- This file is part of 'LCLS2 Common Carrier Core'.
+
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
@@ -36,7 +31,7 @@ entity Lcls2TimingRx is
    generic (
       TPD_G             : time    := 1 ns;
       TIME_GEN_EXTREF_G : boolean := true;
-      RX_CLK_MMCM_G     : boolean := false;
+      RX_CLK_MMCM_G     : boolean := true;
       USE_TPGMINI_G     : boolean := true;
       AXIL_BASE_ADDR_G : slv(31 downto 0) := X"00000000");
    port (
@@ -207,7 +202,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- GT Timing Receiver
    -------------------------------------------------------------------------------------------------
-   TimingGthCoreWrapper_1 : entity lcls_timing_core.TimingGtCoreWrapper
+   TimingGtCoreWrapper_1 : entity lcls_timing_core.TimingGtCoreWrapper
       generic map (
          TPD_G             => TPD_G,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_GTH_INDEX_C).baseAddr,
@@ -276,7 +271,7 @@ begin
    end generate RX_CLK_MMCM_GEN;
 
    NO_RX_CLK_MMCM_GEN : if (not RX_CLK_MMCM_G) generate
-      timingRxOutClk <= timingRxOutClk;
+      timingRxOutClk <= timingRxOutClkGt;
       rxUsrClkActive <= '1';
    end generate NO_RX_CLK_MMCM_GEN;
 

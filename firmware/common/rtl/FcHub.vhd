@@ -35,10 +35,10 @@ entity FcHub is
    generic (
       TPD_G             : time                 := 1 ns;
       SIM_SPEEDUP_G     : boolean              := false;
-      REFCLKS_G         : integer range 1 to 4 := 2;
-      QUADS_G           : integer range 1 to 4 := 4;
-      QUAD_REFCLK_MAP_G : IntegerArray         := (0      => 0, 1 => 0, 2 => 1, 3 => 1);  -- Map a refclk for each quad
-      AXIL_CLK_FREQ_G   : real                 := 125.0e6;
+      REFCLKS_G         : integer range 1 to 4 := 1;
+      QUADS_G           : integer range 1 to 4 := 1;
+      QUAD_REFCLK_MAP_G : IntegerArray         := (0      => 0); --, 1 => 0, 2 => 1, 3 => 1);  -- Map a refclk for each quad
+      AXIL_CLK_FREQ_G   : real                 := 156.25e6;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)     := (others => '0'));
    port (
       ----------------------------------------------------------------------------------------------
@@ -191,10 +191,10 @@ begin
          fcMsg            => fcTxMsg,           -- [out]
          axilClk          => axilClk,           -- [in]
          axilRst          => axilRst,           -- [in]
-         axilReadMaster   => axilReadMaster,    -- [in]
-         axilReadSlave    => axilReadSlave,     -- [out]
-         axilWriteMaster  => axilWriteMaster,   -- [in]
-         axilWriteSlave   => axilWriteSlave);   -- [out]
+         axilReadMaster   => locAxilReadMasters(AXIL_TX_LOGIC_C),    -- [in]
+         axilReadSlave    => locAxilReadSlaves(AXIL_TX_LOGIC_C),     -- [out]
+         axilWriteMaster  => locAxilWriteMasters(AXIL_TX_LOGIC_C),   -- [in]
+         axilWriteSlave   => locAxilWriteSlaves(AXIL_TX_LOGIC_C));   -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Fast Control Fanout to Subsystems

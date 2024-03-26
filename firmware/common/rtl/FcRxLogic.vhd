@@ -37,7 +37,7 @@ entity FcRxLogic is
       fcRst185     : in  sl;
       fcValid      : in  sl;
       fcWord       : in  slv(FC_LEN_C-1 downto 0);
-      fcBus        : out FastControlBusType;      
+      fcBus        : out FastControlBusType;
       fcBunchClk37 : out sl;
       fcBunchRst37 : out sl;
 
@@ -63,7 +63,7 @@ architecture rtl of FcRxLogic is
       fcClkLost      : sl;
       fcBunchClk37   : sl;
       rorCount       : slv(31 downto 0);
-      bunchClkAxiRst   : sl;
+      bunchClkAxiRst : sl;
       fcClk37Rst     : sl;
       fcBus          : FastControlBusType;
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -78,7 +78,7 @@ architecture rtl of FcRxLogic is
       fcClkLost      => '1',
       fcBunchClk37   => '0',
       rorCount       => (others => '0'),
-      bunchClkAxiRst   => '0',
+      bunchClkAxiRst => '0',
       fcClk37Rst     => '0',
       fcBus          => FC_BUS_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
@@ -180,9 +180,9 @@ begin
                         v.fcBus.bunchClkAligned := '0';
                      when RUN_STATE_CLOCK_ALIGN_C =>
                         -- Algin Bunch clock
-                        v.divCounter      := (others => '0');
-                        v.fcBunchClk37    := '0';
-                        v.fcClkLost       := '1';  -- Creats a bunchClkRst                        
+                        v.divCounter            := (others => '0');
+                        v.fcBunchClk37          := '0';
+                        v.fcClkLost             := '1';  -- Creats a bunchClkRst                        
                         v.fcBus.bunchClkAligned := '1';
                      when RUN_STATE_RUNNING_C =>
                         -- Reset runtime timestamp counter
@@ -223,6 +223,8 @@ begin
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       v.fcClk37Rst := r.bunchClkAxiRst or r.fcClkLost;
+
+      fcBus <= r.fcBus;
 
       syncAxilReadSlave  <= r.axilReadSlave;
       syncAxilWriteSlave <= r.axilWriteSlave;
