@@ -120,6 +120,27 @@ architecture rtl of S30xlAppCore is
 begin
 
    -------------------------------------------------------------------------------------------------
+   -- AXI-Lite crossbar
+   -------------------------------------------------------------------------------------------------
+   U_XBAR : entity surf.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => AXIL_NUM_C,
+         MASTERS_CONFIG_G   => AXIL_XBAR_CFG_C)
+      port map (
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
+         sAxiWriteMasters(0) => axilWriteMaster,
+         sAxiWriteSlaves(0)  => axilWriteSlave,
+         sAxiReadMasters(0)  => axilReadMaster,
+         sAxiReadSlaves(0)   => axilReadSlave,
+         mAxiWriteMasters    => locAxilWriteMasters,
+         mAxiWriteSlaves     => locAxilWriteSlaves,
+         mAxiReadMasters     => locAxilReadMasters,
+         mAxiReadSlaves      => locAxilReadSlaves);
+
+   -------------------------------------------------------------------------------------------------
    -- Fast Control Receiver
    -------------------------------------------------------------------------------------------------
    U_FcReceiver_1 : entity ldmx.FcReceiver
