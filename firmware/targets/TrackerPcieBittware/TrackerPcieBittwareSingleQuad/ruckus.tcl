@@ -17,6 +17,10 @@ set_property top {BittWareXupVv8Pgp2fc} [get_filesets {sources_1}]
 # set_property top {BittWareXupVv8Pgp2fcTb} [get_filesets {sim_1}]
 set_property top {BittWareXupVv8Pgp2fcMultiFpgaTb} [get_filesets {sim_1}]
 
+set sysEmuGeneric [get_property generic -object [current_fileset]]
+set emuGeneric "${sysEmuGeneric}, FC_EMU_LANE_G=0"
+set_property generic ${emuGeneric} -object [current_fileset]
+
 set_property target_language VHDL [current_project]
 
 set_property strategy Performance_ExplorePostRoutePhysOpt [get_runs impl_1]
