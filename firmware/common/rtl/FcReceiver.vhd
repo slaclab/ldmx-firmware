@@ -35,7 +35,7 @@ entity FcReceiver is
    generic (
       TPD_G            : time             := 1 ns;
       SIM_SPEEDUP_G    : boolean          := false;
-      AXIL_CLK_FREQ_G  : real             := 125.0e6;
+      AXIL_CLK_FREQ_G  : real             := 156.25e6;
       AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
       -- Reference clock

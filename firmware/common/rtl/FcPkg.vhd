@@ -105,6 +105,7 @@ package FcPkg is
       bunchStrobePre  : sl;             -- Pulsed 1 cycle before bunchCount increments
       bunchStrobe     : sl;             -- Pulsed on cycle that bunchCount increments
       bunchCount      : slv(5 downto 0);
+      subCount        : slv(2 downto 0);
       bunchClkAligned : sl;
 
       -- 185 MHz counter from T0
@@ -127,6 +128,7 @@ package FcPkg is
       bunchStrobePre  => '0',
       bunchStrobe     => '0',
       bunchCount      => (others => '0'),
+      subCount        => (others => '0'),
       bunchClkAligned => '0',
       runTime         => (others => '0'),
       readoutRequest  => FC_TIMESTAMP_INIT_C,

@@ -53,8 +53,10 @@ end entity FcRxLogic;
 
 architecture rtl of FcRxLogic is
 
-   constant CLK_DIV_FALL_CNT_C : integer := 4;
-   constant CLK_DIV_RISE_CNT_C : integer := 2;
+   constant SUB_COUNT_MAX_C      : integer := 4;
+   constant BUNCH_CLK_FALL_C     : integer := 1;
+   constant BUNCH_CLK_RISE_C     : integer := 4;
+   constant BUNCH_CLK_PRE_RISE_C : integer := 3;
 
    type RegType is record
       divCounter     : slv(2 downto 0);
@@ -130,22 +132,33 @@ begin
       v.fcClkLost                  := '0';
       v.fcBus.pulseStrobe          := '0';
       v.fcBus.readoutRequest.valid := '0';
+      v.fcBus.bunchStrobe          := '0';
+      v.fcBus.bunchStrobePre       := '0';
 
-      -- Counters
-      v.divCounter := r.divCounter + 1;
-      v.runTime    := r.runTime + 1;
+      -- Count cycles from start of run
+      v.runTime := r.runTime + 1;
+
+      -- Counter for bunch count
+      v.fcBus.subCount := r.fcBus.subCount + 1;
+      if (r.fcBus.subCount = SUB_COUNT_MAX_C) then
+         v.fcBus.subCount := (others => '0');
+      end if;
 
       -- Assert ror and soft rst (reset101) only on falling edge of fcClk37
       -- to allow enough setup time for shfited hybrid clocks to see it.
-      if (r.divCounter = CLK_DIV_FALL_CNT_C) then
-         v.divCounter                 := (others => '0');
+      if (r.fcBus.subCount = BUNCH_CLK_FALL_C) then
          v.fcBunchClk37               := '0';
          v.fcBus.readoutRequest.valid := r.rorLatch;
          v.rorLatch                   := '0';
       end if;
 
-      if (r.divCounter = CLK_DIV_RISE_CNT_C) then
-         v.fcBunchClk37 := '1';
+      if (r.fcBus.subCount = BUNCH_CLK_RISE_C) then
+         v.fcBunchClk37      := '1';
+         v.fcBus.bunchStrobe := '1';
+      end if;
+
+      if (r.fcBus.subCount = BUNCH_CLK_PRE_RISE_C) then
+         v.fcBus.bunchStrobePre := '1';
       end if;
 
       -- Decode incomming fast control messages from PGPFC

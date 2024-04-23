@@ -361,9 +361,9 @@ begin
          axilWriteSlave      => locAxilWriteSlaves(AXIL_APP_CORE_C),   -- [out]
          axisClk             => axilClk,                               -- [in]
          axisRst             => axilRst,                               -- [in]
-         tsDaqRawAxisMaster  => tsDaqRawAxisMaster,                    -- [in]
-         tsDaqRawAxisSlave   => tsDaqRawAxisSlave,                     -- [out]
-         tsDaqTrigAxisMaster => tsDaqTrigAxisMaster,                   -- [in]
-         tsDaqTrigAxisSlave  => tsDaqTrigAxisSlave);                   -- [out]
+         tsDaqRawAxisMaster  => tsDaqRawAxisMaster,                    -- [out]
+         tsDaqRawAxisSlave   => tsDaqRawAxisSlave,                     -- [in]
+         tsDaqTrigAxisMaster => tsDaqTrigAxisMaster,                   -- [out]
+         tsDaqTrigAxisSlave  => tsDaqTrigAxisSlave);                   -- [in]
 
 end architecture rtl;

@@ -49,7 +49,7 @@ entity TenGigEthGtyCore is
       ethTxN              : out sl;
       -- Eth/RSSI Status
       phyReady            : out sl;
-      rssiStatus          : out slv7Array(1 downto 0);
+      rssiStatus          : out slv7Array(2 downto 0);
       -- AXI-Lite Interface for local register access
       axilClk             : out sl;
       axilRst             : out sl;
@@ -78,14 +78,14 @@ architecture rtl of TenGigEthGtyCore is
    constant SRP_RSSI_INDEX_C       : natural := 0;
    constant RAW_DATA_RSSI_INDEX_C  : natural := 1;
    constant TRIG_DATA_RSSI_INDEX_C : natural := 2;
-   constant SERVER_PORTS_C : PositiveArray(2 downto 0) := (
+   constant SERVER_PORTS_C : PositiveArray(SERVER_SIZE_C-1 downto 0) := (
       SRP_RSSI_INDEX_C       => 8192,
       RAW_DATA_RSSI_INDEX_C  => 8193,
       TRIG_DATA_RSSI_INDEX_C => 8194);
 
    -- Both RSSI ports use the same TDEST and stream config
    constant RSSI_SIZE_C   : positive            := 1;
-   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 8, tDestBits => 8, tUserBits => 8);
+   constant AXIS_CONFIG_C : AxiStreamConfigType := EMAC_AXIS_CONFIG_C; -- ssiAxiStreamConfig(dataBytes => 8, tDestBits => 8, tUserBits => 8);
 
    constant RSSI_AXIS_CONFIG_C : AxiStreamConfigArray(RSSI_SIZE_C-1 downto 0) := (others => AXIS_CONFIG_C);
 
@@ -394,49 +394,49 @@ begin
             -- Internal statuses
             statusReg_o       => rssiStatus(RAW_DATA_RSSI_INDEX_C));
 
---       U_RssiServer_TRIG_DATA : entity surf.RssiCoreWrapper
---          generic map (
---             TPD_G                => TPD_G,
---             APP_ILEAVE_EN_G      => true,
---             ILEAVE_ON_NOTVALID_G => true,
---             MAX_SEG_SIZE_G       => 1024,
---             SEGMENT_ADDR_SIZE_G  => 7,
---             APP_STREAMS_G        => RSSI_SIZE_C,
---             APP_STREAM_ROUTES_G  => RSSI_ROUTES_C,
--- --            APP_STREAM_PRIORITY_G => RSSI_PRIORITY_C,
---             APP_AXIS_CONFIG_G    => RSSI_AXIS_CONFIG_C,
---             CLK_FREQUENCY_G      => ETH_CLK_FREQ_C,
---             TIMEOUT_UNIT_G       => 1.0E-3,  -- In units of seconds
---             SERVER_G             => true,
---             RETRANSMIT_ENABLE_G  => true,
---             BYPASS_CHUNKER_G     => false,
---             WINDOW_ADDR_SIZE_G   => 3,
---             PIPE_STAGES_G        => 0,
---             TSP_AXIS_CONFIG_G    => EMAC_AXIS_CONFIG_C,
---             INIT_SEQ_N_G         => 16#80#)
---          port map (
---             clk_i             => ethClk,
---             rst_i             => ethRst,
---             openRq_i          => '1',
---             -- Application Layer Interface
---             sAppAxisMasters_i => trigDataRssiIbMasters,
---             sAppAxisSlaves_o  => trigDataRssiIbSlaves,
---             mAppAxisMasters_o => trigDataRssiObMasters,
---             mAppAxisSlaves_i  => trigDataRssiObSlaves,
---             -- Transport Layer Interface
---             sTspAxisMaster_i  => obServerMasters(TRIG_DATA_RSSI_INDEX_C),
---             sTspAxisSlave_o   => obServerSlaves(TRIG_DATA_RSSI_INDEX_C),
---             mTspAxisMaster_o  => ibServerMasters(TRIG_DATA_RSSI_INDEX_C),
---             mTspAxisSlave_i   => ibServerSlaves(TRIG_DATA_RSSI_INDEX_C),
---             -- AXI-Lite Interface
---             axiClk_i          => ethClk,
---             axiRst_i          => ethRst,
---             axilReadMaster    => locAxilReadMasters(AXIL_RSSI_TRIG_DATA_C),
---             axilReadSlave     => locAxilReadSlaves(AXIL_RSSI_TRIG_DATA_C),
---             axilWriteMaster   => locAxilWriteMasters(AXIL_RSSI_TRIG_DATA_C),
---             axilWriteSlave    => locAxilWriteSlaves(AXIL_RSSI_TRIG_DATA_C),
---             -- Internal statuses
---             statusReg_o       => rssiStatus(TRIG_DATA_RSSI_INDEX_C));
+      U_RssiServer_TRIG_DATA : entity surf.RssiCoreWrapper
+         generic map (
+            TPD_G                => TPD_G,
+            APP_ILEAVE_EN_G      => true,
+            ILEAVE_ON_NOTVALID_G => true,
+            MAX_SEG_SIZE_G       => 1024,
+            SEGMENT_ADDR_SIZE_G  => 7,
+            APP_STREAMS_G        => RSSI_SIZE_C,
+            APP_STREAM_ROUTES_G  => RSSI_ROUTES_C,
+--            APP_STREAM_PRIORITY_G => RSSI_PRIORITY_C,
+            APP_AXIS_CONFIG_G    => RSSI_AXIS_CONFIG_C,
+            CLK_FREQUENCY_G      => ETH_CLK_FREQ_C,
+            TIMEOUT_UNIT_G       => 1.0E-3,  -- In units of seconds
+            SERVER_G             => true,
+            RETRANSMIT_ENABLE_G  => true,
+            BYPASS_CHUNKER_G     => false,
+            WINDOW_ADDR_SIZE_G   => 3,
+            PIPE_STAGES_G        => 0,
+            TSP_AXIS_CONFIG_G    => EMAC_AXIS_CONFIG_C,
+            INIT_SEQ_N_G         => 16#80#)
+         port map (
+            clk_i             => ethClk,
+            rst_i             => ethRst,
+            openRq_i          => '1',
+            -- Application Layer Interface
+            sAppAxisMasters_i => trigDataRssiIbMasters,
+            sAppAxisSlaves_o  => trigDataRssiIbSlaves,
+            mAppAxisMasters_o => trigDataRssiObMasters,
+            mAppAxisSlaves_i  => trigDataRssiObSlaves,
+            -- Transport Layer Interface
+            sTspAxisMaster_i  => obServerMasters(TRIG_DATA_RSSI_INDEX_C),
+            sTspAxisSlave_o   => obServerSlaves(TRIG_DATA_RSSI_INDEX_C),
+            mTspAxisMaster_o  => ibServerMasters(TRIG_DATA_RSSI_INDEX_C),
+            mTspAxisSlave_i   => ibServerSlaves(TRIG_DATA_RSSI_INDEX_C),
+            -- AXI-Lite Interface
+            axiClk_i          => ethClk,
+            axiRst_i          => ethRst,
+            axilReadMaster    => locAxilReadMasters(AXIL_RSSI_TRIG_DATA_C),
+            axilReadSlave     => locAxilReadSlaves(AXIL_RSSI_TRIG_DATA_C),
+            axilWriteMaster   => locAxilWriteMasters(AXIL_RSSI_TRIG_DATA_C),
+            axilWriteSlave    => locAxilWriteSlaves(AXIL_RSSI_TRIG_DATA_C),
+            -- Internal statuses
+            statusReg_o       => rssiStatus(TRIG_DATA_RSSI_INDEX_C));
 
 
 

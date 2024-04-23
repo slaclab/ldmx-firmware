@@ -125,8 +125,8 @@ begin
             DATA_WIDTH_G    => TS_DATA_6CH_MSG_SIZE_C,
             ADDR_WIDTH_G    => 4)
          port map (
-            rst           => tsRecClks(i),        -- [in]
-            wr_clk        => tsRecRsts(i),        -- [in]
+            rst           => tsRecRsts(i),        -- [in]
+            wr_clk        => tsRecClks(i),        -- [in]
             wr_en         => tsRxMsgs(i).strobe,  -- [in]
             din           => tsMsgFifoWrData(i),  -- [in]
             wr_data_count => open,                -- [out]
