@@ -2,9 +2,9 @@
 #include <math.h>
 #include <iostream>
 #include <fstream>
-#include "C:\Users\Rory\AppData\Roaming\Xilinx\Vitis\objdef.h"
-#include "C:\Users\Rory\AppData\Roaming\Xilinx\Vitis\testutils.h"
-#include "C:\Users\Rory\AppData\Roaming\Xilinx\Vitis\S30XLhitproducerStream_hw.h"
+#include "objdef.h"
+#include "testutils.h"
+#include "S30XLhitproducerStream_hw.h"
 
 int main(){
 
