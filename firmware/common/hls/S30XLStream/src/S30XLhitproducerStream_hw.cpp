@@ -3,54 +3,61 @@
 #include "C:\Users\Rory\AppData\Roaming\Xilinx\Vitis\objdef.h"
 #include "C:\Users\Rory\AppData\Roaming\Xilinx\Vitis\S30XLhitproducerStream_hw.h"
 
-void hitproducerStream_hw(ap_uint<14> FIFO[NHITS],ap_uint<17> amplitude[NHITS],ap_uint<1> onflag[NHITS]){
+void hitproducerStream_hw(ap_uint<1> dataReady,ap_uint<14> FIFO[NHITS],ap_uint<17> amplitude[NHITS],ap_uint<1> onflag[NHITS]){
 	#pragma HLS ARRAY_PARTITION variable=FIFO complete
 	#pragma HLS ARRAY_PARTITION variable=amplitude complete
 	#pragma HLS ARRAY_PARTITION variable=onflag complete
 	//#pragma HLS ARRAY_PARTITION variable=Peds complete
 
 	//FIFO IS NOT A FIFO LOL IT IS AN AXI STREAM NOW
-	#pragma HLS INTERFACE axis port=FIFO[0]
-	#pragma HLS INTERFACE axis port=FIFO[1]
-	#pragma HLS INTERFACE axis port=FIFO[2]
-	#pragma HLS INTERFACE axis port=FIFO[3]
-	#pragma HLS INTERFACE axis port=FIFO[4]
-	#pragma HLS INTERFACE axis port=FIFO[5]
-	#pragma HLS INTERFACE axis port=FIFO[6]
-	#pragma HLS INTERFACE axis port=FIFO[7]
-	#pragma HLS INTERFACE axis port=FIFO[8]
-	#pragma HLS INTERFACE axis port=FIFO[9]
-	#pragma HLS INTERFACE axis port=FIFO[10]
-	#pragma HLS INTERFACE axis port=FIFO[11]
 
-	#pragma HLS INTERFACE axis port=amplitude[1]
-	#pragma HLS INTERFACE axis port=amplitude[2]
-	#pragma HLS INTERFACE axis port=amplitude[3]
-	#pragma HLS INTERFACE axis port=amplitude[4]
-	#pragma HLS INTERFACE axis port=amplitude[5]
-	#pragma HLS INTERFACE axis port=amplitude[6]
-	#pragma HLS INTERFACE axis port=amplitude[7]
-	#pragma HLS INTERFACE axis port=amplitude[8]
-	#pragma HLS INTERFACE axis port=amplitude[9]
-	#pragma HLS INTERFACE axis port=amplitude[10]
-	#pragma HLS INTERFACE axis port=amplitude[11]
+	#pragma HLS INTERFACE ap_vld port=dataReady
 
-	#pragma HLS INTERFACE axis port=onflag[1]
-	#pragma HLS INTERFACE axis port=onflag[2]
-	#pragma HLS INTERFACE axis port=onflag[3]
-	#pragma HLS INTERFACE axis port=onflag[4]
-	#pragma HLS INTERFACE axis port=onflag[5]
-	#pragma HLS INTERFACE axis port=onflag[6]
-	#pragma HLS INTERFACE axis port=onflag[7]
-	#pragma HLS INTERFACE axis port=onflag[8]
-	#pragma HLS INTERFACE axis port=onflag[9]
-	#pragma HLS INTERFACE axis port=onflag[10]
-	#pragma HLS INTERFACE axis port=onflag[11]
+	#pragma HLS INTERFACE ap_none port=FIFO[0]
+	#pragma HLS INTERFACE ap_none port=FIFO[1]
+	#pragma HLS INTERFACE ap_none port=FIFO[2]
+	#pragma HLS INTERFACE ap_none port=FIFO[3]
+	#pragma HLS INTERFACE ap_none port=FIFO[4]
+	#pragma HLS INTERFACE ap_none port=FIFO[5]
+	#pragma HLS INTERFACE ap_none port=FIFO[6]
+	#pragma HLS INTERFACE ap_none port=FIFO[7]
+	#pragma HLS INTERFACE ap_none port=FIFO[8]
+	#pragma HLS INTERFACE ap_none port=FIFO[9]
+	#pragma HLS INTERFACE ap_none port=FIFO[10]
+	#pragma HLS INTERFACE ap_none port=FIFO[11]
+
+	#pragma HLS INTERFACE ap_none port=amplitude[1]
+	#pragma HLS INTERFACE ap_none port=amplitude[2]
+	#pragma HLS INTERFACE ap_none port=amplitude[3]
+	#pragma HLS INTERFACE ap_none port=amplitude[4]
+	#pragma HLS INTERFACE ap_none port=amplitude[5]
+	#pragma HLS INTERFACE ap_none port=amplitude[6]
+	#pragma HLS INTERFACE ap_none port=amplitude[7]
+	#pragma HLS INTERFACE ap_none port=amplitude[8]
+	#pragma HLS INTERFACE ap_none port=amplitude[9]
+	#pragma HLS INTERFACE ap_none port=amplitude[10]
+	#pragma HLS INTERFACE ap_none port=amplitude[11]
+
+	#pragma HLS INTERFACE ap_none port=onflag[1]
+	#pragma HLS INTERFACE ap_none port=onflag[2]
+	#pragma HLS INTERFACE ap_none port=onflag[3]
+	#pragma HLS INTERFACE ap_none port=onflag[4]
+	#pragma HLS INTERFACE ap_none port=onflag[5]
+	#pragma HLS INTERFACE ap_none port=onflag[6]
+	#pragma HLS INTERFACE ap_none port=onflag[7]
+	#pragma HLS INTERFACE ap_none port=onflag[8]
+	#pragma HLS INTERFACE ap_none port=onflag[9]
+	#pragma HLS INTERFACE ap_none port=onflag[10]
+	#pragma HLS INTERFACE ap_none port=onflag[11]
 
 
 	#pragma HLS PIPELINE
 
 	/// Indices of first bin of each subrange
+	if(dataReady==0){
+		return;
+	}
+
 	ap_uint<14> nbins_[5] = {0, 16, 36, 57, 64};
 
 	/// Charge lower limit of all the 16 subranges

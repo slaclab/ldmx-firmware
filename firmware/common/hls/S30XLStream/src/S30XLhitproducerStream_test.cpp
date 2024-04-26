@@ -62,7 +62,7 @@ int main(){
 					FIFO2[k]=FIFO[k][1];
 					//std::cout<<FIFO2[k]<<std::endl;
 				}
-				hitproducerStream_hw(FIFO2,outHit,outflag);
+				hitproducerStream_hw(1,FIFO2,outHit,outflag);
 				std::cout<<"I MADE IT AFTER THE FIRMWARE"<<std::endl;
 				continue;
 			}
