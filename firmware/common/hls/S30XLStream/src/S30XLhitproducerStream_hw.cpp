@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <iostream>
-#include "C:\Users\Rory\AppData\Roaming\Xilinx\Vitis\objdef.h"
-#include "C:\Users\Rory\AppData\Roaming\Xilinx\Vitis\S30XLhitproducerStream_hw.h"
+#include "objdef.h"
+#include "S30XLhitproducerStream_hw.h"
 
 void hitproducerStream_hw(ap_uint<1> dataReady,ap_uint<14> FIFO[NHITS],ap_uint<17> amplitude[NHITS],ap_uint<1> onflag[NHITS]){
 	#pragma HLS ARRAY_PARTITION variable=FIFO complete
