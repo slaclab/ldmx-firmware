@@ -9,7 +9,7 @@ source -notrace ./extraction.tcl
 set vivado_proj_name project
 set vivado_proj_dir .
 set target_device "${device}${package}${speed}"
-set target_clk_period_ns "25"
+set target_clk_period_ns "5.4"
 set target_clk_freq_hz [expr {floor(1000 / $target_clk_period_ns) * 1000000}]
 set ip_vlnv xilinx.com:hls:hitproducerStream_hw:1.0
 set ip_repo_path ../ip
@@ -43,7 +43,7 @@ dict set report_options target_device $target_device
 dict set report_options language $language
 dict set report_options clock_name $clock
 dict set report_options error_if_impl_timing_fails false
-dict set report_options bindmodules {hitproducerStream_hw_dmul_64ns_64ns_64_2_max_dsp_1 hitproducerStream_hw_sitodp_32s_64_2_no_dsp_1 hitproducerStream_hw_mac_muladd_14s_7s_1s_14_4_1 hitproducerStream_hw_nbins_s_ROM_AUTO_1R hitproducerStream_hw_sense_s_ROM_AUTO_1R hitproducerStream_hw_edges_s_ROM_AUTO_1R hitproducerStream_hw_regslice_both}
+dict set report_options bindmodules {hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1 hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1 hitproducerStream_hw_mac_muladd_14s_7s_14ns_14_4_1 hitproducerStream_hw_nbins_s_ROM_AUTO_1R hitproducerStream_hw_sense_s_ROM_AUTO_1R hitproducerStream_hw_edges_s_ROM_AUTO_1R hitproducerStream_hw_frp_pipeline_valid}
 dict set report_options max_module_depth 5
 
 
