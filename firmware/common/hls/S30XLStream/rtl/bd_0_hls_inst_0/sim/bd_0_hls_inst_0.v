@@ -48,7 +48,7 @@
 
 
 // IP VLNV: xilinx.com:hls:hitproducerStream_hw:1.0
-// IP Revision: 2113534771
+// IP Revision: 2113535455
 
 `timescale 1ns/1ps
 
@@ -57,8 +57,7 @@
 module bd_0_hls_inst_0 (
   ap_clk,
   ap_rst,
-  oBus_i,
-  oBus_o,
+  oBus,
   iBus
 );
 
@@ -68,12 +67,9 @@ input wire ap_clk;
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME ap_rst, POLARITY ACTIVE_HIGH, INSERT_VIP 0" *)
 (* X_INTERFACE_INFO = "xilinx.com:signal:reset:1.0 ap_rst RST" *)
 input wire ap_rst;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME oBus_i, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 oBus_i DATA" *)
-input wire [286 : 0] oBus_i;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME oBus_o, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 oBus_o DATA" *)
-output wire [286 : 0] oBus_o;
+(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME oBus, LAYERED_METADATA undef" *)
+(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 oBus DATA" *)
+output wire [286 : 0] oBus;
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME iBus, LAYERED_METADATA undef" *)
 (* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 iBus DATA" *)
 input wire [238 : 0] iBus;
@@ -84,8 +80,7 @@ input wire [238 : 0] iBus;
   hitproducerStream_hw inst (
     .ap_clk(ap_clk),
     .ap_rst(ap_rst),
-    .oBus_i(oBus_i),
-    .oBus_o(oBus_o),
+    .oBus(oBus),
     .iBus(iBus)
   );
 endmodule

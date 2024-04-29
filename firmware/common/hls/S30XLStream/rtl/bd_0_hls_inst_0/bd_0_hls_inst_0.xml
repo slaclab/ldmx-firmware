@@ -122,34 +122,7 @@
       </spirit:parameters>
     </spirit:busInterface>
     <spirit:busInterface>
-      <spirit:name>oBus_i</spirit:name>
-      <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="data" spirit:version="1.0"/>
-      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="data_rtl" spirit:version="1.0"/>
-      <spirit:slave/>
-      <spirit:portMaps>
-        <spirit:portMap>
-          <spirit:logicalPort>
-            <spirit:name>DATA</spirit:name>
-          </spirit:logicalPort>
-          <spirit:physicalPort>
-            <spirit:name>oBus_i</spirit:name>
-          </spirit:physicalPort>
-        </spirit:portMap>
-      </spirit:portMaps>
-      <spirit:parameters>
-        <spirit:parameter>
-          <spirit:name>LAYERED_METADATA</spirit:name>
-          <spirit:value spirit:resolve="generated" spirit:id="BUSIFPARAM_VALUE.OBUS_I.LAYERED_METADATA">undef</spirit:value>
-          <spirit:vendorExtensions>
-            <xilinx:parameterInfo>
-              <xilinx:parameterUsage>none</xilinx:parameterUsage>
-            </xilinx:parameterInfo>
-          </spirit:vendorExtensions>
-        </spirit:parameter>
-      </spirit:parameters>
-    </spirit:busInterface>
-    <spirit:busInterface>
-      <spirit:name>oBus_o</spirit:name>
+      <spirit:name>oBus</spirit:name>
       <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="data" spirit:version="1.0"/>
       <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="data_rtl" spirit:version="1.0"/>
       <spirit:master/>
@@ -159,14 +132,14 @@
             <spirit:name>DATA</spirit:name>
           </spirit:logicalPort>
           <spirit:physicalPort>
-            <spirit:name>oBus_o</spirit:name>
+            <spirit:name>oBus</spirit:name>
           </spirit:physicalPort>
         </spirit:portMap>
       </spirit:portMaps>
       <spirit:parameters>
         <spirit:parameter>
           <spirit:name>LAYERED_METADATA</spirit:name>
-          <spirit:value spirit:resolve="generated" spirit:id="BUSIFPARAM_VALUE.OBUS_O.LAYERED_METADATA">undef</spirit:value>
+          <spirit:value spirit:resolve="generated" spirit:id="BUSIFPARAM_VALUE.OBUS.LAYERED_METADATA">undef</spirit:value>
           <spirit:vendorExtensions>
             <xilinx:parameterInfo>
               <xilinx:parameterUsage>none</xilinx:parameterUsage>
@@ -244,11 +217,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Mon Apr 29 05:32:17 UTC 2024</spirit:value>
+            <spirit:value>Mon Apr 29 16:57:05 UTC 2024</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:b38cc50e</spirit:value>
+            <spirit:value>9:eaed9d1c</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -259,7 +232,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:b38cc50e</spirit:value>
+            <spirit:value>9:eaed9d1c</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -275,11 +248,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Mon Apr 29 05:32:17 UTC 2024</spirit:value>
+            <spirit:value>Mon Apr 29 16:57:05 UTC 2024</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:b38cc50e</spirit:value>
+            <spirit:value>9:eaed9d1c</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -322,11 +295,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Mon Apr 29 05:32:17 UTC 2024</spirit:value>
+            <spirit:value>Mon Apr 29 16:57:04 UTC 2024</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:180d0d2c</spirit:value>
+            <spirit:value>9:258fce3c</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -342,11 +315,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Mon Apr 29 05:32:17 UTC 2024</spirit:value>
+            <spirit:value>Mon Apr 29 16:57:05 UTC 2024</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:180d0d2c</spirit:value>
+            <spirit:value>9:258fce3c</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -360,11 +333,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Mon Apr 29 05:35:31 UTC 2024</spirit:value>
+            <spirit:value>Mon Apr 29 17:00:25 UTC 2024</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:b38cc50e</spirit:value>
+            <spirit:value>9:eaed9d1c</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -397,24 +370,7 @@
         </spirit:wire>
       </spirit:port>
       <spirit:port>
-        <spirit:name>oBus_i</spirit:name>
-        <spirit:wire>
-          <spirit:direction>in</spirit:direction>
-          <spirit:vector>
-            <spirit:left spirit:format="long">286</spirit:left>
-            <spirit:right spirit:format="long">0</spirit:right>
-          </spirit:vector>
-          <spirit:wireTypeDefs>
-            <spirit:wireTypeDef>
-              <spirit:typeName>std_logic_vector</spirit:typeName>
-              <spirit:viewNameRef>xilinx_vhdlsynthesis</spirit:viewNameRef>
-              <spirit:viewNameRef>xilinx_vhdlbehavioralsimulation</spirit:viewNameRef>
-            </spirit:wireTypeDef>
-          </spirit:wireTypeDefs>
-        </spirit:wire>
-      </spirit:port>
-      <spirit:port>
-        <spirit:name>oBus_o</spirit:name>
+        <spirit:name>oBus</spirit:name>
         <spirit:wire>
           <spirit:direction>out</spirit:direction>
           <spirit:vector>
@@ -593,15 +549,15 @@
     <spirit:fileSet>
       <spirit:name>xilinx_vhdlsynthesis_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/ip/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1_ip.v</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/ip/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1_ip.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/ip/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1_ip.v</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/ip/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1_ip.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/ip/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1_ip.v</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/ip/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1_ip.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
@@ -610,35 +566,39 @@
         <spirit:userFileType>USED_IN_out_of_context</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw_edges_s_ROM_AUTO_1R.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_edges_s_ROM_AUTO_1R.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw_mac_muladd_14s_7s_14ns_14_4_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_mac_muladd_14s_7s_1s_14_4_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw_nbins_s_ROM_AUTO_1R.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_mac_muladd_14s_7s_14ns_14_4_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw_sense_s_ROM_AUTO_1R.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_nbins_s_ROM_AUTO_1R.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_sense_s_ROM_AUTO_1R.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
     </spirit:fileSet>
@@ -803,57 +763,62 @@
     <spirit:fileSet>
       <spirit:name>xilinx_vhdlbehavioralsimulation_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw_edges_s_ROM_AUTO_1R.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_edges_s_ROM_AUTO_1R.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw_mac_muladd_14s_7s_14ns_14_4_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_mac_muladd_14s_7s_1s_14_4_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw_nbins_s_ROM_AUTO_1R.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_mac_muladd_14s_7s_14ns_14_4_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw_sense_s_ROM_AUTO_1R.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_nbins_s_ROM_AUTO_1R.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_sense_s_ROM_AUTO_1R.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/vhdl/hitproducerStream_hw.vhd</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/ip/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1_ip.v</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/vhdl/hitproducerStream_hw.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../../ipshared/515f/hdl/ip/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1_ip.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/ip/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1_ip.v</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/ip/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1_ip.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/bff6/hdl/ip/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1_ip.v</spirit:name>
+        <spirit:name>../../ipshared/515f/hdl/ip/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1_ip.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
@@ -969,7 +934,7 @@
     <xilinx:coreExtensions>
       <xilinx:displayName>Hitproducerstream_hw</xilinx:displayName>
       <xilinx:definitionSource>HLS</xilinx:definitionSource>
-      <xilinx:coreRevision>2113534771</xilinx:coreRevision>
+      <xilinx:coreRevision>2113535455</xilinx:coreRevision>
       <xilinx:sdxKernelAttributes>
         <xilinx:sdx_kernel>true</xilinx:sdx_kernel>
         <xilinx:sdx_kernel_type>hls</xilinx:sdx_kernel_type>
@@ -986,15 +951,14 @@
         <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AP_CLK.PHASE" xilinx:valuePermission="bd_and_user"/>
         <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AP_RST.POLARITY" xilinx:valuePermission="bd_and_user"/>
         <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.IBUS.LAYERED_METADATA" xilinx:valuePermission="bd_and_user"/>
-        <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.OBUS_I.LAYERED_METADATA" xilinx:valuePermission="bd_and_user"/>
-        <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.OBUS_O.LAYERED_METADATA" xilinx:valuePermission="bd_and_user"/>
+        <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.OBUS.LAYERED_METADATA" xilinx:valuePermission="bd_and_user"/>
       </xilinx:configElementInfos>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2022.2</xilinx:xilinxVersion>
-      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="9efff9e4"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="0b035855"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="174eef8c"/>
+      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="7cf3c2de"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="213e77cb"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="b1013c26"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="38fe835d"/>
     </xilinx:packagingInfo>
   </spirit:vendorExtensions>
