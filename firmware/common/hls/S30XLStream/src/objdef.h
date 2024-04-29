@@ -22,6 +22,19 @@
 
 #define NWORDS 72
 
+struct InPutBus {
+	ap_uint<1> dataReady_in;
+	ap_uint<14> FIFO[NHITS];
+	ap_uint<70> timestamp_in;
+};
+
+struct OutPutBus {
+	ap_uint<1> dataReady_out;
+	ap_uint<17> amplitude[NHITS];
+	ap_uint<1> onflag[NHITS];
+	ap_uint<70> timestamp_out;
+};
+
 struct Digi {
 	int mID, bID;
 	int adc0, adc1, adc2, adc3, adc4, adc5;
