@@ -37,13 +37,13 @@ entity TsRxLogic is
    generic (
       TPD_G : time := 1 ns);
    port (
-      tsClk250       : in  sl;
-      tsRst250       : in  sl;
-      tsPhyInit      : out sl;
-      tsPhyResetDone : in  sl;
-      tsRxData       : in  slv(15 downto 0);
-      tsRxDataK      : in  slv(1 downto 0);
-      tsRxMsg        : out TsData6ChMsgType;
+      tsClk250         : in  sl;
+      tsRst250         : in  sl;
+      tsRxPhyInit      : out sl := '0';
+      tsRxPhyResetDone : in  sl;
+      tsRxData         : in  slv(15 downto 0);
+      tsRxDataK        : in  slv(1 downto 0);
+      tsRxMsg          : out TsData6ChMsgType;
 
       -- Axil inteface
       axilClk         : in  sl;

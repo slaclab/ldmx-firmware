@@ -88,6 +88,10 @@ package FcPkg is
       fcTimestamp : FcTimestampType)
       return slv;
 
+   function toFcTimestamp (
+      vector : slv(FC_TIMESTAMP_SIZE_C-1 downto 0))
+      return FcTimestampType;
+
    -------------------------------------------------------------------------------------------------
    -- The Fast control receiver block outputs a bus of fast control data on this record
    -------------------------------------------------------------------------------------------------
@@ -204,6 +208,16 @@ package body FcPkg is
       ret(5 downto 0)  := fcTimestamp.bunchCount;
       return ret;
    end function toSlv;
+
+   function toFcTimestamp (
+      vector : slv(FC_TIMESTAMP_SIZE_C-1 downto 0))
+      return FcTimestampType is
+      variable ret : FcTimestampType;
+   begin
+      ret.pulseId    := vector(69 downto 6);
+      ret.bunchCount := vector(5 downto 0);
+      return ret;
+   end function toFcTimestamp;
 
 
 end package body FcPkg;
