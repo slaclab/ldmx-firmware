@@ -13,12 +13,6 @@ void hitproducerStream_hw(OutPutBus *oBus,InPutBus *iBus){
 	#pragma HLS aggregate variable=oBus
 	#pragma HLS PIPELINE
 
-	/// Indices of first bin of each subrange
-	if(iBus->dataReady_in==0){
-		oBus->dataReady_out=0;
-		return;
-	}
-
 	ap_uint<14> nbins_[5] = {0, 16, 36, 57, 64};
 
 	/// Charge lower limit of all the 16 subranges
@@ -41,11 +35,15 @@ void hitproducerStream_hw(OutPutBus *oBus,InPutBus *iBus){
 		if(((charge1-36)*.00625)>=10){
 			helper=1;
 		}
-		oBus->dataReady_out=1;
-		oBus->timestamp_out=iBus->timestamp_in;
 		oBus->onflag[i]=helper;
 		oBus->amplitude[i]=((charge1-36)*.00625);
 	}
-
+	oBus->timestamp_out=iBus->timestamp_in;
+	ap_uint<1> ready=0;
+	/// Indices of first bin of each subrange
+	if(iBus->dataReady_in==1){
+		ready=1;
+	}
+	oBus->dataReady_out=ready;
 	return;
 }
