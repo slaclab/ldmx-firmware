@@ -48,239 +48,44 @@
 
 
 // IP VLNV: xilinx.com:hls:hitproducerStream_hw:1.0
-// IP Revision: 2113531117
+// IP Revision: 2113534771
 
 `timescale 1ns/1ps
 
 (* IP_DEFINITION_SOURCE = "HLS" *)
 (* DowngradeIPIdentifiedWarnings = "yes" *)
 module bd_0_hls_inst_0 (
-  dataReady_ap_vld,
-  amplitude_0_ap_vld,
-  onflag_0_ap_vld,
   ap_clk,
   ap_rst,
-  ap_start,
-  ap_done,
-  ap_idle,
-  ap_ready,
-  dataReady,
-  FIFO_0,
-  FIFO_1,
-  FIFO_2,
-  FIFO_3,
-  FIFO_4,
-  FIFO_5,
-  FIFO_6,
-  FIFO_7,
-  FIFO_8,
-  FIFO_9,
-  FIFO_10,
-  FIFO_11,
-  amplitude_0,
-  amplitude_1,
-  amplitude_2,
-  amplitude_3,
-  amplitude_4,
-  amplitude_5,
-  amplitude_6,
-  amplitude_7,
-  amplitude_8,
-  amplitude_9,
-  amplitude_10,
-  amplitude_11,
-  onflag_0,
-  onflag_1,
-  onflag_2,
-  onflag_3,
-  onflag_4,
-  onflag_5,
-  onflag_6,
-  onflag_7,
-  onflag_8,
-  onflag_9,
-  onflag_10,
-  onflag_11
+  oBus_i,
+  oBus_o,
+  iBus
 );
 
-input wire dataReady_ap_vld;
-output wire amplitude_0_ap_vld;
-output wire onflag_0_ap_vld;
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME ap_clk, ASSOCIATED_RESET ap_rst, FREQ_HZ 185000000.0, FREQ_TOLERANCE_HZ 0, PHASE 0.0, CLK_DOMAIN bd_0_ap_clk_0, INSERT_VIP 0" *)
 (* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 ap_clk CLK" *)
 input wire ap_clk;
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME ap_rst, POLARITY ACTIVE_HIGH, INSERT_VIP 0" *)
 (* X_INTERFACE_INFO = "xilinx.com:signal:reset:1.0 ap_rst RST" *)
 input wire ap_rst;
-(* X_INTERFACE_INFO = "xilinx.com:interface:acc_handshake:1.0 ap_ctrl start" *)
-input wire ap_start;
-(* X_INTERFACE_INFO = "xilinx.com:interface:acc_handshake:1.0 ap_ctrl done" *)
-output wire ap_done;
-(* X_INTERFACE_INFO = "xilinx.com:interface:acc_handshake:1.0 ap_ctrl idle" *)
-output wire ap_idle;
-(* X_INTERFACE_INFO = "xilinx.com:interface:acc_handshake:1.0 ap_ctrl ready" *)
-output wire ap_ready;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME dataReady, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 dataReady DATA" *)
-input wire [0 : 0] dataReady;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME FIFO_0, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 FIFO_0 DATA" *)
-input wire [13 : 0] FIFO_0;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME FIFO_1, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 FIFO_1 DATA" *)
-input wire [13 : 0] FIFO_1;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME FIFO_2, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 FIFO_2 DATA" *)
-input wire [13 : 0] FIFO_2;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME FIFO_3, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 FIFO_3 DATA" *)
-input wire [13 : 0] FIFO_3;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME FIFO_4, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 FIFO_4 DATA" *)
-input wire [13 : 0] FIFO_4;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME FIFO_5, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 FIFO_5 DATA" *)
-input wire [13 : 0] FIFO_5;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME FIFO_6, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 FIFO_6 DATA" *)
-input wire [13 : 0] FIFO_6;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME FIFO_7, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 FIFO_7 DATA" *)
-input wire [13 : 0] FIFO_7;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME FIFO_8, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 FIFO_8 DATA" *)
-input wire [13 : 0] FIFO_8;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME FIFO_9, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 FIFO_9 DATA" *)
-input wire [13 : 0] FIFO_9;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME FIFO_10, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 FIFO_10 DATA" *)
-input wire [13 : 0] FIFO_10;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME FIFO_11, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 FIFO_11 DATA" *)
-input wire [13 : 0] FIFO_11;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME amplitude_0, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 amplitude_0 DATA" *)
-output wire [16 : 0] amplitude_0;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME amplitude_1, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 amplitude_1 DATA" *)
-output wire [16 : 0] amplitude_1;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME amplitude_2, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 amplitude_2 DATA" *)
-output wire [16 : 0] amplitude_2;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME amplitude_3, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 amplitude_3 DATA" *)
-output wire [16 : 0] amplitude_3;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME amplitude_4, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 amplitude_4 DATA" *)
-output wire [16 : 0] amplitude_4;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME amplitude_5, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 amplitude_5 DATA" *)
-output wire [16 : 0] amplitude_5;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME amplitude_6, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 amplitude_6 DATA" *)
-output wire [16 : 0] amplitude_6;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME amplitude_7, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 amplitude_7 DATA" *)
-output wire [16 : 0] amplitude_7;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME amplitude_8, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 amplitude_8 DATA" *)
-output wire [16 : 0] amplitude_8;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME amplitude_9, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 amplitude_9 DATA" *)
-output wire [16 : 0] amplitude_9;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME amplitude_10, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 amplitude_10 DATA" *)
-output wire [16 : 0] amplitude_10;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME amplitude_11, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 amplitude_11 DATA" *)
-output wire [16 : 0] amplitude_11;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME onflag_0, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 onflag_0 DATA" *)
-output wire [0 : 0] onflag_0;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME onflag_1, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 onflag_1 DATA" *)
-output wire [0 : 0] onflag_1;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME onflag_2, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 onflag_2 DATA" *)
-output wire [0 : 0] onflag_2;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME onflag_3, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 onflag_3 DATA" *)
-output wire [0 : 0] onflag_3;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME onflag_4, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 onflag_4 DATA" *)
-output wire [0 : 0] onflag_4;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME onflag_5, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 onflag_5 DATA" *)
-output wire [0 : 0] onflag_5;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME onflag_6, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 onflag_6 DATA" *)
-output wire [0 : 0] onflag_6;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME onflag_7, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 onflag_7 DATA" *)
-output wire [0 : 0] onflag_7;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME onflag_8, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 onflag_8 DATA" *)
-output wire [0 : 0] onflag_8;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME onflag_9, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 onflag_9 DATA" *)
-output wire [0 : 0] onflag_9;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME onflag_10, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 onflag_10 DATA" *)
-output wire [0 : 0] onflag_10;
-(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME onflag_11, LAYERED_METADATA undef" *)
-(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 onflag_11 DATA" *)
-output wire [0 : 0] onflag_11;
+(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME oBus_i, LAYERED_METADATA undef" *)
+(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 oBus_i DATA" *)
+input wire [286 : 0] oBus_i;
+(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME oBus_o, LAYERED_METADATA undef" *)
+(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 oBus_o DATA" *)
+output wire [286 : 0] oBus_o;
+(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME iBus, LAYERED_METADATA undef" *)
+(* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 iBus DATA" *)
+input wire [238 : 0] iBus;
 
 (* SDX_KERNEL = "true" *)
 (* SDX_KERNEL_TYPE = "hls" *)
 (* SDX_KERNEL_SIM_INST = "" *)
   hitproducerStream_hw inst (
-    .dataReady_ap_vld(dataReady_ap_vld),
-    .amplitude_0_ap_vld(amplitude_0_ap_vld),
-    .onflag_0_ap_vld(onflag_0_ap_vld),
     .ap_clk(ap_clk),
     .ap_rst(ap_rst),
-    .ap_start(ap_start),
-    .ap_done(ap_done),
-    .ap_idle(ap_idle),
-    .ap_ready(ap_ready),
-    .dataReady(dataReady),
-    .FIFO_0(FIFO_0),
-    .FIFO_1(FIFO_1),
-    .FIFO_2(FIFO_2),
-    .FIFO_3(FIFO_3),
-    .FIFO_4(FIFO_4),
-    .FIFO_5(FIFO_5),
-    .FIFO_6(FIFO_6),
-    .FIFO_7(FIFO_7),
-    .FIFO_8(FIFO_8),
-    .FIFO_9(FIFO_9),
-    .FIFO_10(FIFO_10),
-    .FIFO_11(FIFO_11),
-    .amplitude_0(amplitude_0),
-    .amplitude_1(amplitude_1),
-    .amplitude_2(amplitude_2),
-    .amplitude_3(amplitude_3),
-    .amplitude_4(amplitude_4),
-    .amplitude_5(amplitude_5),
-    .amplitude_6(amplitude_6),
-    .amplitude_7(amplitude_7),
-    .amplitude_8(amplitude_8),
-    .amplitude_9(amplitude_9),
-    .amplitude_10(amplitude_10),
-    .amplitude_11(amplitude_11),
-    .onflag_0(onflag_0),
-    .onflag_1(onflag_1),
-    .onflag_2(onflag_2),
-    .onflag_3(onflag_3),
-    .onflag_4(onflag_4),
-    .onflag_5(onflag_5),
-    .onflag_6(onflag_6),
-    .onflag_7(onflag_7),
-    .onflag_8(onflag_8),
-    .onflag_9(onflag_9),
-    .onflag_10(onflag_10),
-    .onflag_11(onflag_11)
+    .oBus_i(oBus_i),
+    .oBus_o(oBus_o),
+    .iBus(iBus)
   );
 endmodule

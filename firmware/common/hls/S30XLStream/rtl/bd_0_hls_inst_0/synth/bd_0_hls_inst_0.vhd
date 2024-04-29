@@ -47,7 +47,7 @@
 -- DO NOT MODIFY THIS FILE.
 
 -- IP VLNV: xilinx.com:hls:hitproducerStream_hw:1.0
--- IP Revision: 2113531117
+-- IP Revision: 2113534771
 
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
@@ -55,52 +55,11 @@ USE ieee.numeric_std.ALL;
 
 ENTITY bd_0_hls_inst_0 IS
   PORT (
-    dataReady_ap_vld : IN STD_LOGIC;
-    amplitude_0_ap_vld : OUT STD_LOGIC;
-    onflag_0_ap_vld : OUT STD_LOGIC;
     ap_clk : IN STD_LOGIC;
     ap_rst : IN STD_LOGIC;
-    ap_start : IN STD_LOGIC;
-    ap_done : OUT STD_LOGIC;
-    ap_idle : OUT STD_LOGIC;
-    ap_ready : OUT STD_LOGIC;
-    dataReady : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    FIFO_0 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-    FIFO_1 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-    FIFO_2 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-    FIFO_3 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-    FIFO_4 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-    FIFO_5 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-    FIFO_6 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-    FIFO_7 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-    FIFO_8 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-    FIFO_9 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-    FIFO_10 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-    FIFO_11 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-    amplitude_0 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-    amplitude_1 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-    amplitude_2 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-    amplitude_3 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-    amplitude_4 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-    amplitude_5 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-    amplitude_6 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-    amplitude_7 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-    amplitude_8 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-    amplitude_9 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-    amplitude_10 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-    amplitude_11 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-    onflag_0 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    onflag_1 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    onflag_2 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    onflag_3 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    onflag_4 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    onflag_5 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    onflag_6 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    onflag_7 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    onflag_8 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    onflag_9 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    onflag_10 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    onflag_11 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
+    oBus_i : IN STD_LOGIC_VECTOR(286 DOWNTO 0);
+    oBus_o : OUT STD_LOGIC_VECTOR(286 DOWNTO 0);
+    iBus : IN STD_LOGIC_VECTOR(238 DOWNTO 0)
   );
 END bd_0_hls_inst_0;
 
@@ -109,52 +68,11 @@ ARCHITECTURE bd_0_hls_inst_0_arch OF bd_0_hls_inst_0 IS
   ATTRIBUTE DowngradeIPIdentifiedWarnings OF bd_0_hls_inst_0_arch: ARCHITECTURE IS "yes";
   COMPONENT hitproducerStream_hw IS
     PORT (
-      dataReady_ap_vld : IN STD_LOGIC;
-      amplitude_0_ap_vld : OUT STD_LOGIC;
-      onflag_0_ap_vld : OUT STD_LOGIC;
       ap_clk : IN STD_LOGIC;
       ap_rst : IN STD_LOGIC;
-      ap_start : IN STD_LOGIC;
-      ap_done : OUT STD_LOGIC;
-      ap_idle : OUT STD_LOGIC;
-      ap_ready : OUT STD_LOGIC;
-      dataReady : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-      FIFO_0 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-      FIFO_1 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-      FIFO_2 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-      FIFO_3 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-      FIFO_4 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-      FIFO_5 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-      FIFO_6 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-      FIFO_7 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-      FIFO_8 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-      FIFO_9 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-      FIFO_10 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-      FIFO_11 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
-      amplitude_0 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-      amplitude_1 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-      amplitude_2 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-      amplitude_3 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-      amplitude_4 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-      amplitude_5 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-      amplitude_6 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-      amplitude_7 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-      amplitude_8 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-      amplitude_9 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-      amplitude_10 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-      amplitude_11 : OUT STD_LOGIC_VECTOR(16 DOWNTO 0);
-      onflag_0 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      onflag_1 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      onflag_2 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      onflag_3 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      onflag_4 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      onflag_5 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      onflag_6 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      onflag_7 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      onflag_8 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      onflag_9 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      onflag_10 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-      onflag_11 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
+      oBus_i : IN STD_LOGIC_VECTOR(286 DOWNTO 0);
+      oBus_o : OUT STD_LOGIC_VECTOR(286 DOWNTO 0);
+      iBus : IN STD_LOGIC_VECTOR(238 DOWNTO 0)
     );
   END COMPONENT hitproducerStream_hw;
   ATTRIBUTE X_CORE_INFO : STRING;
@@ -162,7 +80,7 @@ ARCHITECTURE bd_0_hls_inst_0_arch OF bd_0_hls_inst_0 IS
   ATTRIBUTE CHECK_LICENSE_TYPE : STRING;
   ATTRIBUTE CHECK_LICENSE_TYPE OF bd_0_hls_inst_0_arch : ARCHITECTURE IS "bd_0_hls_inst_0,hitproducerStream_hw,{}";
   ATTRIBUTE CORE_GENERATION_INFO : STRING;
-  ATTRIBUTE CORE_GENERATION_INFO OF bd_0_hls_inst_0_arch: ARCHITECTURE IS "bd_0_hls_inst_0,hitproducerStream_hw,{x_ipProduct=Vivado 2022.2,x_ipVendor=xilinx.com,x_ipLibrary=hls,x_ipName=hitproducerStream_hw,x_ipVersion=1.0,x_ipCoreRevision=2113531117,x_ipLanguage=VHDL,x_ipSimLanguage=MIXED}";
+  ATTRIBUTE CORE_GENERATION_INFO OF bd_0_hls_inst_0_arch: ARCHITECTURE IS "bd_0_hls_inst_0,hitproducerStream_hw,{x_ipProduct=Vivado 2022.2,x_ipVendor=xilinx.com,x_ipLibrary=hls,x_ipName=hitproducerStream_hw,x_ipVersion=1.0,x_ipCoreRevision=2113534771,x_ipLanguage=VHDL,x_ipSimLanguage=MIXED}";
   ATTRIBUTE SDX_KERNEL : STRING;
   ATTRIBUTE SDX_KERNEL OF hitproducerStream_hw: COMPONENT IS "true";
   ATTRIBUTE SDX_KERNEL_TYPE : STRING;
@@ -173,136 +91,23 @@ ARCHITECTURE bd_0_hls_inst_0_arch OF bd_0_hls_inst_0 IS
   ATTRIBUTE IP_DEFINITION_SOURCE OF bd_0_hls_inst_0_arch: ARCHITECTURE IS "HLS";
   ATTRIBUTE X_INTERFACE_INFO : STRING;
   ATTRIBUTE X_INTERFACE_PARAMETER : STRING;
-  ATTRIBUTE X_INTERFACE_PARAMETER OF FIFO_0: SIGNAL IS "XIL_INTERFACENAME FIFO_0, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF FIFO_0: SIGNAL IS "xilinx.com:signal:data:1.0 FIFO_0 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF FIFO_1: SIGNAL IS "XIL_INTERFACENAME FIFO_1, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF FIFO_1: SIGNAL IS "xilinx.com:signal:data:1.0 FIFO_1 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF FIFO_10: SIGNAL IS "XIL_INTERFACENAME FIFO_10, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF FIFO_10: SIGNAL IS "xilinx.com:signal:data:1.0 FIFO_10 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF FIFO_11: SIGNAL IS "XIL_INTERFACENAME FIFO_11, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF FIFO_11: SIGNAL IS "xilinx.com:signal:data:1.0 FIFO_11 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF FIFO_2: SIGNAL IS "XIL_INTERFACENAME FIFO_2, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF FIFO_2: SIGNAL IS "xilinx.com:signal:data:1.0 FIFO_2 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF FIFO_3: SIGNAL IS "XIL_INTERFACENAME FIFO_3, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF FIFO_3: SIGNAL IS "xilinx.com:signal:data:1.0 FIFO_3 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF FIFO_4: SIGNAL IS "XIL_INTERFACENAME FIFO_4, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF FIFO_4: SIGNAL IS "xilinx.com:signal:data:1.0 FIFO_4 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF FIFO_5: SIGNAL IS "XIL_INTERFACENAME FIFO_5, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF FIFO_5: SIGNAL IS "xilinx.com:signal:data:1.0 FIFO_5 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF FIFO_6: SIGNAL IS "XIL_INTERFACENAME FIFO_6, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF FIFO_6: SIGNAL IS "xilinx.com:signal:data:1.0 FIFO_6 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF FIFO_7: SIGNAL IS "XIL_INTERFACENAME FIFO_7, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF FIFO_7: SIGNAL IS "xilinx.com:signal:data:1.0 FIFO_7 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF FIFO_8: SIGNAL IS "XIL_INTERFACENAME FIFO_8, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF FIFO_8: SIGNAL IS "xilinx.com:signal:data:1.0 FIFO_8 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF FIFO_9: SIGNAL IS "XIL_INTERFACENAME FIFO_9, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF FIFO_9: SIGNAL IS "xilinx.com:signal:data:1.0 FIFO_9 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF amplitude_0: SIGNAL IS "XIL_INTERFACENAME amplitude_0, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF amplitude_0: SIGNAL IS "xilinx.com:signal:data:1.0 amplitude_0 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF amplitude_1: SIGNAL IS "XIL_INTERFACENAME amplitude_1, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF amplitude_1: SIGNAL IS "xilinx.com:signal:data:1.0 amplitude_1 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF amplitude_10: SIGNAL IS "XIL_INTERFACENAME amplitude_10, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF amplitude_10: SIGNAL IS "xilinx.com:signal:data:1.0 amplitude_10 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF amplitude_11: SIGNAL IS "XIL_INTERFACENAME amplitude_11, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF amplitude_11: SIGNAL IS "xilinx.com:signal:data:1.0 amplitude_11 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF amplitude_2: SIGNAL IS "XIL_INTERFACENAME amplitude_2, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF amplitude_2: SIGNAL IS "xilinx.com:signal:data:1.0 amplitude_2 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF amplitude_3: SIGNAL IS "XIL_INTERFACENAME amplitude_3, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF amplitude_3: SIGNAL IS "xilinx.com:signal:data:1.0 amplitude_3 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF amplitude_4: SIGNAL IS "XIL_INTERFACENAME amplitude_4, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF amplitude_4: SIGNAL IS "xilinx.com:signal:data:1.0 amplitude_4 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF amplitude_5: SIGNAL IS "XIL_INTERFACENAME amplitude_5, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF amplitude_5: SIGNAL IS "xilinx.com:signal:data:1.0 amplitude_5 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF amplitude_6: SIGNAL IS "XIL_INTERFACENAME amplitude_6, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF amplitude_6: SIGNAL IS "xilinx.com:signal:data:1.0 amplitude_6 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF amplitude_7: SIGNAL IS "XIL_INTERFACENAME amplitude_7, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF amplitude_7: SIGNAL IS "xilinx.com:signal:data:1.0 amplitude_7 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF amplitude_8: SIGNAL IS "XIL_INTERFACENAME amplitude_8, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF amplitude_8: SIGNAL IS "xilinx.com:signal:data:1.0 amplitude_8 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF amplitude_9: SIGNAL IS "XIL_INTERFACENAME amplitude_9, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF amplitude_9: SIGNAL IS "xilinx.com:signal:data:1.0 amplitude_9 DATA";
   ATTRIBUTE X_INTERFACE_PARAMETER OF ap_clk: SIGNAL IS "XIL_INTERFACENAME ap_clk, ASSOCIATED_RESET ap_rst, FREQ_HZ 185000000.0, FREQ_TOLERANCE_HZ 0, PHASE 0.0, CLK_DOMAIN bd_0_ap_clk_0, INSERT_VIP 0";
   ATTRIBUTE X_INTERFACE_INFO OF ap_clk: SIGNAL IS "xilinx.com:signal:clock:1.0 ap_clk CLK";
-  ATTRIBUTE X_INTERFACE_INFO OF ap_done: SIGNAL IS "xilinx.com:interface:acc_handshake:1.0 ap_ctrl done";
-  ATTRIBUTE X_INTERFACE_INFO OF ap_idle: SIGNAL IS "xilinx.com:interface:acc_handshake:1.0 ap_ctrl idle";
-  ATTRIBUTE X_INTERFACE_INFO OF ap_ready: SIGNAL IS "xilinx.com:interface:acc_handshake:1.0 ap_ctrl ready";
   ATTRIBUTE X_INTERFACE_PARAMETER OF ap_rst: SIGNAL IS "XIL_INTERFACENAME ap_rst, POLARITY ACTIVE_HIGH, INSERT_VIP 0";
   ATTRIBUTE X_INTERFACE_INFO OF ap_rst: SIGNAL IS "xilinx.com:signal:reset:1.0 ap_rst RST";
-  ATTRIBUTE X_INTERFACE_INFO OF ap_start: SIGNAL IS "xilinx.com:interface:acc_handshake:1.0 ap_ctrl start";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF dataReady: SIGNAL IS "XIL_INTERFACENAME dataReady, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF dataReady: SIGNAL IS "xilinx.com:signal:data:1.0 dataReady DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF onflag_0: SIGNAL IS "XIL_INTERFACENAME onflag_0, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF onflag_0: SIGNAL IS "xilinx.com:signal:data:1.0 onflag_0 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF onflag_1: SIGNAL IS "XIL_INTERFACENAME onflag_1, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF onflag_1: SIGNAL IS "xilinx.com:signal:data:1.0 onflag_1 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF onflag_10: SIGNAL IS "XIL_INTERFACENAME onflag_10, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF onflag_10: SIGNAL IS "xilinx.com:signal:data:1.0 onflag_10 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF onflag_11: SIGNAL IS "XIL_INTERFACENAME onflag_11, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF onflag_11: SIGNAL IS "xilinx.com:signal:data:1.0 onflag_11 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF onflag_2: SIGNAL IS "XIL_INTERFACENAME onflag_2, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF onflag_2: SIGNAL IS "xilinx.com:signal:data:1.0 onflag_2 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF onflag_3: SIGNAL IS "XIL_INTERFACENAME onflag_3, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF onflag_3: SIGNAL IS "xilinx.com:signal:data:1.0 onflag_3 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF onflag_4: SIGNAL IS "XIL_INTERFACENAME onflag_4, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF onflag_4: SIGNAL IS "xilinx.com:signal:data:1.0 onflag_4 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF onflag_5: SIGNAL IS "XIL_INTERFACENAME onflag_5, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF onflag_5: SIGNAL IS "xilinx.com:signal:data:1.0 onflag_5 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF onflag_6: SIGNAL IS "XIL_INTERFACENAME onflag_6, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF onflag_6: SIGNAL IS "xilinx.com:signal:data:1.0 onflag_6 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF onflag_7: SIGNAL IS "XIL_INTERFACENAME onflag_7, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF onflag_7: SIGNAL IS "xilinx.com:signal:data:1.0 onflag_7 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF onflag_8: SIGNAL IS "XIL_INTERFACENAME onflag_8, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF onflag_8: SIGNAL IS "xilinx.com:signal:data:1.0 onflag_8 DATA";
-  ATTRIBUTE X_INTERFACE_PARAMETER OF onflag_9: SIGNAL IS "XIL_INTERFACENAME onflag_9, LAYERED_METADATA undef";
-  ATTRIBUTE X_INTERFACE_INFO OF onflag_9: SIGNAL IS "xilinx.com:signal:data:1.0 onflag_9 DATA";
+  ATTRIBUTE X_INTERFACE_PARAMETER OF iBus: SIGNAL IS "XIL_INTERFACENAME iBus, LAYERED_METADATA undef";
+  ATTRIBUTE X_INTERFACE_INFO OF iBus: SIGNAL IS "xilinx.com:signal:data:1.0 iBus DATA";
+  ATTRIBUTE X_INTERFACE_PARAMETER OF oBus_i: SIGNAL IS "XIL_INTERFACENAME oBus_i, LAYERED_METADATA undef";
+  ATTRIBUTE X_INTERFACE_INFO OF oBus_i: SIGNAL IS "xilinx.com:signal:data:1.0 oBus_i DATA";
+  ATTRIBUTE X_INTERFACE_PARAMETER OF oBus_o: SIGNAL IS "XIL_INTERFACENAME oBus_o, LAYERED_METADATA undef";
+  ATTRIBUTE X_INTERFACE_INFO OF oBus_o: SIGNAL IS "xilinx.com:signal:data:1.0 oBus_o DATA";
 BEGIN
   U0 : hitproducerStream_hw
     PORT MAP (
-      dataReady_ap_vld => dataReady_ap_vld,
-      amplitude_0_ap_vld => amplitude_0_ap_vld,
-      onflag_0_ap_vld => onflag_0_ap_vld,
       ap_clk => ap_clk,
       ap_rst => ap_rst,
-      ap_start => ap_start,
-      ap_done => ap_done,
-      ap_idle => ap_idle,
-      ap_ready => ap_ready,
-      dataReady => dataReady,
-      FIFO_0 => FIFO_0,
-      FIFO_1 => FIFO_1,
-      FIFO_2 => FIFO_2,
-      FIFO_3 => FIFO_3,
-      FIFO_4 => FIFO_4,
-      FIFO_5 => FIFO_5,
-      FIFO_6 => FIFO_6,
-      FIFO_7 => FIFO_7,
-      FIFO_8 => FIFO_8,
-      FIFO_9 => FIFO_9,
-      FIFO_10 => FIFO_10,
-      FIFO_11 => FIFO_11,
-      amplitude_0 => amplitude_0,
-      amplitude_1 => amplitude_1,
-      amplitude_2 => amplitude_2,
-      amplitude_3 => amplitude_3,
-      amplitude_4 => amplitude_4,
-      amplitude_5 => amplitude_5,
-      amplitude_6 => amplitude_6,
-      amplitude_7 => amplitude_7,
-      amplitude_8 => amplitude_8,
-      amplitude_9 => amplitude_9,
-      amplitude_10 => amplitude_10,
-      amplitude_11 => amplitude_11,
-      onflag_0 => onflag_0,
-      onflag_1 => onflag_1,
-      onflag_2 => onflag_2,
-      onflag_3 => onflag_3,
-      onflag_4 => onflag_4,
-      onflag_5 => onflag_5,
-      onflag_6 => onflag_6,
-      onflag_7 => onflag_7,
-      onflag_8 => onflag_8,
-      onflag_9 => onflag_9,
-      onflag_10 => onflag_10,
-      onflag_11 => onflag_11
+      oBus_i => oBus_i,
+      oBus_o => oBus_o,
+      iBus => iBus
     );
 END bd_0_hls_inst_0_arch;
