@@ -1,7 +1,7 @@
 #ifndef HITPRODUCER_H
 #define HITPRODUCER_H
 
-#include "C:\Users\Rory\AppData\Roaming\Xilinx\Vitis\objdef.h"
+#include "objdef.h"
 //,ap_uint<8> Peds[NHITS]
 void copyHit1(Hit One, Hit Two);
 void copyHit2(Hit One, Hit Two);
