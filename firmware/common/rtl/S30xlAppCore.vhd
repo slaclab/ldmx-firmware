@@ -107,7 +107,7 @@ architecture rtl of S30xlAppCore is
    -----------------------------
    signal fcClk185 : sl;
    signal fcRst185 : sl;
-   signal fcBus    : FastControlBusType;
+   signal fcBus    : FcBusType;
 
    ----------
    -- TS Data
@@ -161,7 +161,7 @@ begin
          fcClk185        => fcClk185,                           -- [out]
          fcRst185        => fcRst185,                           -- [out]
          fcBus           => fcBus,                              -- [out]
-         fcFb            => FC_FB_INIT_C,                       -- [in]
+--         fcFb            => FC_FB_INIT_C,                       -- [in]
          fcBunchClk37    => open,                               -- [out]
          fcBunchRst37    => open,                               -- [out]
          axilClk         => axilClk,                            -- [in]

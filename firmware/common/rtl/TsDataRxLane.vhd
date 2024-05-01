@@ -104,6 +104,8 @@ architecture rtl of TsDataRxLane is
    signal tsTxData         : slv(15 downto 0);
    signal tsTxDataK        : slv(1 downto 0);
 
+   signal loopback : slv(2 downto 0) := (others => '0');
+
 
 begin
 
@@ -158,9 +160,9 @@ begin
          gtUserRefClk    => tsUserClk250,                     -- [in]
          gtRxP           => tsDataRxP,                        -- [in]
          gtRxN           => tsDataRxN,                        -- [in]
-         rxReset         => tsPhyInitSync,                    -- [in]
+         rxReset         => tsRxPhyInitSync,                  -- [in]
          rxUsrClkActive  => tsRecClkMmcmLocked,               -- [in]
-         rxResetDone     => tsPhyResetDone,                   -- [out]
+         rxResetDone     => tsRxPhyResetDone,                 -- [out]
          rxUsrClk        => tsRecClkMmcm,                     -- [in]
          rxData          => tsRxData,                         -- [out]
          rxDataK         => tsRxDataK,                        -- [out]
@@ -205,19 +207,19 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         tsClk250        => tsRecClkMmcm,                       -- [in]
-         tsRst250        => tsRecClkRst,                        -- [in]
-         tsPhyInit       => tsRxPhyInit,                        -- [out]
-         tsPhyResetDone  => tsRxPhyResetDone,                   -- [in]
-         tsRxData        => tsRxData,                           -- [in]
-         tsRxDataK       => tsRxDataK,                          -- [in]
-         tsRxMsg         => tsRxMsg,                            -- [out]
-         axilClk         => axilClk,                            -- [in]
-         axilRst         => axilRst,                            -- [in]
-         axilReadMaster  => locAxilReadMasters(AXIL_TS_RX_C),   -- [in]
-         axilReadSlave   => locAxilReadSlaves(AXIL_TS_RX_C),    -- [out]
-         axilWriteMaster => locAxilWriteMasters(AXIL_TS_RX_C),  -- [in]
-         axilWriteSlave  => locAxilWriteSlaves(AXIL_TS_RX_C));  -- [out]
+         tsClk250         => tsRecClkMmcm,                       -- [in]
+         tsRst250         => tsRecClkRst,                        -- [in]
+         tsRxPhyInit      => tsRxPhyInit,                        -- [out]
+         tsRxPhyResetDone => tsRxPhyResetDone,                   -- [in]
+         tsRxData         => tsRxData,                           -- [in]
+         tsRxDataK        => tsRxDataK,                          -- [in]
+         tsRxMsg          => tsRxMsg,                            -- [out]
+         axilClk          => axilClk,                            -- [in]
+         axilRst          => axilRst,                            -- [in]
+         axilReadMaster   => locAxilReadMasters(AXIL_TS_RX_C),   -- [in]
+         axilReadSlave    => locAxilReadSlaves(AXIL_TS_RX_C),    -- [out]
+         axilWriteMaster  => locAxilWriteMasters(AXIL_TS_RX_C),  -- [in]
+         axilWriteSlave   => locAxilWriteSlaves(AXIL_TS_RX_C));  -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- TS Message Encoder
@@ -226,8 +228,8 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         tsClk250         => tsClk250,                           -- [in]
-         tsRst250         => tsRst250,                           -- [in]
+         tsClk250         => tsUserClk250,                       -- [in]
+         tsRst250         => '0',                                -- [in] Add this back
          tsTxPhyInit      => tsTxPhyInit,                        -- [out]
          tsTxPhyResetDone => tsTxPhyResetDone,                   -- [in]
          tsTxMsg          => tsTxMsg,                            -- [in]
