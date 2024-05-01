@@ -30,7 +30,7 @@ library ldmx;
 use ldmx.TsPkg.all;
 use ldmx.FcPkg.all;
 
-entity TsTxMsgPlayback is
+entity TsTxMsgPlaybackLane is
 
    generic (
       TPD_G : time := 1 ns);
@@ -57,9 +57,9 @@ entity TsTxMsgPlayback is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
-end entity TsTxMsgPlayback;
+end entity TsTxMsgPlaybackLane;
 
-architecture rtl of TsTxMsgPlayback is
+architecture rtl of TsTxMsgPlaybackLane is
 
    constant NUM_CHANNELS_C : integer := 6;
 
@@ -75,8 +75,8 @@ architecture rtl of TsTxMsgPlayback is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state => WAIT_CLOCK_ALIGN_S,
-      );
+      state => WAIT_CLOCK_ALIGN_S);
+
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 

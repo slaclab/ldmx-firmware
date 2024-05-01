@@ -79,7 +79,7 @@ architecture rtl of TsDataRxLane is
          baseAddr     => AXIL_BASE_ADDR_G + X"1_0100",
          addrBits     => 8,
          connectivity => X"FFFF"));
-   );
+
 
    signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_C-1 downto 0);
    signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);

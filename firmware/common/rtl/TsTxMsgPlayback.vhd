@@ -39,9 +39,9 @@ entity TsTxMsgPlayback is
       --------------
       -- Main Output
       --------------
-      tsTxClks : in slv(TS_LANES_G-1 downto 0);
-      tsTxRsts : in slv(TS_LANES_G-1 downto 0);
-      tsTxMsgs  : out TsData6ChMsgArray(TS_LANES_G-1 downto 0);
+      tsTxClks : in  slv(TS_LANES_G-1 downto 0);
+      tsTxRsts : in  slv(TS_LANES_G-1 downto 0);
+      tsTxMsgs : out TsData6ChMsgArray(TS_LANES_G-1 downto 0);
 
       -----------------------------
       -- Fast Control clock and bus
@@ -70,12 +70,12 @@ architecture rtl of TsTxMsgPlayback is
 
    -- fcClk185 signals
    type RegType is record
-      state               : StateType;
+      state : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state               => WAIT_CLOCK_ALIGN_S,
-);
+      state => WAIT_CLOCK_ALIGN_S);
+   
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 

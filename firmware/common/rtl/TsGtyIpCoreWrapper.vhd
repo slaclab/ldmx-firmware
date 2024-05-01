@@ -57,11 +57,11 @@ entity TsGtyIpCoreWrapper is
       rxOutClk       : out sl;
 
       -- Tx ports
-      txReset        : in  sl;
-      txResetDone    : out sl;
-      txData         : in  slv(15 downto 0) := (others => '0');
-      txDataK        : in  slv(1 downto 0)  := (others => '0');
-      loopback       : in  slv(2 downto 0);
+      txReset     : in  sl;
+      txResetDone : out sl;
+      txData      : in  slv(15 downto 0) := (others => '0');
+      txDataK     : in  slv(1 downto 0)  := (others => '0');
+      loopback    : in  slv(2 downto 0);
 
       -- AXI-Lite DRP interface
       axilClk         : in  sl                     := '0';
@@ -297,8 +297,8 @@ begin
          rxpmaresetdone_out(0)                 => rxPmaResetDone,
          rxresetdone_out(0)                    => rxResetDone,
 --         rxsyncdone_out(0)                     => rxSyncDone,
-         txpmaresetdone_out(0)                 => txPmaResetDone);
-   txresetdone_out(0) => txResetDone);
+         txpmaresetdone_out(0)                 => txPmaResetDone,
+         txresetdone_out(0)                    => txResetDone);
 
    RXOUTCLK_BUFG_GT : BUFG_GT
       port map (
