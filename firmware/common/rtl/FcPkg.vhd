@@ -66,7 +66,7 @@ package FcPkg is
       );
 
    function FcEncode (fieldsIn : FastControlMessageType) return slv;
-   function FcDecode (fcIn     : slv(FC_LEN_C-1 downto 0); valid : in sl := '1') return FastControlMessageType;
+   function FcDecode (fcIn     : slv(FC_LEN_C-1 downto 0); valid : sl := '1') return FastControlMessageType;
 
    -------------------------------------------------------------------------------------------------
    -- Readout Request Fields
@@ -89,7 +89,8 @@ package FcPkg is
       return slv;
 
    function toFcTimestamp (
-      vector : slv(FC_TIMESTAMP_SIZE_C-1 downto 0))
+      vector : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
+      valid  : sl := '1')
       return FcTimestampType;
 
    -------------------------------------------------------------------------------------------------
@@ -210,10 +211,12 @@ package body FcPkg is
    end function toSlv;
 
    function toFcTimestamp (
-      vector : slv(FC_TIMESTAMP_SIZE_C-1 downto 0))
+      vector : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
+      valid  : sl := '1')
       return FcTimestampType is
       variable ret : FcTimestampType;
    begin
+      ret.valid      := valid;
       ret.pulseId    := vector(69 downto 6);
       ret.bunchCount := vector(5 downto 0);
       return ret;

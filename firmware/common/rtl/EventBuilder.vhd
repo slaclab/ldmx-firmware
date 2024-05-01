@@ -54,9 +54,7 @@ entity EventBuilder is
       axiWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
 
---      rorFifoValid     : in  sl;
-      rorFifoMsg       :     FastControlMessageType;
-      rorFifoTimestamp : in  slv(63 downto 0);
+      rorFifoTimestamp : in FcTimestampType;
       rorFifoRdEn      : out sl;
 
       febConfig : in FebConfigType;
@@ -176,7 +174,7 @@ architecture rtl of EventBuilder is
 begin
 
    comb : process (axiReadMaster, axiWriteMaster, axilPipelineRst, axilRst, dataPathOut,
-                   eventAxisCtrl, r, rorFifoMsg, rorFifoTimestamp) is
+                   eventAxisCtrl, r, rorFifoTimestamp) is
       variable v         : RegType;
       variable apvInt    : natural;
       variable hybridInt : natural;
@@ -262,7 +260,7 @@ begin
             v.gotHeadError          := '0';
             v.hybridNum             := 0;
 
-            if (rorFifoMsg.valid = '1') then
+            if (rorFifoTimestamp.valid = '1') then
                -- Put first header txn on stream
                ssiSetUserSof(EVENT_SSI_CONFIG_C, v.eventAxisMaster, '1');
                v.eventAxisMaster.tValid             := '1';
@@ -272,21 +270,24 @@ begin
                -- Update counts
                v.eventCount := r.eventCount + 1;
                v.sofCount   := r.sofCount + 1;
-               v.state      := HEADER_TIMESTAMP_S;
+               -- Skip other header stuff
+               -- Applied in DAQ framer
+               v.state      := WAIT_ALL_VALID_S;
             end if;
 
-         when HEADER_TIMESTAMP_S =>
-            v.eventAxisMaster.tValid             := '1';
-            v.eventAxisMaster.tData(63 downto 0) := rorFifoTimestamp;
-            v.state                              := HEADER_FC_MSG_S;
+--          when HEADER_TIMESTAMP_S =>
+--             v.eventAxisMaster.tValid             := '1';
+--             -- This is applied by DAQ Framer
+--             v.eventAxisMaster.tData(63 downto 0) := (others => '1'); -- rorFifoTimestamp;
+--             v.state                              := HEADER_FC_MSG_S;
 
-         when HEADER_FC_MSG_S =>
-            v.hybridNum                          := 0;
-            -- Put second header word on stream
-            v.eventAxisMaster.tValid             := '1';
-            v.eventAxisMaster.tData(79 downto 0) := rorFifoMsg.message;
+--          when HEADER_FC_MSG_S =>
+--             v.hybridNum                          := 0;
+--             -- Put second header word on stream
+--             v.eventAxisMaster.tValid             := '1';
+--             v.eventAxisMaster.tData(79 downto 0) := rorFifoMsg.message;
 
-            v.state := WAIT_ALL_VALID_S;
+--             v.state := WAIT_ALL_VALID_S;
 
          when WAIT_ALL_VALID_S =>
             v.hybridNum := 0;
@@ -403,6 +404,9 @@ begin
             -- Need to wait one cycle for rorFifoRdEn to be asserted
             v.state := WAIT_ROR_S;
 
+         when others =>
+            null;
+
       end case;
 
       -- Dont let error count roll over
@@ -427,9 +431,11 @@ begin
 
       v.axiReadSlave.rdata := (others => '0');
 
-      axiSlaveRegisterR(axiEp, X"00", 0, ite(r.state = WAIT_ROR_S, "00",
-                                             ite(r.state = DO_DATA_S, "01",
-                                                 ite(r.state = EOF_S, "10", "11"))));
+      axiSlaveRegisterR(axiEp, X"00", 0, ite(r.state = WAIT_ROR_S, "000",
+                                             ite(r.state = WAIT_ALL_VALID_S, "001",
+                                                 ite(r.state = DO_DATA_S, "010",
+                                                     ite(r.state = EOF_S, "011",
+                                                         ite(r.state = DONE_FRAME_S, "100", "111"))))));
 
 
       axiSlaveRegisterR(axiEp, X"04", 0, toSlv(r.apvNum, 3));

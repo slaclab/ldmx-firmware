@@ -26,7 +26,7 @@ library surf;
 use surf.StdRtlPkg.all;
 
 library ldmx;
-use ldmx.HpsPkg.all;
+use ldmx.FcPkg.all;
 
 entity ReadoutRequestFifo is
 
@@ -34,68 +34,48 @@ entity ReadoutRequestFifo is
       TPD_G : time := 1 ns);
 
    port (
-      daqClk   : in sl;
-      daqRst   : in sl;
-      daqFcMsg : in FastControlMessageType;
-      
-      sysClk    : in  sl;
-      sysRst    : in  sl;
-      sysRoR    : out sl;
-      fifoFcMsg : out    FastControlMessageType;
-      fifoRdEn  : in  sl);
+      rst : in sl;
+
+      fcClk185 : in sl;
+      fcBus    : in FastControlBusType;
+
+      sysClk       : in  sl;
+      sysRst       : in  sl;
+      rorTimestamp : out FcTimestampType;
+      rdEn         : in  sl);
 
 end entity ReadoutRequestFifo;
 
 architecture rtl of ReadoutRequestFifo is
 
-   type RegType is record
-      counter : slv(63 downto 0);
-      wrEn    : sl;
-      fifoRst : sl;
-   end record RegType;
-
-   constant REG_INIT_C : RegType := (
-      counter => (others => '0'),
-      wrEn    => '0',
-      fifoRst => '1');
-
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
+   signal fifoDin   : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
+   signal fifoDout  : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
+   signal fifoValid : sl;
 
 begin
 
+   fifoDin <= toSlv(fcBus.readoutRequest);
 
-   comb : process (distClkRst, r, rxData, rxDataEn) is
-      variable v : RegType;
-   begin
-      v := r;
+   ROR_FC_MSG_FIFO : entity surf.Fifo
+      generic map (
+         TPD_G           => TPD_G,
+         GEN_SYNC_FIFO_G => false,
+         MEMORY_TYPE_G   => "distributed",
+         FWFT_EN_G       => true,
+         DATA_WIDTH_G    => FC_TIMESTAMP_SIZE_C,
+         ADDR_WIDTH_G    => 6)
+      port map (
+         rst           => rst,
+         wr_clk        => fcClk185,
+         wr_en         => fcBus.readoutRequest.valid,
+         wr_data_count => open,
+         din           => fifoDin,
+         rd_clk        => sysClk,
+         rd_en         => rdEn,
+         dout          => fifoDout,
+         valid         => fifoValid);
 
-      v.wrEn    := '0';
-      v.fifoRst := '0';
-      v.counter := r.counter + 1;
+   rorTimestamp <= toFcTimestamp(fifoDout, fifoValid);
 
-      if (rxDataEn = '1') then
-         if (rxData(7 downto 0) = X"F0") then
-            v.counter := (others => '0');
-            v.fifoRst := '1';
-         elsif (rxData = DAQ_TRIGGER_CODE_C) then
-            v.wrEn := '1';
-         end if;
-      end if;
-
-      rin <= v;
-
-      if (distClkRst = '1') then
-         v := REG_INIT_C;
-      end if;
-
-   end process comb;
-
-   seq : process (distClk) is
-   begin
-      if (rising_edge(distClk)) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
 
 end architecture rtl;

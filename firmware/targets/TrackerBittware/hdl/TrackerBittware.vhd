@@ -350,8 +350,12 @@ begin
    -- Might need dummies for qsfp(3 downto 1)
 
    -- FEB PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0
-   febPgpFcRefClkP       <= qsfpRefClkP(5 downto 4);
-   febPgpFcRefClkN       <= qsfpRefClkN(5 downto 4);
+   GEN_FEB_REFCLK : for i in PGP_QUADS_G-1 downto 0 generate
+      febPgpFcRefClkP(i) <= qsfpRefClkP(i+4);
+      febPgpFcRefClkN(i) <= qsfpRefClkN(i+4);
+   end generate GEN_FEB_REFCLK;
+
+   -- Unused GTs
    qsfpTxP(23 downto 16) <= febPgpFcTxP;
    qsfpTxN(23 downto 16) <= febPgpFcTxN;
    febPgpFcRxP           <= qsfpRxP(23 downto 16);

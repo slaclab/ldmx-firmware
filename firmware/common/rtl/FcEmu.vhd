@@ -36,6 +36,7 @@ entity FcEmu is
       -- Clock and Reset
       fcClk           : in  sl;
       fcRst           : in  sl;
+      enabled         : out sl;
       -- Fast-Control Message Interface
       fcMsg           : out FastControlMessageType;
       -- Bunch Clock
@@ -252,6 +253,7 @@ begin
       end if;
 
       -- General Outputs
+      enabled            <= r.enableTimingMsg;
       fcMsg              <= r.fcMsg;
       bunchClk           <= r.bunchClk;
       bunchStrobe        <= r.bunchCountStrb;

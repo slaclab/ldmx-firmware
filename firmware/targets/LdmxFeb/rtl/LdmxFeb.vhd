@@ -56,20 +56,20 @@ entity LdmxFeb is
       gtRefClk250N : in sl;
 
       -- MGT IO
-      sasGtTxP : out slv(3 downto 0);
-      sasGtTxN : out slv(3 downto 0);
-      sasGtRxP : in  slv(3 downto 0);
-      sasGtRxN : in  slv(3 downto 0);
+--       sasGtTxP : out slv(3 downto 0);
+--       sasGtTxN : out slv(3 downto 0);
+--       sasGtRxP : in  slv(3 downto 0);
+--       sasGtRxN : in  slv(3 downto 0);
 
       qsfpGtTxP : out slv(3 downto 0);
       qsfpGtTxN : out slv(3 downto 0);
       qsfpGtRxP : in  slv(3 downto 0);
       qsfpGtRxN : in  slv(3 downto 0);
 
-      sfpGtTxP : out sl;
-      sfpGtTxN : out sl;
-      sfpGtRxP : in  sl;
-      sfpGtRxN : in  sl;
+--       sfpGtTxP : out sl;
+--       sfpGtTxN : out sl;
+--       sfpGtRxP : in  sl;
+--       sfpGtRxN : in  sl;
 
       -- ADC DDR Interface 
       adcFClkP : in slv(HYBRIDS_G-1 downto 0);
@@ -138,6 +138,7 @@ architecture rtl of LdmxFeb is
    -------------------------------------------------------------------------------------------------
    -- Clock Signals
    -------------------------------------------------------------------------------------------------
+   signal gtRefClk250Div2 : sl;
    signal userRefClk125 : sl;
    signal userRefRst125 : sl;
    signal userRefClk185 : sl;
@@ -146,17 +147,17 @@ architecture rtl of LdmxFeb is
    signal axilClk : sl;
    signal axilRst : sl;
 
-   signal fcClk185   : sl;
-   signal fcRst185   : sl;
-   signal fcMsg      : FastControlMessageType;
-   signal fcClk37    : sl;
-   signal fcClk37Rst : sl;
+   signal fcClk185     : sl;
+   signal fcRst185     : sl;
+   signal fcBus : FastControlBusType;
+   signal fcBunchClk37 : sl;
+   signal fcBunchRst37 : sl;
 
    -------------------------------------------------------------------------------------------------
    -- PGP 
    -------------------------------------------------------------------------------------------------
-   signal pgpTxLink : slv(2 downto 0);
-   signal pgpRxLink : slv(2 downto 0);
+   signal pgpTxLink : sl;
+   signal pgpRxLink : sl;
 
    -------------------------------------------------------------------------------------------------
    -- AXI Signals
@@ -233,41 +234,43 @@ architecture rtl of LdmxFeb is
    signal waveformAxisSlave  : AxiStreamSlaveType;
 
 begin
-
-
    -------------------------------------------------------------------------------------------------
    -- Create local clocks
    -------------------------------------------------------------------------------------------------
+   U_QsfpRef0 : IBUFDS_GTE4
+      generic map (
+         REFCLK_EN_TX_PATH  => '0',
+         REFCLK_HROW_CK_SEL => "00",    -- 2'b00: ODIV2 = O
+         REFCLK_ICNTL_RX    => "00")
+      port map (
+         I     => gtRefClk250P,
+         IB    => gtRefClk250N,
+         CEB   => '0',
+         ODIV2 => gtRefClk250Div2,
+         O     => open);
+
+   U_BUFG : BUFG_GT
+      port map (
+         I       => gtRefClk250Div2,
+         CE      => '1',
+         CEMASK  => '1',
+         CLR     => '0',
+         CLRMASK => '1',
+         DIV     => "001",              -- Divide-by-2
+         O       => userRefClk125);
+
+   PwrUpRst_1 : entity surf.PwrUpRst
+      generic map (
+         TPD_G          => TPD_G,
+         SIM_SPEEDUP_G  => SIMULATION_G,
+         IN_POLARITY_G  => '1',
+         OUT_POLARITY_G => '1')
+      port map (
+         clk    => userRefClk125,
+         rstOut => userRefRst125);
+
    axilClk <= userRefClk125;
    axilRst <= userRefRst125;
---    U_ClockManager1 : entity surf.ClockManagerUltrascale
---       generic map (
---          TPD_G            => TPD_G,
---          TYPE_G           => "PLL",
---          INPUT_BUFG_G     => false,
---          FB_BUFG_G        => true,
---          NUM_CLOCKS_G     => 2,
---          BANDWIDTH_G      => "OPTIMIZED",
---          CLKIN_PERIOD_G   => 4.0,
---          DIVCLK_DIVIDE_G  => 1,
---          CLKFBOUT_MULT_G  => 3,
---          CLKOUT0_DIVIDE_G => 3,
---          CLKOUT1_DIVIDE_G => 6)
--- --         CLKOUT0_RST_HOLD_G => 100,
--- --         CLKOUT1_DIVIDE_G   => 10,
--- --         CLKOUT1_RST_HOLD_G => 5,
--- --         CLKOUT2_DIVIDE_G   => 8)
--- --         CLKOUT2_RST_HOLD_G => 100)
---       port map (
---          clkIn     => userRefClk250,
---          rstIn     => userRefRst250,
---          clkOut(0) => clk250,
---          clkOut(1) => axilClk,
--- --         clkOut(2) => clk156,
---          rstOut(0) => rst250,
---          rstOut(1) => axilRst);
--- --         rstOut(2) => rst156);
-
 
    -------------------------------------------------------------------------------------------------
    -- LED Test Outputs
@@ -305,14 +308,14 @@ begin
          PERIOD_IN_G  => 5.385E-9 * 5,
          PERIOD_OUT_G => 0.5385 * 5)
       port map (
-         clk => fcClk37,
+         clk => fcBunchClk37,
          o   => leds(3));
-   
-   
+
+
 
    leds(5 downto 4) <= "00";
-   leds(6)          <= pgpTxLink(0);
-   leds(7)          <= pgpRxLink(0);
+   leds(6)          <= pgpTxLink;
+   leds(7)          <= pgpRxLink;
 
 
 
@@ -322,7 +325,7 @@ begin
    U_LdmxFebPgp_1 : entity ldmx.LdmxFebPgp
       generic map (
          TPD_G                => TPD_G,
-         SIM_SPEEDUP_G => SIMULATION_G,
+         SIM_SPEEDUP_G        => SIMULATION_G,
          ROGUE_SIM_EN_G       => ROGUE_SIM_EN_G,
          ROGUE_SIM_SIDEBAND_G => ROGUE_SIM_SIDEBAND_G,
          ROGUE_SIM_PORT_NUM_G => ROGUE_SIM_PORT_NUM_G,
@@ -331,29 +334,19 @@ begin
       port map (
          gtRefClk185P       => gtRefClk185P,                          -- [in]
          gtRefClk185N       => gtRefClk185N,                          -- [in]
-         gtRefClk250P       => gtRefClk250P,                          -- [in]
-         gtRefClk250N       => gtRefClk250N,                          -- [in]
-         pgpGtRxP(0)        => qsfpGtRxP(0),                          -- [in]         
-         pgpGtRxP(1)        => sfpGtRxP,                              -- [in]
-         pgpGtRxP(2)        => sasGtRxP(0),                           -- [in]
-         pgpGtRxN(0)        => qsfpGtRxN(0),                          -- [in]
-         pgpGtRxN(1)        => sfpGtRxN,                              -- [in]
-         pgpGtRxN(2)        => sasGtRxN(0),                           -- [in]
-         pgpGtTxP(0)        => qsfpGtTxP(0),                          -- [out]
-         pgpGtTxP(1)        => sfpGtTxP,                              -- [out]
-         pgpGtTxP(2)        => sasGtTxP(0),                           -- [out]
-         pgpGtTxN(0)        => qsfpGtTxN(0),                          -- [out]
-         pgpGtTxN(1)        => sfpGtTxN,                              -- [out]
-         pgpGtTxN(2)        => sasGtTxN(0),                           -- [out]
+         pgpGtRxP           => qsfpGtRxP(0),                          -- [in]         
+         pgpGtRxN           => qsfpGtRxN(0),                          -- [in]
+         pgpGtTxP           => qsfpGtTxP(0),                          -- [out]
+         pgpGtTxN           => qsfpGtTxN(0),                          -- [out]
          userRefClk185      => userRefClk185,                         -- [out]
          userRefRst185      => userRefRst185,                         -- [out]         
-         userRefClk125      => userRefClk125,                         -- [out]
-         userRefRst125      => userRefRst125,                         -- [out]         
          pgpTxLink          => pgpTxLink,                             -- [out]
          pgpRxLink          => pgpRxLink,                             -- [out]
          fcClk185           => fcClk185,                              -- [out]
          fcRst185           => fcRst185,                              -- [out]
-         fcMsg              => fcMsg,                                 -- [out]
+         fcBus              => fcBus,                                 -- [out]
+         fcBunchClk37       => fcBunchClk37,                          -- [out]
+         fcBunchRst37       => fcBunchRst37,                          -- [out]
          axilClk            => axilClk,                               -- [in]
          axilRst            => axilRst,                               -- [in]
          mAxilReadMaster    => extAxilReadMaster,                     -- [out]
@@ -409,7 +402,7 @@ begin
       port map (
          fcClk185          => fcClk185,                                   -- [in]
          fcRst185          => fcRst185,                                   -- [in]
-         fcMsg             => fcMsg,                                      -- [in]
+         fcBus             => fcBus,                                      -- [in]
          axilClk           => axilClk,                                    -- [in]
          axilRst           => axilRst,                                    -- [in]
          sAxilWriteMaster  => locAxilWriteMasters(FEB_CORE_AXI_INDEX_C),  -- [in]
@@ -426,8 +419,6 @@ begin
          hyRstOutL         => hyRstOutL,                                  -- [out]
          hyI2cIn           => hyI2cIn,                                    -- [in]
          hyI2cOut          => hyI2cOut,                                   -- [out]
-         fcClk37           => fcClk37,                                    -- [out]
-         fcClk37Rst        => fcClk37Rst,                                 -- [out]
          hyClk             => hyClk,                                      -- [in]
          hyClkRst          => hyClkRst,                                   -- [in]
          adcReadoutStreams => adcReadoutStreams);                         -- [in]
@@ -499,8 +490,8 @@ begin
          adcReadoutStreams  => adcReadoutStreams,                        -- [out]
          waveformAxisMaster => waveformAxisMaster,                       -- [out]
          waveformAxisSlave  => waveformAxisSlave,                        -- [in]
-         fcClk37            => fcClk37,                                  -- [in]
-         fcClk37Rst         => fcClk37Rst,                               -- [in]
+         fcClk37            => fcBunchClk37,                             -- [in]
+         fcClk37Rst         => fcBunchRst37,                             -- [in]
          hyClk              => hyClk,                                    -- [out]
          hyClkRst           => hyClkRst);                                -- [out]
 

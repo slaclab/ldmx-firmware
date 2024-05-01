@@ -42,7 +42,7 @@ entity FebCore is
       -- Recovered Clock and Opcode Interface
       fcClk185 : in sl;
       fcRst185 : in sl;
-      fcMsg    : in FastControlMessageType;
+      fcBus    : in FastControlBusType;
 
       -- Axi Clock and Reset
       axilClk : in sl;
@@ -73,8 +73,6 @@ entity FebCore is
       hyI2cOut : out i2c_out_array(HYBRIDS_G-1 downto 0);
 
       -- 37Mhz clock
-      fcClk37    : out sl;
-      fcClk37Rst : out sl;
       hyClk      : in  slv(HYBRIDS_G-1 downto 0) := (others => '0');
       hyClkRst   : in  slv(HYBRIDS_G-1 downto 0) := (others => '0');
 
@@ -89,8 +87,6 @@ architecture rtl of FebCore is
    -------------------------------------------------------------------------------------------------
    -- Recovered Clock & Opcode Signals
    -------------------------------------------------------------------------------------------------
-   signal fcClkLost  : sl;
-   signal fcRor      : sl;
    signal fcReset101 : slv(HYBRIDS_G-1 downto 0);
    signal hyRstL     : slv(HYBRIDS_G-1 downto 0);
 
@@ -167,7 +163,10 @@ architecture rtl of FebCore is
    signal rorFifoMsg       : FastControlMessageType;
    signal rorFifoRdEn      : sl;
 
-   signal axilRor : sl;
+   signal axilRorStrobe        : sl;
+   signal axilRorFifoTimestamp : FcTimestampType;
+   signal axilRorFifoRdEn      : sl;
+
 
    -------------------------------------------------------------------------------------------------
    -- Data path outputs
@@ -210,24 +209,19 @@ begin
          TPD_G     => TPD_G,
          HYBRIDS_G => HYBRIDS_G)
       port map (
-         fcClk185         => fcClk185,                                      -- [in]
-         fcRst185         => fcRst185,                                      -- [in]
-         fcMsg            => fcMsg,                                         -- [in]
-         fcClk37          => fcClk37,                                       -- [out]
-         fcClk37Rst       => fcClk37Rst,                                    -- [out]
-         fcRoR            => fcRoR,                                         -- [out]
-         fcReset101       => fcReset101,                                    -- [out]
-         axilClk          => axilClk,                                       -- [in]
-         axilRst          => axilRst,                                       -- [in]
-         axilRoR          => axilRoR,                                       -- [out]
---         rorFifoValid     => rorFifoValid,                                  -- [out]
-         rorFifoMsg       => rorFifoMsg,                                    -- [out]
-         rorFifoTimestamp => rorFifoTimestamp,                              -- [out]
-         rorFifoRdEn      => rorFifoRdEn,                                   -- [in]
-         axilReadMaster   => mainAxilReadMasters(AXI_DAQ_TIMING_INDEX_C),   -- [in]
-         axilReadSlave    => mainAxilReadSlaves(AXI_DAQ_TIMING_INDEX_C),    -- [out]
-         axilWriteMaster  => mainAxilWriteMasters(AXI_DAQ_TIMING_INDEX_C),  -- [in]
-         axilWriteSlave   => mainAxilWriteSlaves(AXI_DAQ_TIMING_INDEX_C));  -- [out]
+         fcClk185             => fcClk185,                                      -- [in]
+         fcRst185             => fcRst185,                                      -- [in]
+         fcBus                => fcBus,                                         -- [in]
+         fcReset101           => fcReset101,                                    -- [out]
+         axilClk              => axilClk,                                       -- [in]
+         axilRst              => axilRst,                                       -- [in]
+         axilRorStrobe        => axilRorStrobe,                                 -- [out]
+         axilRorFifoTimestamp => axilRorFifoTimestamp,                          -- [out]
+         axilRorFifoRdEn      => axilRorFifoRdEn,                               -- [in]
+         axilReadMaster       => mainAxilReadMasters(AXI_DAQ_TIMING_INDEX_C),   -- [in]
+         axilReadSlave        => mainAxilReadSlaves(AXI_DAQ_TIMING_INDEX_C),    -- [out]
+         axilWriteMaster      => mainAxilWriteMasters(AXI_DAQ_TIMING_INDEX_C),  -- [in]
+         axilWriteSlave       => mainAxilWriteSlaves(AXI_DAQ_TIMING_INDEX_C));  -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- General configuration Registers
@@ -320,7 +314,7 @@ begin
             axiClk     => axilClk,
             axiRst     => axilRst,
             febConfig  => febConfig,
-            fcRor      => fcRor,
+            fcRor      => fcBus.readoutRequest.valid,
             fcReset101 => fcReset101(i),
             hyClk      => hyClk(i),
             hyClkRst   => hyClkRst(i),
@@ -362,7 +356,7 @@ begin
             axiWriteMaster    => hybridDataAxilWriteMasters(i),
             axiWriteSlave     => hybridDataAxilWriteSlaves(i),
             febConfig         => febConfig,
-            readoutReq        => axilRor,
+            readoutReq        => axilRorStrobe,
             adcReadoutStreams => adcReadoutStreams(i)(APVS_PER_HYBRID_G-1 downto 0),
             dataOut           => dataPathOut(i)(APVS_PER_HYBRID_G-1 downto 0),
             dataRdEn          => dataPathIn(i)(APVS_PER_HYBRID_G-1 downto 0));
@@ -380,18 +374,13 @@ begin
          axiReadSlave     => mainAxilReadSlaves(AXI_EB_INDEX_C),
          axiWriteMaster   => mainAxilWriteMasters(AXI_EB_INDEX_C),
          axiWriteSlave    => mainAxilWriteSlaves(AXI_EB_INDEX_C),
---         readoutReq          => readoutReq,
---         rorFifoValid     => rorFifoValid,
-         rorFifoMsg       => rorFifoMsg,
-         rorFifoTimestamp => rorFifoTimestamp,
-         rorFifoRdEn      => rorFifoRdEn,
+         rorFifoTimestamp => axilRorFifoTimestamp,
+         rorFifoRdEn      => axilRorFifoRdEn,
          febConfig        => febConfig,
          dataPathOut      => dataPathOut,
          dataPathIn       => dataPathIn,
          eventAxisMaster  => eventAxisMaster,
          eventAxisSlave   => eventAxisSlave,
          eventAxisCtrl    => eventAxisCtrl);
-
-
 
 end architecture rtl;
