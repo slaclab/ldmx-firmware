@@ -39,10 +39,12 @@ entity TsGtyIpCoreWrapper is
       stableRst : in sl;
 
       -- GTY FPGA IO
-      gtRefClk     : in sl;
-      gtUserRefClk : in sl;
-      gtRxP        : in sl;
-      gtRxN        : in sl;
+      gtRefClk     : in  sl;
+      gtUserRefClk : in  sl;
+      gtRxP        : in  sl;
+      gtRxN        : in  sl;
+      gtTxP        : out sl;
+      gtTxN        : out sl;
 
       -- Rx ports
       rxReset        : in  sl;
@@ -135,8 +137,10 @@ architecture mapping of TsGtyIpCoreWrapper is
          rxctrl3_out                        : out std_logic_vector(7 downto 0);
          rxoutclk_out                       : out std_logic_vector(0 downto 0);
          rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         rxresetdone_out                    : out std_logic_vector(0 downto 0);
          txoutclk_out                       : out std_logic_vector(0 downto 0);
-         txpmaresetdone_out                 : out std_logic_vector(0 downto 0)
+         txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         txresetdone_out                    : out std_logic_vector(0 downto 0)
          );
    end component;
 
@@ -276,10 +280,10 @@ begin
          txctrl2_in                            => txctrl2,
          txpd_in                               => "11",        -- POWER DOWN TX
 --         txpolarity_in(0)                      => txPolarity,
-         txusrclk_in(0)                        => txUsrClk,
-         txusrclk2_in(0)                       => txUsrClk,
-         gtytxn_out                            => gtTxN,
-         gtytxp_out                            => gtTxP,
+         txusrclk_in(0)                        => gtUserRefClk,
+         txusrclk2_in(0)                       => gtUserRefClk,
+         gtytxn_out(0)                         => gtTxN,
+         gtytxp_out(0)                         => gtTxP,
          rxbyteisaligned_out(0)                => rxByteIsAligned,
          rxbyterealign_out(0)                  => rxByteReAlign,
          rxcommadet_out(0)                     => rxCommaDet,

@@ -48,8 +48,6 @@ entity TsDataRxLaneArray is
       tsRefClk250N : in slv(TS_REFCLKS_G-1 downto 0);
       tsDataRxP    : in slv(TS_LANES_G-1 downto 0);
       tsDataRxN    : in slv(TS_LANES_G-1 downto 0);
-      tsDataTxP    : in slv(TS_LANES_G-1 downto 0);
-      tsDataTxN    : in slv(TS_LANES_G-1 downto 0);
 
       -- Output
       tsRecClks : out slv(TS_LANES_G-1 downto 0);

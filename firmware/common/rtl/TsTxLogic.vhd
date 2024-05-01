@@ -70,12 +70,14 @@ architecture rtl of TsTxLogic is
 
    type RegType is record
       state     : StateType;
+      idleSeq   : sl;
       tsTxData  : slv(15 downto 0);
       tsTxDataK : slv(1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       state     => IDLE_S,
+      idleSeq   => '0',
       tsTxData  => (others => '0'),
       tsTxDataK => (others => '0'));
 
@@ -84,12 +86,10 @@ architecture rtl of TsTxLogic is
 
 begin
 
-   comb : process (r, tsRst250, tsRxData, tsRxDataK) is
+   comb : process (r, tsRst250, tsTxMsg) is
       variable v : RegType := REG_INIT_C;
    begin
       v := r;
-
-      v.tsRxMsg.strobe := '0';
 
       case r.state is
          when IDLE_S =>
@@ -102,13 +102,13 @@ begin
             end if;
 
             if (tsTxMsg.strobe = '1') then
-               v.tsTxDataK             := "01";
-               v.tsTxData(7 downto 0)  := K28_5_C;
-               v.tsTxData(8)           := tsTxMsg.bc0;
-               v.tsTxData(9)           := tsTxMsg.ce;
-               v.tsTxMsg(11 downto 10) := tsTxMsg.capId;
-               v.tsTxMsg(15 downto 12) := tsTxMsg.tdc(0)(3 downto 0);
-               v.state                 := WORD_1_S;
+               v.tsTxDataK              := "01";
+               v.tsTxData(7 downto 0)   := K28_5_C;
+               v.tsTxData(8)            := tsTxMsg.bc0;
+               v.tsTxData(9)            := tsTxMsg.ce;
+               v.tsTxData(11 downto 10) := tsTxMsg.capId;
+               v.tsTxData(15 downto 12) := tsTxMsg.tdc(0)(3 downto 0);
+               v.state                  := WORD_1_S;
             end if;
          when WORD_1_S =>
             v.tsTxDataK             := "00";
