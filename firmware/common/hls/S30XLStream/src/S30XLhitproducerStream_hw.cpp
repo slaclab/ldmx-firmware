@@ -5,12 +5,60 @@
 
 
 
-void hitproducerStream_hw(OutPutBus *oBus,InPutBus *iBus){
+void hitproducerStream_hw(ap_uint<70> timestamp_in,ap_uint<70> timestamp_out,ap_uint<1> dataReady_in,ap_uint<1> dataReady_out,ap_uint<14> FIFO[NHITS],ap_uint<1> onflag[NHITS],ap_uint<17> amplitude[NHITS]){
+	#pragma HLS ARRAY_PARTITION variable=timestamp_in complete
+	#pragma HLS ARRAY_PARTITION variable=timestamp_out complete
+
+	#pragma HLS ARRAY_PARTITION variable=FIFO complete
+	#pragma HLS ARRAY_PARTITION variable=amplitude complete
+	#pragma HLS ARRAY_PARTITION variable=onflag complete
+
 	#pragma HLS interface ap_ctrl_none port=return
-	#pragma HLS INTERFACE ap_none port=iBus
-	#pragma HLS INTERFACE ap_none port=oBus
-	#pragma HLS aggregate variable=iBus
-	#pragma HLS aggregate variable=oBus
+	#pragma HLS INTERFACE ap_none port=dataReady_in
+	#pragma HLS INTERFACE ap_none port=dataReady_out
+	#pragma HLS INTERFACE ap_none port=timestamp_in
+	#pragma HLS INTERFACE ap_none port=timestamp_out
+
+	#pragma HLS INTERFACE ap_none port=FIFO[0]
+	#pragma HLS INTERFACE ap_none port=FIFO[1]
+	#pragma HLS INTERFACE ap_none port=FIFO[2]
+	#pragma HLS INTERFACE ap_none port=FIFO[3]
+	#pragma HLS INTERFACE ap_none port=FIFO[4]
+	#pragma HLS INTERFACE ap_none port=FIFO[5]
+	#pragma HLS INTERFACE ap_none port=FIFO[6]
+	#pragma HLS INTERFACE ap_none port=FIFO[7]
+	#pragma HLS INTERFACE ap_none port=FIFO[8]
+	#pragma HLS INTERFACE ap_none port=FIFO[9]
+	#pragma HLS INTERFACE ap_none port=FIFO[10]
+	#pragma HLS INTERFACE ap_none port=FIFO[11]
+
+	#pragma HLS INTERFACE ap_none port=amplitude[0]
+	#pragma HLS INTERFACE ap_none port=amplitude[1]
+	#pragma HLS INTERFACE ap_none port=amplitude[2]
+	#pragma HLS INTERFACE ap_none port=amplitude[3]
+	#pragma HLS INTERFACE ap_none port=amplitude[4]
+	#pragma HLS INTERFACE ap_none port=amplitude[5]
+	#pragma HLS INTERFACE ap_none port=amplitude[6]
+	#pragma HLS INTERFACE ap_none port=amplitude[7]
+	#pragma HLS INTERFACE ap_none port=amplitude[8]
+	#pragma HLS INTERFACE ap_none port=amplitude[9]
+	#pragma HLS INTERFACE ap_none port=amplitude[10]
+	#pragma HLS INTERFACE ap_none port=amplitude[11]
+
+	#pragma HLS INTERFACE ap_none port=onflag[0]
+	#pragma HLS INTERFACE ap_none port=onflag[1]
+	#pragma HLS INTERFACE ap_none port=onflag[2]
+	#pragma HLS INTERFACE ap_none port=onflag[3]
+	#pragma HLS INTERFACE ap_none port=onflag[4]
+	#pragma HLS INTERFACE ap_none port=onflag[5]
+	#pragma HLS INTERFACE ap_none port=onflag[6]
+	#pragma HLS INTERFACE ap_none port=onflag[7]
+	#pragma HLS INTERFACE ap_none port=onflag[8]
+	#pragma HLS INTERFACE ap_none port=onflag[9]
+	#pragma HLS INTERFACE ap_none port=onflag[10]
+	#pragma HLS INTERFACE ap_none port=onflag[11]
+
+
 	#pragma HLS PIPELINE
 
 	ap_uint<14> nbins_[5] = {0, 16, 36, 57, 64};
@@ -23,7 +71,7 @@ void hitproducerStream_hw(OutPutBus *oBus,InPutBus *iBus){
 	ap_uint<14> sense_[16] = {3,   6,   12,  25, 25, 50, 99, 198,
 	                      198, 397, 794, 1587, 1587, 3174, 6349, 12700};
 	for(int i = 0; i<NHITS;i++){
-		ap_uint<14> word1=iBus->FIFO[i];
+		ap_uint<14> word1=FIFO[i];
 
 		ap_uint<14> charge1;
 
@@ -35,15 +83,15 @@ void hitproducerStream_hw(OutPutBus *oBus,InPutBus *iBus){
 		if(((charge1-36)*.00625)>=10){
 			helper=1;
 		}
-		oBus->onflag[i]=helper;
-		oBus->amplitude[i]=((charge1-36)*.00625);
+		onflag[i]=helper;
+		amplitude[i]=((charge1-36)*.00625);
 	}
-	oBus->timestamp_out=iBus->timestamp_in;
+	timestamp_out=timestamp_in;
 	ap_uint<1> ready=0;
 	/// Indices of first bin of each subrange
-	if(iBus->dataReady_in==1){
+	if(dataReady_in==1){
 		ready=1;
 	}
-	oBus->dataReady_out=ready;
+	dataReady_out=ready;
 	return;
 }

@@ -61,21 +61,9 @@ int main(){
 					FIFO2[k]=FIFO[k][1];
 					//std::cout<<FIFO2[k]<<std::endl;
 				}
-				InPutBus *in = new InPutBus;
-				OutPutBus *out = new OutPutBus;
-				in->dataReady_in=1;
-				in->timestamp_in=0;
-				std::copy(std::begin(FIFO2), std::end(FIFO2), std::begin(in->FIFO));
-				//std::copy(std::begin(outHit), std::end(outHit), std::begin(out.amplitude));
-				//std::copy(std::begin(outflag), std::end(outflag), std::begin(out.onflag));
-				hitproducerStream_hw(out,in);
-				for(int i =0;i<std::end(out->amplitude)-std::begin(out->amplitude);i++){
-					std::cout<<out->amplitude[i]<<std::endl;
-				}
-				//std::copy(std::begin(in.FIFO), std::end(in.FIFO), std::begin(FIFO2));
-				std::copy(std::begin(out->amplitude), std::end(out->amplitude), std::begin(outHit));
-				std::copy(std::begin(out->onflag), std::end(out->onflag), std::begin(outflag));
-				std::cout<<"I MADE IT AFTER THE FIRMWARE"<<std::endl;
+				ap_uint<1> dataReady_out;
+				ap_uint<70> timestamp_out;
+				hitproducerStream_hw(0,timestamp_out,1,dataReady_out,FIFO2,outflag,outHit);
 				continue;
 			}
 			std::cout<<s<<std::endl;
@@ -129,3 +117,18 @@ int main(){
 	std::cout<<counterErr<<std::endl;
 	return 1*(counterErr>110);
 }
+
+//InPutBus *in = new InPutBus;
+//OutPutBus *out = new OutPutBus;
+//in->dataReady_in=1;
+//in->timestamp_in=0;
+//std::copy(std::begin(FIFO2), std::end(FIFO2), std::begin(in->FIFO));
+//std::copy(std::begin(outHit), std::end(outHit), std::begin(out.amplitude));
+//std::copy(std::begin(outflag), std::end(outflag), std::begin(out.onflag));
+//for(int i =0;i<std::end(out->amplitude)-std::begin(out->amplitude);i++){
+//	std::cout<<out->amplitude[i]<<std::endl;
+//}
+//std::copy(std::begin(in.FIFO), std::end(in.FIFO), std::begin(FIFO2));
+//std::copy(std::begin(out->amplitude), std::end(out->amplitude), std::begin(outHit));
+//std::copy(std::begin(out->onflag), std::end(out->onflag), std::begin(outflag));
+//std::cout<<"I MADE IT AFTER THE FIRMWARE"<<std::endl;
