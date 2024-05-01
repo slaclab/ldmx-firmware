@@ -55,7 +55,7 @@ entity FcReceiver is
       -- RX FC and PGP interface
       fcClk185     : out sl;
       fcRst185     : out sl;
-      fcBus        : out FastControlBusType;
+      fcBus        : out FcBusType;
       fcBunchClk37 : out sl;
       fcBunchRst37 : out sl;
       pgpRxIn      : in  Pgp2fcRxInType                               := PGP2FC_RX_IN_INIT_C;
@@ -66,7 +66,7 @@ entity FcReceiver is
       -- TX FC and PGP interface
       txClk185     : out sl;
       txRst185     : out sl;
---      fcFb         : in  FastControlFeedbackType;
+--      fcFb         : in  FcFeedbackType;
       pgpTxIn      : in  Pgp2fcTxInType                               := PGP2FC_TX_IN_INIT_C;
       pgpTxOut     : out Pgp2fcTxOutType;
       pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
@@ -129,7 +129,7 @@ architecture rtl of FcReceiver is
    signal fcWord  : slv(FC_LEN_C-1 downto 0);
 
    -- Emulator
-   signal fcEmuMsg     : FastControlMessageType;
+   signal fcEmuMsg     : FcMessageType;
    signal fcEmuEnabled : sl;
 
 begin
@@ -141,7 +141,7 @@ begin
    txRst185 <= pgpUserRefRst;
 
    -- Eventually mix FC feedback in here
-   pgpTxInLoc <= pgpTxIn;
+--   pgpTxInLoc <= pgpTxIn;
    pgpRxOut   <= pgpRxOutLoc;
 
    ---------------------
@@ -312,26 +312,30 @@ begin
             axilWriteMaster => locAxilWriteMasters(FC_EMU_AXIL_C),  -- [in]
             axilWriteSlave  => locAxilWriteSlaves(FC_EMU_AXIL_C));  -- [out]
 
-      FC_EMU_GLUE : process (fcEmuEnabled) is
+      FC_EMU_GLUE : process (fcEmuEnabled, fcEmuMsg, pgpRxIn, pgpTxIn) is
+         variable pgpTxInVar : Pgp2fcTxInType;
+         variable pgpRxInVar : Pgp2fcRxInType;
       begin
-         pgpRxInLoc <= pgpRxIn;
-         pgpTxInLoc <= pgpTxIn;
+         pgpRxInVar := pgpRxIn;
+         pgpTxInVar := pgpTxIn;
 
          if (fcEmuEnabled = '1') then
 
             -- Drive near-end PMA loopback
-            pgpRxInLoc.loopback <= "010";
+            pgpRxInVar.loopback := "010";
 
             -- Send FcEmu messages on TX
-            pgpTxInLoc.fcValid                     <= fcEmuMsg.valid;
-            pgpTxInLoc.fcWord(FC_LEN_C-1 downto 0) <= fcEmuMsg.message;
+            pgpTxInVar.fcValid                     := fcEmuMsg.valid;
+            pgpTxInVar.fcWord(FC_LEN_C-1 downto 0) := fcEmuMsg.message;
 
          else
-            pgpRxInLoc.loopback <= "000";
-            pgpTxInLoc.fcValid  <= '0';
-            pgpTxInLoc.fcWord   <= (others => '0');
+            pgpRxInVar.loopback := "000";
+            pgpTxInVar.fcValid  := '0';
+            pgpTxInVar.fcWord   := (others => '0');
 
          end if;
+         pgpTxInLoc <= pgpTxInVar;
+         pgpRxInLoc <= pgpRxInVar;
       end process FC_EMU_GLUE;
    end generate GEN_FC_EMU;
 

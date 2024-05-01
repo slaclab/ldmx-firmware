@@ -149,7 +149,7 @@ architecture rtl of LdmxFeb is
 
    signal fcClk185     : sl;
    signal fcRst185     : sl;
-   signal fcBus : FastControlBusType;
+   signal fcBus : FcBusType;
    signal fcBunchClk37 : sl;
    signal fcBunchRst37 : sl;
 

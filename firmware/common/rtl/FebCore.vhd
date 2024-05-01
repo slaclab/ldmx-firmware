@@ -42,7 +42,7 @@ entity FebCore is
       -- Recovered Clock and Opcode Interface
       fcClk185 : in sl;
       fcRst185 : in sl;
-      fcBus    : in FastControlBusType;
+      fcBus    : in FcBusType;
 
       -- Axi Clock and Reset
       axilClk : in sl;
@@ -160,7 +160,7 @@ architecture rtl of FebCore is
    -------------------------------------------------------------------------------------------------
    signal rorFifoValid     : sl;
    signal rorFifoTimestamp : slv(63 downto 0);
-   signal rorFifoMsg       : FastControlMessageType;
+   signal rorFifoMsg       : FcMessageType;
    signal rorFifoRdEn      : sl;
 
    signal axilRorStrobe        : sl;

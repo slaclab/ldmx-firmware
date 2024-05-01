@@ -118,7 +118,7 @@ architecture rtl of FcHub is
    signal lclsTimingBus : TimingBusType;
 
    -- LDMX Fast Control Message to FC Senders
-   signal fcTxMsg : FastControlMessageType;
+   signal fcTxMsg : FcMessageType;
 
 begin
    

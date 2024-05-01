@@ -38,7 +38,7 @@ entity FcEmu is
       fcRst           : in  sl;
       enabled         : out sl;
       -- Fast-Control Message Interface
-      fcMsg           : out FastControlMessageType;
+      fcMsg           : out FcMessageType;
       -- Bunch Clock
       bunchClk        : out sl;
       bunchStrobe     : out sl;
@@ -60,7 +60,7 @@ architecture rtl of FcEmu is
       timingMsgReq          : sl;
       bunchCountStrb        : sl;
       bunchClk              : sl;
-      fcMsg                 : FastControlMessageType;
+      fcMsg                 : FcMessageType;
       pulseIDinit           : slv(63 downto 0);
       fcRunStateSet         : slv(4 downto 0);
       bunchCountPeriodCount : slv(5 downto 0);
@@ -231,7 +231,7 @@ begin
          -- immediate RoR
          -- if RoRs are not enabled, FC message bunchCount will get the init value
          v.fcMsg.msgType := MSG_TYPE_ROR_C;
-         v.fcMsg.message := FcEncode(r.fcMsg);
+         v.fcMsg.message := toSlv(r.fcMsg);
          v.fcMsg.valid   := '1';
       elsif (r.bunchCountStrb = '1' and r.enableRoR = '1') then
          -- periodic RoR. Have to check the RoR Period counter first
@@ -240,7 +240,7 @@ begin
             -- TX RoR
             v.rOrPeriodCount := (others => '0');
             v.fcMsg.msgType  := MSG_TYPE_ROR_C;
-            v.fcMsg.message  := FcEncode(r.fcMsg);
+            v.fcMsg.message  := toSlv(r.fcMsg);
             v.fcMsg.valid    := '1';
          end if;
       elsif (r.timingMsgReq = '1') then
@@ -248,7 +248,7 @@ begin
          v.fcMsg.stateChanged := toSl(v.fcMsg.runState /= r.fcRunStateSet);
          v.fcMsg.runState     := r.fcRunStateSet;
          v.fcMsg.msgType      := MSG_TYPE_TIMING_C;
-         v.fcMsg.message      := FcEncode(r.fcMsg);
+         v.fcMsg.message      := toSlv(r.fcMsg);
          v.fcMsg.valid        := '1';
       end if;
 

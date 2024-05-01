@@ -36,7 +36,7 @@ entity FebFcRx is
    port (
       fcClk185   : in  sl;
       fcRst185   : in  sl;
-      fcBus      : in  FastControlBusType;
+      fcBus      : in  FcBusType;
       fcReset101 : out slv(HYBRIDS_G-1 downto 0);
 
       -- Axil inteface

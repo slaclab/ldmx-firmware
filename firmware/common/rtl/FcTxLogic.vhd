@@ -40,7 +40,7 @@ entity FcTxLogic is
       lclsTimingRst    : in  sl;
       lclsTimingBus    : in  TimingBusType;
       globalTriggerRor : in  FcTimestampType;
-      fcMsg            : out FastControlMessageType;
+      fcMsg            : out FcMessageType;
 
       -- Axil inteface
       axilClk         : in  sl;
@@ -57,7 +57,7 @@ architecture rtl of FcTxLogic is
    type RegType is record
       runState       : slv(4 downto 0);
       stateChanged   : sl;
-      fcMsg          : FastControlMessageType;
+      fcMsg          : FcMessageType;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record;
@@ -116,13 +116,13 @@ begin
          v.fcMsg.runState     := r.runState;
          v.fcMsg.stateChanged := r.stateChanged;
          v.stateChanged       := '0';
-         v.fcMsg.message      := FcEncode(v.fcMsg);
+         v.fcMsg.message      := toSlv(v.fcMsg);
 
       elsif (globalTriggerRor.valid = '1') then
          v.fcMsg.valid      := '1';
          v.fcMsg.pulseId    := globalTriggerRor.pulseId;
          v.fcMsg.bunchCount := globalTriggerRor.bunchCount;
-         v.fcMsg.message    := FcEncode(v.fcMsg);
+         v.fcMsg.message    := toSlv(v.fcMsg);
       end if;
 
       ----------------------------------------------------------------------------------------------

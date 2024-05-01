@@ -37,7 +37,7 @@ entity ReadoutRequestFifo is
       rst : in sl;
 
       fcClk185 : in sl;
-      fcBus    : in FastControlBusType;
+      fcBus    : in FcBusType;
 
       sysClk       : in  sl;
       sysRst       : in  sl;

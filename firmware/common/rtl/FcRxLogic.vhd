@@ -37,7 +37,7 @@ entity FcRxLogic is
       fcRst185     : in  sl;
       fcValid      : in  sl;
       fcWord       : in  slv(FC_LEN_C-1 downto 0);
-      fcBus        : out FastControlBusType;
+      fcBus        : out FcBusType;
       fcBunchClk37 : out sl;
       fcBunchRst37 : out sl;
 
@@ -67,7 +67,7 @@ architecture rtl of FcRxLogic is
       rorCount       : slv(31 downto 0);
       bunchClkAxiRst : sl;
       fcClk37Rst     : sl;
-      fcBus          : FastControlBusType;
+      fcBus          : FcBusType;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
@@ -124,7 +124,7 @@ begin
    comb : process (fcValid, fcWord, r, syncAxilReadMaster, syncAxilWriteMaster) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
-      variable fcMsg  : FastControlMessageType;
+      variable fcMsg  : FcMessageType;
    begin
       v := r;
 
@@ -162,7 +162,7 @@ begin
       end if;
 
       -- Decode incomming fast control messages from PGPFC
-      fcMsg := FcDecode(fcWord, fcValid);
+      fcMsg := toFcMessage(fcWord, fcValid);
 
       -- Process FC Messages
       if (fcMsg.valid = '1') then

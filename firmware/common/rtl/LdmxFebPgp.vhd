@@ -64,7 +64,7 @@ entity LdmxFebPgp is
       -- Control link Opcode and AXI-Stream interface
       fcClk185     : out sl;            -- Recovered fixed-latency clock
       fcRst185     : out sl;
-      fcBus        : out FastControlBusType;
+      fcBus        : out FcBusType;
       fcBunchClk37 : out sl;
       fcBunchRst37 : out sl;
 
@@ -146,7 +146,7 @@ architecture rtl of LdmxFebPgp is
    -------------------------------------------------------------------------------------------------
    -- Emulated Fast control for simulation
    -------------------------------------------------------------------------------------------------
-   signal fcEmuMsg : FastControlMessageType;
+   signal fcEmuMsg : FcMessageType;
    signal fcValid  : sl;
    signal fcWord   : slv(FC_LEN_C-1 downto 0);
 
