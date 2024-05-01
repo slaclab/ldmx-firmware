@@ -53,9 +53,9 @@ entity DaqBuffer is
       daqAxisMaster : out AxiStreamMasterType;
       daqAxisSlave  : in  AxiStreamSlaveType);
 
-end entity TsDaq;
+end entity DaqBuffer;
 
-architecture rtl of TsDaq is
+architecture rtl of DaqBuffer is
 
    constant FIFO_WIDTH_C     : integer             := TS_DATA_6CH_MSG_SIZE_C*TS_LANES_G + FC_TIMESTAMP_SIZE_C;
    constant AXIS_BYTES_C     : integer             := wordCount(FIFO_WIDTH_C, 8);
