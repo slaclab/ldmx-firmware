@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <iostream>
-#include "C:\Users\Rory\AppData\Roaming\Xilinx\Vitis\objdef.h"
-#include "C:\Users\Rory\AppData\Roaming\Xilinx\Vitis\S30XLhitproducerStream_hw.h"
+#include "objdef.h"
+#include "S30XLhitproducerStream_hw.h"
 
 
 
