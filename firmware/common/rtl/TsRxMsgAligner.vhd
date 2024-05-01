@@ -45,7 +45,7 @@ entity TsRxMsgAligner is
       -----------------------------
       fcClk185 : in sl;
       fcRst185 : in sl;
-      fcBus    : in FastControlBusType;
+      fcBus    : in FcBusType;
 
       -- Output Sync'd to fcClk185
       fcTsRxMsgs : out TsData6ChMsgArray(TS_LANES_G-1 downto 0);

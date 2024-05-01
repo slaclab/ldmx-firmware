@@ -48,7 +48,7 @@ entity TsDataRx is
       -- Fast Control Interface
       fcClk185 : in sl;
       fcRst185 : in sl;
-      fcBus    : in FastControlBusType;
+      fcBus    : in FcBusType;
 
       -- TS data synchronized to fcClk
       -- and corresponding fcMsg
