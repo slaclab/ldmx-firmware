@@ -48,7 +48,7 @@ entity TsDataRx is
       -- Fast Control Interface
       fcClk185 : in sl;
       fcRst185 : in sl;
-      fcBus    : in FastControlBusType;
+      fcBus    : in FcBusType;
 
       -- TS data synchronized to fcClk
       -- and corresponding fcMsg
@@ -94,6 +94,11 @@ architecture rtl of TsDataRx is
    signal tsRecRsts : slv(TS_LANES_G-1 downto 0);
    signal tsRxMsgs  : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
 
+   signal tsTxClks : slv(TS_LANES_G-1 downto 0);
+   signal tsTxRsts : slv(TS_LANES_G-1 downto 0);
+   signal tsTxMsgs  : TsData6ChMsgArray(TS_LANES_G-1 downto 0);   
+   
+
 
 begin
 
@@ -135,9 +140,14 @@ begin
          tsRefClk250N    => tsRefClk250N,                                  -- [in]
          tsDataRxP       => tsDataRxP,                                     -- [in]
          tsDataRxN       => tsDataRxN,                                     -- [in]
+--          tsDataTxP       => tsDataTxP,                                     -- [out]
+--          tsDataTxN       => tsDataTxN,                                     -- [out]
          tsRecClks       => tsRecClks,                                     -- [out]
          tsRecRsts       => tsRecRsts,                                     -- [out]
          tsRxMsgs        => tsRxMsgs,                                      -- [out]
+         tsTxClks        => tsTxClks,                                      -- [out]
+         tsTxRsts        => tsTxRsts,                                      -- [out]
+         tsTxMsgs        => tsTxMsgs,                                      -- [in]
          axilClk         => axilClk,                                       -- [in]
          axilRst         => axilRst,                                       -- [in]
          axilReadMaster  => locAxilReadMasters(AXIL_TS_RX_LANE_ARRAY_C),   -- [in]

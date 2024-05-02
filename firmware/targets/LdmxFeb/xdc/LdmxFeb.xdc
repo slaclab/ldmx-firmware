@@ -30,26 +30,27 @@ set_input_jitter adcDClk5 .35
 set_input_jitter adcDClk6 .35
 set_input_jitter adcDClk7 .35
 
-create_generated_clock -name axilClk [get_pins {U_LdmxFebPgp_1/U_BUFG/O}]
+create_generated_clock -name axilClk [get_pins {U_BUFG/O}]
 
-create_generated_clock -name rxOutClk [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[0].U_LdmxFebPgp_1/*/RXOUTCLK}]
-create_generated_clock -name txOutClk [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[0].U_LdmxFebPgp_1/*/TXOUTCLK}]
-create_generated_clock -name txOutClkPcs [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[0].U_LdmxFebPgp_1/*/TXOUTCLKPCS}]
+create_generated_clock -name fcClkRaw [get_pins -hier * -filter {name=~U_LdmxFebPgp_1/*/RXOUTCLK}]
+create_generated_clock -name fcClkMmcm [get_pins -hier * -filter {name=~U_LdmxFebPgp_1/*U_FcReceiver_1/*U_Mmcm/CLKOUT0}]
+create_generated_clock -name txOutClk [get_pins -hier * -filter {name=~U_LdmxFebPgp_1/*/TXOUTCLK}]
+create_generated_clock -name txOutClkPcs [get_pins -hier * -filter {name=~U_LdmxFebPgp_1/*/TXOUTCLKPCS}]
 
-create_generated_clock -name rxOutClk_unused [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[1].U_LdmxFebPgp_1/*/RXOUTCLK}]
-create_generated_clock -name txOutClk_unused [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[1].U_LdmxFebPgp_1/*/TXOUTCLK}]
-create_generated_clock -name txOutClkPcs_unused [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[1].U_LdmxFebPgp_1/*/TXOUTCLKPCS}]
+# create_generated_clock -name rxOutClk_unused [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[1].U_LdmxFebPgp_1/*/RXOUTCLK}]
+# create_generated_clock -name txOutClk_unused [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[1].U_LdmxFebPgp_1/*/TXOUTCLK}]
+# create_generated_clock -name txOutClkPcs_unused [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[1].U_LdmxFebPgp_1/*/TXOUTCLKPCS}]
 
-create_generated_clock -name rxOutClk_unused2 [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[2].U_LdmxFebPgp_1/*/RXOUTCLK}]
-create_generated_clock -name txOutClk_unused2 [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[2].U_LdmxFebPgp_1/*/TXOUTCLK}]
-create_generated_clock -name txOutClkPcs_unused2 [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[2].U_LdmxFebPgp_1/*/TXOUTCLKPCS}]
+# create_generated_clock -name rxOutClk_unused2 [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[2].U_LdmxFebPgp_1/*/RXOUTCLK}]
+# create_generated_clock -name txOutClk_unused2 [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[2].U_LdmxFebPgp_1/*/TXOUTCLK}]
+# create_generated_clock -name txOutClkPcs_unused2 [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[2].U_LdmxFebPgp_1/*/TXOUTCLKPCS}]
 
 
-set daqClk37Pin [get_pins { U_FebCore_1/U_FebFcRx_1/r_reg[fcClk37]/Q }]
+set daqClk37Pin [get_pins { U_LdmxFebPgp_1/NO_SIM.U_FcReceiver_1/U_FcRxLogic_1/r_reg[fcBunchClk37]/Q }]
 
 create_generated_clock \
     -name daqClk37 \
-    -source [get_pins -hier * -filter {name=~*/NO_SIM.PGP_GEN[0].U_LdmxFebPgp_1/*/RXOUTCLK}] \
+    -source [get_pins -hier * -filter {name=~U_LdmxFebPgp_1/*U_FcReceiver_1/*U_Mmcm/CLKOUT0}] \
     -edges {1 7 11} \
     ${daqClk37Pin}
 
@@ -97,15 +98,10 @@ set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks adcDClk6] \
     -group [get_clocks -include_generated_clocks adcDClk7] \
     -group [get_clocks -include_generated_clocks axilClk] \
-    -group [get_clocks -include_generated_clocks rxOutClk] \
+    -group [get_clocks -include_generated_clocks fcClkMmcm] \
     -group [get_clocks -include_generated_clocks txOutClk] \
-    -group [get_clocks -include_generated_clocks txOutClkPcs] \    
-    -group [get_clocks -include_generated_clocks rxOutClk_unused] \
-    -group [get_clocks -include_generated_clocks txOutClk_unused] \
-    -group [get_clocks -include_generated_clocks txOutClkPcs_unused] \
-    -group [get_clocks -include_generated_clocks rxOutClk_unused2] \
-    -group [get_clocks -include_generated_clocks txOutClk_unused2] \
-    -group [get_clocks -include_generated_clocks txOutClkPcs_unused2]
+    -group [get_clocks -include_generated_clocks txOutClkPcs] 
+
     
 
 set_clock_groups -asynchronous \
@@ -154,28 +150,28 @@ set_property PACKAGE_PIN T2  [get_ports {qsfpGtRxN[3]}]
 
 
 # SAS
-set_property PACKAGE_PIN AH7 [get_ports {sasGtTxP[0]}]
-set_property PACKAGE_PIN AH6 [get_ports {sasGtTxN[0]}]
-set_property PACKAGE_PIN AH2 [get_ports {sasGtRxP[0]}]
-set_property PACKAGE_PIN AH1 [get_ports {sasGtRxN[0]}]
-set_property PACKAGE_PIN AF7 [get_ports {sasGtTxP[1]}]
-set_property PACKAGE_PIN AF6 [get_ports {sasGtTxN[1]}]
-set_property PACKAGE_PIN AD2 [get_ports {sasGtRxP[1]}]
-set_property PACKAGE_PIN AD1 [get_ports {sasGtRxN[1]}]
-set_property PACKAGE_PIN AD7 [get_ports {sasGtTxP[2]}]
-set_property PACKAGE_PIN AD6 [get_ports {sasGtTxN[2]}]
-set_property PACKAGE_PIN AF2 [get_ports {sasGtRxP[2]}]
-set_property PACKAGE_PIN AF1 [get_ports {sasGtRxN[2]}]
-set_property PACKAGE_PIN AB7 [get_ports {sasGtTxP[3]}]
-set_property PACKAGE_PIN AB6 [get_ports {sasGtTxN[3]}]
-set_property PACKAGE_PIN AG4 [get_ports {sasGtRxP[3]}]
-set_property PACKAGE_PIN AG3 [get_ports {sasGtRxN[3]}]
+# set_property PACKAGE_PIN AH7 [get_ports {sasGtTxP[0]}]
+# set_property PACKAGE_PIN AH6 [get_ports {sasGtTxN[0]}]
+# set_property PACKAGE_PIN AH2 [get_ports {sasGtRxP[0]}]
+# set_property PACKAGE_PIN AH1 [get_ports {sasGtRxN[0]}]
+# set_property PACKAGE_PIN AF7 [get_ports {sasGtTxP[1]}]
+# set_property PACKAGE_PIN AF6 [get_ports {sasGtTxN[1]}]
+# set_property PACKAGE_PIN AD2 [get_ports {sasGtRxP[1]}]
+# set_property PACKAGE_PIN AD1 [get_ports {sasGtRxN[1]}]
+# set_property PACKAGE_PIN AD7 [get_ports {sasGtTxP[2]}]
+# set_property PACKAGE_PIN AD6 [get_ports {sasGtTxN[2]}]
+# set_property PACKAGE_PIN AF2 [get_ports {sasGtRxP[2]}]
+# set_property PACKAGE_PIN AF1 [get_ports {sasGtRxN[2]}]
+# set_property PACKAGE_PIN AB7 [get_ports {sasGtTxP[3]}]
+# set_property PACKAGE_PIN AB6 [get_ports {sasGtTxN[3]}]
+# set_property PACKAGE_PIN AG4 [get_ports {sasGtRxP[3]}]
+# set_property PACKAGE_PIN AG3 [get_ports {sasGtRxN[3]}]
 
-# SFP
-set_property PACKAGE_PIN G5 [get_ports {sfpGtTxP}]
-set_property PACKAGE_PIN G4 [get_ports {sfpGtTxN}]
-set_property PACKAGE_PIN P2 [get_ports {sfpGtRxP}]
-set_property PACKAGE_PIN P1 [get_ports {sfpGtRxN}]
+# # SFP
+# set_property PACKAGE_PIN G5 [get_ports {sfpGtTxP}]
+# set_property PACKAGE_PIN G4 [get_ports {sfpGtTxN}]
+# set_property PACKAGE_PIN P2 [get_ports {sfpGtRxP}]
+# set_property PACKAGE_PIN P1 [get_ports {sfpGtRxN}]
 
 
 

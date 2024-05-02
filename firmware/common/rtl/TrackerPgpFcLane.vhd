@@ -51,7 +51,7 @@ entity TrackerPgpFcLane is
       -- Drives TX
       fcClk185        : in  sl;
       fcRst185        : in  sl;
-      fcBus           : in  FastControlBusType;
+      fcBus           : in  FcBusType;
       -- DMA Interface (dmaClk domain)
       dmaClk          : in  sl;
       dmaRst          : in  sl;

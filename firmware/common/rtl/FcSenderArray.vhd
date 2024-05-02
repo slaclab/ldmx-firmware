@@ -50,7 +50,7 @@ entity FcSenderArray is
       -- Interface to Global Trigger and LCLS Timing
       lclsTimingClk   : in  sl;
       lclsTimingRst   : in  sl;
-      fcTxMsg         : in  FastControlMessageType;
+      fcTxMsg         : in  FcMessageType;
       -- Axil inteface
       axilClk         : in  sl;
       axilRst         : in  sl;

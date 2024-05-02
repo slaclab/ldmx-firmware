@@ -39,10 +39,12 @@ entity TsGtyIpCoreWrapper is
       stableRst : in sl;
 
       -- GTY FPGA IO
-      gtRefClk     : in sl;
-      gtUserRefClk : in sl;
-      gtRxP        : in sl;
-      gtRxN        : in sl;
+      gtRefClk     : in  sl;
+      gtUserRefClk : in  sl;
+      gtRxP        : in  sl;
+      gtRxN        : in  sl;
+      gtTxP        : out sl;
+      gtTxN        : out sl;
 
       -- Rx ports
       rxReset        : in  sl;
@@ -55,6 +57,13 @@ entity TsGtyIpCoreWrapper is
       rxDecErr       : out slv(1 downto 0);
       rxPolarity     : in  sl;
       rxOutClk       : out sl;
+
+      -- Tx ports
+      txReset     : in  sl;
+      txResetDone : out sl;
+      txData      : in  slv(15 downto 0) := (others => '0');
+      txDataK     : in  slv(1 downto 0)  := (others => '0');
+      loopback    : in  slv(2 downto 0);
 
       -- AXI-Lite DRP interface
       axilClk         : in  sl                     := '0';
@@ -100,6 +109,7 @@ architecture mapping of TsGtyIpCoreWrapper is
          gtrefclk0_in                       : in  std_logic_vector(0 downto 0);
          gtyrxn_in                          : in  std_logic_vector(0 downto 0);
          gtyrxp_in                          : in  std_logic_vector(0 downto 0);
+         loopback_in                        : in  std_logic_vector(2 downto 0);
          rx8b10ben_in                       : in  std_logic_vector(0 downto 0);
          rxcommadeten_in                    : in  std_logic_vector(0 downto 0);
          rxmcommaalignen_in                 : in  std_logic_vector(0 downto 0);
@@ -127,8 +137,10 @@ architecture mapping of TsGtyIpCoreWrapper is
          rxctrl3_out                        : out std_logic_vector(7 downto 0);
          rxoutclk_out                       : out std_logic_vector(0 downto 0);
          rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         rxresetdone_out                    : out std_logic_vector(0 downto 0);
          txoutclk_out                       : out std_logic_vector(0 downto 0);
-         txpmaresetdone_out                 : out std_logic_vector(0 downto 0)
+         txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         txresetdone_out                    : out std_logic_vector(0 downto 0)
          );
    end component;
 
@@ -167,46 +179,44 @@ architecture mapping of TsGtyIpCoreWrapper is
    signal dummy5_1  : sl               := '0';
    signal txctrl2   : slv(7 downto 0)  := (others => '0');
 
-   signal cPllRefClkSel     : slv(2 downto 0)  := (others => '0');
-   signal cPllFbClkLost     : sl               := '0';
-   signal cPllLock          : sl               := '0';
-   signal cPllRefClkLost    : sl               := '0';
-   signal rxCdrReset        : sl               := '0';
-   signal rxPcsReset        : sl               := '0';
-   signal rxPmaReset        : sl               := '0';
-   signal txPcsReset        : sl               := '0';
-   signal txPmaReset        : sl               := '0';
-   signal rxPmaResetDone    : sl               := '0';
-   signal txPmaResetDone    : sl               := '0';
-   signal rxByteIsAligned   : sl               := '0';
-   signal rxByteReAlign     : sl               := '0';
-   signal rxCommaDet        : sl               := '0';
-   signal txUsrActive       : sl               := '0';
-   signal rxUsrActive       : sl               := '0';
-   signal rxMcommaAlignEn   : sl               := '1';
-   signal rxPcommaAlignEn   : sl               := '1';
-   signal buffBypassTxReset : sl               := '0';
-   signal buffBypassTxStart : sl               := '0';
-   signal buffBypassTxDone  : sl               := '0';
-   signal buffBypassTxError : sl               := '0';
-   signal buffBypassRxReset : sl               := '0';
-   signal buffBypassRxStart : sl               := '0';
-   signal buffBypassRxDone  : sl               := '0';
-   signal buffBypassRxError : sl               := '0';
-   signal rxDlysResetDone   : sl               := '0';
-   signal rxPhyAlignDone    : sl               := '0';
-   signal rxSyncDone        : sl               := '0';
-   signal txResetGt         : sl               := '0';
-   signal rxResetGt         : sl               := '0';
-   signal rxResetAlignCheck : sl               := '0';
-   signal rstSyncRxIn       : sl               := '0';
-   signal rxStatusLocked    : sl               := '0';
-   signal rxOutClkGt        : sl               := '0';
-   signal txOutClkGt        : sl               := '0';
-   signal rxOutClkB         : sl               := '0';
-   signal txOutClkB         : sl               := '0';
-   signal txData            : slv(15 downto 0) := (others => '0');
-   signal txDataK           : slv(1 downto 0)  := (others => '0');
+   signal cPllRefClkSel     : slv(2 downto 0) := (others => '0');
+   signal cPllFbClkLost     : sl              := '0';
+   signal cPllLock          : sl              := '0';
+   signal cPllRefClkLost    : sl              := '0';
+   signal rxCdrReset        : sl              := '0';
+   signal rxPcsReset        : sl              := '0';
+   signal rxPmaReset        : sl              := '0';
+   signal txPcsReset        : sl              := '0';
+   signal txPmaReset        : sl              := '0';
+   signal rxPmaResetDone    : sl              := '0';
+   signal txPmaResetDone    : sl              := '0';
+   signal rxByteIsAligned   : sl              := '0';
+   signal rxByteReAlign     : sl              := '0';
+   signal rxCommaDet        : sl              := '0';
+   signal txUsrActive       : sl              := '0';
+   signal rxUsrActive       : sl              := '0';
+   signal rxMcommaAlignEn   : sl              := '1';
+   signal rxPcommaAlignEn   : sl              := '1';
+   signal buffBypassTxReset : sl              := '0';
+   signal buffBypassTxStart : sl              := '0';
+   signal buffBypassTxDone  : sl              := '0';
+   signal buffBypassTxError : sl              := '0';
+   signal buffBypassRxReset : sl              := '0';
+   signal buffBypassRxStart : sl              := '0';
+   signal buffBypassRxDone  : sl              := '0';
+   signal buffBypassRxError : sl              := '0';
+   signal rxDlysResetDone   : sl              := '0';
+   signal rxPhyAlignDone    : sl              := '0';
+   signal rxSyncDone        : sl              := '0';
+   signal txResetGt         : sl              := '0';
+   signal rxResetGt         : sl              := '0';
+   signal rxResetAlignCheck : sl              := '0';
+   signal rstSyncRxIn       : sl              := '0';
+   signal rxStatusLocked    : sl              := '0';
+   signal rxOutClkGt        : sl              := '0';
+   signal txOutClkGt        : sl              := '0';
+   signal rxOutClkB         : sl              := '0';
+   signal txOutClkB         : sl              := '0';
 
 begin
 
@@ -251,6 +261,7 @@ begin
          drprdy_out(0)                         => drpRdy,
          gtyrxn_in(0)                          => gtRxN,
          gtyrxp_in(0)                          => gtRxP,
+         loopback_in                           => loopback,
          gtrefclk0_in(0)                       => gtRefClk,
          rx8b10ben_in(0)                       => '1',
          rxcommadeten_in(0)                    => '1',
@@ -261,18 +272,18 @@ begin
 --          txpcsreset_in(0)                      => txPcsReset,
 --          txpmareset_in(0)                      => txPmaReset,
 --          rxpolarity_in(0)                      => rxPolarity,
-         rxusrclk_in(0)                        => rxUsrClk,
-         rxusrclk2_in(0)                       => rxUsrClk,
+         rxusrclk_in(0)                        => gtUserRefClk,
+         rxusrclk2_in(0)                       => gtUserRefClk,
          tx8b10ben_in(0)                       => '1',
          txctrl0_in                            => X"0000",
          txctrl1_in                            => X"0000",
          txctrl2_in                            => txctrl2,
          txpd_in                               => "11",        -- POWER DOWN TX
 --         txpolarity_in(0)                      => txPolarity,
-         txusrclk_in(0)                        => '0',
-         txusrclk2_in(0)                       => '0',
-         gtytxn_out                            => open,
-         gtytxp_out                            => open,
+         txusrclk_in(0)                        => gtUserRefClk,
+         txusrclk2_in(0)                       => gtUserRefClk,
+         gtytxn_out(0)                         => gtTxN,
+         gtytxp_out(0)                         => gtTxP,
          rxbyteisaligned_out(0)                => rxByteIsAligned,
          rxbyterealign_out(0)                  => rxByteReAlign,
          rxcommadet_out(0)                     => rxCommaDet,
@@ -288,10 +299,10 @@ begin
 --         rxrecclkout_out(0)                    => rxRecClk,
          txoutclk_out(0)                       => txOutClkGt,  -- unused
          rxpmaresetdone_out(0)                 => rxPmaResetDone,
---         rxresetdone_out(0)                    => rxResetDone,
+         rxresetdone_out(0)                    => rxResetDone,
 --         rxsyncdone_out(0)                     => rxSyncDone,
-         txpmaresetdone_out(0)                 => txPmaResetDone);
---         txresetdone_out(0)                    => txResetDone);
+         txpmaresetdone_out(0)                 => txPmaResetDone,
+         txresetdone_out(0)                    => txResetDone);
 
    RXOUTCLK_BUFG_GT : BUFG_GT
       port map (
@@ -304,7 +315,7 @@ begin
          O       => rxOutClkB);
 
 
---      txOutClkB <= gtUserRefClk;
+   txOutClkB <= gtUserRefClk;
 
    U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
@@ -384,14 +395,17 @@ begin
          drpDi           => drpDi,                -- [out]
          drpDo           => drpDo);               -- [in]
 
-   txctrl2     <= "000000" & txDataK;
-   txUsrActive <= txPmaResetDone;
-   rxUsrActive <= rxUsrClkActive and rxPmaResetDone;
 
+
+   rxUsrActive <= rxUsrClkActive and rxPmaResetDone;
    rstSyncRxIn <= ite(USE_ALIGN_CHECK_G, rxResetAlignCheck, rxReset);
    rxResetGt   <= ite(USE_ALIGN_CHECK_G, rxResetAlignCheck, rxReset);
 
    rxOutClk <= rxOutClkB;
+
+   txUsrActive <= txPmaResetDone;
+   txResetGt   <= txReset;
+   txctrl2     <= "000000" & txDataK;
 
    U_RstSyncTx : entity surf.RstSync
       generic map (TPD_G => TPD_G)

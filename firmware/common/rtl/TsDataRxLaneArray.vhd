@@ -54,6 +54,11 @@ entity TsDataRxLaneArray is
       tsRecRsts : out slv(TS_LANES_G-1 downto 0);
       tsRxMsgs  : out TsData6ChMsgArray(TS_LANES_G-1 downto 0);
 
+      -- Input
+      tsTxClks : out slv(TS_LANES_G-1 downto 0);  -- TsRefClk250 BUFG
+      tsTxRsts : out slv(TS_LANES_G-1 downto 0);
+      tsTxMsgs : in  TsData6ChMsgArray(TS_LANES_G-1 downto 0) := (others => TS_DATA_6CH_MSG_INIT_C);
+
       -- AXI Lite interface
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -78,6 +83,7 @@ architecture rtl of TsDataRxLaneArray is
    signal tsRefClkOdiv2 : slv(TS_REFCLKS_G-1 downto 0);
    signal tsRefClk250   : slv(TS_REFCLKS_G-1 downto 0);
    signal tsUserClk250  : slv(TS_REFCLKS_G-1 downto 0);
+   signal tsUserRst250  : slv(TS_REFCLKS_G-1 downto 0);
 
 begin
 
@@ -127,12 +133,24 @@ begin
             CLRMASK => '1',
             DIV     => "000",
             O       => tsUserClk250(i));
+
+      U_RstSync_1 : entity surf.RstSync
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk      => tsUserClk250(i),
+            asyncRst => '0',
+            syncRst  => tsUserRst250(i));
+
    end generate;
 
    -------------------------------------------------------------------------------------------------
    -- Generate Lanes
    -------------------------------------------------------------------------------------------------
+
    GEN_LANES : for i in TS_LANES_G-1 downto 0 generate
+      tsTxClks(i) <= tsUserClk250(TS_REFCLK_MAP_G(i));
+      tsTxRsts(i) <= tsUserRst250(TS_REFCLK_MAP_G(i));
       U_TsDataRxLane_1 : entity ldmx.TsDataRxLane
          generic map (
             TPD_G            => TPD_G,
@@ -147,6 +165,7 @@ begin
             tsRecClk        => tsRecClks(i),                      -- [out]
             tsRecRst        => tsRecRsts(i),                      -- [out]
             tsRxMsg         => tsRxMsgs(i),                       -- [out]
+            tsTxMsg         => tsTxMsgs(i),                       -- [in]
             axilClk         => axilClk,                           -- [in]
             axilRst         => axilRst,                           -- [in]
             axilReadMaster  => locAxilReadMasters(i),             -- [in]

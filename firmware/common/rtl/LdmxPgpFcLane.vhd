@@ -321,8 +321,7 @@ begin
 
    end generate GEN_MON;
 
-   pgpTxSlaves  <= pgpTxSlavesGt;
-   pgpRxMasters <= pgpRxMastersGt;
+
 --    U_Wtd : entity surf.WatchDogRst
 --       generic map(
 --          TPD_G      => TPD_G,

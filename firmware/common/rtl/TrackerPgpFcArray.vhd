@@ -53,7 +53,7 @@ entity TrackerPgpFcArray is
       -- Fast Control Interface
       fcClk185        : in  sl;         -- Drives TXUSRCLK
       fcRst185        : in  sl;
-      fcBus           : in  FastControlBusType;
+      fcBus           : in  FcBusType;
       -- DMA Interface (dmaClk domain)
       dmaClk          : in  sl;
       dmaRst          : in  sl;

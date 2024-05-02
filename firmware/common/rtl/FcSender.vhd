@@ -47,7 +47,7 @@ entity FcSender is
       -- Interface to Global Trigger and LCLS Timing
       lclsTimingUserClk : in  sl;
       lclsTimingUserRst : in  sl;
-      fcTxMsg           : in  FastControlMessageType;
+      fcTxMsg           : in  FcMessageType;
       -- Axil inteface
       axilClk           : in  sl;
       axilRst           : in  sl;

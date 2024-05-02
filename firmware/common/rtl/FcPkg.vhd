@@ -25,7 +25,7 @@ package FcPkg is
 
    -------------------------------------------------------------------------------------------------
    -- Fast Control Messages sent on PGPFC are 80 bits, with fields defined here
-   -- FastControlMessageType encodes the fields into a record
+   -- FcMessageType encodes the fields into a record
    -------------------------------------------------------------------------------------------------
    constant FC_LEN_C              : natural := 80;
    subtype MSG_TYPE_RANGE_C is natural range FC_LEN_C-1 downto 76;
@@ -43,7 +43,7 @@ package FcPkg is
    constant MSG_TYPE_TIMING_C : slv(3 downto 0) := toSlv(0, 4);
    constant MSG_TYPE_ROR_C    : slv(3 downto 0) := toSlv(1, 4);
 
-   type FastControlMessageType is record
+   type FcMessageType is record
       valid        : sl;
       msgType      : slv(3 downto 0);
       -- reserxved : slv(5 downto 0);
@@ -54,7 +54,7 @@ package FcPkg is
       message      : slv(FC_LEN_C-1 downto 0);
    end record;
 
-   constant FC_MSG_INIT_C : FastControlMessageType := (
+   constant FC_MSG_INIT_C : FcMessageType := (
       valid        => '0',
       msgType      => (others => '0'),
       -- reserved => (others => '0'),
@@ -65,8 +65,8 @@ package FcPkg is
       message      => (others => '0')
       );
 
-   function FcEncode (fieldsIn : FastControlMessageType) return slv;
-   function FcDecode (fcIn     : slv(FC_LEN_C-1 downto 0); valid : in sl := '1') return FastControlMessageType;
+   function toSlv (msg : FcMessageType) return slv;
+   function toFcMessage (vector     : slv(FC_LEN_C-1 downto 0); valid : sl := '1') return FcMessageType;
 
    -------------------------------------------------------------------------------------------------
    -- Readout Request Fields
@@ -88,10 +88,15 @@ package FcPkg is
       fcTimestamp : FcTimestampType)
       return slv;
 
+   function toFcTimestamp (
+      vector : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
+      valid  : sl := '1')
+      return FcTimestampType;
+
    -------------------------------------------------------------------------------------------------
    -- The Fast control receiver block outputs a bus of fast control data on this record
    -------------------------------------------------------------------------------------------------
-   type FastControlBusType is record
+   type FcBusType is record
       -- FC Rx status
       rxLinkStatus : sl;
 
@@ -116,10 +121,10 @@ package FcPkg is
 
       -- All FC messages placed on this bus as they are received
       -- Might not be useful
-      fcMsg : FastControlMessageType;
-   end record FastControlBusType;
+      fcMsg : FcMessageType;
+   end record FcBusType;
 
-   constant FC_BUS_INIT_C : FastControlBusType := (
+   constant FC_BUS_INIT_C : FcBusType := (
       rxLinkStatus    => '0',
       pulseStrobe     => '0',
       pulseId         => (others => '0'),
@@ -139,11 +144,11 @@ package FcPkg is
    -- Fast control feedback
    -- Only busy for now but more could be added
    -------------------------------------------------------------------------------------------------
-   type FastControlFeedbackType is record
+   type FcFeedbackType is record
       busy : sl;
-   end record FastControlFeedbackType;
+   end record FcFeedbackType;
 
-   constant FC_FB_INIT_C : FastControlFeedbackType := (
+   constant FC_FB_INIT_C : FcFeedbackType := (
       busy => '0');
 
 
@@ -151,49 +156,49 @@ end FcPkg;
 
 package body FcPkg is
 
-   function FcEncode (fieldsIn : FastControlMessageType) return slv is
+   function toSlv (msg : FcMessageType) return slv is
       variable retVar : slv(FC_LEN_C-1 downto 0);
    begin
       retVar                   := (others => '0');
-      retVar(MSG_TYPE_RANGE_C) := fieldsIn.msgType;
+      retVar(MSG_TYPE_RANGE_C) := msg.msgType;
 
-      if (fieldsIn.msgType = MSG_TYPE_ROR_C) then
+      if (msg.msgType = MSG_TYPE_ROR_C) then
          -- if RoR, transmit the bunch counter
-         retVar(BUNCH_CNT_RANGE_C) := fieldsIn.bunchCount;
+         retVar(BUNCH_CNT_RANGE_C) := msg.bunchCount;
       else
          -- if non-RoR, transmit the state
-         retVar(RUN_STATE_RANGE_C)     := fieldsIn.runState;
-         retVar(STATE_CHANGED_INDEX_C) := fieldsIn.stateChanged;
+         retVar(RUN_STATE_RANGE_C)     := msg.runState;
+         retVar(STATE_CHANGED_INDEX_C) := msg.stateChanged;
       end if;
 
-      retVar(PULSE_ID_RANGE_C) := fieldsIn.pulseID;
+      retVar(PULSE_ID_RANGE_C) := msg.pulseID;
 
       return retVar;
-   end function FcEncode;
+   end function;
 
-   function FcDecode (fcIn : slv(FC_LEN_C-1 downto 0); valid : in sl := '1') return FastControlMessageType is
-      variable retVar : FastControlMessageType;
+   function toFcMessage (vector : slv(FC_LEN_C-1 downto 0); valid : in sl := '1') return FcMessageType is
+      variable retVar : FcMessageType;
    begin
       retVar         := FC_MSG_INIT_C;
       retVar.valid   := valid;
-      retVar.msgType := fcIn(MSG_TYPE_RANGE_C);
+      retVar.msgType := vector(MSG_TYPE_RANGE_C);
       -- no latches are inferred because retVar is initialized
       -- right below the 'begin'
 
       -- check the message type
       if (retVar.msgType = MSG_TYPE_ROR_C) then
          -- if RoR, grab the bunch count
-         retVar.bunchCount := fcIn(BUNCH_CNT_RANGE_C);
+         retVar.bunchCount := vector(BUNCH_CNT_RANGE_C);
       else
          -- if non-RoR, grab the state
-         retVar.runState     := fcIn(RUN_STATE_RANGE_C);
-         retVar.stateChanged := fcIn(STATE_CHANGED_INDEX_C);
+         retVar.runState     := vector(RUN_STATE_RANGE_C);
+         retVar.stateChanged := vector(STATE_CHANGED_INDEX_C);
       end if;
 
-      retVar.pulseID := fcIn(PULSE_ID_RANGE_C);
+      retVar.pulseID := vector(PULSE_ID_RANGE_C);
 
       return retVar;
-   end function FcDecode;
+   end function;
 
    function toSlv (
       fcTimestamp : FcTimestampType)
@@ -204,6 +209,18 @@ package body FcPkg is
       ret(5 downto 0)  := fcTimestamp.bunchCount;
       return ret;
    end function toSlv;
+
+   function toFcTimestamp (
+      vector : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
+      valid  : sl := '1')
+      return FcTimestampType is
+      variable ret : FcTimestampType;
+   begin
+      ret.valid      := valid;
+      ret.pulseId    := vector(69 downto 6);
+      ret.bunchCount := vector(5 downto 0);
+      return ret;
+   end function toFcTimestamp;
 
 
 end package body FcPkg;

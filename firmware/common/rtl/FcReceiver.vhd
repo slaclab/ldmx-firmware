@@ -33,10 +33,12 @@ use ldmx.FcPkg.all;
 entity FcReceiver is
 
    generic (
-      TPD_G            : time             := 1 ns;
-      SIM_SPEEDUP_G    : boolean          := false;
-      AXIL_CLK_FREQ_G  : real             := 156.25e6;
-      AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
+      TPD_G            : time                 := 1 ns;
+      SIM_SPEEDUP_G    : boolean              := false;
+      NUM_VC_EN_G      : integer range 0 to 4 := 0;
+      GEN_FC_EMU_G     : boolean              := true;
+      AXIL_CLK_FREQ_G  : real                 := 156.25e6;
+      AXIL_BASE_ADDR_G : slv(31 downto 0)     := (others => '0'));
    port (
       -- Reference clock
       fcRefClk185P : in  sl;
@@ -50,13 +52,25 @@ entity FcReceiver is
       fcRxP        : in  sl;
       fcRxN        : in  sl;
 
-      -- Fast Control Interface to Application
+      -- RX FC and PGP interface
       fcClk185     : out sl;
       fcRst185     : out sl;
-      fcBus        : out FastControlBusType;
-      fcFb         : in  FastControlFeedbackType;
+      fcBus        : out FcBusType;
       fcBunchClk37 : out sl;
       fcBunchRst37 : out sl;
+      pgpRxIn      : in  Pgp2fcRxInType                               := PGP2FC_RX_IN_INIT_C;
+      pgpRxOut     : out Pgp2fcRxOutType;
+      pgpRxMasters : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_EN_G-1 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+
+      -- TX FC and PGP interface
+      txClk185     : out sl;
+      txRst185     : out sl;
+--      fcFb         : in  FcFeedbackType;
+      pgpTxIn      : in  Pgp2fcTxInType                               := PGP2FC_TX_IN_INIT_C;
+      pgpTxOut     : out Pgp2fcTxOutType;
+      pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
 
       -- Axil inteface
       axilClk         : in  sl;
@@ -105,23 +119,30 @@ architecture rtl of FcReceiver is
    signal fcRst185Loc        : sl;
 
    -- PGP IO
-   signal pgpRxIn  : Pgp2fcRxInType  := PGP2FC_RX_IN_INIT_C;
-   signal pgpRxOut : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
-   signal pgpTxIn  : Pgp2fcTxInType  := PGP2FC_TX_IN_INIT_C;
-   signal pgpTxOut : Pgp2fcTxOutType := PGP2FC_TX_OUT_INIT_C;
+   signal pgpRxInLoc  : Pgp2fcRxInType;
+   signal pgpRxOutLoc : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
+   signal pgpTxInLoc  : Pgp2fcTxInType  := PGP2FC_TX_IN_INIT_C;
+   signal pgpTxOutLoc : Pgp2fcTxOutType;
 
    -- Rx FC Word
    signal fcValid : sl;
    signal fcWord  : slv(FC_LEN_C-1 downto 0);
 
    -- Emulator
-   signal fcMsg : FastControlMessageType;
+   signal fcEmuMsg     : FcMessageType;
+   signal fcEmuEnabled : sl;
 
 begin
 
    fcClk185 <= fcClk185Loc;
    fcRst185 <= fcRst185Loc;
 
+   txClk185 <= pgpUserRefClk;
+   txRst185 <= pgpUserRefRst;
+
+   -- Eventually mix FC feedback in here
+--   pgpTxInLoc <= pgpTxIn;
+   pgpRxOut   <= pgpRxOutLoc;
 
    ---------------------
    -- AXI-Lite Crossbar
@@ -208,7 +229,7 @@ begin
          AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(PGP_FC_LANE_AXIL_C).baseAddr,
          TX_ENABLE_G      => true,
          RX_ENABLE_G      => true,
-         NUM_VC_EN_G      => 0,
+         NUM_VC_EN_G      => NUM_VC_EN_G,
          RX_CLK_MMCM_G    => true)
       port map (
          pgpTxP          => fcTxP,                                    -- [out]
@@ -220,17 +241,17 @@ begin
          pgpRxRecClk     => pgpRxRecClk,                              -- [out]
          pgpRxRstOut     => fcRst185Loc,                              -- [out]
          pgpRxOutClk     => fcClk185Loc,                              -- [out]
-         pgpRxIn         => pgpRxIn,                                  -- [in]
-         pgpRxOut        => pgpRxOut,                                 -- [out]
-         pgpRxMasters    => open,                                     -- [out]
-         pgpRxCtrl       => (others => AXI_STREAM_CTRL_UNUSED_C),     -- [in]
+         pgpRxIn         => pgpRxInLoc,                               -- [in]
+         pgpRxOut        => pgpRxOutLoc,                              -- [out]
+         pgpRxMasters    => pgpRxMasters,                             -- [out]
+         pgpRxCtrl       => pgpRxCtrl,                                -- [in]
          pgpTxRst        => pgpUserRefRst,                            -- [in]
          pgpTxOutClk     => open,                                     -- [out]
          pgpTxUsrClk     => pgpUserRefClk,                            -- [in]
-         pgpTxIn         => pgpTxIn,                                  -- [in]
-         pgpTxOut        => pgpTxOut,                                 -- [out]
-         pgpTxMasters    => (others => AXI_STREAM_MASTER_INIT_C),     -- [in]
-         pgpTxSlaves     => open,                                     -- [out]
+         pgpTxIn         => pgpTxInLoc,                               -- [in]
+         pgpTxOut        => pgpTxOutLoc,                              -- [out]
+         pgpTxMasters    => pgpTxMasters,                             -- [in]
+         pgpTxSlaves     => pgpTxSlaves,                              -- [out]
          axilClk         => axilClk,                                  -- [in]
          axilRst         => axilRst,                                  -- [in]
          axilReadMaster  => locAxilReadMasters(PGP_FC_LANE_AXIL_C),   -- [in]
@@ -243,8 +264,8 @@ begin
    -- Timing and Fast Control Receiver Logic
    -- Decode Fast Control words and track run state
    -------------------------------------------------------------------------------------------------
-   fcValid <= pgpRxOut.fcValid;
-   fcWord  <= pgpRxOut.fcWord(FC_LEN_C-1 downto 0);
+   fcValid <= pgpRxOutLoc.fcValid;
+   fcWord  <= pgpRxOutLoc.fcWord(FC_LEN_C-1 downto 0);
    U_FcRxLogic_1 : entity ldmx.FcRxLogic
       generic map (
          TPD_G => TPD_G)
@@ -268,28 +289,60 @@ begin
    -- FC Emulator Drives TX
    -- Activated when PGP GT placed in loopback mode
    -------------------------------------------------------------------------------------------------
-   U_FcEmu_1 : entity ldmx.FcEmu
-      generic map (
-         TPD_G                => TPD_G,
-         AXIL_CLK_IS_FC_CLK_G => false,
-         TIMING_MSG_PERIOD_G  => 200,
-         BUNCH_COUNT_PERIOD_G => 5)
-      port map (
-         fcClk           => pgpUserRefClk,                       -- [in]
-         fcRst           => pgpUserRefRst,                       -- [in]
-         fcMsg           => fcMsg,                               -- [out]
-         bunchClk        => open,                                -- [out]
-         bunchStrobe     => open,                                -- [out]
-         axilClk         => axilClk,                             -- [in]
-         axilRst         => axilRst,                             -- [in]
-         axilReadMaster  => locAxilReadMasters(FC_EMU_AXIL_C),   -- [in]
-         axilReadSlave   => locAxilReadSlaves(FC_EMU_AXIL_C),    -- [out]
-         axilWriteMaster => locAxilWriteMasters(FC_EMU_AXIL_C),  -- [in]
-         axilWriteSlave  => locAxilWriteSlaves(FC_EMU_AXIL_C));  -- [out]
+   GEN_FC_EMU : if (GEN_FC_EMU_G) generate
 
-   -- Glue fcMsg to pgpTxIn
-   pgpTxIn.fcValid                     <= fcMsg.valid;
-   pgpTxIn.fcWord(FC_LEN_C-1 downto 0) <= fcMsg.message;
+
+      U_FcEmu_1 : entity ldmx.FcEmu
+         generic map (
+            TPD_G                => TPD_G,
+            AXIL_CLK_IS_FC_CLK_G => false,
+            TIMING_MSG_PERIOD_G  => 200,
+            BUNCH_COUNT_PERIOD_G => 5)
+         port map (
+            fcClk           => pgpUserRefClk,                       -- [in]
+            fcRst           => pgpUserRefRst,                       -- [in]
+            enabled         => fcEmuEnabled,                        -- [out]
+            fcMsg           => fcEmuMsg,                            -- [out]
+            bunchClk        => open,                                -- [out]
+            bunchStrobe     => open,                                -- [out]
+            axilClk         => axilClk,                             -- [in]
+            axilRst         => axilRst,                             -- [in]
+            axilReadMaster  => locAxilReadMasters(FC_EMU_AXIL_C),   -- [in]
+            axilReadSlave   => locAxilReadSlaves(FC_EMU_AXIL_C),    -- [out]
+            axilWriteMaster => locAxilWriteMasters(FC_EMU_AXIL_C),  -- [in]
+            axilWriteSlave  => locAxilWriteSlaves(FC_EMU_AXIL_C));  -- [out]
+
+      FC_EMU_GLUE : process (fcEmuEnabled, fcEmuMsg, pgpRxIn, pgpTxIn) is
+         variable pgpTxInVar : Pgp2fcTxInType;
+         variable pgpRxInVar : Pgp2fcRxInType;
+      begin
+         pgpRxInVar := pgpRxIn;
+         pgpTxInVar := pgpTxIn;
+
+         if (fcEmuEnabled = '1') then
+
+            -- Drive near-end PMA loopback
+            pgpRxInVar.loopback := "010";
+
+            -- Send FcEmu messages on TX
+            pgpTxInVar.fcValid                     := fcEmuMsg.valid;
+            pgpTxInVar.fcWord(FC_LEN_C-1 downto 0) := fcEmuMsg.message;
+
+         else
+            pgpRxInVar.loopback := "000";
+            pgpTxInVar.fcValid  := '0';
+            pgpTxInVar.fcWord   := (others => '0');
+
+         end if;
+         pgpTxInLoc <= pgpTxInVar;
+         pgpRxInLoc <= pgpRxInVar;
+      end process FC_EMU_GLUE;
+   end generate GEN_FC_EMU;
+
+   pgpTxOut <= pgpTxOutLoc;
+
+--   pgpTxIn.locData(0) <= fcFb.busy;
+
 
 
 end architecture rtl;

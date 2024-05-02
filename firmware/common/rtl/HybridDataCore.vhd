@@ -129,7 +129,7 @@ begin
             axilWriteSlave   => locAxilWriteSlaves(i+1),   -- [out]
             febConfig        => febConfig,                 -- [in]
             adcReadoutStream => adcReadoutStreams(i),      -- [in]
-            readoutReq       => readoutReq,                   -- [in]
+            readoutReq       => readoutReq,                -- [in]
             syncDetected     => syncDetected(i),           -- [out]
             syncBase         => syncBase(i),               -- [out]
             syncPeak         => syncPeak(i),               -- [out]
