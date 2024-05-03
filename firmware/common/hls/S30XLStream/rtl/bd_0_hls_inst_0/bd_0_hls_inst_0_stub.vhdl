@@ -1,7 +1,7 @@
 -- Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
 -- Tool Version: Vivado v.2022.2 (win64) Build 3671981 Fri Oct 14 05:00:03 MDT 2022
--- Date        : Wed May  1 09:51:06 2024
+-- Date        : Thu May  2 00:17:22 2024
 -- Host        : Big-Daddys-Numbering-Machine running 64-bit major release  (build 9200)
 -- Command     : write_vhdl -force -mode synth_stub
 --               c:/Users/Rory/AppData/Roaming/Xilinx/Vitis/S30XLhitmakerStream/solution1/impl/vhdl/project.gen/sources_1/bd/bd_0/ip/bd_0_hls_inst_0/bd_0_hls_inst_0_stub.vhdl
@@ -17,9 +17,9 @@ entity bd_0_hls_inst_0 is
     ap_clk : in STD_LOGIC;
     ap_rst : in STD_LOGIC;
     timestamp_in : in STD_LOGIC_VECTOR ( 69 downto 0 );
-    timestamp_out : in STD_LOGIC_VECTOR ( 69 downto 0 );
+    timestamp_out : out STD_LOGIC_VECTOR ( 69 downto 0 );
     dataReady_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    dataReady_out : in STD_LOGIC_VECTOR ( 0 to 0 );
+    dataReady_out : out STD_LOGIC_VECTOR ( 0 to 0 );
     FIFO_0 : in STD_LOGIC_VECTOR ( 13 downto 0 );
     FIFO_1 : in STD_LOGIC_VECTOR ( 13 downto 0 );
     FIFO_2 : in STD_LOGIC_VECTOR ( 13 downto 0 );

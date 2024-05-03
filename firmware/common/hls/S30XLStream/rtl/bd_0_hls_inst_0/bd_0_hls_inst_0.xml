@@ -152,7 +152,7 @@
       <spirit:name>timestamp_out</spirit:name>
       <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="data" spirit:version="1.0"/>
       <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="data_rtl" spirit:version="1.0"/>
-      <spirit:slave/>
+      <spirit:master/>
       <spirit:portMaps>
         <spirit:portMap>
           <spirit:logicalPort>
@@ -206,7 +206,7 @@
       <spirit:name>dataReady_out</spirit:name>
       <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="data" spirit:version="1.0"/>
       <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="data_rtl" spirit:version="1.0"/>
-      <spirit:slave/>
+      <spirit:master/>
       <spirit:portMaps>
         <spirit:portMap>
           <spirit:logicalPort>
@@ -1243,11 +1243,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Wed May 01 16:48:08 UTC 2024</spirit:value>
+            <spirit:value>Thu May 02 07:12:45 UTC 2024</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:fefe620a</spirit:value>
+            <spirit:value>9:c02b289e</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1258,7 +1258,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:fefe620a</spirit:value>
+            <spirit:value>9:c02b289e</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1274,11 +1274,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Wed May 01 16:48:08 UTC 2024</spirit:value>
+            <spirit:value>Thu May 02 07:12:45 UTC 2024</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:fefe620a</spirit:value>
+            <spirit:value>9:c02b289e</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1321,11 +1321,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Wed May 01 16:48:08 UTC 2024</spirit:value>
+            <spirit:value>Thu May 02 07:12:44 UTC 2024</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:918c2d91</spirit:value>
+            <spirit:value>9:10a0d80b</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1341,11 +1341,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Wed May 01 16:48:08 UTC 2024</spirit:value>
+            <spirit:value>Thu May 02 07:12:45 UTC 2024</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:918c2d91</spirit:value>
+            <spirit:value>9:10a0d80b</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1359,11 +1359,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Wed May 01 16:51:12 UTC 2024</spirit:value>
+            <spirit:value>Thu May 02 07:17:30 UTC 2024</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:fefe620a</spirit:value>
+            <spirit:value>9:c02b289e</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1415,7 +1415,7 @@
       <spirit:port>
         <spirit:name>timestamp_out</spirit:name>
         <spirit:wire>
-          <spirit:direction>in</spirit:direction>
+          <spirit:direction>out</spirit:direction>
           <spirit:vector>
             <spirit:left spirit:format="long">69</spirit:left>
             <spirit:right spirit:format="long">0</spirit:right>
@@ -1449,7 +1449,7 @@
       <spirit:port>
         <spirit:name>dataReady_out</spirit:name>
         <spirit:wire>
-          <spirit:direction>in</spirit:direction>
+          <spirit:direction>out</spirit:direction>
           <spirit:vector>
             <spirit:left spirit:format="long">0</spirit:left>
             <spirit:right spirit:format="long">0</spirit:right>
@@ -2221,15 +2221,15 @@
     <spirit:fileSet>
       <spirit:name>xilinx_vhdlsynthesis_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/ip/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1_ip.v</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/ip/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1_ip.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/ip/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1_ip.v</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/ip/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1_ip.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/ip/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1_ip.v</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/ip/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1_ip.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
@@ -2238,35 +2238,35 @@
         <spirit:userFileType>USED_IN_out_of_context</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw_edges_s_ROM_AUTO_1R.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw_edges_s_ROM_AUTO_1R.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw_mac_muladd_14s_7s_14ns_14_4_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw_mac_muladd_14s_7s_14ns_14_4_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw_nbins_s_ROM_AUTO_1R.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw_nbins_s_ROM_AUTO_1R.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw_sense_s_ROM_AUTO_1R.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw_sense_s_ROM_AUTO_1R.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
     </spirit:fileSet>
@@ -2431,57 +2431,57 @@
     <spirit:fileSet>
       <spirit:name>xilinx_vhdlbehavioralsimulation_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw_edges_s_ROM_AUTO_1R.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw_edges_s_ROM_AUTO_1R.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw_mac_muladd_14s_7s_14ns_14_4_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw_mac_muladd_14s_7s_14ns_14_4_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw_nbins_s_ROM_AUTO_1R.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw_nbins_s_ROM_AUTO_1R.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw_sense_s_ROM_AUTO_1R.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw_sense_s_ROM_AUTO_1R.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/vhdl/hitproducerStream_hw.vhd</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/vhdl/hitproducerStream_hw.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/ip/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1_ip.v</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/ip/hitproducerStream_hw_dcmp_64ns_64ns_1_2_no_dsp_1_ip.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/ip/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1_ip.v</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/ip/hitproducerStream_hw_dmul_64ns_64ns_64_6_max_dsp_1_ip.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/5af2/hdl/ip/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1_ip.v</spirit:name>
+        <spirit:name>../../ipshared/3a30/hdl/ip/hitproducerStream_hw_sitodp_32s_64_4_no_dsp_1_ip.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
@@ -2597,7 +2597,7 @@
     <xilinx:coreExtensions>
       <xilinx:displayName>Hitproducerstream_hw</xilinx:displayName>
       <xilinx:definitionSource>HLS</xilinx:definitionSource>
-      <xilinx:coreRevision>2113538327</xilinx:coreRevision>
+      <xilinx:coreRevision>2113539192</xilinx:coreRevision>
       <xilinx:sdxKernelAttributes>
         <xilinx:sdx_kernel>true</xilinx:sdx_kernel>
         <xilinx:sdx_kernel_type>hls</xilinx:sdx_kernel_type>
@@ -2657,9 +2657,9 @@
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2022.2</xilinx:xilinxVersion>
-      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="6b3a9a3e"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="5f1221df"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="c2d97b1d"/>
+      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="3410e559"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="56a7972a"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="f25d1735"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="38fe835d"/>
     </xilinx:packagingInfo>
   </spirit:vendorExtensions>
