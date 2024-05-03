@@ -1,23 +1,20 @@
 #include <stdio.h>
 #include <iostream>
-#include "objdef.h"
-#include "S30XLhitproducerStream_hw.h"
+#include "C:\Users\Rory\AppData\Roaming\Xilinx\Vitis\objdef.h"
+#include "C:\Users\Rory\AppData\Roaming\Xilinx\Vitis\S30XLhitproducerStream_hw.h"
 
 
 
-void hitproducerStream_hw(ap_uint<70> timestamp_in,ap_uint<70> timestamp_out,ap_uint<1> dataReady_in,ap_uint<1> dataReady_out,ap_uint<14> FIFO[NHITS],ap_uint<1> onflag[NHITS],ap_uint<17> amplitude[NHITS]){
-	#pragma HLS ARRAY_PARTITION variable=timestamp_in complete
-	#pragma HLS ARRAY_PARTITION variable=timestamp_out complete
-
+void hitproducerStream_hw(ap_uint<70> timestamp_in[1],ap_uint<70> timestamp_out[1],ap_uint<1> dataReady_in[1],ap_uint<1> dataReady_out[1],ap_uint<14> FIFO[NHITS],ap_uint<1> onflag[NHITS],ap_uint<17> amplitude[NHITS]){
 	#pragma HLS ARRAY_PARTITION variable=FIFO complete
 	#pragma HLS ARRAY_PARTITION variable=amplitude complete
 	#pragma HLS ARRAY_PARTITION variable=onflag complete
 
 	#pragma HLS interface ap_ctrl_none port=return
-	#pragma HLS INTERFACE ap_none port=dataReady_in
-	#pragma HLS INTERFACE ap_none port=dataReady_out
-	#pragma HLS INTERFACE ap_none port=timestamp_in
-	#pragma HLS INTERFACE ap_none port=timestamp_out
+	#pragma HLS INTERFACE ap_none port=dataReady_in[0]
+	#pragma HLS INTERFACE ap_none port=dataReady_out[0]
+	#pragma HLS INTERFACE ap_none port=timestamp_in[0]
+	#pragma HLS INTERFACE ap_none port=timestamp_out[0]
 
 	#pragma HLS INTERFACE ap_none port=FIFO[0]
 	#pragma HLS INTERFACE ap_none port=FIFO[1]
@@ -70,6 +67,13 @@ void hitproducerStream_hw(ap_uint<70> timestamp_in,ap_uint<70> timestamp_out,ap_
 	/// sensitivity of the subranges (Total charge/no. of bins)
 	ap_uint<14> sense_[16] = {3,   6,   12,  25, 25, 50, 99, 198,
 	                      198, 397, 794, 1587, 1587, 3174, 6349, 12700};
+	ap_uint<1> ready=0;
+		/// Indices of first bin of each subrange
+	if(dataReady_in[0]==1){
+		ready=1;
+	}
+	dataReady_out[0]=ready;
+
 	for(int i = 0; i<NHITS;i++){
 		ap_uint<14> word1=FIFO[i];
 
@@ -83,15 +87,13 @@ void hitproducerStream_hw(ap_uint<70> timestamp_in,ap_uint<70> timestamp_out,ap_
 		if(((charge1-36)*.00625)>=10){
 			helper=1;
 		}
+		if(ready==0){
+			helper=0;
+			charge1=36;
+		}
 		onflag[i]=helper;
 		amplitude[i]=((charge1-36)*.00625);
 	}
-	timestamp_out=timestamp_in;
-	ap_uint<1> ready=0;
-	/// Indices of first bin of each subrange
-	if(dataReady_in==1){
-		ready=1;
-	}
-	dataReady_out=ready;
+	timestamp_out[0]=timestamp_in[0];
 	return;
 }
