@@ -47,7 +47,7 @@
 -- DO NOT MODIFY THIS FILE.
 
 -- IP VLNV: xilinx.com:hls:hitproducerStream_hw:1.0
--- IP Revision: 2113538327
+-- IP Revision: 2113539192
 
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
@@ -58,9 +58,9 @@ ENTITY bd_0_hls_inst_0 IS
     ap_clk : IN STD_LOGIC;
     ap_rst : IN STD_LOGIC;
     timestamp_in : IN STD_LOGIC_VECTOR(69 DOWNTO 0);
-    timestamp_out : IN STD_LOGIC_VECTOR(69 DOWNTO 0);
+    timestamp_out : OUT STD_LOGIC_VECTOR(69 DOWNTO 0);
     dataReady_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    dataReady_out : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+    dataReady_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
     FIFO_0 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
     FIFO_1 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
     FIFO_2 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
@@ -108,9 +108,9 @@ ARCHITECTURE bd_0_hls_inst_0_arch OF bd_0_hls_inst_0 IS
       ap_clk : IN STD_LOGIC;
       ap_rst : IN STD_LOGIC;
       timestamp_in : IN STD_LOGIC_VECTOR(69 DOWNTO 0);
-      timestamp_out : IN STD_LOGIC_VECTOR(69 DOWNTO 0);
+      timestamp_out : OUT STD_LOGIC_VECTOR(69 DOWNTO 0);
       dataReady_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-      dataReady_out : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+      dataReady_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
       FIFO_0 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
       FIFO_1 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
       FIFO_2 : IN STD_LOGIC_VECTOR(13 DOWNTO 0);
@@ -154,7 +154,7 @@ ARCHITECTURE bd_0_hls_inst_0_arch OF bd_0_hls_inst_0 IS
   ATTRIBUTE CHECK_LICENSE_TYPE : STRING;
   ATTRIBUTE CHECK_LICENSE_TYPE OF bd_0_hls_inst_0_arch : ARCHITECTURE IS "bd_0_hls_inst_0,hitproducerStream_hw,{}";
   ATTRIBUTE CORE_GENERATION_INFO : STRING;
-  ATTRIBUTE CORE_GENERATION_INFO OF bd_0_hls_inst_0_arch: ARCHITECTURE IS "bd_0_hls_inst_0,hitproducerStream_hw,{x_ipProduct=Vivado 2022.2,x_ipVendor=xilinx.com,x_ipLibrary=hls,x_ipName=hitproducerStream_hw,x_ipVersion=1.0,x_ipCoreRevision=2113538327,x_ipLanguage=VHDL,x_ipSimLanguage=MIXED}";
+  ATTRIBUTE CORE_GENERATION_INFO OF bd_0_hls_inst_0_arch: ARCHITECTURE IS "bd_0_hls_inst_0,hitproducerStream_hw,{x_ipProduct=Vivado 2022.2,x_ipVendor=xilinx.com,x_ipLibrary=hls,x_ipName=hitproducerStream_hw,x_ipVersion=1.0,x_ipCoreRevision=2113539192,x_ipLanguage=VHDL,x_ipSimLanguage=MIXED}";
   ATTRIBUTE SDX_KERNEL : STRING;
   ATTRIBUTE SDX_KERNEL OF hitproducerStream_hw: COMPONENT IS "true";
   ATTRIBUTE SDX_KERNEL_TYPE : STRING;

@@ -48,7 +48,7 @@
 
 
 // IP VLNV: xilinx.com:hls:hitproducerStream_hw:1.0
-// IP Revision: 2113538327
+// IP Revision: 2113539192
 
 `timescale 1ns/1ps
 
@@ -110,13 +110,13 @@ input wire ap_rst;
 input wire [69 : 0] timestamp_in;
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME timestamp_out, LAYERED_METADATA undef" *)
 (* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 timestamp_out DATA" *)
-input wire [69 : 0] timestamp_out;
+output wire [69 : 0] timestamp_out;
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME dataReady_in, LAYERED_METADATA undef" *)
 (* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 dataReady_in DATA" *)
 input wire [0 : 0] dataReady_in;
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME dataReady_out, LAYERED_METADATA undef" *)
 (* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 dataReady_out DATA" *)
-input wire [0 : 0] dataReady_out;
+output wire [0 : 0] dataReady_out;
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME FIFO_0, LAYERED_METADATA undef" *)
 (* X_INTERFACE_INFO = "xilinx.com:signal:data:1.0 FIFO_0 DATA" *)
 input wire [13 : 0] FIFO_0;
