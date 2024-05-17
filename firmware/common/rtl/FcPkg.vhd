@@ -65,19 +65,21 @@ package FcPkg is
       message      => (others => '0')
       );
 
-   function toSlv (msg : FcMessageType) return slv;
-   function toFcMessage (vector     : slv(FC_LEN_C-1 downto 0); valid : sl := '1') return FcMessageType;
+   function toSlv (msg          : FcMessageType) return slv;
+   function toFcMessage (vector : slv(FC_LEN_C-1 downto 0); valid : sl := '1') return FcMessageType;
 
    -------------------------------------------------------------------------------------------------
    -- Readout Request Fields
    -------------------------------------------------------------------------------------------------
    type FcTimestampType is record
+      strobe     : sl;
       valid      : sl;
       bunchCount : slv(5 downto 0);
       pulseId    : slv(63 downto 0);
    end record FcTimestampType;
 
    constant FC_TIMESTAMP_INIT_C : FcTimestampType := (
+      strobe     => '0',
       valid      => '0',
       bunchCount => (others => '0'),
       pulseId    => (others => '0'));

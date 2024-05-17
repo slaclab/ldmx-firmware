@@ -129,11 +129,11 @@ begin
       v := r;
 
       -- Pulsed signals
-      v.fcClkLost                  := '0';
-      v.fcBus.pulseStrobe          := '0';
-      v.fcBus.readoutRequest.valid := '0';
-      v.fcBus.bunchStrobe          := '0';
-      v.fcBus.bunchStrobePre       := '0';
+      v.fcClkLost                   := '0';
+      v.fcBus.pulseStrobe           := '0';
+      v.fcBus.bunchStrobe           := '0';
+      v.fcBus.bunchStrobePre        := '0';
+      v.fcBus.readoutRequest.strobe := '0';
 
       -- Count cycles from start of run
       v.runTime := r.runTime + 1;
@@ -149,7 +149,8 @@ begin
       if (r.fcBus.subCount = BUNCH_CLK_FALL_C) then
          v.fcBunchClk37               := '0';
          v.fcBus.readoutRequest.valid := r.rorLatch;
-         v.rorLatch                   := '0';
+
+         v.rorLatch := '0';
       end if;
 
       if (r.fcBus.subCount = BUNCH_CLK_RISE_C) then
@@ -158,7 +159,8 @@ begin
       end if;
 
       if (r.fcBus.subCount = BUNCH_CLK_PRE_RISE_C) then
-         v.fcBus.bunchStrobePre := '1';
+         v.fcBus.bunchStrobePre        := '1';
+         v.fcBus.readoutRequest.strobe := r.fcBus.readoutRequest.valid;
       end if;
 
       -- Decode incomming fast control messages from PGPFC
@@ -210,12 +212,10 @@ begin
             when MSG_TYPE_ROR_C =>
                if (r.fcBus.runState = RUN_STATE_RUNNING_C) then
                   -- Place on output bus
-                  v.fcBus.readoutRequest.valid      := '1';
                   v.fcBus.readoutRequest.bunchCount := fcMsg.bunchCount;
                   v.fcBus.readoutRequest.pulseId    := fcMsg.pulseId;
-
-                  v.rorLatch := '1';
-                  v.rorCount := r.rorCount + 1;
+                  v.rorLatch                        := '1';
+                  v.rorCount                        := r.rorCount + 1;
                end if;
             when others => null;
          end case;
