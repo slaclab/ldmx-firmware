@@ -110,11 +110,18 @@ architecture rtl of S30xlAppCore is
    signal fcBus    : FcBusType;
 
    ----------
-   -- TS Data
+   -- TS Raw Data
    ----------
    signal fcTsRxMsgs : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
    signal fcMsgTime  : FcTimestampType;
 
+   ------------------------
+   -- Trigger logic outputs
+   ------------------------
+   signal tsTrigValid       : sl;
+   signal tsTrigTimestamp   : FcTimestampType;
+   signal tsTrigChannelHits : slv(11 downto 0);
+   signal tsTrigAmplitudes  : slv17Array(11 downto 0);
 
 
 begin
@@ -205,13 +212,14 @@ begin
    -- DAQ Block Shell
    -- (Probably includes Data to DAQ sender and Common block for LDMX event header/trailer)
    -------------------------------------------------------------------------------------------------
-   U_TsDaq_1 : entity ldmx.TsDaq
+   U_TsRawDaq_1 : entity ldmx.TsRawDaq
       generic map (
          TPD_G      => TPD_G,
          TS_LANES_G => TS_LANES_G)
       port map (
          fcClk185        => fcClk185,            -- [in]
          fcRst185        => fcRst185,            -- [in]
+         fcBus           => fcBus,               -- [in]
          fcTsRxMsgs      => fcTsRxMsgs,          -- [in]
          fcMsgTime       => fcMsgTime,           -- [in]
          axisClk         => axisClk,             -- [in]
@@ -223,19 +231,19 @@ begin
    -- Trigger algorithm block
    -- Use another DAQ block as placeholder
    -------------------------------------------------------------------------------------------------
-   U_TsDaq_TRIG : entity ldmx.TsDaq
+   U_HitProducerStreamWrapper_1 : entity ldmx.HitProducerStreamWrapper
       generic map (
-         TPD_G      => TPD_G,
-         TS_LANES_G => TS_LANES_G)
+         TPD_G => TPD_G)
       port map (
-         fcClk185        => fcClk185,             -- [in]
-         fcRst185        => fcRst185,             -- [in]
-         fcTsRxMsgs      => fcTsRxMsgs,           -- [in]
-         fcMsgTime       => fcMsgTime,            -- [in]
-         axisClk         => axisClk,              -- [in]
-         axisRst         => axisRst,              -- [in]
-         tsDaqAxisMaster => tsDaqTrigAxisMaster,  -- [out]
-         tsDaqAxisSlave  => tsDaqTrigAxisSlave);  -- [in]   
+         fcClk185          => fcClk185,           -- [in]
+         fcRst185          => fcRst185,           -- [in]
+         fcTsMsg           => fcTsRxMsgs,         -- [in]
+         fcMsgTime         => fcMsgTime,          -- [in]
+         outputValid       => tsTrigValid,        -- [out]
+         outputTimestamp   => tsTrigTimestamp,    -- [out]
+         channelHits       => tsTrigChannelHits,  -- [out]
+         channelAmplitudes => tsTrigAmplitudes);  -- [out]
+
 
    -------------------------------------------------------------------------------------------------
    -- Data to GT Sender

@@ -5,6 +5,7 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 loadRuckusTcl $::env(TOP_DIR)/submodules/surf
 loadRuckusTcl $::env(TOP_DIR)/submodules/lcls-timing-core
 loadRuckusTcl $::env(TOP_DIR)/common
+loadRuckusTcl $::env(TOP_DIR)/common/hls/S30XLStream
 # loadRuckusTcl $::env(TOP_DIR)/submodules/surf/base
 # loadRuckusTcl $::env(TOP_DIR)/submodules/surf/axi/axi-lite
 # loadRuckusTcl $::env(TOP_DIR)/submodules/surf/axi/axi-stream
