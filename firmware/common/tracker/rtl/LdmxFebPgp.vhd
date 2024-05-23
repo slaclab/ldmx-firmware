@@ -30,9 +30,11 @@ use surf.Pgp2FcPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
-library ldmx;
-use ldmx.LdmxPkg.all;
-use ldmx.FcPkg.all;
+library ldmx_tracker;
+use ldmx_tracker.LdmxPkg.all;
+
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
 
 entity LdmxFebPgp is
    generic (
@@ -183,7 +185,7 @@ begin
 
    NO_SIM : if (not ROGUE_SIM_EN_G) generate
 
-      U_FcReceiver_1 : entity ldmx.FcReceiver
+      U_FcReceiver_1 : entity ldmx_tdaq.FcReceiver
          generic map (
             TPD_G            => TPD_G,
             SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
@@ -296,7 +298,7 @@ begin
 --       fcClk185 <= fcClk185Tmp;
 --       fcRst185 <= fcRst185Tmp;
 
-      U_FcEmu_1 : entity ldmx.FcEmu
+      U_FcEmu_1 : entity ldmx_tdaq.FcEmu
          generic map (
             TPD_G                => TPD_G,
             AXIL_CLK_IS_FC_CLK_G => false)
@@ -315,7 +317,7 @@ begin
 
       fcValid <= fcEmuMsg.valid;
       fcWord  <= fcEmuMsg.message;
-      U_FcRxLogic_1 : entity ldmx.FcRxLogic
+      U_FcRxLogic_1 : entity ldmx_tdaq.FcRxLogic
          generic map (
             TPD_G => TPD_G)
          port map (

@@ -10,14 +10,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.I2cPkg.all;
 
-library ldmx;
+library ldmx_tracker;
 
 entity HybridI2c is
 
@@ -172,7 +171,7 @@ begin
          i2cRegMasterOut => i2cRegMastersOut(0));
 
    -- Axi Bridge for ADS1115
-   Ads1115AxiBridge_1 : entity ldmx.Ads1115AxiBridge
+   Ads1115AxiBridge_1 : entity ldmx_tracker.Ads1115AxiBridge
       generic map (
          TPD_G          => TPD_G,
          I2C_DEV_ADDR_C => "1001000")

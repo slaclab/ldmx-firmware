@@ -27,6 +27,8 @@ use surf.Pgp2fcPkg.all;
 library ldmx_tdaq;
 use ldmx_tdaq.FcPkg.all;
 
+library ldmx_tracker;
+
 entity TrackerPgpFcLane is
    generic (
       TPD_G             : time                 := 1 ns;
@@ -94,7 +96,7 @@ begin
    -----------
    -- PGP Core
    -----------
-   U_LdmxPgpFcLane_1 : entity ldmx.LdmxPgpFcLane
+   U_LdmxPgpFcLane_1 : entity ldmx_tdaq.LdmxPgpFcLane
       generic map (
          TPD_G            => TPD_G,
          SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
@@ -135,7 +137,7 @@ begin
       --------------
       -- PGP TX Path
       --------------
-      U_Tx : entity ldmx.TrackerPgpFcLaneTx
+      U_Tx : entity ldmx_tracker.TrackerPgpFcLaneTx
          generic map (
             TPD_G             => TPD_G,
             DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G,
@@ -157,7 +159,7 @@ begin
       --------------
       -- PGP RX Path
       --------------
-      U_Rx : entity ldmx.TrackerPgpFcLaneRx
+      U_Rx : entity ldmx_tracker.TrackerPgpFcLaneRx
          generic map (
             TPD_G             => TPD_G,
             DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_G,

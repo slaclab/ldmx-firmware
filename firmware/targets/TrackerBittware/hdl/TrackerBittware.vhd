@@ -25,11 +25,13 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
-library ldmx;
-use ldmx.FcPkg.all;
-
 library axi_pcie_core;
 use axi_pcie_core.AxiPciePkg.all;
+
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
+
+library ldmx_tracker;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -271,7 +273,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Fast Control Receiver
    -------------------------------------------------------------------------------------------------
-   U_FcReceiver_1 : entity ldmx.FcReceiver
+   U_FcReceiver_1 : entity ldmx_tdaq.FcReceiver
       generic map (
          TPD_G            => TPD_G,
          SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
@@ -303,7 +305,7 @@ begin
    -- PGP Interface to FEBs
    -- Stream Lanes Tied to DMA
    -------------------------------------------------------------------------------------------------
-   U_FebPgpArray : entity ldmx.TrackerPgpFcArray
+   U_FebPgpArray : entity ldmx_tracker.TrackerPgpFcArray
       generic map (
          TPD_G             => TPD_G,
          SIM_SPEEDUP_G     => SIM_SPEEDUP_G,

@@ -31,8 +31,8 @@ use surf.AxiStreamPkg.all;
 use surf.I2cPkg.all;
 use surf.Ad9249Pkg.all;
 
-library ldmx;
-use ldmx.LdmxPkg.all;
+library ldmx_tracker;
+use ldmx_tracker.LdmxPkg.all;
 
 entity LdmxFebHw is
 
@@ -538,7 +538,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Hybrid Power Monitor and Trim
    -------------------------------------------------------------------------------------------------
-   U_LdmxHybridPowerI2C_1 : entity ldmx.LdmxHybridPowerI2cArray
+   U_LdmxHybridPowerI2C_1 : entity ldmx_tracker.LdmxHybridPowerI2cArray
       generic map (
          TPD_G            => TPD_G,
          HYBRIDS_G        => HYBRIDS_G,
@@ -663,7 +663,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- SYSMON
    -------------------------------------------------------------------------------------------------
-   U_LdmxFebSysmonWrapper_1 : entity ldmx.LdmxFebSysmonWrapper
+   U_LdmxFebSysmonWrapper_1 : entity ldmx_tracker.LdmxFebSysmonWrapper
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -680,7 +680,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- FLASH Interface
    -------------------------------------------------------------------------------------------------
-   U_LdmxFebBootProm_1 : entity ldmx.LdmxFebBootProm
+   U_LdmxFebBootProm_1 : entity ldmx_tracker.LdmxFebBootProm
       generic map (
          TPD_G           => TPD_G,
          AXIL_CLK_FREQ_G => AXIL_CLK_FREQ_G,
@@ -728,7 +728,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- ADC Waveform capture
    -------------------------------------------------------------------------------------------------
-   U_WaveformCapture_1 : entity ldmx.WaveformCapture
+   U_WaveformCapture_1 : entity ldmx_tracker.WaveformCapture
       generic map (
          TPD_G             => TPD_G,
          HYBRIDS_G         => HYBRIDS_G,

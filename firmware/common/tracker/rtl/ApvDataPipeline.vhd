@@ -26,10 +26,10 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
 
-library ldmx;
-use ldmx.LdmxPkg.all;
-use ldmx.FebConfigPkg.all;
-use ldmx.DataPathPkg.all;
+library ldmx_tracker;
+use ldmx_tracker.LdmxPkg.all;
+use ldmx_tracker.FebConfigPkg.all;
+use ldmx_tracker.DataPathPkg.all;
 
 entity ApvDataPipeline is
    generic (
@@ -128,7 +128,7 @@ begin
          mAxiReadSlaves      => locAxilReadSlaves);
 
 
-   ApvFrameExtractor_1 : entity ldmx.ApvFrameExtractor
+   ApvFrameExtractor_1 : entity ldmx_tracker.ApvFrameExtractor
       generic map (
          TPD_G        => TPD_G,
          HYBRID_NUM_G => HYBRID_NUM_G,
@@ -166,7 +166,7 @@ begin
    -- Each trigger produces 3 APV frames from each APV
    -- Group the data from all 3 frames by channel
    -- Needs 9 AXI address bits
-   ApvDataFormatter_1 : entity ldmx.ApvDataFormatter
+   ApvDataFormatter_1 : entity ldmx_tracker.ApvDataFormatter
       generic map (
          TPD_G           => TPD_G,
          HYBRID_NUM_G    => HYBRID_NUM_G,
@@ -194,7 +194,7 @@ begin
    -- Needs AXI address bits
    ----------------------------------------------------------------------------------------------
    THRESHOLD_GEN : if (THRESHOLD_EN_G) generate
-      Threshold_1 : entity ldmx.Threshold
+      Threshold_1 : entity ldmx_tracker.Threshold
          generic map (
             TPD_G => TPD_G)             -- 9 address bits
          port map (

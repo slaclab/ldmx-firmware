@@ -25,15 +25,18 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
-use surf.SsiPkg.all;
-use surf.SsiCmdMasterPkg.all;
-use surf.I2cPkg.all;
-use surf.Pgp2bPkg.all;
-use surf.Ad9249Pkg.all;
+-- use surf.SsiPkg.all;
+-- use surf.SsiCmdMasterPkg.all;
+-- use surf.I2cPkg.all;
+-- use surf.Pgp2bPkg.all;
+-- use surf.Ad9249Pkg.all;
 
-library ldmx;
-use ldmx.LdmxPkg.all;
-use ldmx.FcPkg.all;
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
+
+library ldmx_tracker;
+use ldmx_tracker.LdmxPkg.all;
+
 
 entity LdmxFeb is
 
@@ -322,7 +325,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- PGP Interface
    -------------------------------------------------------------------------------------------------
-   U_LdmxFebPgp_1 : entity ldmx.LdmxFebPgp
+   U_LdmxFebPgp_1 : entity ldmx_tracker.LdmxFebPgp
       generic map (
          TPD_G                => TPD_G,
          SIM_SPEEDUP_G        => SIMULATION_G,
@@ -392,7 +395,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Front End Core
    -------------------------------------------------------------------------------------------------
-   U_FebCore_1 : entity ldmx.FebCore
+   U_FebCore_1 : entity ldmx_tracker.FebCore
       generic map (
          TPD_G             => TPD_G,
          SIMULATION_G      => SIMULATION_G,
@@ -426,7 +429,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- FEB Hardware
    -------------------------------------------------------------------------------------------------
-   U_LdmxFebHw_1 : entity ldmx.LdmxFebHw
+   U_LdmxFebHw_1 : entity ldmx_tracker.LdmxFebHw
       generic map (
          TPD_G             => TPD_G,
          BUILD_INFO_G      => BUILD_INFO_G,

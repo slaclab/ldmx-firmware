@@ -5,13 +5,13 @@
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
+library UNISIM;
+use UNISIM.VCOMPONENTS.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -21,12 +21,13 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.Ad9249Pkg.all;
 
-
-library ldmx;
-use ldmx.FebConfigPkg.all;
-use ldmx.LdmxPkg.all;
+library ldmx_tdaq;
 use ldmx.FcPkg.all;
-use ldmx.DataPathPkg.all;
+
+library ldmx_tracker;
+use ldmx_tracker.FebConfigPkg.all;
+use ldmx_tracker.LdmxPkg.all;
+use ldmx_tracker.DataPathPkg.all;
 
 
 entity FebCore is
@@ -204,7 +205,7 @@ begin
    -- Use Pgp FC bus to to control phase alignment
    -- Also use FC bus for readout requests and resets
    -------------------------------------------------------------------------------------------------
-   U_FebFcRx_1 : entity ldmx.FebFcRx
+   U_FebFcRx_1 : entity ldmx_tracker.FebFcRx
       generic map (
          TPD_G     => TPD_G,
          HYBRIDS_G => HYBRIDS_G)
@@ -226,7 +227,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- General configuration Registers
    -------------------------------------------------------------------------------------------------
-   FebConfig_1 : entity ldmx.FebConfig
+   FebConfig_1 : entity ldmx_tracker.FebConfig
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -307,7 +308,7 @@ begin
       ----------------------------------------------------------------------------------------------
       -- Generate rors that are synced to each hybrid clock
       ----------------------------------------------------------------------------------------------
-      TrigControl_1 : entity ldmx.HybridTriggerControl
+      TrigControl_1 : entity ldmx_tracker.HybridTriggerControl
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -323,7 +324,7 @@ begin
       -------------------------------------------------------------------------------------------------
       -- Hybrid IO Core
       -------------------------------------------------------------------------------------------------
-      HybridIoCore_1 : entity ldmx.HybridI2c
+      HybridIoCore_1 : entity ldmx_tracker.HybridI2c
          generic map (
             TPD_G            => TPD_G,
             SIMULATION_G     => SIMULATION_G,
@@ -342,7 +343,7 @@ begin
       ----------------------------------------------------------------------------------------------
       -- Hybrid Data core
       ----------------------------------------------------------------------------------------------
-      HybridDataCore_1 : entity ldmx.HybridDataCore
+      HybridDataCore_1 : entity ldmx_tracker.HybridDataCore
          generic map (
             TPD_G             => TPD_G,
             AXIL_BASE_ADDR_G  => HYBRID_DATA_XBAR_CFG_C(i).baseAddr,
@@ -362,7 +363,7 @@ begin
             dataRdEn          => dataPathIn(i)(APVS_PER_HYBRID_G-1 downto 0));
    end generate;
 
-   EventBuilder_1 : entity ldmx.EventBuilder
+   EventBuilder_1 : entity ldmx_tracker.EventBuilder
       generic map (
          TPD_G             => TPD_G,
          HYBRIDS_G         => HYBRIDS_G,

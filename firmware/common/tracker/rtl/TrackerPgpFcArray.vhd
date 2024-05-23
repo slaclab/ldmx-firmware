@@ -27,6 +27,8 @@ use surf.AxiStreamPkg.all;
 library ldmx_tdaq;
 use ldmx_tdaq.FcPkg.all;
 
+library ldmx_tracker;
+
 library unisim;
 use unisim.vcomponents.all;
 
@@ -143,7 +145,7 @@ begin
 
       -- 4 Lanes per quad
       GEN_LANE : for lane in 3 downto 0 generate
-         U_Lane : entity ldmx.TrackerPgpFcLane
+         U_Lane : entity ldmx_tracker.TrackerPgpFcLane
             generic map (
                TPD_G             => TPD_G,
                SIM_SPEEDUP_G     => SIM_SPEEDUP_G,
