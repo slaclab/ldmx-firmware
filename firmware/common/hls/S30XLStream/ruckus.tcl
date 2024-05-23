@@ -7,4 +7,10 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 # if { [get_ips AxiStreamExample_0] eq ""  } {
 #    create_ip -name S30XLStream -vendor SLAC -library hls -version 1.0 -module_name hitproducerStream_hw_0
 # }
-loadSource -lib hls -path "$::DIR_PATH/ip/verilog"
+loadSource -lib hls -dir "$::DIR_PATH/ip/verilog"
+loadSource -lib hls -dir "$::DIR_PATH/hdl"
+
+set tcl_list [glob "$::DIR_PATH/ip/verilog/*.tcl"]
+foreach tcl_file ${tcl_list} {
+    source ${tcl_file}
+}
