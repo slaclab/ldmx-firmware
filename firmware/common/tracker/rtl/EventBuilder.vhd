@@ -15,13 +15,10 @@
 -- copied, modified, propagated, or distributed except according to the terms
 -- contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -29,12 +26,13 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.AxiLitePkg.all;
 
+library ldmx_tracker;
+use ldmx_tracker.LdmxPkg.all;
+use ldmx_tracker.DataPathPkg.all;
+use ldmx_tracker.FebConfigPkg.all;
 
-library ldmx;
-use ldmx.LdmxPkg.all;
-use ldmx.DataPathPkg.all;
-use ldmx.FebConfigPkg.all;
-use ldmx.FcPkg.all;
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
 
 entity EventBuilder is
 

@@ -22,8 +22,8 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library ldmx;
-use ldmx.LdmxPkg.all;
+library ldmx_tracker;
+use ldmx_tracker.LdmxPkg.all;
 
 package FebConfigPkg is
 

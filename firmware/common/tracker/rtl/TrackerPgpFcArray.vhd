@@ -24,11 +24,8 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
-library ldmx;
-use ldmx.FcPkg.all;
-
--- library axi_pcie_core;
--- use axi_pcie_core.AxiPciePkg.all;
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;

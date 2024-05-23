@@ -1,9 +1,19 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : LDMX Tracker Feb Configuration Registers
+-------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-- Platform   : 
+-- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- This file is part of LDMX. It is subject to
+-- the license terms in the LICENSE.txt file found in the top-level directory
+-- of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of LDMX, including this file, may be
+-- copied, modified, propagated, or distributed except according to the terms
+-- contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 
@@ -18,9 +28,9 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 
-library ldmx;
-use ldmx.LdmxPkg.all;
-use ldmx.FebConfigPkg.all;
+library ldmx_tracker;
+use ldmx_tracker.LdmxPkg.all;
+use ldmx_tracker.FebConfigPkg.all;
 
 entity FebConfig is
    generic (

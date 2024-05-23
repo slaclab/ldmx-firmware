@@ -31,8 +31,8 @@ use surf.AxiLitePkg.all;
 use surf.Ad9249Pkg.all;
 use surf.Pgp2FcPkg.all;
 
-library ldmx;
-use ldmx.LdmxPkg.all;
+library ldmx_tracker;
+use ldmx_tracker.LdmxPkg.all;
 
 entity WaveformCapture is
 
