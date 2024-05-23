@@ -27,10 +27,10 @@ use surf.EthMacPkg.all;
 use surf.SsiPkg.all;
 
 library ldmx_tdaq;
-use ldmx.FcPkg.all;
+use ldmx_tdaq.FcPkg.all;
 
 library ldmx_ts;
-use ldmx.TsPkg.all;
+use ldmx_ts.TsPkg.all;
 
 entity TsRawDaq is
 

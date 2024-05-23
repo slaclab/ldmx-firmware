@@ -30,7 +30,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 library ldmx_ts;
-use ldmx.TsPkg.all;
+use ldmx_ts.TsPkg.all;
 
 entity TsTxLogic is
 

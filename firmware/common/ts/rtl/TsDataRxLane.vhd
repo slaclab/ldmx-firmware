@@ -26,7 +26,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
 library ldmx_ts;
-use ldmx.TsPkg.all;
+use ldmx_ts.TsPkg.all;
 
 entity TsDataRxLane is
    generic (

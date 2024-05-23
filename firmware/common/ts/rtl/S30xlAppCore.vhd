@@ -24,10 +24,10 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
 library ldmx_tdaq;
-use ldmx.FcPkg.all;
+use ldmx_tdaq.FcPkg.all;
 
 library ldmx_ts;
-use ldmx.TsPkg.all;
+use ldmx_ts.TsPkg.all;
 
 entity S30xlAppCore is
    generic (
