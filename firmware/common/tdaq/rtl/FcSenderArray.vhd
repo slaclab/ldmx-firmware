@@ -24,12 +24,10 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Pgp2FcPkg.all;
 
-library ldmx;
---use ldmx.LdmxPkg.all;
-use ldmx.FcPkg.all;
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
 
 entity FcSenderArray is
-
    generic (
       TPD_G             : time                 := 1 ns;
       SIM_SPEEDUP_G     : boolean              := false;
@@ -101,7 +99,7 @@ begin
    -------------------------------------------------------------------------------------------------
    GEN_QUADS : for quad in QUADS_G-1 downto 0 generate
       GEN_CHANNELS : for ch in 3 downto 0 generate
-         U_FcSender_1 : entity ldmx.FcSender
+         U_FcSender_1 : entity ldmx_tdaq.FcSender
             generic map (
                TPD_G            => TPD_G,
                SIM_SPEEDUP_G    => SIM_SPEEDUP_G,

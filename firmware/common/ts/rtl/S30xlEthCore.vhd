@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : Ten Gig Ethernet Core
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Platform   : 
@@ -28,7 +28,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
-entity TenGigEthGtyCore is
+entity S30xlEthCore is
    generic(
       TPD_G               : time             := 1 ns;
       SIMULATION_G        : boolean          := false;
@@ -69,9 +69,9 @@ entity TenGigEthGtyCore is
       tsDaqTrigAxisMaster : in  AxiStreamMasterType;
       tsDaqTrigAxisSlave  : out AxiStreamSlaveType);
 
-end entity TenGigEthGtyCore;
+end entity S30xlEthCore;
 
-architecture rtl of TenGigEthGtyCore is
+architecture rtl of S30xlEthCore is
    constant ETH_CLK_FREQ_C : real := 156.25e6;
 
    constant SERVER_SIZE_C          : natural := 3;

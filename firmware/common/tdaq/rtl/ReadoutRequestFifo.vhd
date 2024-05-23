@@ -25,8 +25,8 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library ldmx;
-use ldmx.FcPkg.all;
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
 
 entity ReadoutRequestFifo is
 

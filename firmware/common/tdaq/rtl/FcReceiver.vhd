@@ -25,9 +25,8 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Pgp2FcPkg.all;
 
-library ldmx;
---use ldmx.LdmxPkg.all;
-use ldmx.FcPkg.all;
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
 
 
 entity FcReceiver is
@@ -221,7 +220,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- LDMX FC PGP LANE
    -------------------------------------------------------------------------------------------------
-   U_LdmxPgpFcLane_1 : entity ldmx.LdmxPgpFcLane
+   U_LdmxPgpFcLane_1 : entity ldmx_tdaq.LdmxPgpFcLane
       generic map (
          TPD_G            => TPD_G,
          SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
@@ -266,7 +265,7 @@ begin
    -------------------------------------------------------------------------------------------------
    fcValid <= pgpRxOutLoc.fcValid;
    fcWord  <= pgpRxOutLoc.fcWord(FC_LEN_C-1 downto 0);
-   U_FcRxLogic_1 : entity ldmx.FcRxLogic
+   U_FcRxLogic_1 : entity ldmx_tdaq.FcRxLogic
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -292,7 +291,7 @@ begin
    GEN_FC_EMU : if (GEN_FC_EMU_G) generate
 
 
-      U_FcEmu_1 : entity ldmx.FcEmu
+      U_FcEmu_1 : entity ldmx_tdaq.FcEmu
          generic map (
             TPD_G                => TPD_G,
             AXIL_CLK_IS_FC_CLK_G => false,

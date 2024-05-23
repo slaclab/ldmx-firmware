@@ -1,10 +1,19 @@
-
--- It is subject to the license terms in the LICENSE.txt file found in the
--- top-level directory of this distribution and at:
+-------------------------------------------------------------------------------
+-- Title      : Lcls2 Timing Receiver
+-------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-- Platform   : 
+-- Standard   : VHDL'93/02
+-------------------------------------------------------------------------------
+-- Description: Wrapper for LCLS-II timing receiver
+-------------------------------------------------------------------------------
+-- This file is part of LDMX. It is subject to
+-- the license terms in the LICENSE.txt file found in the top-level directory
+-- of this distribution and at:
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of 'LCLS2 Common Carrier Core', including this file,
--- may be copied, modified, propagated, or distributed except according to
--- the terms contained in the LICENSE.txt file.
+-- No part of LDMX, including this file, may be
+-- copied, modified, propagated, or distributed except according to the terms
+-- contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -15,14 +24,10 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
---use surf.SsiPkg.all;
---use surf.AxiPkg.all;
 use surf.AxiLitePkg.all;
---use surf.EthMacPkg.all;
 
 library lcls_timing_core;
 use lcls_timing_core.TimingPkg.all;
-
 
 library unisim;
 use unisim.vcomponents.all;

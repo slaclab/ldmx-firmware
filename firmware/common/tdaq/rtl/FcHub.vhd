@@ -27,8 +27,8 @@ use surf.Pgp2FcPkg.all;
 library lcls_timing_core;
 use lcls_timing_core.TimingPkg.all;
 
-library ldmx;
-use ldmx.FcPkg.all;
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
 
 entity FcHub is
 
@@ -149,7 +149,7 @@ begin
    -------------------------------------------------------------------------------------------------
    lclsTimingClkOut <= lclsTimingClk;
 
-   U_Lcls2TimingRx_1 : entity ldmx.Lcls2TimingRx
+   U_Lcls2TimingRx_1 : entity ldmx_tdaq.Lcls2TimingRx
       generic map (
          TPD_G             => TPD_G,
          TIME_GEN_EXTREF_G => true,
@@ -180,7 +180,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Fast Control Output Word Logic
    -------------------------------------------------------------------------------------------------
-   U_FcTxLogic_1 : entity ldmx.FcTxLogic
+   U_FcTxLogic_1 : entity ldmx_tdaq.FcTxLogic
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -199,7 +199,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Fast Control Fanout to Subsystems
    -------------------------------------------------------------------------------------------------
-   U_FcSenderArray_1 : entity ldmx.FcSenderArray
+   U_FcSenderArray_1 : entity ldmx_tdaq.FcSenderArray
       generic map (
          TPD_G             => TPD_G,
          SIM_SPEEDUP_G     => SIM_SPEEDUP_G,

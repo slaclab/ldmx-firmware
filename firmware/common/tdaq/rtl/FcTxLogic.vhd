@@ -22,13 +22,12 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
---use surf.Pgp2FcPkg.all;
 
 library lcls_timing_core;
 use lcls_timing_core.TimingPkg.all;
 
-library ldmx;
-use ldmx.FcPkg.all;
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
 
 entity FcTxLogic is
 

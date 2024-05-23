@@ -24,9 +24,8 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Pgp2FcPkg.all;
 
-library ldmx;
---use ldmx.LdmxPkg.all;
-use ldmx.FcPkg.all;
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
 
 
 entity FcSender is
@@ -80,7 +79,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- LDMX FC PGP LANE
    -------------------------------------------------------------------------------------------------
-   U_LdmxPgpFcLane_1 : entity ldmx.LdmxPgpFcLane
+   U_LdmxPgpFcLane_1 : entity ldmx_tdaq.LdmxPgpFcLane
       generic map (
          TPD_G            => TPD_G,
          SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
