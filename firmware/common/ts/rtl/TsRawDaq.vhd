@@ -90,7 +90,7 @@ begin
    GEN_LANES : for i in TS_LANES_G-1 downto 0 generate
       tsRxMsgsSlvDelayIn(i) <= toSlv(fcTsRxMsgs(i));
       -- Buffer and delay incoming data to ROR
-      U_RorDaqDataDelay_1 : entity ldmx.RorDaqDataDelay
+      U_RorDaqDataDelay_1 : entity ldmx_tdaq.RorDaqDataDelay
          generic map (
             TPD_G         => TPD_G,
             DATA_WIDTH_G  => TS_DATA_6CH_MSG_SIZE_C,

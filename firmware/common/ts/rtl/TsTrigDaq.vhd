@@ -103,7 +103,7 @@ begin
    -------------------------------------------------------------------------------------------------
    GEN_LANES : for i in 11 downto 0 generate
       -- Buffer and delay incoming data to ROR
-      U_RorDaqDelay_Amplitude : entity ldmx.RorDaqDataDelay
+      U_RorDaqDelay_Amplitude : entity ldmx_tdaq.RorDaqDataDelay
          generic map (
             TPD_G         => TPD_G,
             DATA_WIDTH_G  => 17,
@@ -144,7 +144,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Delay and Buffer hits
    -------------------------------------------------------------------------------------------------
-   U_RorDaqDataDelay_Hits : entity ldmx.RorDaqDataDelay
+   U_RorDaqDataDelay_Hits : entity ldmx_tdaq.RorDaqDataDelay
       generic map (
          TPD_G         => TPD_G,
          DATA_WIDTH_G  => 12,

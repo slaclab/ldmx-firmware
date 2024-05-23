@@ -128,7 +128,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- TS Lanes
    -------------------------------------------------------------------------------------------------
-   U_TsDataRxLaneArray_1 : entity ldmx.TsDataRxLaneArray
+   U_TsDataRxLaneArray_1 : entity ldmx_ts.TsDataRxLaneArray
       generic map (
          TPD_G            => TPD_G,
          SIMULATION_G     => SIMULATION_G,
@@ -161,7 +161,7 @@ begin
    -- TS Message Aligner
    -- Aligns messages with Fast Control
    -------------------------------------------------------------------------------------------------
-   U_TsRxMsgAligner_1 : entity ldmx.TsRxMsgAligner
+   U_TsRxMsgAligner_1 : entity ldmx_ts.TsRxMsgAligner
       generic map (
          TPD_G      => TPD_G,
          TS_LANES_G => TS_LANES_G)
