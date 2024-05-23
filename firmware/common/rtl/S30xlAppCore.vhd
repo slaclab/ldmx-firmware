@@ -27,6 +27,8 @@ library ldmx;
 use ldmx.FcPkg.all;
 use ldmx.TsPkg.all;
 
+library hls;
+
 entity S30xlAppCore is
    generic (
       TPD_G            : time             := 1 ns;
@@ -118,10 +120,10 @@ architecture rtl of S30xlAppCore is
    ------------------------
    -- Trigger logic outputs
    ------------------------
-   signal tsTrigValid       : sl;
-   signal tsTrigTimestamp   : FcTimestampType;
-   signal tsTrigChannelHits : slv(11 downto 0);
-   signal tsTrigAmplitudes  : slv17Array(11 downto 0);
+   signal tsTrigValid      : sl;
+   signal tsTrigTimestamp  : FcTimestampType;
+   signal tsTrigHits       : slv(11 downto 0);
+   signal tsTrigAmplitudes : slv17Array(11 downto 0);
 
 
 begin
@@ -229,9 +231,8 @@ begin
 
    -------------------------------------------------------------------------------------------------
    -- Trigger algorithm block
-   -- Use another DAQ block as placeholder
    -------------------------------------------------------------------------------------------------
-   U_HitProducerStreamWrapper_1 : entity ldmx.HitProducerStreamWrapper
+   U_HitProducerStreamWrapper_1 : entity hls.HitProducerStreamWrapper
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -241,8 +242,28 @@ begin
          fcMsgTime         => fcMsgTime,          -- [in]
          outputValid       => tsTrigValid,        -- [out]
          outputTimestamp   => tsTrigTimestamp,    -- [out]
-         channelHits       => tsTrigChannelHits,  -- [out]
+         channelHits       => tsTrigHits,         -- [out]
          channelAmplitudes => tsTrigAmplitudes);  -- [out]
+
+   -------------------------------------------------------------------------------------------------
+   -- Trigger DAQ block
+   -------------------------------------------------------------------------------------------------
+   U_TsTrigDaq_1 : entity ldmx.TsTrigDaq
+      generic map (
+         TPD_G      => TPD_G,
+         TS_LANES_G => TS_LANES_G)
+      port map (
+         fcClk185         => fcClk185,              -- [in]
+         fcRst185         => fcRst185,              -- [in]
+         fcBus            => fcBus,                 -- [in]
+         tsTrigValid      => tsTrigValid,           -- [in]
+         tsTrigTimestamp  => tsTrigTimestamp,       -- [in]
+         tsTrigHits       => tsTrigHits,            -- [in]
+         tsTrigAmplitudes => tsTrigAmplitudes,      -- [in]
+         axisClk          => axisClk,               -- [in]
+         axisRst          => axisRst,               -- [in]
+         tsTrigAxisMaster => tsDaqTrigAxisMaster,   -- [out]
+         tsTrigAxisSlave  => tsDaqTrigAxisSlave);  -- [in]
 
 
    -------------------------------------------------------------------------------------------------
