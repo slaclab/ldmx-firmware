@@ -23,11 +23,11 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
-library ldmx;
+library ldmx_tdaq;
 use ldmx.FcPkg.all;
-use ldmx.TsPkg.all;
 
-library hls;
+library ldmx_ts;
+use ldmx.TsPkg.all;
 
 entity S30xlAppCore is
    generic (
@@ -152,7 +152,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Fast Control Receiver
    -------------------------------------------------------------------------------------------------
-   U_FcReceiver_1 : entity ldmx.FcReceiver
+   U_FcReceiver_1 : entity ldmx_tdaq.FcReceiver
       generic map (
          TPD_G            => TPD_G,
          SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
@@ -184,7 +184,7 @@ begin
    -- TS Data Receiver
    -- (Data Receiver to APX)
    -------------------------------------------------------------------------------------------------
-   U_TsDataRx_1 : entity ldmx.TsDataRx
+   U_TsDataRx_1 : entity ldmx_ts.TsDataRx
       generic map (
          TPD_G            => TPD_G,
          SIMULATION_G     => SIM_SPEEDUP_G,
@@ -214,7 +214,7 @@ begin
    -- DAQ Block Shell
    -- (Probably includes Data to DAQ sender and Common block for LDMX event header/trailer)
    -------------------------------------------------------------------------------------------------
-   U_TsRawDaq_1 : entity ldmx.TsRawDaq
+   U_TsRawDaq_1 : entity ldmx_ts.TsRawDaq
       generic map (
          TPD_G      => TPD_G,
          TS_LANES_G => TS_LANES_G)
@@ -232,7 +232,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Trigger algorithm block
    -------------------------------------------------------------------------------------------------
-   U_HitProducerStreamWrapper_1 : entity hls.HitProducerStreamWrapper
+   U_HitProducerStreamWrapper_1 : entity ldmx_ts.HitProducerStreamWrapper
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -248,7 +248,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Trigger DAQ block
    -------------------------------------------------------------------------------------------------
-   U_TsTrigDaq_1 : entity ldmx.TsTrigDaq
+   U_TsTrigDaq_1 : entity ldmx_ts.TsTrigDaq
       generic map (
          TPD_G      => TPD_G,
          TS_LANES_G => TS_LANES_G)

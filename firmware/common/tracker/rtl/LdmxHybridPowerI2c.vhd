@@ -26,7 +26,7 @@ use surf.AxiLitePkg.all;
 use surf.I2cPkg.all;
 use surf.I2cMuxPkg.all;
 
-library ldmx;
+library ldmx_tracker;
 
 entity LdmxHybridPowerI2c is
    generic (
@@ -133,7 +133,7 @@ begin
          i2cRegMasterOut => i2cRegMastersOut(0),
          i2cSelectOut    => open);
 
-   U_Ad5144I2cAxiBridge_1 : entity ldmx.Ad5144I2cAxiBridge
+   U_Ad5144I2cAxiBridge_1 : entity ldmx_tracker.Ad5144I2cAxiBridge
       generic map (
          TPD_G      => TPD_G,
          I2C_ADDR_G => "0100000")

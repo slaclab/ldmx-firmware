@@ -27,7 +27,7 @@ use surf.Pgp2fcPkg.all;
 -- library axi_pcie_core;
 -- use axi_pcie_core.AxiPciePkg.all;
 
-library ldmx;
+library ldmx_tdaq;
 
 entity LdmxPgpFcLane is
    generic (

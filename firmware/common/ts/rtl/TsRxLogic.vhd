@@ -29,8 +29,8 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-library ldmx;
-use ldmx.TsPkg.all;
+library ldmx_ts;
+use ldmx_ts.TsPkg.all;
 
 entity TsRxLogic is
 

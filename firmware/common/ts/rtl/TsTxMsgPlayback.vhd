@@ -26,9 +26,11 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-library ldmx;
-use ldmx.TsPkg.all;
+library ldmx_tdaq;
 use ldmx.FcPkg.all;
+
+library ldmx_ts;
+use ldmx.TsPkg.all;
 
 entity TsTxMsgPlayback is
 

@@ -27,8 +27,8 @@ use UNISIM.vcomponents.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library ldmx;
-use ldmx.FebConfigPkg.all;
+library ldmx_tracker;
+use ldmx_tracker.FebConfigPkg.all;
 
 entity HybridTriggerControl is
    generic (

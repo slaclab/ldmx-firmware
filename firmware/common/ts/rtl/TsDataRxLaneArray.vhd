@@ -24,13 +24,14 @@ use ieee.std_logic_unsigned.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-library ldmx;
+library ldmx_tdaq;
 use ldmx.FcPkg.all;
+
+library ldmx_ts;
 use ldmx.TsPkg.all;
 
 entity TsDataRxLaneArray is
@@ -151,7 +152,7 @@ begin
    GEN_LANES : for i in TS_LANES_G-1 downto 0 generate
       tsTxClks(i) <= tsUserClk250(TS_REFCLK_MAP_G(i));
       tsTxRsts(i) <= tsUserRst250(TS_REFCLK_MAP_G(i));
-      U_TsDataRxLane_1 : entity ldmx.TsDataRxLane
+      U_TsDataRxLane_1 : entity ldmx_ts.TsDataRxLane
          generic map (
             TPD_G            => TPD_G,
             SIMULATION_G     => SIMULATION_G,

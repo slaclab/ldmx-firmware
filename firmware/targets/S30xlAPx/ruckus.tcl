@@ -7,20 +7,13 @@ loadRuckusTcl $::env(TOP_DIR)/submodules/lcls-timing-core
 loadRuckusTcl $::env(TOP_DIR)/common/tdaq
 loadRuckusTcl $::env(TOP_DIR)/common/ts
 loadRuckusTcl $::env(TOP_DIR)/common/ts/hls/S30XLStream
-# loadRuckusTcl $::env(TOP_DIR)/submodules/surf/base
-# loadRuckusTcl $::env(TOP_DIR)/submodules/surf/axi/axi-lite
-# loadRuckusTcl $::env(TOP_DIR)/submodules/surf/axi/axi-stream
-# loadRuckusTcl $::env(TOP_DIR)/submodules/surf/axi/bridge
-# loadRuckusTcl $::env(TOP_DIR)/submodules/surf/xilinx
-# loadRuckusTcl $::env(TOP_DIR)/submodules/surf/protocols/i2c
-# loadRuckusTcl $::env(TOP_DIR)/submodules/surf/protocols/pgp/pgp3/core
 
 
 # Load APx-FS ruckus.tcl file
 #loadRuckusTcl $::env(TOP_DIR)/submodules/apx-fs
 
 # Load local source Code and constraints
-loadSource -lib ldmx -path "$::DIR_PATH/rtl/S30xlAPx.vhd"
+loadSource -lib ldmx_ts -path "$::DIR_PATH/rtl/S30xlAPx.vhd"
 
 loadConstraints -dir "$::DIR_PATH/constraints/"
 # loadIpCore -dir "$::DIR_PATH/ip/"

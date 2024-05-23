@@ -28,9 +28,9 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 
-library ldmx;
-use ldmx.LdmxPkg.all;
-use ldmx.FebConfigPkg.all;
+library ldmx_tracker;
+use ldmx_tracker.LdmxPkg.all;
+use ldmx_tracker.FebConfigPkg.all;
 
 entity HybridStatusMonitor is
    generic (

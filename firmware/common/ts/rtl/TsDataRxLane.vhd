@@ -25,7 +25,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
-library ldmx;
+library ldmx_ts;
 use ldmx.TsPkg.all;
 
 entity TsDataRxLane is
@@ -147,7 +147,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- TS Data GTY
    -------------------------------------------------------------------------------------------------
-   U_TsGtyIpCoreWrapper_1 : entity ldmx.TsGtyIpCoreWrapper
+   U_TsGtyIpCoreWrapper_1 : entity ldmx_ts.TsGtyIpCoreWrapper
       generic map (
          TPD_G             => TPD_G,
          USE_ALIGN_CHECK_G => true,
@@ -203,7 +203,7 @@ begin
    -- TS Message Decoder
    -- Decodes 8b10b stream into TS messages
    -------------------------------------------------------------------------------------------------
-   U_TsRxLogic_1 : entity ldmx.TsRxLogic
+   U_TsRxLogic_1 : entity ldmx_ts.TsRxLogic
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -224,7 +224,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- TS Message Encoder
    -------------------------------------------------------------------------------------------------
-   U_TsTxLogic_1 : entity ldmx.TsTxLogic
+   U_TsTxLogic_1 : entity ldmx_ts.TsTxLogic
       generic map (
          TPD_G => TPD_G)
       port map (

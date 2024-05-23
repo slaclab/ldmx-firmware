@@ -25,7 +25,7 @@ library surf;
 use surf.StdRtlPkg.all;
 
 
-library ldmx;
+library ldmx_tracker;
 
 entity LdmxHybrid is
 
@@ -53,7 +53,7 @@ architecture behavioral of LdmxHybrid is
 begin
 
    APV25_GEN : for i in 0 to 5 generate
-      Apv25_Inst : entity ldmx.Apv25
+      Apv25_Inst : entity ldmx_tracker.Apv25
          generic map (
             TPD_G  => TPD_G,
             ADDR_G => ("01" & toSlv(i, 3)))
@@ -72,7 +72,7 @@ begin
    v125Div <= v125 / 1.0;
 
 
-   Ads1115_1 : entity ldmx.Ads1115
+   Ads1115_1 : entity ldmx_tracker.Ads1115
       generic map (
          TPD_G  => TPD_G,
          ADDR_G => '0')

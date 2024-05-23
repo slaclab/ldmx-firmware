@@ -26,7 +26,7 @@ use surf.AxiLitePkg.all;
 use surf.I2cPkg.all;
 use surf.I2cMuxPkg.all;
 
-library ldmx;
+library ldmx_tracker;
 
 entity LdmxHybridPowerI2cArray is
    generic (
@@ -82,7 +82,7 @@ begin
 
 
    I2C_GEN : for i in HYBRIDS_G-1 downto 0 generate
-      U_LdmxHybridPowerI2c_1 : entity ldmx.LdmxHybridPowerI2c
+      U_LdmxHybridPowerI2c_1 : entity ldmx_tracker.LdmxHybridPowerI2c
          generic map (
             TPD_G            => TPD_G,
             I2C_SCL_FREQ_G   => I2C_SCL_FREQ_G,

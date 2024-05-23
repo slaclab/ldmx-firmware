@@ -24,7 +24,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.I2cPkg.all;
 
-library ldmx; 
+library ldmx_tracker; 
 
 ----------------------------------------------------------------------------------------------------
 
@@ -66,7 +66,7 @@ architecture sim of Ads1115AxiBridgeTb is
 begin
 
    -- component instantiation
-   U_Ads1115AxiBridge : entity ldmx.Ads1115AxiBridge
+   U_Ads1115AxiBridge : entity ldmx_tracker.Ads1115AxiBridge
       generic map (
          TPD_G          => TPD_G,
          I2C_DEV_ADDR_C => I2C_DEV_ADDR_C)
@@ -106,7 +106,7 @@ begin
    sda        <= '0' when hyI2cSdaOut = '1' else 'H';
    hyI2cSdaIn <= to_x01z(sda);
 
-   U_Ads1115_1 : entity ldmx.Ads1115
+   U_Ads1115_1 : entity ldmx_tracker.Ads1115
       generic map (
          TPD_G  => TPD_G,
          ADDR_G => '0')

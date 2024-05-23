@@ -23,10 +23,11 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
 
-library ldmx;
-use ldmx.LdmxPkg.all;
-use ldmx.FcPkg.all;
+library ldmx_tracker;
+use ldmx_tracker.LdmxPkg.all;
 
 entity FebFcRx is
 
@@ -185,7 +186,7 @@ begin
    axilRorStrobe <= axilRorLoc;
 
    -- Log FC message for each ROR
-   U_ReadoutRequestFifo_1 : entity ldmx.ReadoutRequestFifo
+   U_ReadoutRequestFifo_1 : entity ldmx_tdaq.ReadoutRequestFifo
       generic map (
          TPD_G => TPD_G)
       port map (

@@ -25,8 +25,10 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
-library ldmx;
+library ldmx_tdaq;
 use ldmx.FcPkg.all;
+
+library ldmx_ts;
 use ldmx.TsPkg.all;
 
 entity TsDataRx is

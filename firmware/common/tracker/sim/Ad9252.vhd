@@ -21,7 +21,7 @@ use surf.TextUtilPkg.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
-library ldmx; 
+library ldmx_tracker; 
 
 
 entity Ad9252 is
@@ -526,7 +526,7 @@ begin
    -- Output
    -------------------------------------------------------------------------------------------------
    DATA_SERIALIZER_GEN : for i in 7 downto 0 generate
-      Ad9252Serializer_1 : entity ldmx.Ad9252Serializer
+      Ad9252Serializer_1 : entity ldmx_tracker.Ad9252Serializer
          port map (
             clk    => dClk,
             clkDiv => fClk,

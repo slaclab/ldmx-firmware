@@ -23,9 +23,11 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library ldmx;
-use ldmx.FcPkg.all;
-use ldmx.TsPkg.all;
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
+
+library ldmx_ts;
+use ldmx_ts.TsPkg.all;
 
 
 entity HitProducerStreamWrapper is

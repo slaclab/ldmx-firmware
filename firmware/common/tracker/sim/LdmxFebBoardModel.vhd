@@ -18,8 +18,8 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.i2cPkg.all;
 
-library ldmx;
-use ldmx.LdmxPkg.all;
+library ldmx_tracker;
+use ldmx_tracker.LdmxPkg.all;
 ----------------------------------------------------------------------------------------------------
 
 entity LdmxFebBoardModel is
@@ -243,7 +243,7 @@ begin
 
    -- ampPdB ports are pulled up on the board      
    ampPdB <= (others => (others => 'H'));
-   U_Pcal6524_1 : entity ldmx.Pcal6524
+   U_Pcal6524_1 : entity ldmx_tracker.Pcal6524
       generic map (
          TPD_G  => TPD_G,
          ADDR_G => '0')
@@ -275,7 +275,7 @@ begin
          p(2)(6) => ampPdB(2)(5),
          p(2)(7) => ampPdB(2)(4));
 
-   U_Pcal6524_2 : entity ldmx.Pcal6524
+   U_Pcal6524_2 : entity ldmx_tracker.Pcal6524
       generic map (
          TPD_G  => TPD_G,
          ADDR_G => '1')
@@ -318,7 +318,7 @@ begin
       hyI2cSdaIn(i)  <= to_x01z(hyI2cSdaBus(i));
 
       -- Instantiate hybrids
-      Hybrid_1 : entity ldmx.LdmxHybrid
+      Hybrid_1 : entity ldmx_tracker.LdmxHybrid
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -341,7 +341,7 @@ begin
       hyPwrI2cScl(i) <= 'H';
       hyPwrI2cSda(i) <= 'H';
       -- Digipots to control hybrid trimming
-      HY_PWR_AD5144 : entity ldmx.Ad5144I2c
+      HY_PWR_AD5144 : entity ldmx_tracker.Ad5144I2c
          generic map (
             TPD_G  => TPD_G,
             ADDR_G => "11")
@@ -366,7 +366,7 @@ begin
 
       -- LTC2991 for voltage and current
       -- Hybrd Power Monitoring
-      Ltc2991_U22 : entity ldmx.Ltc2991
+      Ltc2991_U22 : entity ldmx_tracker.Ltc2991
          generic map (
             TPD_G             => TPD_G,
             ADDR_G            => "000",
@@ -395,7 +395,7 @@ begin
 
 
       -- Sense monitoring
-      Ltc2991_U20 : entity ldmx.Ltc2991
+      Ltc2991_U20 : entity ldmx_tracker.Ltc2991
          generic map (
             TPD_G             => TPD_G,
             ADDR_G            => "001",
@@ -446,7 +446,7 @@ begin
    a18vdSenseN    <= 1.795 - (0.02 * 2.0);
 
    -- Sense monitoring
-   Ltc2991_U25 : entity ldmx.Ltc2991
+   Ltc2991_U25 : entity ldmx_tracker.Ltc2991
       generic map (
          TPD_G             => TPD_G,
          ADDR_G            => "000",

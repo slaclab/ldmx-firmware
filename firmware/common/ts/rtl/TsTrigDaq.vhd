@@ -26,11 +26,10 @@ use surf.Pgp2fcPkg.all;
 use surf.EthMacPkg.all;
 use surf.SsiPkg.all;
 
--- library axi_pcie_core;
--- use axi_pcie_core.AxiPciePkg.all;
-
-library ldmx;
+library ldmx_tdaq;
 use ldmx.FcPkg.all;
+
+library ldmx_ts;
 use ldmx.TsPkg.all;
 
 entity TsTrigDaq is

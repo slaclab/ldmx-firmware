@@ -27,7 +27,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 -- use surf.SsiPkg.all;
 -- use surf.SsiCmdMasterPkg.all;
--- use surf.I2cPkg.all;
+ use surf.I2cPkg.all;
 -- use surf.Pgp2bPkg.all;
 -- use surf.Ad9249Pkg.all;
 

@@ -22,7 +22,7 @@ use surf.SsiPkg.all;
 use surf.Ad9249Pkg.all;
 
 library ldmx_tdaq;
-use ldmx.FcPkg.all;
+use ldmx_tdaq.FcPkg.all;
 
 library ldmx_tracker;
 use ldmx_tracker.FebConfigPkg.all;
