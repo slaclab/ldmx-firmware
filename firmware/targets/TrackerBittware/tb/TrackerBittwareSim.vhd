@@ -130,7 +130,7 @@ begin
          SYNC_RESET_G      => true)
       port map (
          clkP => fcRefClk185P,
-         clkN => fcRefClk185));
+         clkN => fcRefClk185);
 
    -- FC is on quad 0
    qsfpRefClkP(0) <= fcRefClk185P;
