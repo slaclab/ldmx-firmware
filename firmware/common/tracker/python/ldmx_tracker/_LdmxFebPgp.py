@@ -1,4 +1,4 @@
-import ldmx
+import ldmx_tdaq
 
 import pyrogue as pr
 
@@ -64,6 +64,6 @@ class LdmxFebPgp(pr.Device):
 
         else:
 
-            self.add(ldmx.FcEmu(
+            self.add(ldmx_tdaq.FcEmu(
                 offset = 0x30_0000))
 

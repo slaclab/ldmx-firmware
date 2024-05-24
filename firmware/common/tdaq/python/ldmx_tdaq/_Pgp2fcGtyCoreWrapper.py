@@ -1,7 +1,9 @@
 import pyrogue as pr
 import surf.xilinx
 
-class PgpFcGtyCoreWrapper(pr.Device):
+class Pgp2fcGtyCoreWrapper(pr.Device):
+    """ Maps to PgpfcGtyCoreWrapper.vhd in surf """
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 

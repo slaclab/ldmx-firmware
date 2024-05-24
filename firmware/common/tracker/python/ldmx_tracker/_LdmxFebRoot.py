@@ -5,10 +5,10 @@ import axipcie
 
 import rogue
 
-import ldmx
+import ldmx_tracker
 
 class LdmxFebRoot(pr.Root):
-    def __init__(self, sim=False, emu=True, numFebs=6, **kwargs):
+    def __init__(self, sim=False, emu=True, numFebs=6, pgp_quads=2, **kwargs):
         super().__init__(pollEn=False, timeout=100000, **kwargs)
 
         if sim is True:
@@ -56,15 +56,15 @@ class LdmxFebRoot(pr.Root):
         self.zmqServer = pyrogue.interfaces.ZmqServer(root=self, addr='127.0.0.1', port=0)
         self.addInterface(self.zmqServer)
 
-        self.add(axipcie.AxiPcieCore(
+        self.add(ldmx_tracker.TrackerBittware(
             offset = 0x0,
             memBase = self.pcieMem,
-            numDmaLanes = 1,
-            expand = True,
-            sim = sim))        
-
-        for feb in range(6):
-            self.add(ldmx.LdmxFeb(
+            pgp_quads = pgp_quads,
+            sim = sim,
+            expand = True))        
+            
+        for feb in range(numFebs):
+            self.add(ldmx_tracker.LdmxFeb(
                 name = f'Feb[{feb}]',
                 memBase = self.febMemBase[feb],
                 number = feb,

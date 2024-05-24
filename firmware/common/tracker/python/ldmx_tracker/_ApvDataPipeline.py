@@ -1,12 +1,12 @@
 import pyrogue as pr
 
-import ldmx
+import ldmx_tracker
 
 class ApvDataPipeline(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.add(ldmx.ApvDataFormatter(
+        self.add(ldmx_tracker.ApvDataFormatter(
             offset = 0x0000))
 
         self.add(pr.RemoteVariable(

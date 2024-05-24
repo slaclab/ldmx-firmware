@@ -1,13 +1,13 @@
 
 import pyrogue as pr
-import ldmx
+import ldmx_tdaq
 
 class FcRxLogic(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
-            name = 'BunchClkAligned'
+            name = 'BunchClkAligned',
             mode = 'RO',
             base = pr.Bool,
             offset = 0x00,

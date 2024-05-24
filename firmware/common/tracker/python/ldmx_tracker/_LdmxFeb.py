@@ -1,7 +1,7 @@
 import pyrogue
 import pyrogue as pr
 import surf.axi as axi
-import ldmx
+import ldmx_tracker
 
 
 import time
@@ -11,7 +11,7 @@ class FebGroup(pyrogue.Device):
 
 
         for i in range(10): #enumerate(hostConfig.febLinkMap):
-            self.add(ldmx.LdmxFeb(
+            self.add(ldmx_tracker.LdmxFeb(
                 name=f'FebFpga[{i}]',
                 number=i,
                 memBase = memBases[i],))
@@ -28,7 +28,7 @@ class LdmxFeb(pr.Device):
 
         self.number = number
 
-        self.add(ldmx.FebCore(
+        self.add(ldmx_tracker.FebCore(
             number=number,
             offset=0x000000,
             expand=True,
@@ -37,13 +37,13 @@ class LdmxFeb(pr.Device):
             enabled=True
         ))
 
-        self.add(ldmx.LdmxFebHw(
+        self.add(ldmx_tracker.LdmxFebHw(
             numHybrids = numHybrids,
             febCore = self.FebCore,
             expand = True,
             offset = 0x10000000))
 
-        self.add(ldmx.LdmxFebPgp(
+        self.add(ldmx_tracker.LdmxFebPgp(
             offset=0x20000000,
             sim=sim,
             enabled=True))

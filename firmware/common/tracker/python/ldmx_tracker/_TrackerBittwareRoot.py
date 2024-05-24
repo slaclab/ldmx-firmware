@@ -16,7 +16,8 @@ import pyrogue.interfaces.simulation
 
 import axipcie
 
-import ldmx
+import ldmx_tracker
+import ldmx_tdaq
 
 import argparse
 
@@ -86,13 +87,13 @@ class TrackerPciePgpFcRoot(pr.Root):
             sim         = sim,
         ))
 
-        self.add(ldmx.FcReceiver(
+        self.add(ldmx_tdaq.FcReceiver(
             offset = 0x00800000,
             memBase = self.memMap,
             expand = True
         ))
 
-        self.add(ldmx.TrackerPgpFcArray(
+        self.add(ldmx_tracker.TrackerPgpFcArray(
             offset = 0x00900000,
             memBase = self.memMap,
             numPgpQuads = numPgpQuads,

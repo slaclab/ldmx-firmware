@@ -153,7 +153,7 @@ architecture rtl of TrackerBittware is
    -- DMA
    ------------
    constant DMA_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => DMA_BYTE_WIDTH_G, tDestBits => 8, tIdBits => 3);
-
+1
    signal dmaClk          : sl;
    signal dmaRst          : sl;
    signal dmaBuffGrpPause : slv(7 downto 0);

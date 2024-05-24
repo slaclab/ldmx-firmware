@@ -1,8 +1,7 @@
+import time
 import pyrogue as pr
 import surf.axi
-
-import ldmx
-import time
+import ldmx_tracker
 
 class FebCore(pr.Device):
     def __init__(self, number, numHybrids, apvsPerHybrid, **kwargs):
@@ -13,30 +12,30 @@ class FebCore(pr.Device):
         
 
         # Feb Config
-        self.add(ldmx.FebConfig(
+        self.add(ldmx_tracker.FebConfig(
             offset=0x1000,
             numHybrids = numHybrids,
             defaults = {
                 'FebAddress': str(number)}))
 
         # DAQ Timing
-        self.add(ldmx.FebFcRx(
+        self.add(ldmx_tracker.FebFcRx(
             offset=0x2000))
 
         # Event Builder
-        self.add(ldmx.EventBuilder(
+        self.add(ldmx_tracker.EventBuilder(
             offset = 0x3000))
 
         # Hybrids (I2C config)
         for i in range(numHybrids):
-            self.add(ldmx.Hybrid(
+            self.add(ldmx_tracker.Hybrid(
                 offset=0x00100000 + (i*0x10000),
                 typeVar = self.FebConfig.HybridType[i],
                 enableDeps=[self.FebConfig.HybridPwrEn[i]],
                 name=f'Hybrid[{i}]'))
 
         for i in range(numHybrids):
-            self.add(ldmx.HybridDataCore(
+            self.add(ldmx_tracker.HybridDataCore(
                 name=f'HybridDataCore[{i}]',
                 enabled = True,
                 apvsPerHybrid = apvsPerHybrid,

@@ -4,7 +4,7 @@ import surf.devices.micron
 import surf.devices.microchip
 import surf.xilinx
 
-import ldmx
+import ldmx_tracker
 
 class LdmxFebHw(pr.Device):
     def __init__(self, numHybrids, febCore, **kwargs):
@@ -16,17 +16,17 @@ class LdmxFebHw(pr.Device):
             offset=0x0000))
         
 
-        self.add(ldmx.PhaseShift(
+        self.add(ldmx_tracker.PhaseShift(
             name = 'HybridClockPhaseA',
             offset = 0x1000,
             rx = febCore.FebFcRx))
 
-        self.add(ldmx.PhaseShift(
+        self.add(ldmx_tracker.PhaseShift(
             name = 'HybridClockPhaseB',
             offset = 0x2000,
             rx = febCore.FebFcRx))
 
-        self.add(ldmx.PhaseShift(
+        self.add(ldmx_tracker.PhaseShift(
             name = 'AdcClockPhase',
             offset = 0x3000,
             rx = febCore.FebFcRx))
@@ -37,13 +37,13 @@ class LdmxFebHw(pr.Device):
             enabled = False,
             offset = 0x10_0000))
 
-        self.add(ldmx.Pcal6524(
+        self.add(ldmx_tracker.Pcal6524(
             name = 'AmpPdA',
             expand = False,
             enabled = False,
             offset = 0x14_0000))
 
-        self.add(ldmx.Pcal6524(
+        self.add(ldmx_tracker.Pcal6524(
             name = 'AmpPdB',
             expand = False,
             enabled = False,
@@ -72,7 +72,7 @@ class LdmxFebHw(pr.Device):
             hidden = True,
             offset = 0x6000))
 
-        self.add(ldmx.LdmxHybridPowerI2c(
+        self.add(ldmx_tracker.LdmxHybridPowerI2c(
             name = f'HybridPowerArray',
             offset = 0x2_0000,
             expand = True,
@@ -84,15 +84,15 @@ class LdmxFebHw(pr.Device):
 #         self.add(ldmx.AnaPwrMon(
 #             offset = 0x4_0000))
 
-        self.add(ldmx.AdcReadout(
+        self.add(ldmx_tracker.AdcReadout(
             offset = 0x5_0000,
             numHybrids = 8))
 
-        self.add(ldmx.AdcConfig(
+        self.add(ldmx_tracker.AdcConfig(
             offset = 0x6_0000,
             numAdcs = 4))
 
-        self.add(ldmx.WaveformCapture(
+        self.add(ldmx_tracker.WaveformCapture(
             offset = 0x7000,
             apvs_per_hybrid=6))
 
@@ -101,20 +101,20 @@ class LdmxFebHw(pr.Device):
 
 
 #         for i in range(numHybrids):
-#             self.add(ldmx.HybridPowerControl(
+#             self.add(ldmx_tracker.HybridPowerControl(
 #                 numHybrids=i,
 #                 febHw=self,
 #                 febCore=febCore,
 #                 name=f'HybridPowerControl[{i}]',
 #                 expand=True))
 
-#         self.add(ldmx.SoftPowerMonitor(
+#         self.add(ldmx_tracker.SoftPowerMonitor(
 #             name='BoardPowerMonitor',
 #             expand=False,
 #             parent=self))
 #         self.BoardPowerMonitor.setPollInterval(5)
 
-#         self.add(ldmx.IntermediatePowerControl(
+#         self.add(ldmx_tracker.IntermediatePowerControl(
 #             name = 'IntermediatePowerControl',
 #             ad5144 = self.Ad5144[4],
 #             pm = self.BoardPowerMonitor))
