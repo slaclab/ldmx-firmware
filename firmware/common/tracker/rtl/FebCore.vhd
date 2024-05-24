@@ -74,8 +74,8 @@ entity FebCore is
       hyI2cOut : out i2c_out_array(HYBRIDS_G-1 downto 0);
 
       -- 37Mhz clock
-      hyClk      : in  slv(HYBRIDS_G-1 downto 0) := (others => '0');
-      hyClkRst   : in  slv(HYBRIDS_G-1 downto 0) := (others => '0');
+      hyClk    : in slv(HYBRIDS_G-1 downto 0) := (others => '0');
+      hyClkRst : in slv(HYBRIDS_G-1 downto 0) := (others => '0');
 
       -- ADC streams
       adcReadoutStreams : in AdcStreamArray
@@ -95,26 +95,21 @@ architecture rtl of FebCore is
    -- AXI Crossbar configuration and signals
    -------------------------------------------------------------------------------------------------
    -- Module AXI Addresses
-   constant MAIN_XBAR_NUM_MASTERS_C : natural := 6;
-   constant AXI_VERSION_INDEX_C     : natural := 0;
-   constant AXI_CONFIG_REGS_INDEX_C : natural := 1;
-   constant AXI_DAQ_TIMING_INDEX_C  : natural := 2;
-   constant AXI_EB_INDEX_C          : natural := 3;
-   constant AXI_HYBRID_I2C_INDEX_C  : natural := 4;
-   constant AXI_HYBRID_DATA_INDEX_C : natural := 5;
+   constant MAIN_XBAR_NUM_MASTERS_C : natural := 5;
+   constant AXI_CONFIG_REGS_INDEX_C : natural := 0;
+   constant AXI_FC_RX_INDEX_C       : natural := 1;
+   constant AXI_EB_INDEX_C          : natural := 2;
+   constant AXI_HYBRID_I2C_INDEX_C  : natural := 3;
+   constant AXI_HYBRID_DATA_INDEX_C : natural := 4;
 
 
 
    constant MAIN_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(MAIN_XBAR_NUM_MASTERS_C-1 downto 0) := (
-      AXI_VERSION_INDEX_C     => (
-         baseAddr             => AXI_BASE_ADDR_G + X"0000",
-         addrBits             => 12,
-         connectivity         => X"0001"),
       AXI_CONFIG_REGS_INDEX_C => (      -- General Configuration Registers
          baseAddr             => AXI_BASE_ADDR_G + X"1000",
          addrBits             => 8,     -- to 00FF
          connectivity         => X"0001"),
-      AXI_DAQ_TIMING_INDEX_C  => (
+      AXI_FC_RX_INDEX_C       => (
          baseAddr             => AXI_BASE_ADDR_G + X"2000",
          addrBits             => 8,
          connectivity         => X"0001"),
@@ -210,19 +205,19 @@ begin
          TPD_G     => TPD_G,
          HYBRIDS_G => HYBRIDS_G)
       port map (
-         fcClk185             => fcClk185,                                      -- [in]
-         fcRst185             => fcRst185,                                      -- [in]
-         fcBus                => fcBus,                                         -- [in]
-         fcReset101           => fcReset101,                                    -- [out]
-         axilClk              => axilClk,                                       -- [in]
-         axilRst              => axilRst,                                       -- [in]
-         axilRorStrobe        => axilRorStrobe,                                 -- [out]
-         axilRorFifoTimestamp => axilRorFifoTimestamp,                          -- [out]
-         axilRorFifoRdEn      => axilRorFifoRdEn,                               -- [in]
-         axilReadMaster       => mainAxilReadMasters(AXI_DAQ_TIMING_INDEX_C),   -- [in]
-         axilReadSlave        => mainAxilReadSlaves(AXI_DAQ_TIMING_INDEX_C),    -- [out]
-         axilWriteMaster      => mainAxilWriteMasters(AXI_DAQ_TIMING_INDEX_C),  -- [in]
-         axilWriteSlave       => mainAxilWriteSlaves(AXI_DAQ_TIMING_INDEX_C));  -- [out]
+         fcClk185             => fcClk185,                                 -- [in]
+         fcRst185             => fcRst185,                                 -- [in]
+         fcBus                => fcBus,                                    -- [in]
+         fcReset101           => fcReset101,                               -- [out]
+         axilClk              => axilClk,                                  -- [in]
+         axilRst              => axilRst,                                  -- [in]
+         axilRorStrobe        => axilRorStrobe,                            -- [out]
+         axilRorFifoTimestamp => axilRorFifoTimestamp,                     -- [out]
+         axilRorFifoRdEn      => axilRorFifoRdEn,                          -- [in]
+         axilReadMaster       => mainAxilReadMasters(AXI_FC_RX_INDEX_C),   -- [in]
+         axilReadSlave        => mainAxilReadSlaves(AXI_FC_RX_INDEX_C),    -- [out]
+         axilWriteMaster      => mainAxilWriteMasters(AXI_FC_RX_INDEX_C),  -- [in]
+         axilWriteSlave       => mainAxilWriteSlaves(AXI_FC_RX_INDEX_C));  -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- General configuration Registers
