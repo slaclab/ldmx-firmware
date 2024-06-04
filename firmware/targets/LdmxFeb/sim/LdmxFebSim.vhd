@@ -23,7 +23,7 @@ use surf.StdRtlPkg.all;
 library ruckus;
 use ruckus.BuildInfoPkg.all;
 
-library ldmx;
+library ldmx_tracker;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -97,7 +97,7 @@ architecture sim of LdmxFebSim is
 begin
 
 
-   U_LdmxFeb_1 : entity ldmx.LdmxFeb
+   U_LdmxFeb_1 : entity ldmx_tracker.LdmxFeb
       generic map (
          TPD_G                => TPD_G,
          BUILD_INFO_G         => BUILD_INFO_G,
@@ -158,7 +158,7 @@ begin
          leds           => leds);           -- [out]
 
 
-   U_LdmxFebBoardModel_1 : entity ldmx.LdmxFebBoardModel
+   U_LdmxFebBoardModel_1 : entity ldmx_tracker.LdmxFebBoardModel
       generic map (
          TPD_G             => TPD_G,
          ADCS_G            => ADCS_G,

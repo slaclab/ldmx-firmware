@@ -26,7 +26,7 @@ use surf.SsiPkg.all;
 library ruckus;
 use ruckus.BuildInfoPkg.all;
 
-library ldmx;
+library ldmx_tracker;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ architecture sim of TrackerBittwareSim is
 begin
 
    -- FPGA 
-   U_TrackerBittware_1 : entity ldmx.TrackerBittware
+   U_TrackerBittware_1 : entity ldmx_tracker.TrackerBittware
       generic map (
          TPD_G                => TPD_G,
          SIM_SPEEDUP_G        => SIM_SPEEDUP_G,

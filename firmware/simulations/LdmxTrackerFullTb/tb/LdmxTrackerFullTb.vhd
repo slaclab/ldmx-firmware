@@ -24,7 +24,7 @@ use surf.StdRtlPkg.all;
 library ruckus;
 use ruckus.BuildInfoPkg.all;
 
-library ldmx;
+library ldmx_tracker;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -76,7 +76,7 @@ architecture sim of LdmxTrackerFullTb is
 
 begin
 
-   U_TrackerBittwareSim_1 : entity ldmx.TrackerBittwareSim
+   U_TrackerBittwareSim_1 : entity ldmx_tracker.TrackerBittwareSim
       generic map (
          TPD_G                => TPD_G,
          BUILD_INFO_G         => BUILD_INFO_G,
