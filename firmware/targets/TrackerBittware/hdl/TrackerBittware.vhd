@@ -310,7 +310,7 @@ begin
          TPD_G             => TPD_G,
          SIM_SPEEDUP_G     => SIM_SPEEDUP_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
-         PGP_QUADS_G       => 2,
+         PGP_QUADS_G       => PGP_QUADS_G,
          AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_C,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(FEB_PGP_AXIL_C).baseAddr)
       port map (

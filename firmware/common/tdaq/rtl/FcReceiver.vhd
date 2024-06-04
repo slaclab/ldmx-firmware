@@ -205,6 +205,16 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Create a reset for pgpUserRefClk
    -------------------------------------------------------------------------------------------------
+--       PwrUpRst_1 : entity surf.PwrUpRst
+--          generic map (
+--             TPD_G          => TPD_G,
+--             SIM_SPEEDUP_G  => true,
+--             IN_POLARITY_G  => '1',
+--             OUT_POLARITY_G => '1')
+--          port map (
+--             clk    => pgpUserRefClk,
+--             rstOut => pgpUserRefRst);
+   
    RstSync_1 : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,

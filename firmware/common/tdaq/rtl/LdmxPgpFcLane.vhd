@@ -100,8 +100,9 @@ architecture rtl of LdmxPgpFcLane is
 
    signal pgpTxResetDone : sl;
 
-   signal pgpRxResetDone : sl;
-   signal pgpRxRst       : sl;
+   signal pgpRxResetDone    : sl;
+   signal pgpRxPmaResetDone : sl;
+   signal pgpRxRst          : sl;
 
    signal pgpRxOutClkGt   : sl;
    signal pgpRxUsrClk     : sl;
@@ -148,48 +149,49 @@ begin
          NUM_VC_EN_G     => ite(NUM_VC_EN_G = 0, 1, NUM_VC_EN_G))
       port map (
          -- GT Clocking
-         stableClk       => axilClk,                       -- [in]
-         stableRst       => axilRst,                       -- [in]
-         gtRefClk        => pgpRefClk,                     -- [in]
-         gtFabricRefClk  => '0',                           -- [in]
-         gtUserRefClk    => pgpUserRefClk,                 -- [in]
-         rxRecClk        => pgpRxRecClk,                   -- [out]
+         stableClk         => axilClk,                       -- [in]
+         stableRst         => axilRst,                       -- [in]
+         gtRefClk          => pgpRefClk,                     -- [in]
+         gtFabricRefClk    => '0',                           -- [in]
+         gtUserRefClk      => pgpUserRefClk,                 -- [in]
+         rxRecClk          => pgpRxRecClk,                   -- [out]
          -- Gt Serial IO
-         pgpGtTxP        => pgpTxP,                        -- [out]
-         pgpGtTxN        => pgpTxN,                        -- [out]
-         pgpGtRxP        => pgpRxP,                        -- [in]
-         pgpGtRxN        => pgpRxN,                        -- [in]
+         pgpGtTxP          => pgpTxP,                        -- [out]
+         pgpGtTxN          => pgpTxN,                        -- [out]
+         pgpGtRxP          => pgpRxP,                        -- [in]
+         pgpGtRxN          => pgpRxN,                        -- [in]
          -- Tx Clocking
-         pgpTxReset      => pgpTxRst,                      -- [in]
-         pgpTxResetDone  => pgpTxResetDone,                -- [out]
-         pgpTxOutClk     => pgpTxOutClk,                   -- [out]
-         pgpTxClk        => pgpTxUsrClk,                   -- [in]
-         pgpTxMmcmLocked => '1',                           -- [in]
+         pgpTxReset        => pgpTxRst,                      -- [in]
+         pgpTxResetDone    => pgpTxResetDone,                -- [out]
+         pgpTxOutClk       => pgpTxOutClk,                   -- [out]
+         pgpTxClk          => pgpTxUsrClk,                   -- [in]
+         pgpTxMmcmLocked   => '1',                           -- [in]
          -- Rx clocking
-         pgpRxReset      => pgpRxRst,                      -- [in]
-         pgpRxResetDone  => pgpRxResetDone,                -- [out]
-         pgpRxOutClk     => pgpRxOutClkGt,                 -- [out]
-         pgpRxClk        => pgpRxUsrClk,                   -- [in]
-         pgpRxMmcmLocked => pgpRxMmcmLocked,               -- [in]
+         pgpRxReset        => pgpRxRst,                      -- [in]
+         pgpRxResetDone    => pgpRxResetDone,                -- [out]
+         pgpRxPmaResetDone => pgpRxPmaResetDone,             -- [out]
+         pgpRxOutClk       => pgpRxOutClkGt,                 -- [out]
+         pgpRxClk          => pgpRxUsrClk,                   -- [in]
+         pgpRxMmcmLocked   => pgpRxMmcmLocked,               -- [in]
          -- Non VC Rx Signals
-         pgpRxIn         => pgpRxInGt,                     -- [in]
-         pgpRxOut        => pgpRxOutGt,                    -- [out]
+         pgpRxIn           => pgpRxInGt,                     -- [in]
+         pgpRxOut          => pgpRxOutGt,                    -- [out]
          -- Non VC Tx Signals
-         pgpTxIn         => pgpTxInGt,                     -- [in]
-         pgpTxOut        => pgpTxOutGt,                    -- [out]
+         pgpTxIn           => pgpTxInGt,                     -- [in]
+         pgpTxOut          => pgpTxOutGt,                    -- [out]
          -- Frame Transmit Interface
-         pgpTxMasters    => pgpTxMastersGt,                -- [in]
-         pgpTxSlaves     => pgpTxSlavesGt,                 -- [out]
+         pgpTxMasters      => pgpTxMastersGt,                -- [in]
+         pgpTxSlaves       => pgpTxSlavesGt,                 -- [out]
          -- Frame Receive Interface
-         pgpRxMasters    => pgpRxMastersGt,                -- [out]
-         pgpRxCtrl       => pgpRxCtrlGt,                   -- [in]
+         pgpRxMasters      => pgpRxMastersGt,                -- [out]
+         pgpRxCtrl         => pgpRxCtrlGt,                   -- [in]
          -- AXI-Lite Interface
-         axilClk         => axilClk,                       -- [in]
-         axilRst         => axilRst,                       -- [in]
-         axilReadMaster  => axilReadMasters(GT_INDEX_C),   -- [in]
-         axilReadSlave   => axilReadSlaves(GT_INDEX_C),    -- [out]
-         axilWriteMaster => axilWriteMasters(GT_INDEX_C),  -- [in]
-         axilWriteSlave  => axilWriteSlaves(GT_INDEX_C));  -- [out]
+         axilClk           => axilClk,                       -- [in]
+         axilRst           => axilRst,                       -- [in]
+         axilReadMaster    => axilReadMasters(GT_INDEX_C),   -- [in]
+         axilReadSlave     => axilReadSlaves(GT_INDEX_C),    -- [out]
+         axilWriteMaster   => axilWriteMasters(GT_INDEX_C),  -- [in]
+         axilWriteSlave    => axilWriteSlaves(GT_INDEX_C));  -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Tie Streaming IO to PGP module
@@ -218,7 +220,7 @@ begin
             CLKOUT0_DIVIDE_F_G => 6.500)
          port map(
             clkIn     => pgpRxOutClkGt,
-            rstIn     => pgpRxResetDone,
+            rstIn     => pgpRxPmaResetDone,
             clkOut(0) => pgpRxUsrClk,
             rstOut    => open,
             locked    => pgpRxMmcmLocked);
@@ -232,7 +234,7 @@ begin
 
    -- Output the recovered clock
    pgpRxOutClk <= pgpRxUsrClk;
-   
+
    --------------
    -- PGP Monitor
    --------------

@@ -141,20 +141,20 @@ architecture rtl of LdmxFeb is
    -------------------------------------------------------------------------------------------------
    -- Clock Signals
    -------------------------------------------------------------------------------------------------
-   signal gtRefClk250Div2 : sl;
-   signal userRefClk125 : sl;
-   signal userRefRst125 : sl;
-   signal userRefClk185 : sl;
-   signal userRefRst185 : sl;
+   signal gtRefClk250Div2 : sl := '0';
+   signal userRefClk125 : sl := '0';
+   signal userRefRst125 : sl := '0';
+   signal userRefClk185 : sl := '0';
+   signal userRefRst185 : sl := '0';
 
-   signal axilClk : sl;
-   signal axilRst : sl;
+   signal axilClk : sl := '0';
+   signal axilRst : sl := '0';
 
-   signal fcClk185     : sl;
-   signal fcRst185     : sl;
+   signal fcClk185     : sl := '0';
+   signal fcRst185     : sl := '0';
    signal fcBus : FcBusType;
-   signal fcBunchClk37 : sl;
-   signal fcBunchRst37 : sl;
+   signal fcBunchClk37 : sl := '0';
+   signal fcBunchRst37 : sl := '0';
 
    -------------------------------------------------------------------------------------------------
    -- PGP 
