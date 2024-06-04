@@ -85,7 +85,19 @@ architecture sim of TrackerBittwareSim is
    signal fcRefClk185N    : sl;
 
 
+
 begin
+   
+   fcTxP <= qsfpTxP(0);
+   fcTxN <= qsfpTxN(0);
+   qsfpRxP(0) <= fcRxP;
+   qsfpRxN(0) <= fcRxN;
+
+   febPgpFcTxP(PGP_QUADS_G*4-1 downto 0) <= qsfpTxP(PGP_QUADS_G*4+15 downto 16);
+   febPgpFcTxN(PGP_QUADS_G*4-1 downto 0) <= qsfpTxN(PGP_QUADS_G*4+15 downto 16);
+   qsfpRxP(PGP_QUADS_G*4+15 downto 16) <= febPgpFcRxP(PGP_QUADS_G*4-1 downto 0);
+   qsfpRxN(PGP_QUADS_G*4+15 downto 16) <= febPgpFcRxN(PGP_QUADS_G*4-1 downto 0);   
+   
 
    -- FPGA 
    U_TrackerBittware_1 : entity ldmx_tracker.TrackerBittware

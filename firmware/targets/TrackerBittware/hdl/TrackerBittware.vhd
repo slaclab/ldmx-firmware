@@ -358,10 +358,10 @@ begin
    end generate GEN_FEB_REFCLK;
 
    -- Unused GTs
-   qsfpTxP(23 downto 16) <= febPgpFcTxP;
-   qsfpTxN(23 downto 16) <= febPgpFcTxN;
-   febPgpFcRxP           <= qsfpRxP(23 downto 16);
-   febPgpFcRxN           <= qsfpRxN(23 downto 16);
+   qsfpTxP(PGP_QUADS_G*4+15 downto 16) <= febPgpFcTxP;
+   qsfpTxN(PGP_QUADS_G*4+15 downto 16) <= febPgpFcTxN;
+   febPgpFcRxP           <= qsfpRxP(PGP_QUADS_G*4+15 downto 16);
+   febPgpFcRxN           <= qsfpRxN(PGP_QUADS_G*4+15 downto 16);
 
    GEN_CLK_BUF : for i in 1 downto 0 generate
       U_ClkOutBufDiff_1 : entity surf.ClkOutBufDiff

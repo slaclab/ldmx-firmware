@@ -137,7 +137,7 @@ begin
    -------------------------------------------------------------------------------------------------
    ClkRst_CLK0 : entity surf.ClkRst
       generic map (
-         CLK_PERIOD_G      => CLK_185_PERIOD_G * 1 sec,
+         CLK_PERIOD_G      => 5.3848 ns,
          CLK_DELAY_G       => 1 ns,
          RST_START_DELAY_G => 0 ns,
          RST_HOLD_TIME_G   => 5 us,
