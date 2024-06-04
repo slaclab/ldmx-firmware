@@ -257,7 +257,7 @@ begin
    BUFG_CLK41_RAW : BUFG
       port map (
          I => r.fcBunchClk37,
-         O => fcBunchClk37);
+         O => fcBunchClk37G);
 
    fcBunchClk37 <= fcBunchClk37G;
 

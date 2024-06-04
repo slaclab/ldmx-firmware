@@ -123,14 +123,14 @@ begin
    -- Fast Control Refclk
    U_ClkRst_REFCLK : entity surf.ClkRst
       generic map (
-         CLK_PERIOD_G      => 5.3846 ns,  -- 185.714285 MHz = 5.3846 ns
+         CLK_PERIOD_G      => 5.3848 ns,  -- 185.714285 MHz = 5.3846 ns
          CLK_DELAY_G       => 1 ns,
          RST_START_DELAY_G => 0 ns,
          RST_HOLD_TIME_G   => 5 us,
          SYNC_RESET_G      => true)
       port map (
          clkP => fcRefClk185P,
-         clkN => fcRefClk185);
+         clkN => fcRefClk185N);
 
    -- FC is on quad 0
    qsfpRefClkP(0) <= fcRefClk185P;
