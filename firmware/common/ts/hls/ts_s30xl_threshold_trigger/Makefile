@@ -8,7 +8,7 @@ export CFLAGS  =
 export LDFLAGS = 
 
 # Set TOP_DIR to be the base directory for which the build directory resides
-export TOP_DIR  = $(abspath $(PWD)/../../..)
+export TOP_DIR  = $(abspath $(PWD)/../../../..)
 
 export SKIP_COSIM = 1
 

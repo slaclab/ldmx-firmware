@@ -6,7 +6,7 @@ loadRuckusTcl $::env(TOP_DIR)/submodules/surf
 loadRuckusTcl $::env(TOP_DIR)/submodules/lcls-timing-core
 loadRuckusTcl $::env(TOP_DIR)/common/tdaq
 loadRuckusTcl $::env(TOP_DIR)/common/ts
-loadRuckusTcl $::env(TOP_DIR)/common/ts/hls/S30XLStream
+
 
 
 # Load APx-FS ruckus.tcl file

@@ -232,7 +232,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Trigger algorithm block
    -------------------------------------------------------------------------------------------------
-   U_HitProducerStreamWrapper_1 : entity ldmx_ts.HitProducerStreamWrapper
+   U_TsS30xlThresholdTriggerWrapper_1 : entity ldmx_ts.TsS30xlThresholdTriggerWrapper
       generic map (
          TPD_G => TPD_G)
       port map (
