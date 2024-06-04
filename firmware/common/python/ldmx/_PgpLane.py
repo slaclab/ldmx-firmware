@@ -4,10 +4,10 @@ import pyrogue as pr
 import surf.xilinx
 import surf.protocols.pgp
 import ldmx
-        
+
 
 class PgpLane(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, numVc, **kwargs):
         super().__init__(**kwargs)
 
         self.add(ldmx.PgpFcGtyCoreWrapper(
@@ -18,19 +18,20 @@ class PgpLane(pr.Device):
             name   = "Pgp2fcAxi",
             offset = 0x4000))
 
-        self.add(surf.axi.AxiStreamMonAxiL(
-            name = "TxStreamMon",
-            offset = 0x8000,
-            numberLanes = 4,
-            hideConfig = False,
-            chName = None))
+        if numVc > 0:
+            self.add(surf.axi.AxiStreamMonAxiL(
+                name = "TxStreamMon",
+                offset = 0x8000,
+                numberLanes = numVc,
+                hideConfig = False,
+                chName = None))
 
-        self.add(surf.axi.AxiStreamMonAxiL(
-            name = "RxStreamMon",
-            offset = 0xC000,
-            numberLanes = 4,
-            hideConfig = False,
-            chName = None))
+            self.add(surf.axi.AxiStreamMonAxiL(
+                name = "RxStreamMon",
+                offset = 0xC000,
+                numberLanes = numVc,
+                hideConfig = False,
+                chName = None))
 
 class PgpLaneTb(pr.Root):
     def __init__(self, **kwargs):

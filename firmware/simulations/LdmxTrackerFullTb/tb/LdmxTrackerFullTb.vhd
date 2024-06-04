@@ -45,24 +45,17 @@ architecture sim of LdmxTrackerFullTb is
    -------------------------------------------------------------------------------------------------
    -- FEB Generics and signals
    -------------------------------------------------------------------------------------------------
+   constant NUM_FEBS_C        : integer := 1;
    constant SIMULATION_G      : boolean := true;
    constant ADCS_G            : integer := 4;
    constant HYBRIDS_G         : integer := 8;
    constant APVS_PER_HYBRID_G : integer := 6;
 
    -- component ports
-   signal sasGtTxP  : slv(3 downto 0) := (others => '0');  -- [out]
-   signal sasGtTxN  : slv(3 downto 0) := (others => '0');  -- [out]
-   signal sasGtRxP  : slv(3 downto 0) := (others => '0');  -- [in]
-   signal sasGtRxN  : slv(3 downto 0) := (others => '0');  -- [in]
-   signal qsfpGtTxP : slv(3 downto 0) := (others => '0');  -- [out]
-   signal qsfpGtTxN : slv(3 downto 0) := (others => '0');  -- [out]
-   signal qsfpGtRxP : slv(3 downto 0) := (others => '0');  -- [in]
-   signal qsfpGtRxN : slv(3 downto 0) := (others => '0');  -- [in]
-   signal sfpGtTxP  : sl := '0';               -- [out]
-   signal sfpGtTxN  : sl := '0';               -- [out]
-   signal sfpGtRxP  : sl := '0';               -- [in]
-   signal sfpGtRxN  : sl := '0';               -- [in]
+   signal febQsfpGtTxP : slv4Array(NUM_FEBS_C-1 downto 0) := (others => '0');  -- [out]
+   signal febQsfpGtTxN : slv4Array(NUM_FEBS_C-1 downto 0) := (others => '0');  -- [out]
+   signal febQsfpGtRxP : slv4Array(NUM_FEBS_C-1 downto 0) := (others => '0');  -- [in]
+   signal febQsfpGtRxN : slv4Array(NUM_FEBS_C-1 downto 0) := (others => '0');  -- [in]
 
    -------------------------------------------------------------------------------------------------
    -- Bittware generics and signals
@@ -72,37 +65,18 @@ architecture sim of LdmxTrackerFullTb is
    constant ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000;
    constant PGP_QUADS_G          : integer                     := 1;
 
-   signal qsfpRxP : slv(PGP_QUADS_G*4-1 downto 0) := (others => '0');
-   signal qsfpRxN : slv(PGP_QUADS_G*4-1 downto 0) := (others => '0');
-   signal qsfpTxP : slv(PGP_QUADS_G*4-1 downto 0) := (others => '0');
-   signal qsfpTxN : slv(PGP_QUADS_G*4-1 downto 0) := (others => '0');
+   signal fcRxP       : sl;                             -- [in]
+   signal fcRxN       : sl;                             -- [in]
+   signal fcTxP       : sl;                             -- [out]
+   signal fcTxN       : sl;                             -- [out]
+   signal febPgpFcRxP : slv(PGP_QUADS_G*4-1 downto 0);  -- [in]
+   signal febPgpFcRxN : slv(PGP_QUADS_G*4-1 downto 0);  -- [in]
+   signal febPgpFcTxP : slv(PGP_QUADS_G*4-1 downto 0);  -- [out]
+   signal febPgpFcTxN : slv(PGP_QUADS_G*4-1 downto 0);  -- [out]
 
 begin
 
-   -- component instantiation
-   U_LdmxFebSim : entity ldmx.LdmxFebSim
-      generic map (
-         TPD_G             => TPD_G,
-         BUILD_INFO_G      => BUILD_INFO_G,
-         SIMULATION_G      => SIMULATION_G,
-         ADCS_G            => ADCS_G,
-         HYBRIDS_G         => HYBRIDS_G,
-         APVS_PER_HYBRID_G => APVS_PER_HYBRID_G)
-      port map (
-         sasGtTxP  => sasGtTxP,         -- [out]
-         sasGtTxN  => sasGtTxN,         -- [out]
-         sasGtRxP  => sasGtRxP,         -- [in]
-         sasGtRxN  => sasGtRxN,         -- [in]
-         qsfpGtTxP => qsfpGtTxP,        -- [out]
-         qsfpGtTxN => qsfpGtTxN,        -- [out]
-         qsfpGtRxP => qsfpGtRxP,        -- [in]
-         qsfpGtRxN => qsfpGtRxN,        -- [in]
-         sfpGtTxP  => sfpGtTxP,         -- [out]
-         sfpGtTxN  => sfpGtTxN,         -- [out]
-         sfpGtRxP  => sfpGtRxP,         -- [in]
-         sfpGtRxN  => sfpGtRxN);        -- [in]
-
-   U_BittWareXupVv8Pgp2fcSim_1 : entity ldmx.BittWareXupVv8Pgp2fcSim
+   U_TrackerBittwareSim_1 : entity ldmx.TrackerBittwareSim
       generic map (
          TPD_G                => TPD_G,
          BUILD_INFO_G         => BUILD_INFO_G,
@@ -111,16 +85,42 @@ begin
          ROGUE_SIM_PORT_NUM_G => ROGUE_SIM_PORT_NUM_G,
          PGP_QUADS_G          => PGP_QUADS_G)
       port map (
-         qsfpRxP => qsfpRxP,
-         qsfpRxN => qsfpRxN,
-         qsfpTxP => qsfpTxP,
-         qsfpTxN => qsfpTxN);
+         fcRxP       => fcRxP,          -- [in]
+         fcRxN       => fcRxN,          -- [in]
+         fcTxP       => fcTxP,          -- [out]
+         fcTxN       => fcTxN,          -- [out]
+         febPgpFcRxP => febPgpFcRxP,    -- [in]
+         febPgpFcRxN => febPgpFcRxN,    -- [in]
+         febPgpFcTxP => febPgpFcTxP,    -- [out]
+         febPgpFcTxN => febPgpFcTxN);   -- [out]
 
+   -- Loop back fast control for now
+   fcRxP <= fcTxP;
+   fcRxN <= fcTxN;
    
-   qsfpRxP(0) <= sfpGtTxP;
-   qsfpRxN(0) <= sfpGtTxN;
-   sfpGtRxP   <= qsfpTxP(0);
-   sfpGtRxN   <= qsfpTxN(0);
+
+   -- component instantiation
+   GEN_FEBS : for feb in NUM_FEBS_C-1 downto 0 generate
+      febQsfpGtRxP(feb)(0) <= febPgpFcTxP(feb);
+      febQsfpGtRxN(feb)(0) <= febPgpFcTxN(feb);
+
+      febPgpFcRxP(feb) <= febQsfpGtTxP(feb)(0);
+      febPgpFcRxN(feb) <= febQsfpGtTxN(feb)(0);      
+      
+      U_LdmxFebSim : entity ldmx.LdmxFebSim
+         generic map (
+            TPD_G             => TPD_G,
+            BUILD_INFO_G      => BUILD_INFO_G,
+            SIMULATION_G      => SIMULATION_G,
+            ADCS_G            => ADCS_G,
+            HYBRIDS_G         => HYBRIDS_G,
+            APVS_PER_HYBRID_G => APVS_PER_HYBRID_G)
+         port map (
+            qsfpGtTxP => febQsfpGtTxP(feb),   -- [out]
+            qsfpGtTxN => febQsfpGtTxN(feb),   -- [out]
+            qsfpGtRxP => febQsfpGtRxP(feb),   -- [in]
+            qsfpGtRxN => febQsfpGtRxN(feb));  -- [in]
+   end generate GEN_FEBS;
 
 
 end architecture sim;

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-10-22
--- Last update: 2015-02-02
+-- Last update: 2024-05-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,21 +36,10 @@ entity LdmxFebSim is
       HYBRIDS_G            : integer                     := 8;
       APVS_PER_HYBRID_G    : integer                     := 6);
    port (
-      sasGtTxP : out slv(3 downto 0);
-      sasGtTxN : out slv(3 downto 0);
-      sasGtRxP : in  slv(3 downto 0);
-      sasGtRxN : in  slv(3 downto 0);
-
       qsfpGtTxP : out slv(3 downto 0);
       qsfpGtTxN : out slv(3 downto 0);
       qsfpGtRxP : in  slv(3 downto 0);
-      qsfpGtRxN : in  slv(3 downto 0);
-
-      sfpGtTxP : out sl;
-      sfpGtTxN : out sl;
-      sfpGtRxP : in  sl;
-      sfpGtRxN : in  sl);
-
+      qsfpGtRxN : in  slv(3 downto 0));
 end entity LdmxFebSim;
 
 ----------------------------------------------------------------------------------------------------
@@ -124,18 +113,10 @@ begin
          gtRefClk185N   => gtRefClk185N,    -- [in]
          gtRefClk250P   => gtRefClk250P,    -- [in]
          gtRefClk250N   => gtRefClk250N,    -- [in]
-         sasGtTxP       => sasGtTxP,        -- [out]
-         sasGtTxN       => sasGtTxN,        -- [out]
-         sasGtRxP       => sasGtRxP,        -- [in]
-         sasGtRxN       => sasGtRxN,        -- [in]
          qsfpGtTxP      => qsfpGtTxP,       -- [out]
          qsfpGtTxN      => qsfpGtTxN,       -- [out]
          qsfpGtRxP      => qsfpGtRxP,       -- [in]
          qsfpGtRxN      => qsfpGtRxN,       -- [in]
-         sfpGtTxP       => sfpGtTxP,        -- [out]
-         sfpGtTxN       => sfpGtTxN,        -- [out]
-         sfpGtRxP       => sfpGtRxP,        -- [in]
-         sfpGtRxN       => sfpGtRxN,        -- [in]
          adcFClkP       => adcFClkP,        -- [in]
          adcFClkN       => adcFClkN,        -- [in]
          adcDClkP       => adcDClkP,        -- [in]

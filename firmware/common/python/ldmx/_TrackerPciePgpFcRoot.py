@@ -29,6 +29,7 @@ class TrackerPciePgpFcRoot(pr.Root):
             sim = False,
             prbsEn = False,
             numLanes = 1,
+            numLinks = 4,
             numVc = 4,
             **kwargs):
         super().__init__(**kwargs)
@@ -84,6 +85,8 @@ class TrackerPciePgpFcRoot(pr.Root):
             offset   = 0x00800000,
             memBase  = self.memMap,
             numQuads = numLanes,
+            numLinks = numLinks,
+            numVc    = numVc,
             expand   = True))
 
 class TrackerPciePgpFcArgParser(argparse.ArgumentParser):
@@ -112,7 +115,25 @@ class TrackerPciePgpFcArgParser(argparse.ArgumentParser):
             default  = 1,
             help     = "# of DMA Lanes (same as Transceiver Quads)",
         )
-        
+
+        self.add_argument(
+            "--numLinks",
+            "-lnk",
+            type     = int,
+            required = False,
+            default  = 4,
+            help     = "# of physical links (per quad)",
+        )
+
+        self.add_argument(
+            "--numVc",
+            "-vc",
+            type     = int,
+            required = False,
+            default  = 4,
+            help     = "# of virtual channels (per quad and per channel)",
+        )
+
         self.add_argument(
             "--pollEn",
             action = 'store_true',

@@ -28,3 +28,9 @@ from ldmx._PhaseShift import *
 from ldmx._WaveformCapture import *
 from ldmx._PgpFcGtyCoreWrapper import *
 from ldmx._TrackerPciePgpFcRoot import *
+from ldmx._TrackerBittwareRoot import *
+from ldmx._FcReceiver import *
+from ldmx._TrackerPgpFcArray import *
+from ldmx._LdmxPgpFcLane import *
+from ldmx._FcRxLogic import *
+

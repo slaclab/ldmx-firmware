@@ -151,12 +151,12 @@ class BoardHandler():
             self.prbsRxCnts.append(self.prbsRx[prbsNode].rxCount.get())
 
     def _alignStatusFormatter(self):
-        self._formatDigits = len(str(max(self.retryCnt + self.rxClkFreq + self.rxCellErrorCnt + self.rxLinkDownCnt + self.rxLinkErrorCnt)))
+        self._formatDigits = len(str(max(self.rxClkFreq + self.retryCnt + self.rxLinkErrorCnt)))
         self._format = 'Quad = {0:<%d} Lane = {1:<%d} RxClkFreq = {2:<%d} MHz AlignerRetryCnt = {3:<%d} AlignerLocked = {4:<%d} LocalLinkReady = {5:<%d} RemLinkReady = {6:<%d} RXLinkErrorCnt = {7:<%d}' % (1, 1, self._formatDigits, self._formatDigits, 1, 1, 1, self._formatDigits)
 
     def _prbsStatusFormatter(self):
         self._formatDigits = len(str(max(self.prbsRxErrors + self.prbsRxCnts)))
-        self._format = 'Quad = {0:<%d} Lane = {1:<%d} LocalLinkReady = {2:<%d} RemLinkReady = {3:<%d} PrbsRxCnts = {4:<%d} PrbsRxErrors = {5:<%d}' % (1, 1, 1, 1, self._formatDigits, self._formatDigits)
+        self._format = 'Quad = {0:<%d} Lane = {1:<%d} AlignerLocked = {2:<%d} LocalLinkReady = {3:<%d} RemLinkReady = {4:<%d} PrbsRxCnts = {5:<%d} PrbsRxErrors = {6:<%d}' % (1, 1, 1, 1, 1, self._formatDigits, self._formatDigits)
 
     def _alignStatusPrinter(self):
         self._alignStatusFormatter()
@@ -168,7 +168,7 @@ class BoardHandler():
         self._prbsStatusFormatter()
         system('clear')
         for i in range(len(self.quads)):
-            print(self._format.format(self.quads[i], self.lanes[i], self.rxLocalLinkReady[i], self.rxRemLinkReady[i], self.prbsRxCnts[i], self.prbsRxErrors[i]))
+            print(self._format.format(self.quads[i], self.lanes[i], self.lockFlag[i], self.rxLocalLinkReady[i], self.rxRemLinkReady[i], self.prbsRxCnts[i], self.prbsRxErrors[i]))
 
     def _clearAll(self):
         self.lanes.clear()

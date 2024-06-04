@@ -31,13 +31,14 @@ entity FcEmu is
       TPD_G                : time    := 1 ns;
       AXIL_CLK_IS_FC_CLK_G : boolean := false;
       TIMING_MSG_PERIOD_G  : natural := 200;  -- should fit in 32 bits
-      BUNCH_CNT_PERIOD_G   : natural := 5);   -- should fit in 6 bits
+      BUNCH_COUNT_PERIOD_G : natural := 5);   -- should fit in 6 bits
    port (
       -- Clock and Reset
       fcClk           : in  sl;
       fcRst           : in  sl;
+      enabled         : out sl;
       -- Fast-Control Message Interface
-      fcMsg           : out FastControlMessageType;
+      fcMsg           : out FcMessageType;
       -- Bunch Clock
       bunchClk        : out sl;
       bunchStrobe     : out sl;
@@ -53,47 +54,47 @@ end FcEmu;
 architecture rtl of FcEmu is
 
    type RegType is record
-      enableTimingMsg    : sl;
-      enableRoR          : sl;
-      usrRoR             : sl;
-      timingMsgReq       : sl;
-      bunchCntStrb       : sl;
-      bunchClk           : sl;
-      fcMsg              : FastControlMessageType;
-      pulseIDinit        : slv(63 downto 0);
-      fcRunStateSet      : slv(4 downto 0);
-      bunchCntPeriodCnt  : slv(5 downto 0);
-      bunchCntPeriodSet  : slv(5 downto 0);
-      bunchCntPeriod     : slv(5 downto 0);
-      timingMsgPeriodCnt : slv(31 downto 0);
-      timingMsgPeriodSet : slv(31 downto 0);
-      timingMsgPeriod    : slv(31 downto 0);
-      rOrPeriodCnt       : slv(31 downto 0);
-      rOrPeriod          : slv(31 downto 0);
-      axilReadSlave      : AxiLiteReadSlaveType;
-      axilWriteSlave     : AxiLiteWriteSlaveType;
+      enableTimingMsg       : sl;
+      enableRoR             : sl;
+      usrRoR                : sl;
+      timingMsgReq          : sl;
+      bunchCountStrb        : sl;
+      bunchClk              : sl;
+      fcMsg                 : FcMessageType;
+      pulseIDinit           : slv(63 downto 0);
+      fcRunStateSet         : slv(4 downto 0);
+      bunchCountPeriodCount : slv(5 downto 0);
+      bunchCountPeriodSet   : slv(5 downto 0);
+      bunchCountPeriod      : slv(5 downto 0);
+      timingMsgPeriodCount  : slv(31 downto 0);
+      timingMsgPeriodSet    : slv(31 downto 0);
+      timingMsgPeriod       : slv(31 downto 0);
+      rOrPeriodCount        : slv(31 downto 0);
+      rOrPeriod             : slv(31 downto 0);
+      axilReadSlave         : AxiLiteReadSlaveType;
+      axilWriteSlave        : AxiLiteWriteSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      enableTimingMsg    => '0',
-      enableRoR          => '0',
-      usrRoR             => '0',
-      timingMsgReq       => '0',
-      bunchCntStrb       => '0',
-      bunchClk           => '0',
-      fcMsg              => DEFAULT_FC_MSG_C,
-      pulseIDinit        => (others => '0'),
-      fcRunStateSet      => (others => '0'),
-      bunchCntPeriodCnt  => (others => '0'),
-      bunchCntPeriodSet  => toSlv(BUNCH_CNT_PERIOD_G, 6),
-      bunchCntPeriod     => toSlv(BUNCH_CNT_PERIOD_G, 6),
-      timingMsgPeriodCnt => (others => '0'),
-      timingMsgPeriodSet => toSlv(TIMING_MSG_PERIOD_G, 32),
-      timingMsgPeriod    => toSlv(TIMING_MSG_PERIOD_G, 32),
-      rOrPeriodCnt       => (others => '0'),
-      rOrPeriod          => toSlv(100, 32),
-      axilReadSlave      => AXI_LITE_READ_SLAVE_INIT_C,
-      axilWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C);
+      enableTimingMsg       => '0',
+      enableRoR             => '0',
+      usrRoR                => '0',
+      timingMsgReq          => '0',
+      bunchCountStrb        => '0',
+      bunchClk              => '0',
+      fcMsg                 => FC_MSG_INIT_C,
+      pulseIDinit           => (others => '0'),
+      fcRunStateSet         => (others => '0'),
+      bunchCountPeriodCount => (others => '0'),
+      bunchCountPeriodSet   => toSlv(BUNCH_COUNT_PERIOD_G, 6),
+      bunchCountPeriod      => toSlv(BUNCH_COUNT_PERIOD_G, 6),
+      timingMsgPeriodCount  => (others => '0'),
+      timingMsgPeriodSet    => toSlv(TIMING_MSG_PERIOD_G, 32),
+      timingMsgPeriod       => toSlv(TIMING_MSG_PERIOD_G, 32),
+      rOrPeriodCount        => (others => '0'),
+      rOrPeriod             => toSlv(100, 32),
+      axilReadSlave         => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave        => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -124,7 +125,7 @@ begin
          mAxiWriteMaster => syncAxilWriteMaster,  -- [out]
          mAxiWriteSlave  => syncAxilWriteSlave);  -- [in]
 
-   comb : process (axilRst, r, syncAxilReadMaster, syncAxilWriteMaster) is
+   comb : process (fcRst, r, syncAxilReadMaster, syncAxilWriteMaster) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -132,7 +133,7 @@ begin
       v := r;
 
       -- Pulsed
-      v.usrRoR       := '0';      
+      v.usrRoR := '0';
 
       ----------------------------------------------------------------------
       --                AXI-Lite Register Logic
@@ -142,82 +143,82 @@ begin
       axiSlaveWaitTxn(axilEp, syncAxilWriteMaster, syncAxilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Map the read registers
-      axiSlaveRegister (axilEp, x"000", 0, v.enableTimingMsg);     -- If high, Timing Msg Period cnt
-                                                                   -- rolls and msgs are being sent
-      axiSlaveRegister (axilEp, x"004", 0, v.enableRoR);           -- If high, RoR Period Counter
-                                                                   -- increments every 5 cycles,
-                                                                   -- and RoRs are being sent
-      axiSlaveRegister (axilEp, x"008", 0, v.usrRoR);              -- Sends a single RoR for every
-                                                                   -- low-to-high transition
-      axiSlaveRegister (axilEp, x"00C", 0, v.pulseIDinit);         -- Set pulseID initial value
-      axiSlaveRegister (axilEp, x"014", 0, v.timingMsgPeriodSet);  -- Timing Message period
-      axiSlaveRegister (axilEp, x"018", 0, v.bunchCntPeriodSet);   -- Bunch Cnt period
-      axiSlaveRegister (axilEp, x"01C", 0, v.fcRunStateSet);       -- Next FC run state set value
-      axiSlaveRegister (axilEp, x"020", 0, v.rOrPeriod);           -- Read-Out-Req period
-                                                                   -- (units of 5*timing clk period)
+      axiSlaveRegister (axilEp, x"000", 0, v.enableTimingMsg);  -- If high, Timing Msg Period cnt
+                                                                -- rolls and msgs are being sent
+      axiSlaveRegister (axilEp, x"004", 0, v.enableRoR);        -- If high, RoR Period Counter
+                                                                -- increments every 5 cycles,
+                                                                -- and RoRs are being sent
+      axiSlaveRegister (axilEp, x"008", 0, v.usrRoR);           -- Sends a single RoR for every
+                                                                -- low-to-high transition
+      axiSlaveRegister (axilEp, x"00C", 0, v.pulseIDinit);      -- Set pulseID initial value
+      axiSlaveRegister (axilEp, x"014", 0, v.timingMsgPeriodSet);   -- Timing Message period
+      axiSlaveRegister (axilEp, x"018", 0, v.bunchCountPeriodSet);  -- Bunch Count period
+      axiSlaveRegister (axilEp, x"01C", 0, v.fcRunStateSet);    -- Next FC run state set value
+      axiSlaveRegister (axilEp, x"020", 0, v.rOrPeriod);        -- Read-Out-Req period
+                                                                -- (units of 5*timing clk period)
 
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       -- pulseID Period Counter Control
-      -- bunchCnt Period Counter Control
-      -- pulseID increments when the timingMsgPeriodCnt hits its limit
+      -- bunchCount Period Counter Control
+      -- pulseID increments when the timingMsgPeriodCount hits its limit
       -- and coincides with a request for a timing message;
-      -- bunchCnt increments when the bunchCntPeriodCnt hits its limit;
-      v.bunchCntStrb := '0';
-      v.timingMsgReq := '0';
-      v.fcMsg.valid  := '0';
+      -- bunchCount increments when the bunchCountPeriodCount hits its limit;
+      v.bunchCountStrb := '0';
+      v.timingMsgReq   := '0';
+      v.fcMsg.valid    := '0';
 
 
       if (r.enableTimingMsg = '0') then
          -- reset case
-         v.bunchClk           := '0';
-         v.bunchCntPeriodCnt  := (others => '0');
-         v.timingMsgPeriodCnt := (others => '0');
-         v.fcMsg.bunchCnt     := (others => '0');
-         v.fcMsg.pulseID      := r.pulseIDinit;
+         v.bunchClk              := '0';
+         v.bunchCountPeriodCount := (others => '0');
+         v.timingMsgPeriodCount  := (others => '0');
+         v.fcMsg.bunchCount      := (others => '0');
+         v.fcMsg.pulseID         := r.pulseIDinit;
 
          -- When messages are disabled, set right away
-         v.timingMsgPeriod := r.timingMsgPeriodSet;
-         v.bunchCntPeriod  := r.bunchCntPeriodSet;
+         v.timingMsgPeriod  := r.timingMsgPeriodSet;
+         v.bunchCountPeriod := r.bunchCountPeriodSet;
       else
-         v.timingMsgPeriodCnt := r.timingMsgPeriodCnt + 1;
-         v.bunchCntPeriodCnt  := r.bunchCntPeriodCnt + 1;
+         v.timingMsgPeriodCount  := r.timingMsgPeriodCount + 1;
+         v.bunchCountPeriodCount := r.bunchCountPeriodCount + 1;
 
          -- timing message request and pulseID control
-         if (r.timingMsgPeriodCnt = r.timingMsgPeriod-1) then
-            v.timingMsgPeriodCnt := (others => '0');
-            v.fcMsg.pulseID      := r.fcMsg.pulseID + 1;
-            v.timingMsgReq       := '1';
+         if (r.timingMsgPeriodCount = r.timingMsgPeriod-1) then
+            v.timingMsgPeriodCount := (others => '0');
+            v.fcMsg.pulseID        := r.fcMsg.pulseID + 1;
+            v.timingMsgReq         := '1';
 
             -- Load new periods set by software before starting next msg period
-            v.timingMsgPeriod := r.timingMsgPeriodSet;
-            v.bunchCntPeriod  := r.bunchCntPeriodSet;
+            v.timingMsgPeriod  := r.timingMsgPeriodSet;
+            v.bunchCountPeriod := r.bunchCountPeriodSet;
 
          end if;
 
          -- the bunch Count strobe eventually triggers an RoR, and increments the bunch Counter
-         if (r.bunchCntPeriodCnt = r.bunchCntPeriod-2) then
+         if (r.bunchCountPeriodCount = r.bunchCountPeriod-2) then
             -- strobe me just before the rollover so that the RoR
-            -- gets the appropriate bunchCnt value
-            v.bunchCntStrb := '1';
-         elsif (r.bunchCntPeriodCnt = r.bunchCntPeriod-1) then
-            v.bunchCntPeriodCnt := (others => '0');
+            -- gets the appropriate bunchCount value
+            v.bunchCountStrb := '1';
+         elsif (r.bunchCountPeriodCount = r.bunchCountPeriod-1) then
+            v.bunchCountPeriodCount := (others => '0');
          end if;
 
          -- bunch Count control. resets to zero foreach timing message request
          if (r.timingMsgReq = '1') then
-            v.fcMsg.bunchCnt := (others => '0');
-         elsif (v.bunchCntStrb = '1') then
-            v.fcMsg.bunchCnt := r.fcMsg.bunchCnt + 1;
+            v.fcMsg.bunchCount := (others => '0');
+         elsif (v.bunchCountStrb = '1') then
+            v.fcMsg.bunchCount := r.fcMsg.bunchCount + 1;
          end if;
 
-         -- bunchClk control. bunchClk rising-edge has to coincide with bunchCnt incr
-         -- bunchClk cannot be 50% duty-cycle because bunchCnt period is odd
-         if (r.bunchCntStrb = '1') then
+         -- bunchClk control. bunchClk rising-edge has to coincide with bunchCount incr
+         -- bunchClk cannot be 50% duty-cycle because bunchCount period is odd
+         if (r.bunchCountStrb = '1') then
             v.bunchClk := '1';
-         elsif (r.bunchCntPeriodCnt = ('0' & r.bunchCntPeriod(5 downto 1))) then
+         elsif (r.bunchCountPeriodCount = ('0' & r.bunchCountPeriod(5 downto 1))) then
             -- cut the last bit -> div-by-2
             v.bunchClk := '0';
          end if;
@@ -228,33 +229,34 @@ begin
       -- controls FC message type, run state, and the message valid strobe
       if (r.usrRoR = '1') then
          -- immediate RoR
-         -- if RoRs are not enabled, FC message bunchCnt will get the init value
+         -- if RoRs are not enabled, FC message bunchCount will get the init value
          v.fcMsg.msgType := MSG_TYPE_ROR_C;
-         v.fcMsg.message := FcEncode(r.fcMsg);
+         v.fcMsg.message := toSlv(r.fcMsg);
          v.fcMsg.valid   := '1';
-      elsif (r.bunchCntStrb = '1' and r.enableRoR = '1') then
+      elsif (r.bunchCountStrb = '1' and r.enableRoR = '1') then
          -- periodic RoR. Have to check the RoR Period counter first
-         v.rOrPeriodCnt := r.rOrPeriodCnt + 1;
-         if (r.rOrPeriodCnt = r.rOrPeriod) then
+         v.rOrPeriodCount := r.rOrPeriodCount + 1;
+         if (r.rOrPeriodCount = r.rOrPeriod) then
             -- TX RoR
-            v.rOrPeriodCnt  := (others => '0');
-            v.fcMsg.msgType := MSG_TYPE_ROR_C;
-            v.fcMsg.message := FcEncode(r.fcMsg);
-            v.fcMsg.valid   := '1';
+            v.rOrPeriodCount := (others => '0');
+            v.fcMsg.msgType  := MSG_TYPE_ROR_C;
+            v.fcMsg.message  := toSlv(r.fcMsg);
+            v.fcMsg.valid    := '1';
          end if;
       elsif (r.timingMsgReq = '1') then
          -- simple Timing Message
          v.fcMsg.stateChanged := toSl(v.fcMsg.runState /= r.fcRunStateSet);
          v.fcMsg.runState     := r.fcRunStateSet;
          v.fcMsg.msgType      := MSG_TYPE_TIMING_C;
-         v.fcMsg.message      := FcEncode(r.fcMsg);
+         v.fcMsg.message      := toSlv(r.fcMsg);
          v.fcMsg.valid        := '1';
       end if;
 
       -- General Outputs
+      enabled            <= r.enableTimingMsg;
       fcMsg              <= r.fcMsg;
       bunchClk           <= r.bunchClk;
-      bunchStrobe        <= r.bunchCntStrb;
+      bunchStrobe        <= r.bunchCountStrb;
       -- AXI Outputs
       syncAxilWriteSlave <= r.axilWriteSlave;
       syncAxilReadSlave  <= r.axilReadSlave;

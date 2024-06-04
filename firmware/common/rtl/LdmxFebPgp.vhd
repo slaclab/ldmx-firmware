@@ -37,7 +37,7 @@ use ldmx.FcPkg.all;
 entity LdmxFebPgp is
    generic (
       TPD_G                : time                        := 1 ns;
-      SIM_SPEEDUP_G : boolean := false;
+      SIM_SPEEDUP_G        : boolean                     := false;
       ROGUE_SIM_EN_G       : boolean                     := false;
       ROGUE_SIM_SIDEBAND_G : boolean                     := true;
       ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 9000;
@@ -47,30 +47,26 @@ entity LdmxFebPgp is
       -- Reference clocks for PGP MGTs
       gtRefClk185P : in sl;
       gtRefClk185N : in sl;
-      gtRefClk250P : in sl;
-      gtRefClk250N : in sl;
 
       userRefClk185 : out sl;
       userRefRst185 : out sl;
-      userRefClk125 : out sl;
-      userRefRst125 : out sl;
 
       -- MGT IO
-      pgpGtTxP : out slv(2 downto 0);
-      pgpGtTxN : out slv(2 downto 0);
-      pgpGtRxP : in  slv(2 downto 0);
-      pgpGtRxN : in  slv(2 downto 0);
+      pgpGtTxP : out sl;
+      pgpGtTxN : out sl;
+      pgpGtRxP : in  sl;
+      pgpGtRxN : in  sl;
 
       -- Status output for LEDs
-      pgpTxLink : out slv(2 downto 0);
-      pgpRxLink : out slv(2 downto 0);
+      pgpTxLink : out sl;
+      pgpRxLink : out sl;
 
       -- Control link Opcode and AXI-Stream interface
-      fcClk185 : out sl;                -- Recovered fixed-latency clock
-      fcRst185 : out sl;
-      fcMsg    : out FastControlMessageType;
---       daqRxFcWord  : out slv(79 downto 0);
---       daqRxFcValid : out sl;
+      fcClk185     : out sl;            -- Recovered fixed-latency clock
+      fcRst185     : out sl;
+      fcBus        : out FcBusType;
+      fcBunchClk37 : out sl;
+      fcBunchRst37 : out sl;
 
       -- All AXI-Lite and AXI-Stream interfaces are synchronous with this clock
       axilClk : in sl;                  -- Also Drives PGP stableClk input
@@ -106,38 +102,33 @@ architecture rtl of LdmxFebPgp is
    -------------------------------------------------------------------------------------------------
    -- Clocks
    -------------------------------------------------------------------------------------------------
-   signal userRefClk185Tmp : sl;
-   signal userRefClk185G   : sl;
-   signal userRefRst185G   : sl;
-   signal gtRefClk185      : sl;
-
-   signal userRefClk250Tmp : sl;
-   signal userRefClk125G   : sl;
-   signal userRefRst125G   : sl;
+   signal gtRefClk185Div2 : sl := '0';
+   signal gtRefClk185G    : sl := '0';
 
    -------------------------------------------------------------------------------------------------
    -- PGP
    -------------------------------------------------------------------------------------------------
-   constant NUM_AXIL_C   : integer := 4;
-   constant SFP_INDEX_C  : integer := 0;
-   constant SAS_INDEX_C  : integer := 1;
-   constant QSFP_INDEX_C : integer := 2;
-   constant SIM_INDEX_C  : integer := 3;
+   constant NUM_AXIL_C  : integer := 3;
+   constant FC_INDEX_C  : integer := 0;
+   constant SIM_INDEX_C : integer := 1;
+   constant FC_RX_LOGIC_AXIL_C : integer := 2;
 
 
-   signal pgpTxClk     : slv(2 downto 0);
-   signal pgpTxRst     : slv(2 downto 0);
-   signal pgpRxClk     : slv(2 downto 0);
-   signal pgpRxRst     : slv(2 downto 0);
-   signal pgpRxIn      : Pgp2fcRxInArray(2 downto 0)          := (others => PGP2FC_RX_IN_INIT_C);
-   signal pgpRxOut     : Pgp2fcRxOutArray(2 downto 0);
-   signal pgpTxIn      : Pgp2fcTxInArray(2 downto 0)          := (others => PGP2FC_TX_IN_INIT_C);
-   signal pgpTxOut     : Pgp2fcTxOutArray(2 downto 0);
-   signal pgpRxMasters : AxiStreamQuadMasterArray(2 downto 0);
-   signal pgpRxSlaves  : AxiStreamQuadSlaveArray(2 downto 0)  := (others => (others => AXI_STREAM_SLAVE_FORCE_C));
-   signal pgpRxCtrl    : AxiStreamQuadCtrlArray(2 downto 0)   := (others => (others => AXI_STREAM_CTRL_UNUSED_C));
-   signal pgpTxMasters : AxiStreamQuadMasterArray(2 downto 0) := (others => (others => AXI_STREAM_MASTER_INIT_C));
-   signal pgpTxSlaves  : AxiStreamQuadSlaveArray(2 downto 0);
+   -- PGP FC Rx signals
+   signal fcClk185Loc  : sl;
+   signal fcRst185Loc  : sl;
+   signal pgpRxIn      : Pgp2fcRxInType                   := PGP2FC_RX_IN_INIT_C;
+   signal pgpRxOut     : Pgp2fcRxOutType                  := PGP2FC_RX_OUT_INIT_C;
+   signal pgpRxMasters : AxiStreamMasterArray(2 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal pgpRxCtrl    : AxiStreamCtrlArray(2 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+   signal pgpRxSlaves  : AxiStreamSlaveArray(2 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+
+   signal pgpTxClk     : sl;
+   signal pgpTxRst     : sl;
+   signal pgpTxIn      : Pgp2fcTxInType                   := PGP2FC_TX_IN_INIT_C;
+   signal pgpTxOut     : Pgp2fcTxOutType                  := PGP2FC_TX_OUT_INIT_C;
+   signal pgpTxMasters : AxiStreamMasterArray(2 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal pgpTxSlaves  : AxiStreamSlaveArray(2 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
 
    signal buffDataAxisMaster : AxiStreamMasterType;
    signal buffDataAxisSlave  : AxiStreamSlaveType;
@@ -145,92 +136,25 @@ architecture rtl of LdmxFebPgp is
    -------------------------------------------------------------------------------------------------
    -- AXI-Lite
    -------------------------------------------------------------------------------------------------
-   constant MAIN_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_C, AXIL_BASE_ADDR_G, 24, 20);
+   constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_C, AXIL_BASE_ADDR_G, 24, 20);
 
    signal locAxilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_C-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
    signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_C-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
    signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
    signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
-   signal fcClk185Tmp : sl;
-   signal fcRst185Tmp : sl;
+   -------------------------------------------------------------------------------------------------
+   -- Emulated Fast control for simulation
+   -------------------------------------------------------------------------------------------------
+   signal fcEmuMsg : FcMessageType;
+   signal fcValid  : sl;
+   signal fcWord   : slv(FC_LEN_C-1 downto 0);
 
 begin
 
-   -------------------------------------------------------------------------------------------------
-   -- Reference Clocks
-   -------------------------------------------------------------------------------------------------
-   U_IBUFDS_GTE4_185 : IBUFDS_GTE4
-      generic map (
-         REFCLK_EN_TX_PATH  => '0',
-         REFCLK_HROW_CK_SEL => "00",    -- 2'b00: ODIV2 = O
-         REFCLK_ICNTL_RX    => "00")
-      port map (
-         I     => gtRefClk185P,
-         IB    => gtRefClk185N,
-         CEB   => '0',
-         ODIV2 => userRefClk185Tmp,
-         O     => gtRefClk185);
+   fcClk185 <= fcClk185Loc;
+   fcRst185 <= fcRst185Loc;
 
-   U_BUFG_185 : BUFG_GT
-      port map (
-         I       => userRefClk185Tmp,
-         CE      => '1',
-         CEMASK  => '1',
-         CLR     => '0',
-         CLRMASK => '1',
-         DIV     => "000",              -- Divide-by-1
-         O       => userRefClk185G);
-
-   U_PwrUpRst_185 : entity surf.PwrUpRst
-      generic map (
-         TPD_G          => TPD_G,
-         SIM_SPEEDUP_G  => SIM_SPEEDUP_G,
-         IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '1')
-      port map (
-         clk    => userRefClk185G,
-         rstOut => userRefRst185G);
-
-   userRefClk185 <= userRefClk185G;
-   userRefRst185 <= userRefRst185G;
-   
-
-
-   U_QsfpRef0 : IBUFDS_GTE4
-      generic map (
-         REFCLK_EN_TX_PATH  => '0',
-         REFCLK_HROW_CK_SEL => "00",    -- 2'b00: ODIV2 = O
-         REFCLK_ICNTL_RX    => "00")
-      port map (
-         I     => gtRefClk250P,
-         IB    => gtRefClk250N,
-         CEB   => '0',
-         ODIV2 => userRefClk250Tmp,
-         O     => open);
-
-   U_BUFG : BUFG_GT
-      port map (
-         I       => userRefClk250Tmp,
-         CE      => '1',
-         CEMASK  => '1',
-         CLR     => '0',
-         CLRMASK => '1',
-         DIV     => "001",              -- Divide-by-2
-         O       => userRefClk125G);
-
-   PwrUpRst_1 : entity surf.PwrUpRst
-      generic map (
-         TPD_G          => TPD_G,
-         SIM_SPEEDUP_G  => SIM_SPEEDUP_G,
-         IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '1')
-      port map (
-         clk    => userRefClk125G,
-         rstOut => userRefRst125G);
-
-   userRefClk125 <= userRefClk125G;
-   userRefRst125 <= userRefRst125G;
 
    ---------------------
    -- AXI-Lite Crossbar
@@ -240,7 +164,7 @@ begin
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
          NUM_MASTER_SLOTS_G => NUM_AXIL_C,
-         MASTERS_CONFIG_G   => MAIN_XBAR_CFG_C)
+         MASTERS_CONFIG_G   => AXIL_XBAR_CFG_C)
       port map (
          axiClk              => axilClk,
          axiClkRst           => axilRst,
@@ -253,58 +177,79 @@ begin
          mAxiReadMasters     => locAxilReadMasters,
          mAxiReadSlaves      => locAxilReadSlaves);
 
+   pgpTxLink <= pgpTxOut.linkReady;
+   pgpRxLink <= pgpRxOut.linkReady;
+
 
    NO_SIM : if (not ROGUE_SIM_EN_G) generate
-      PGP_GEN : for i in 2 downto 0 generate
 
-         U_LdmxFebPgp_1 : entity ldmx.LdmxFebPgpLane
-            generic map (
-               TPD_G            => TPD_G,
-               SIMULATION_G     => SIM_SPEEDUP_G,                  -- Set true when runing sim with GTY/PGP
-               AXIL_BASE_ADDR_G => MAIN_XBAR_CFG_C(i).baseAddr,
-               AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
-               VC_COUNT_G       => 3)
-            port map (
-               stableClk       => userRefClk125G,          -- [in]
-               stableRst       => userRefRst125G,          -- [in]
-               gtRefClk185     => gtRefClk185,             -- [in]
-               gtRefClk185G    => userRefClk185G,          -- [in]
-               pgpGtTxP        => pgpGtTxP(i),             -- [out]
-               pgpGtTxN        => pgpGtTxN(i),             -- [out]
-               pgpGtRxP        => pgpGtRxP(i),             -- [in]
-               pgpGtRxN        => pgpGtRxN(i),             -- [in]
-               pgpTxLink       => pgpTxLink(i),            -- [out]
-               pgpRxLink       => pgpRxLink(i),            -- [out]
-               pgpRxClkOut     => pgpRxClk(i),             -- [out]
-               pgpRxRstOut     => pgpRxRst(i),             -- [out]
-               pgpRxOut        => pgpRxOut(i),             -- [out]
-               pgpRxMasters    => pgpRxMasters(i),         -- [out]
-               pgpRxCtrl       => pgpRxCtrl(i),            -- [in]
-               pgpTxClkOut     => pgpTxClk(i),             -- [out]
-               pgpTxRstOut     => pgpTxRst(i),             -- [out]
-               pgpTxIn         => pgpTxIn(i),              -- [in]
-               pgpTxMasters    => pgpTxMasters(i),         -- [in]
-               pgpTxSlaves     => pgpTxSlaves(i),          -- [out]
-               axilClk         => axilClk,                 -- [in]
-               axilRst         => axilRst,                 -- [in]
-               axilReadMaster  => locAxilReadMasters(i),   -- [in]
-               axilReadSlave   => locAxilReadSlaves(i),    -- [out]
-               axilWriteMaster => locAxilWriteMasters(i),  -- [in]
-               axilWriteSlave  => locAxilWriteSlaves(i));  -- [out]
-
-      end generate PGP_GEN;
-
-      fcClk185 <= pgpRxClk(SFP_INDEX_C);
-      fcRst185 <= pgpRxRst(SFP_INDEX_C);
-      fcMsg    <= fcDecode(pgpRxOut(SFP_INDEX_C).fcWord(79 downto 0), pgpRxOut(SFP_INDEX_C).fcValid);
---       daqRxFcWord  <= pgpRxOut(SFP_INDEX_C).fcWord(79 downto 0);
---       daqRxFcValid <= pgpRxOut(SFP_INDEX_C).fcValid;
+      U_FcReceiver_1 : entity ldmx.FcReceiver
+         generic map (
+            TPD_G            => TPD_G,
+            SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
+            NUM_VC_EN_G      => 3,
+            GEN_FC_EMU_G     => false,
+            AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
+            AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(FC_INDEX_C).baseAddr)
+         port map (
+            fcRefClk185P    => gtRefClk185P,                     -- [in]
+            fcRefClk185N    => gtRefClk185N,                     -- [in]
+            fcRecClkP       => open,                             -- [out]
+            fcRecClkN       => open,                             -- [out]
+            fcTxP           => pgpGtTxP,                         -- [out]
+            fcTxN           => pgpGtTxN,                         -- [out]
+            fcRxP           => pgpGtRxP,                         -- [in]
+            fcRxN           => pgpGtRxN,                         -- [in]
+            fcClk185        => fcClk185Loc,                      -- [out]
+            fcRst185        => fcRst185Loc,                      -- [out]
+            fcBus           => fcBus,                            -- [out]
+            fcBunchClk37    => fcBunchClk37,                     -- [out]
+            fcBunchRst37    => fcBunchRst37,                     -- [out]
+            pgpRxIn         => pgpRxIn,                          -- [in]
+            pgpRxOut        => pgpRxOut,                         -- [out]
+            pgpRxMasters    => pgpRxMasters,                     -- [out]
+            pgpRxCtrl       => pgpRxCtrl,                        -- [in]
+            txClk185        => pgpTxClk,                         -- [out]
+            txRst185        => pgpTxRst,                         -- [out]
+--            fcFb            => fcFb,                             -- [in]
+            pgpTxIn         => pgpTxIn,                          -- [in]
+            pgpTxOut        => pgpTxOut,                         -- [out]
+            pgpTxMasters    => pgpTxMasters,                     -- [in]
+            pgpTxSlaves     => pgpTxSlaves,                      -- [out]
+            axilClk         => axilClk,                          -- [in]
+            axilRst         => axilRst,                          -- [in]
+            axilReadMaster  => locAxilReadMasters(FC_INDEX_C),   -- [in]
+            axilReadSlave   => locAxilReadSlaves(FC_INDEX_C),    -- [out]
+            axilWriteMaster => locAxilWriteMasters(FC_INDEX_C),  -- [in]
+            axilWriteSlave  => locAxilWriteSlaves(FC_INDEX_C));  -- [out]
 
    end generate NO_SIM;
 
    GEN_SIM : if (ROGUE_SIM_EN_G) generate
 
-      pgpTxClk(0) <= gtRefClk185;
+      U_mgtRefClk : IBUFDS_GTE4
+         generic map (
+            REFCLK_EN_TX_PATH  => '0',
+            REFCLK_HROW_CK_SEL => "00",  -- 2'b00: ODIV2 = O
+            REFCLK_ICNTL_RX    => "00")
+         port map (
+            I     => gtRefClk185P,
+            IB    => gtRefClk185N,
+            CEB   => '0',
+            ODIV2 => gtRefClk185Div2,
+            O     => open);
+
+      U_mgtUserRefClk : BUFG_GT
+         port map (
+            I       => gtRefClk185Div2,
+            CE      => '1',
+            CEMASK  => '1',
+            CLR     => '0',
+            CLRMASK => '1',
+            DIV     => "000",
+            O       => gtRefClk185G);
+
+      pgpTxClk <= gtRefClk185G;
 
       PwrUpRst_1 : entity surf.PwrUpRst
          generic map (
@@ -313,11 +258,11 @@ begin
             IN_POLARITY_G  => '1',
             OUT_POLARITY_G => '1')
          port map (
-            clk    => pgpTxClk(0),
-            rstOut => pgpTxRst(0));
+            clk    => pgpTxClk,
+            rstOut => pgpTxRst);
 
-      pgpRxClk(0) <= pgpTxClk(0);
-      pgpRxRst(0) <= pgpTxRst(0);
+      fcClk185Loc <= transport pgpTxClk after 1 ns;
+      fcRst185Loc <= transport pgpTxRst after 1 ns;
 
       U_RoguePgp2fcSim_1 : entity surf.RoguePgp2fcSim
          generic map (
@@ -326,39 +271,39 @@ begin
             PORT_NUM_G => ROGUE_SIM_PORT_NUM_G,
             NUM_VC_G   => 3)
          port map (
-            pgpClk       => pgpTxClk(0),                  -- [in]
-            pgpClkRst    => pgpTxRst(0),                  -- [in]
-            pgpRxIn      => pgpRxIn(0),                   -- [in]
-            pgpRxOut     => pgpRxOut(0),                  -- [out]
-            pgpTxIn      => pgpTxIn(0),                   -- [in]
-            pgpTxOut     => pgpTxOut(0),                  -- [out]
-            pgpTxMasters => pgpTxMasters(0)(2 downto 0),  -- [in]
-            pgpTxSlaves  => pgpTxSlaves(0)(2 downto 0),   -- [out]
-            pgpRxMasters => pgpRxMasters(0)(2 downto 0),  -- [out]
-            pgpRxSlaves  => pgpRxSlaves(0)(2 downto 0));  -- [in]
+            pgpClk       => pgpTxClk,                  -- [in]
+            pgpClkRst    => pgpTxRst,                  -- [in]
+            pgpRxIn      => pgpRxIn,                   -- [in]
+            pgpRxOut     => pgpRxOut,                  -- [out]
+            pgpTxIn      => pgpTxIn,                   -- [in]
+            pgpTxOut     => pgpTxOut,                  -- [out]
+            pgpTxMasters => pgpTxMasters(2 downto 0),  -- [in]
+            pgpTxSlaves  => pgpTxSlaves(2 downto 0),   -- [out]
+            pgpRxMasters => pgpRxMasters(2 downto 0),  -- [out]
+            pgpRxSlaves  => pgpRxSlaves(2 downto 0));  -- [in]
 
-      DAQ_CLK_GEN : entity surf.ClkRst
-         generic map (
-            CLK_PERIOD_G      => 5.385 ns,
-            CLK_DELAY_G       => 1 ns,
-            RST_START_DELAY_G => 0 ns,
-            RST_HOLD_TIME_G   => 5 us,
-            SYNC_RESET_G      => true)
-         port map (
-            clkP => fcClk185Tmp,
-            rst  => fcRst185Tmp);
+--       DAQ_CLK_GEN : entity surf.ClkRst
+--          generic map (
+--             CLK_PERIOD_G      => 5.385 ns,
+--             CLK_DELAY_G       => 1 ns,
+--             RST_START_DELAY_G => 0 ns,
+--             RST_HOLD_TIME_G   => 5 us,
+--             SYNC_RESET_G      => true)
+--          port map (
+--             clkP => fcClk185Tmp,
+--             rst  => fcRst185Tmp);
 
-      fcClk185 <= fcClk185Tmp;
-      fcRst185 <= fcRst185Tmp;
+--       fcClk185 <= fcClk185Tmp;
+--       fcRst185 <= fcRst185Tmp;
 
       U_FcEmu_1 : entity ldmx.FcEmu
          generic map (
             TPD_G                => TPD_G,
             AXIL_CLK_IS_FC_CLK_G => false)
          port map (
-            fcClk           => fcClk185Tmp,                       -- [in]
-            fcRst           => fcRst185Tmp,                       -- [in]
-            fcMsg           => fcMsg,                             -- [out]
+            fcClk           => fcClk185Loc,                       -- [in]
+            fcRst           => fcRst185Loc,                       -- [in]
+            fcMsg           => fcEmuMsg,                          -- [out]
             bunchClk        => open,                              -- [out]
             bunchStrobe     => open,                              -- [out]
             axilClk         => axilClk,                           -- [in]
@@ -368,6 +313,25 @@ begin
             axilWriteMaster => locAxilWriteMasters(SIM_INDEX_C),  -- [in]
             axilWriteSlave  => locAxilWriteSlaves(SIM_INDEX_C));  -- [out]
 
+      fcValid <= fcEmuMsg.valid;
+      fcWord  <= fcEmuMsg.message;
+      U_FcRxLogic_1 : entity ldmx.FcRxLogic
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            fcClk185        => fcClk185Loc,                              -- [in]
+            fcRst185        => fcRst185Loc,                              -- [in]
+            fcValid         => fcValid,                                  -- [in]
+            fcWord          => fcWord,                                   -- [in]
+            fcBunchClk37    => fcBunchClk37,                             -- [out]
+            fcBunchRst37    => fcBunchRst37,                             -- [out]
+            fcBus           => fcBus,                                    -- [out]
+            axilClk         => axilClk,                                  -- [in]
+            axilRst         => axilRst,                                  -- [in]
+            axilReadMaster  => locAxilReadMasters(FC_RX_LOGIC_AXIL_C),   -- [in]
+            axilReadSlave   => locAxilReadSlaves(FC_RX_LOGIC_AXIL_C),    -- [out]
+            axilWriteMaster => locAxilWriteMasters(FC_RX_LOGIC_AXIL_C),  -- [in]
+            axilWriteSlave  => locAxilWriteSlaves(FC_RX_LOGIC_AXIL_C));  -- [out]
 --       daqRxFcWord  <= pgpRxOut(0).fcWord(79 downto 0);
 --       daqRxFcValid <= pgpRxOut(0).fcValid;
 
@@ -391,16 +355,16 @@ begin
          )
       port map (
          -- Streaming Slave (Rx) Interface (sAxisClk domain)
-         sAxisClk         => pgpRxClk(SFP_INDEX_C),
-         sAxisRst         => pgpRxRst(SFP_INDEX_C),
-         sAxisMaster      => pgpRxMasters(SFP_INDEX_C)(0),
-         sAxisSlave       => pgpRxSlaves(SFP_INDEX_C)(0),
-         sAxisCtrl        => pgpRxCtrl(SFP_INDEX_C)(0),
+         sAxisClk         => fcClk185Loc,
+         sAxisRst         => fcRst185Loc,
+         sAxisMaster      => pgpRxMasters(0),
+         sAxisSlave       => pgpRxSlaves(0),
+         sAxisCtrl        => pgpRxCtrl(0),
          -- Streaming Master (Tx) Data Interface (mAxisClk domain)
-         mAxisClk         => pgpTxClk(SFP_INDEX_C),
-         mAxisRst         => pgpTxRst(SFP_INDEX_C),
-         mAxisMaster      => pgpTxMasters(SFP_INDEX_C)(0),
-         mAxisSlave       => pgpTxSlaves(SFP_INDEX_C)(0),
+         mAxisClk         => pgpTxClk,
+         mAxisRst         => pgpTxRst,
+         mAxisMaster      => pgpTxMasters(0),
+         mAxisSlave       => pgpTxSlaves(0),
          -- AXI Lite Bus (axiLiteClk domain)
          axilClk          => axilClk,
          axilRst          => axilRst,
@@ -409,7 +373,7 @@ begin
          mAxilReadMaster  => mAxilReadMaster,
          mAxilReadSlave   => mAxilReadSlave);
 
-   -- Lane 0, VC1 TX, streaming data out
+   -- VC1 TX, streaming data out
    -- Large synchronous FIFO to buffer data
    U_AxiStreamFifoV2_1 : entity surf.AxiStreamFifoV2
       generic map (
@@ -464,14 +428,14 @@ begin
          SLAVE_AXI_CONFIG_G     => EVENT_SSI_CONFIG_C,
          MASTER_AXI_CONFIG_G    => PGP2FC_AXIS_CONFIG_C)
       port map (
-         sAxisClk    => dataClk,                       -- [in]
-         sAxisRst    => dataRst,                       -- [in]
-         sAxisMaster => buffDataAxisMaster,            -- [in]
-         sAxisSlave  => buffDataAxisSlave,             -- [out]
-         mAxisClk    => pgpTxClk(SFP_INDEX_C),         -- [in]
-         mAxisRst    => pgpTxRst(SFP_INDEX_C),         -- [in]
-         mAxisMaster => pgpTxMasters(SFP_INDEX_C)(1),  -- [out]
-         mAxisSlave  => pgpTxSlaves(SFP_INDEX_C)(1));  -- [in]
+         sAxisClk    => dataClk,             -- [in]
+         sAxisRst    => dataRst,             -- [in]
+         sAxisMaster => buffDataAxisMaster,  -- [in]
+         sAxisSlave  => buffDataAxisSlave,   -- [out]
+         mAxisClk    => pgpTxClk,            -- [in]
+         mAxisRst    => pgpTxRst,            -- [in]
+         mAxisMaster => pgpTxMasters(1),     -- [out]
+         mAxisSlave  => pgpTxSlaves(1));     -- [in]
 
 
    -- Small async fifo to transition to PGPFC clock
@@ -494,14 +458,14 @@ begin
          SLAVE_AXI_CONFIG_G     => PGP2FC_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G    => PGP2FC_AXIS_CONFIG_C)
       port map (
-         sAxisClk    => axilClk,                       -- [in]
-         sAxisRst    => axilRst,                       -- [in]
-         sAxisMaster => waveformAxisMaster,            -- [in]
-         sAxisSlave  => waveformAxisSlave,             -- [out]
-         mAxisClk    => pgpTxClk(SFP_INDEX_C),         -- [in]
-         mAxisRst    => pgpTxRst(SFP_INDEX_C),         -- [in]
-         mAxisMaster => pgpTxMasters(SFP_INDEX_C)(2),  -- [out]
-         mAxisSlave  => pgpTxSlaves(SFP_INDEX_C)(2));  -- [in]
+         sAxisClk    => axilClk,             -- [in]
+         sAxisRst    => axilRst,             -- [in]
+         sAxisMaster => waveformAxisMaster,  -- [in]
+         sAxisSlave  => waveformAxisSlave,   -- [out]
+         mAxisClk    => pgpTxClk,            -- [in]
+         mAxisRst    => pgpTxRst,            -- [in]
+         mAxisMaster => pgpTxMasters(2),     -- [out]
+         mAxisSlave  => pgpTxSlaves(2));     -- [in]
 
 
 end rtl;
