@@ -25,11 +25,13 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
-library ldmx;
-use ldmx.FcPkg.all;
-
 library axi_pcie_core;
 use axi_pcie_core.AxiPciePkg.all;
+
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
+
+library ldmx_tracker;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -271,7 +273,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Fast Control Receiver
    -------------------------------------------------------------------------------------------------
-   U_FcReceiver_1 : entity ldmx.FcReceiver
+   U_FcReceiver_1 : entity ldmx_tdaq.FcReceiver
       generic map (
          TPD_G            => TPD_G,
          SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
@@ -303,12 +305,12 @@ begin
    -- PGP Interface to FEBs
    -- Stream Lanes Tied to DMA
    -------------------------------------------------------------------------------------------------
-   U_FebPgpArray : entity ldmx.TrackerPgpFcArray
+   U_FebPgpArray : entity ldmx_tracker.TrackerPgpFcArray
       generic map (
          TPD_G             => TPD_G,
          SIM_SPEEDUP_G     => SIM_SPEEDUP_G,
          DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
-         PGP_QUADS_G       => 2,
+         PGP_QUADS_G       => PGP_QUADS_G,
          AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_C,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(FEB_PGP_AXIL_C).baseAddr)
       port map (
@@ -356,10 +358,10 @@ begin
    end generate GEN_FEB_REFCLK;
 
    -- Unused GTs
-   qsfpTxP(23 downto 16) <= febPgpFcTxP;
-   qsfpTxN(23 downto 16) <= febPgpFcTxN;
-   febPgpFcRxP           <= qsfpRxP(23 downto 16);
-   febPgpFcRxN           <= qsfpRxN(23 downto 16);
+   qsfpTxP(PGP_QUADS_G*4+15 downto 16) <= febPgpFcTxP;
+   qsfpTxN(PGP_QUADS_G*4+15 downto 16) <= febPgpFcTxN;
+   febPgpFcRxP           <= qsfpRxP(PGP_QUADS_G*4+15 downto 16);
+   febPgpFcRxN           <= qsfpRxN(PGP_QUADS_G*4+15 downto 16);
 
    GEN_CLK_BUF : for i in 1 downto 0 generate
       U_ClkOutBufDiff_1 : entity surf.ClkOutBufDiff

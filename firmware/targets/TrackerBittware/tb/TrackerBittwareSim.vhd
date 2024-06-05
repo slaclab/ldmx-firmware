@@ -26,7 +26,7 @@ use surf.SsiPkg.all;
 library ruckus;
 use ruckus.BuildInfoPkg.all;
 
-library ldmx;
+library ldmx_tracker;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -85,10 +85,22 @@ architecture sim of TrackerBittwareSim is
    signal fcRefClk185N    : sl;
 
 
+
 begin
+   
+   fcTxP <= qsfpTxP(0);
+   fcTxN <= qsfpTxN(0);
+   qsfpRxP(0) <= fcRxP;
+   qsfpRxN(0) <= fcRxN;
+
+   febPgpFcTxP(PGP_QUADS_G*4-1 downto 0) <= qsfpTxP(PGP_QUADS_G*4+15 downto 16);
+   febPgpFcTxN(PGP_QUADS_G*4-1 downto 0) <= qsfpTxN(PGP_QUADS_G*4+15 downto 16);
+   qsfpRxP(PGP_QUADS_G*4+15 downto 16) <= febPgpFcRxP(PGP_QUADS_G*4-1 downto 0);
+   qsfpRxN(PGP_QUADS_G*4+15 downto 16) <= febPgpFcRxN(PGP_QUADS_G*4-1 downto 0);   
+   
 
    -- FPGA 
-   U_TrackerBittware_1 : entity ldmx.TrackerBittware
+   U_TrackerBittware_1 : entity ldmx_tracker.TrackerBittware
       generic map (
          TPD_G                => TPD_G,
          SIM_SPEEDUP_G        => SIM_SPEEDUP_G,
@@ -123,14 +135,14 @@ begin
    -- Fast Control Refclk
    U_ClkRst_REFCLK : entity surf.ClkRst
       generic map (
-         CLK_PERIOD_G      => 5.3846 ns,  -- 185.714285 MHz = 5.3846 ns
+         CLK_PERIOD_G      => 5.3848 ns,  -- 185.714285 MHz = 5.3846 ns
          CLK_DELAY_G       => 1 ns,
          RST_START_DELAY_G => 0 ns,
          RST_HOLD_TIME_G   => 5 us,
          SYNC_RESET_G      => true)
       port map (
          clkP => fcRefClk185P,
-         clkN => fcRefClk185));
+         clkN => fcRefClk185N);
 
    -- FC is on quad 0
    qsfpRefClkP(0) <= fcRefClk185P;

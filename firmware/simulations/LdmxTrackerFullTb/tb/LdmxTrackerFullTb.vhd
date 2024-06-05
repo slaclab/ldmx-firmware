@@ -24,7 +24,7 @@ use surf.StdRtlPkg.all;
 library ruckus;
 use ruckus.BuildInfoPkg.all;
 
-library ldmx;
+library ldmx_tracker;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -52,10 +52,10 @@ architecture sim of LdmxTrackerFullTb is
    constant APVS_PER_HYBRID_G : integer := 6;
 
    -- component ports
-   signal febQsfpGtTxP : slv4Array(NUM_FEBS_C-1 downto 0) := (others => '0');  -- [out]
-   signal febQsfpGtTxN : slv4Array(NUM_FEBS_C-1 downto 0) := (others => '0');  -- [out]
-   signal febQsfpGtRxP : slv4Array(NUM_FEBS_C-1 downto 0) := (others => '0');  -- [in]
-   signal febQsfpGtRxN : slv4Array(NUM_FEBS_C-1 downto 0) := (others => '0');  -- [in]
+   signal febQsfpGtTxP : slv4Array(NUM_FEBS_C-1 downto 0) := (others => (others => '0'));  -- [out]
+   signal febQsfpGtTxN : slv4Array(NUM_FEBS_C-1 downto 0) := (others => (others => '0'));  -- [out]
+   signal febQsfpGtRxP : slv4Array(NUM_FEBS_C-1 downto 0) := (others => (others => '0'));  -- [in]
+   signal febQsfpGtRxN : slv4Array(NUM_FEBS_C-1 downto 0) := (others => (others => '0'));  -- [in]
 
    -------------------------------------------------------------------------------------------------
    -- Bittware generics and signals
@@ -76,7 +76,7 @@ architecture sim of LdmxTrackerFullTb is
 
 begin
 
-   U_TrackerBittwareSim_1 : entity ldmx.TrackerBittwareSim
+   U_TrackerBittwareSim_1 : entity ldmx_tracker.TrackerBittwareSim
       generic map (
          TPD_G                => TPD_G,
          BUILD_INFO_G         => BUILD_INFO_G,
@@ -97,7 +97,7 @@ begin
    -- Loop back fast control for now
    fcRxP <= fcTxP;
    fcRxN <= fcTxN;
-   
+
 
    -- component instantiation
    GEN_FEBS : for feb in NUM_FEBS_C-1 downto 0 generate
@@ -105,9 +105,9 @@ begin
       febQsfpGtRxN(feb)(0) <= febPgpFcTxN(feb);
 
       febPgpFcRxP(feb) <= febQsfpGtTxP(feb)(0);
-      febPgpFcRxN(feb) <= febQsfpGtTxN(feb)(0);      
-      
-      U_LdmxFebSim : entity ldmx.LdmxFebSim
+      febPgpFcRxN(feb) <= febQsfpGtTxN(feb)(0);
+
+      U_LdmxFebSim : entity ldmx_tracker.LdmxFebSim
          generic map (
             TPD_G             => TPD_G,
             BUILD_INFO_G      => BUILD_INFO_G,

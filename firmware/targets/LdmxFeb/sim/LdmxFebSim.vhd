@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-10-22
--- Last update: 2024-05-01
+-- Last update: 2024-05-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,7 +23,7 @@ use surf.StdRtlPkg.all;
 library ruckus;
 use ruckus.BuildInfoPkg.all;
 
-library ldmx;
+library ldmx_tracker;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -97,7 +97,7 @@ architecture sim of LdmxFebSim is
 begin
 
 
-   U_LdmxFeb_1 : entity ldmx.LdmxFeb
+   U_LdmxFeb_1 : entity ldmx_tracker.LdmxFeb
       generic map (
          TPD_G                => TPD_G,
          BUILD_INFO_G         => BUILD_INFO_G,
@@ -158,7 +158,7 @@ begin
          leds           => leds);           -- [out]
 
 
-   U_LdmxFebBoardModel_1 : entity ldmx.LdmxFebBoardModel
+   U_LdmxFebBoardModel_1 : entity ldmx_tracker.LdmxFebBoardModel
       generic map (
          TPD_G             => TPD_G,
          ADCS_G            => ADCS_G,

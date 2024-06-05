@@ -25,15 +25,18 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
-use surf.SsiPkg.all;
-use surf.SsiCmdMasterPkg.all;
-use surf.I2cPkg.all;
-use surf.Pgp2bPkg.all;
-use surf.Ad9249Pkg.all;
+-- use surf.SsiPkg.all;
+-- use surf.SsiCmdMasterPkg.all;
+ use surf.I2cPkg.all;
+-- use surf.Pgp2bPkg.all;
+-- use surf.Ad9249Pkg.all;
 
-library ldmx;
-use ldmx.LdmxPkg.all;
-use ldmx.FcPkg.all;
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
+
+library ldmx_tracker;
+use ldmx_tracker.LdmxPkg.all;
+
 
 entity LdmxFeb is
 
@@ -138,20 +141,20 @@ architecture rtl of LdmxFeb is
    -------------------------------------------------------------------------------------------------
    -- Clock Signals
    -------------------------------------------------------------------------------------------------
-   signal gtRefClk250Div2 : sl;
-   signal userRefClk125 : sl;
-   signal userRefRst125 : sl;
-   signal userRefClk185 : sl;
-   signal userRefRst185 : sl;
+   signal gtRefClk250Div2 : sl := '0';
+   signal userRefClk125 : sl := '0';
+   signal userRefRst125 : sl := '0';
+   signal userRefClk185 : sl := '0';
+   signal userRefRst185 : sl := '0';
 
-   signal axilClk : sl;
-   signal axilRst : sl;
+   signal axilClk : sl := '0';
+   signal axilRst : sl := '0';
 
-   signal fcClk185     : sl;
-   signal fcRst185     : sl;
+   signal fcClk185     : sl := '0';
+   signal fcRst185     : sl := '0';
    signal fcBus : FcBusType;
-   signal fcBunchClk37 : sl;
-   signal fcBunchRst37 : sl;
+   signal fcBunchClk37 : sl := '0';
+   signal fcBunchRst37 : sl := '0';
 
    -------------------------------------------------------------------------------------------------
    -- PGP 
@@ -322,7 +325,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- PGP Interface
    -------------------------------------------------------------------------------------------------
-   U_LdmxFebPgp_1 : entity ldmx.LdmxFebPgp
+   U_LdmxFebPgp_1 : entity ldmx_tracker.LdmxFebPgp
       generic map (
          TPD_G                => TPD_G,
          SIM_SPEEDUP_G        => SIMULATION_G,
@@ -392,7 +395,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Front End Core
    -------------------------------------------------------------------------------------------------
-   U_FebCore_1 : entity ldmx.FebCore
+   U_FebCore_1 : entity ldmx_tracker.FebCore
       generic map (
          TPD_G             => TPD_G,
          SIMULATION_G      => SIMULATION_G,
@@ -426,7 +429,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- FEB Hardware
    -------------------------------------------------------------------------------------------------
-   U_LdmxFebHw_1 : entity ldmx.LdmxFebHw
+   U_LdmxFebHw_1 : entity ldmx_tracker.LdmxFebHw
       generic map (
          TPD_G             => TPD_G,
          BUILD_INFO_G      => BUILD_INFO_G,

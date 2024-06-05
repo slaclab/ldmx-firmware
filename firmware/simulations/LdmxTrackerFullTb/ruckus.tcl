@@ -10,19 +10,20 @@ loadRuckusTcl $::env(TOP_DIR)/submodules/axi-pcie-core/hardware/BittWareXupVv8
 
 
 # LDMX Common
-loadRuckusTcl $::env(TOP_DIR)/common
+loadRuckusTcl $::env(TOP_DIR)/common/tdaq
+loadRuckusTcl $::env(TOP_DIR)/common/tracker
 
 # Target tops
-loadSource           -lib ldmx -dir "$::env(TOP_DIR)/targets/LdmxFeb/rtl"
-loadSource -sim_only -lib ldmx -dir "$::env(TOP_DIR)/targets/LdmxFeb/sim"
+loadSource           -lib ldmx_tracker -dir "$::env(TOP_DIR)/targets/LdmxFeb/rtl"
+loadSource -sim_only -lib ldmx_tracker -dir "$::env(TOP_DIR)/targets/LdmxFeb/sim"
 
 #loadIpCore      -path "$::env(TOP_DIR)/targets/LdmxFeb/ip/LdmxFebSysmon/LdmxFebSysmon.xci"
 
 #loadConstraints      -dir "$::DIR_PATH/xdc"
 #loadSource -sim_only -lib ldmx -dir "$::DIR_PATH/tb"
 
-loadSource           -lib ldmx -dir "$::env(TOP_DIR)/targets/TrackerPcieBittware/hdl"
-loadSource -sim_only -lib ldmx -dir "$::env(TOP_DIR)/targets/TrackerPcieBittware/tb"
+loadSource           -lib ldmx_tracker -dir "$::env(TOP_DIR)/targets/TrackerBittware/hdl"
+loadSource -sim_only -lib ldmx_tracker -dir "$::env(TOP_DIR)/targets/TrackerBittware/tb"
 
 
 # Load target's source code and constraints

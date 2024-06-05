@@ -27,8 +27,11 @@ use surf.AxiStreamPkg.all;
 library lcls_timing_core;
 use lcls_timing_core.TimingPkg.all;
 
-library ldmx;
-use ldmx.FcPkg.all;
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
+
+library ldmx_ts;
+
 
 entity S30xlAPx is
 
@@ -231,7 +234,7 @@ begin
    -- Provides AXI-Stream for DAQ data
    -- Outputs AXIL clock
    -------------------------------------------------------------------------------------------------
-   U_TenGigEthGtyCore_1 : entity ldmx.TenGigEthGtyCore
+   U_TenGigEthGtyCore_1 : entity ldmx_ts.S30xlEthCore
       generic map (
          TPD_G               => TPD_G,
          SIMULATION_G        => SIMULATION_G,
@@ -298,7 +301,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Timing Hub
    -------------------------------------------------------------------------------------------------
-   U_FcHub_1 : entity ldmx.FcHub
+   U_FcHub_1 : entity ldmx_tdaq.FcHub
       generic map (
          TPD_G             => TPD_G,
          SIM_SPEEDUP_G     => SIMULATION_G,
@@ -330,11 +333,21 @@ begin
          axilWriteMaster      => locAxilWriteMasters(AXIL_FC_HUB_C),  -- [in]
          axilWriteSlave       => locAxilWriteSlaves(AXIL_FC_HUB_C));  -- [out]
 
+   GEN_LCLS_CLK_OUT : for i in 1 downto 0 generate
+      U_ClkOutBufDiff_2 : entity surf.ClkOutBufDiff
+         generic map (
+            TPD_G        => TPD_G,
+            XIL_DEVICE_G => "ULTRASCALE_PLUS")
+         port map (
+            clkIn   => lclsTimingClk,             -- [in]
+            clkOutP => lclsTimingRecClkOutP(i),   -- [out]
+            clkOutN => lclsTimingRecClkOutN(i));  -- [out]
+   end generate GEN_LCLS_CLK_OUT;
 
    -------------------------------------------------------------------------------------------------
    -- S30XL Application Core
    -------------------------------------------------------------------------------------------------
-   U_S30xlAppCore_1 : entity ldmx.S30xlAppCore
+   U_S30xlAppCore_1 : entity ldmx_ts.S30xlAppCore
       generic map (
          TPD_G            => TPD_G,
          TS_LANES_G       => TS_LANES_G,
