@@ -333,6 +333,16 @@ begin
          axilWriteMaster      => locAxilWriteMasters(AXIL_FC_HUB_C),  -- [in]
          axilWriteSlave       => locAxilWriteSlaves(AXIL_FC_HUB_C));  -- [out]
 
+   GEN_LCLS_CLK_OUT : for i in 1 downto 0 generate
+      U_ClkOutBufDiff_2 : entity surf.ClkOutBufDiff
+         generic map (
+            TPD_G        => TPD_G,
+            XIL_DEVICE_G => "ULTRASCALE_PLUS")
+         port map (
+            clkIn   => lclsTimingClk,             -- [in]
+            clkOutP => lclsTimingRecClkOutP(i),   -- [out]
+            clkOutN => lclsTimingRecClkOutN(i));  -- [out]
+   end generate GEN_LCLS_CLK_OUT;
 
    -------------------------------------------------------------------------------------------------
    -- S30XL Application Core
