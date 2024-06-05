@@ -75,6 +75,11 @@ set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks appFcRxOutClk] \
     -group [get_clocks appFcRefClk]
 
+set_clock_groups -asynchronous \
+    -group [get_clocks -include_generated_clocks appFcRxOutClk] \
+    -group [get_clocks tsRxOutClk0] \
+    -group [get_clocks tsRxOutClk1] 
+
 #Ethernet Clocks
 set_clock_groups -asynchronous \
     -group [get_clocks ethRefClk156]    
