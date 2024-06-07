@@ -94,6 +94,9 @@ begin
          febPgpFcTxP => febPgpFcTxP,    -- [out]
          febPgpFcTxN => febPgpFcTxN);   -- [out]
 
+--    febPgpFcRxP <= febPgpFcTxP;
+--    febPgpFcRxN <= febPgpFcTxN;   
+
    -- Loop back fast control for now
    fcRxP <= fcTxP;
    fcRxN <= fcTxN;
@@ -122,6 +125,8 @@ begin
             qsfpGtRxN => febQsfpGtRxN(feb));  -- [in]
    end generate GEN_FEBS;
 
+--    febQsfpGtRxP <= febQsfpGtTxP;
+--    febQsfpGtRxN <= febQsfpGtTxN;   
 
 end architecture sim;
 

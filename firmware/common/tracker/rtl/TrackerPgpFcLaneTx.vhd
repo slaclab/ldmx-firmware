@@ -42,8 +42,8 @@ entity TrackerPgpFcLaneTx is
       pgpTxRst     : in  sl;
       pgpRxOut     : in  Pgp2fcRxOutType;
       pgpTxOut     : in  Pgp2fcTxOutType;
-      pgpTxMasters : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
-      pgpTxSlaves  : in  AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0));
+      pgpTxMasters : out AxiStreamMasterArray(3 downto 0);
+      pgpTxSlaves  : in  AxiStreamSlaveArray(3 downto 0));
 end TrackerPgpFcLaneTx;
 
 architecture mapping of TrackerPgpFcLaneTx is
@@ -139,10 +139,10 @@ begin
    U_DeMux : entity surf.AxiStreamDeMux
       generic map (
          TPD_G         => TPD_G,
-         NUM_MASTERS_G => NUM_VC_EN_G,
+         NUM_MASTERS_G => 4,
          MODE_G        => "INDEXED",
          PIPE_STAGES_G => 1,
-         TDEST_HIGH_G  => NUM_VC_EN_G-1, -- TO-DO: is this correct?
+         TDEST_HIGH_G  => 3, -- TO-DO: is this correct?
          TDEST_LOW_G   => 0)
       port map (
          -- Clock and reset

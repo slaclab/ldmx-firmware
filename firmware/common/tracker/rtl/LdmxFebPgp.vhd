@@ -110,9 +110,9 @@ architecture rtl of LdmxFebPgp is
    -------------------------------------------------------------------------------------------------
    -- PGP
    -------------------------------------------------------------------------------------------------
-   constant NUM_AXIL_C  : integer := 3;
-   constant FC_INDEX_C  : integer := 0;
-   constant SIM_INDEX_C : integer := 1;
+   constant NUM_AXIL_C         : integer := 3;
+   constant FC_INDEX_C         : integer := 0;
+   constant SIM_INDEX_C        : integer := 1;
    constant FC_RX_LOGIC_AXIL_C : integer := 2;
 
 
@@ -121,16 +121,16 @@ architecture rtl of LdmxFebPgp is
    signal fcRst185Loc  : sl;
    signal pgpRxIn      : Pgp2fcRxInType                   := PGP2FC_RX_IN_INIT_C;
    signal pgpRxOut     : Pgp2fcRxOutType                  := PGP2FC_RX_OUT_INIT_C;
-   signal pgpRxMasters : AxiStreamMasterArray(2 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal pgpRxCtrl    : AxiStreamCtrlArray(2 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
-   signal pgpRxSlaves  : AxiStreamSlaveArray(2 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal pgpRxMasters : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal pgpRxCtrl    : AxiStreamCtrlArray(3 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+   signal pgpRxSlaves  : AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
 
    signal pgpTxClk     : sl;
    signal pgpTxRst     : sl;
    signal pgpTxIn      : Pgp2fcTxInType                   := PGP2FC_TX_IN_INIT_C;
    signal pgpTxOut     : Pgp2fcTxOutType                  := PGP2FC_TX_OUT_INIT_C;
-   signal pgpTxMasters : AxiStreamMasterArray(2 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal pgpTxSlaves  : AxiStreamSlaveArray(2 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal pgpTxMasters : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal pgpTxSlaves  : AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
 
    signal buffDataAxisMaster : AxiStreamMasterType;
    signal buffDataAxisSlave  : AxiStreamSlaveType;
@@ -196,6 +196,8 @@ begin
          port map (
             fcRefClk185P    => gtRefClk185P,                     -- [in]
             fcRefClk185N    => gtRefClk185N,                     -- [in]
+            fcRefClk185G    => userRefClk185,                    -- [out]
+            fcRefRst185     => userRefRst185,                    -- [out]
             fcRecClkP       => open,                             -- [out]
             fcRecClkN       => open,                             -- [out]
             fcTxP           => pgpGtTxP,                         -- [out]

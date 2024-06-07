@@ -53,16 +53,16 @@ entity LdmxPgpFcLane is
       pgpRxOutClk     : out sl;
       pgpRxIn         : in  Pgp2fcRxInType                               := PGP2FC_RX_IN_INIT_C;
       pgpRxOut        : out Pgp2fcRxOutType;
-      pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      pgpRxCtrl       : in  AxiStreamCtrlArray(NUM_VC_EN_G-1 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+      pgpRxMasters    : out AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpRxCtrl       : in  AxiStreamCtrlArray(3 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
       -- Tx Interface
       pgpTxRst        : in  sl                                           := '0';
       pgpTxOutClk     : out sl;
       pgpTxUsrClk     : in  sl;
       pgpTxIn         : in  Pgp2fcTxInType                               := PGP2FC_TX_IN_INIT_C;
       pgpTxOut        : out Pgp2fcTxOutType;
-      pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      pgpTxSlaves     : out AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
+      pgpTxMasters    : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpTxSlaves     : out AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -94,9 +94,7 @@ architecture rtl of LdmxPgpFcLane is
    signal pgpRxOutGt : Pgp2fcRxOutType;
 
    signal pgpTxSlavesGt  : AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
-   signal pgpTxMastersGt : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
    signal pgpRxMastersGt : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal pgpRxCtrlGt    : AxiStreamCtrlArray(3 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
 
    signal pgpTxResetDone : sl;
 
@@ -180,11 +178,11 @@ begin
          pgpTxIn           => pgpTxInGt,                     -- [in]
          pgpTxOut          => pgpTxOutGt,                    -- [out]
          -- Frame Transmit Interface
-         pgpTxMasters      => pgpTxMastersGt,                -- [in]
+         pgpTxMasters      => pgpTxMasters,                -- [in]
          pgpTxSlaves       => pgpTxSlavesGt,                 -- [out]
          -- Frame Receive Interface
          pgpRxMasters      => pgpRxMastersGt,                -- [out]
-         pgpRxCtrl         => pgpRxCtrlGt,                   -- [in]
+         pgpRxCtrl         => pgpRxCtrl,                   -- [in]
          -- AXI-Lite Interface
          axilClk           => axilClk,                       -- [in]
          axilRst           => axilRst,                       -- [in]
@@ -196,12 +194,8 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Tie Streaming IO to PGP module
    -------------------------------------------------------------------------------------------------
-   GEN_STREAM : for i in NUM_VC_EN_G-1 downto 0 generate
-      pgpTxMastersGt(i) <= pgpTxMasters(i);
-      pgpTxSlaves(i)    <= pgpTxSlavesGt(i);
-      pgpRxMasters(i)   <= pgpRxMastersGt(i);
-      pgpRxCtrlGt(i)    <= pgpRxCtrl(i);
-   end generate GEN_STREAM;
+   pgpTxSlaves <= pgpTxSlavesGt;
+   pgpRxMasters <= pgpRxMastersGt;
 
    RX_CLK_MMCM_GEN : if (RX_CLK_MMCM_G) generate
       U_ClockManager : entity surf.ClockManagerUltraScale
