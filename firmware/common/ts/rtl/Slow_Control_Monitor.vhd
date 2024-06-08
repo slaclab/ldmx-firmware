@@ -24,7 +24,9 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 use IEEE.STD_LOGIC_1164.ALL;
-use work.zCCM_Pkg.ALL;
+
+library ldmx_ts;
+use ldmx_ts.zCCM_Pkg.ALL;
 
 entity Slow_Control_Monitor is
     Port ( 

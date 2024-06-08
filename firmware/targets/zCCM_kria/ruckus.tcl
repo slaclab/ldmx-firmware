@@ -1,7 +1,8 @@
 #load RUCKUS environment and library
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
-loadRuckusTcl $::env(TOP_DIR)/common/ts
+#loadRuckusTcl $::env(TOP_DIR)/common/ts
+loadSource -lib ldmx_ts -dir "$::env(TOP_DIR)/common/ts/rtl/"
 
 loadSource -path "$::DIR_PATH/rtl/zCCM_kria.vhd"
 loadSource -sim_only -path "$::DIR_PATH/sim/zCCM_kria_tb.vhd"
