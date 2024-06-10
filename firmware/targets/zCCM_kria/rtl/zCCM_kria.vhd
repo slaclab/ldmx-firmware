@@ -22,6 +22,15 @@ use IEEE.STD_LOGIC_1164.ALL;
 library ldmx_ts;
 use ldmx_ts.zCCM_Pkg.ALL;
 
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2FcPkg.all;
+
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
+
 entity zCCM_kria is
     Port (
           -- clock pins to RMs
@@ -38,16 +47,16 @@ entity zCCM_kria is
           -- clock pins to ASICs
           BEAMCLK_P               : out    STD_LOGIC;
           BEAMCLK_N               : out    STD_LOGIC;
-          --CLKGEN_MGTCLK_AC_P      : in  STD_LOGIC;  -- for FC RX 
-          --CLKGEN_MGTCLK_AC_N      : in  STD_LOGIC;  -- for FC RX
+          CLKGEN_MGTCLK_AC_P      : in  STD_LOGIC;  -- for FC RX 
+          CLKGEN_MGTCLK_AC_N      : in  STD_LOGIC;  -- for FC RX
           CLKGEN_CLK0_TO_SOC_AC_P : in  STD_LOGIC;
           CLKGEN_CLK0_TO_SOC_AC_N : in  STD_LOGIC; 
           CLKGEN_CLK1_TO_SOC_AC_P : in  STD_LOGIC;
           CLKGEN_CLK1_TO_SOC_AC_N : in  STD_LOGIC;
           SOC_CLKREF_TO_CLKGEN_P  : out    STD_LOGIC;
           SOC_CLKREF_TO_CLKGEN_N  : out    STD_LOGIC;
-          --MGTREFCLK1_AC_P         : in  STD_LOGIC; -- for FC TX
-          --MGTREFCLK1_AC_N         : in  STD_LOGIC; -- for FC TX
+          MGTREFCLK1_AC_P         : in  STD_LOGIC; -- for FC TX
+          MGTREFCLK1_AC_N         : in  STD_LOGIC; -- for FC TX
           SYNTH_TO_SOC_AC_P       : in STD_LOGIC;
           SYNTH_TO_SOC_AC_N       : in STD_LOGIC;
 
@@ -157,6 +166,59 @@ architecture Behavioral of zCCM_kria is
       );
     end component;
 
+    -- component definition for FC receiver    
+    component FcReceiver
+
+      generic (
+                TPD_G            : time                 := 1 ns;
+                SIM_SPEEDUP_G    : boolean              := false;
+                NUM_VC_EN_G      : integer range 0 to 4 := 0;
+                GEN_FC_EMU_G     : boolean              := true;
+                AXIL_CLK_FREQ_G  : real                 := 156.25e6;
+                AXIL_BASE_ADDR_G : slv(31 downto 0)     := (others => '0'));
+      port (
+      -- Reference clock
+      fcRefClk185P : in  sl;
+      fcRefClk185N : in  sl;
+      -- Output Recovered Clock
+      fcRecClkP    : out sl;
+      fcRecClkN    : out sl;
+      -- PGP serial IO
+      fcTxP        : out sl;
+      fcTxN        : out sl;
+      fcRxP        : in  sl;
+      fcRxN        : in  sl;
+
+      -- RX FC and PGP interface
+      fcClk185     : out sl;
+      fcRst185     : out sl;
+      fcBus        : out FcBusType;
+      fcBunchClk37 : out sl;
+      fcBunchRst37 : out sl;
+      pgpRxIn      : in  Pgp2fcRxInType                               := PGP2FC_RX_IN_INIT_C;
+      pgpRxOut     : out Pgp2fcRxOutType;
+      pgpRxMasters : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_EN_G-1 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+
+      -- TX FC and PGP interface
+      txClk185     : out sl;
+      txRst185     : out sl;
+      -- fcFb         : in  FcFeedbackType;
+      pgpTxIn      : in  Pgp2fcTxInType                               := PGP2FC_TX_IN_INIT_C;
+      pgpTxOut     : out Pgp2fcTxOutType;
+      pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
+
+      -- Axil inteface
+      axilClk         : in  sl;
+      axilRst         : in  sl;
+      axilReadMaster  : in  AxiLiteReadMasterType;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
+
+    end component;
+    
     -- component definition for monitoring SFP bits
     component SFP_Monitor
         Port ( 
@@ -168,7 +230,7 @@ architecture Behavioral of zCCM_kria is
     end component;
 
     -- component definition for monitoring Clock bits
-    component Clock_Monitor is
+    component Clock_Monitor
         Port ( 
             clk_con      : in  Clock_Control ;
             counter      : out STD_LOGIC_VECTOR (15 downto 0); 
@@ -178,7 +240,7 @@ architecture Behavioral of zCCM_kria is
     end component;
 
     -- component definition for monitoring RM PGOOD
-    component RM_Monitor is
+    component RM_Monitor 
         Port ( 
             rm_con      : in  RM_Control ;
             counter      : out STD_LOGIC_VECTOR (7 downto 0); 
@@ -412,6 +474,57 @@ begin
             reset_n=> reset_n
         );
 
+
+    -- - - - - - - - - - - - - - - - - - - - - -
+    -- Wrapper for block diagram, which contains
+    -- zynqmp and axi peripheral blocks such as 
+    -- gpio and i2c interfaces
+    -- - - - - - - - - - - - - - - - - - - - - -
+
+    fcrec_1 : FcReceiver         
+      port map(
+        -- Reference clock
+        fcRefClk185P => ,
+        fcRefClk185N => ,
+        -- Output Recovered Clock
+        fcRecClkP    => ,
+        fcRecClkN    => ,
+        -- PGP serial IO
+        fcTxP        => ,
+        fcTxN        => ,
+        fcRxP        => ,
+        fcRxN        => ,
+
+        -- RX FC and PGP interface
+        fcClk185     => ,
+        fcRst185     => ,
+        fcBus        => ,
+        fcBunchClk37 => ,
+        fcBunchRst37 => ,
+        pgpRxIn      => ,
+        pgpRxOut     => ,
+        pgpRxMasters => ,
+        pgpRxCtrl    => ,
+
+        -- TX FC and PGP interface
+        txClk185     => ,
+        txRst185     => ,
+        -- fcFb 
+        pgpTxIn      => ,
+        pgpTxOut     => ,
+        pgpTxMasters => ,
+        pgpTxSlaves  => ,
+        
+        -- Axil inteface
+        axilClk         => ,
+        axilRst         => ,
+        axilReadMaster  => ,
+        axilReadSlave   => ,
+        axilWriteMaster => ,
+        axilWriteSlave  => 
+      );
+
+    
     -- - - - - - - - - - - - - - - - - - - - - -
     -- Wrapper for block diagram, which contains
     -- zynqmp and axi peripheral blocks such as 
