@@ -37,16 +37,18 @@ class LdmxFeb(pr.Device):
             enabled=True
         ))
 
-        self.add(ldmx_tracker.LdmxFebHw(
-            numHybrids = numHybrids,
-            febCore = self.FebCore,
-            expand = True,
-            offset = 0x10000000))
-
         self.add(ldmx_tracker.LdmxFebPgp(
             offset=0x20000000,
             sim=sim,
             enabled=True))
+        
+        self.add(ldmx_tracker.LdmxFebHw(
+            numHybrids = numHybrids,
+            febCore = self.FebCore,
+            febPgp = self.LdmxFebPgp,
+            expand = True,
+            offset = 0x10000000))
+        
 
     def enableChanged(self, value):
         if value is True:

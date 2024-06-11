@@ -8,7 +8,7 @@ import rogue
 import ldmx_tracker
 
 class LdmxFebRoot(pr.Root):
-    def __init__(self, sim=False, emu=True, numFebs=6, pgp_quads=2, **kwargs):
+    def __init__(self, sim=True, emu=False, numFebs=1, pgp_quads=2, **kwargs):
         super().__init__(pollEn=False, timeout=100000, **kwargs)
 
         if sim is True:
@@ -28,7 +28,7 @@ class LdmxFebRoot(pr.Root):
                 stream == srp
 
             # connect debugs
-            for index, debug, stream in enumerate(zip(dataDebug, self.febDataStreams)):
+            for index, (debug, stream) in enumerate(zip(dataDebug, self.febDataStreams)):
                 debug.setDebug(100, f'EventStream[{index}]')
                 stream >> debug
             

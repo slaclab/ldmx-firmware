@@ -46,10 +46,10 @@ class PhaseShift(pr.Device):
         else:
             # Pull CM reset high
             self.rx.FcClkRst.set(1)
-        
+
             # Set POWER register for reprogramming
             self.CM.POWER.set(0xFFFF)
-        
+
             # Write the blocks in hardware (other than POWER)
             if variable is not None:
                 pr.startTransaction(variable._block, type=rim.Write, variable=variable, **kwargs)
@@ -57,7 +57,7 @@ class PhaseShift(pr.Device):
                 for block in self.CM._blocks:
                     if block.bulkOpEn:
                         pr.startTransaction(block, type=rim.Write, **kwargs)
-            
+
             # Bring CM reset back low
             self.rx.FcClkRst.set(0)
 

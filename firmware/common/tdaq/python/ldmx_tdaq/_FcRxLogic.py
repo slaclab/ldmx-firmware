@@ -28,7 +28,7 @@ class FcRxLogic(pr.Device):
             bitSize = 80))
 
         self.add(pr.RemoteVariable(
-            name = 'fcClkRst',
+            name = 'FcClkRst',
             description = 'Hold the recovered bunch clock reset high',
             base = pr.Bool,
             offset = 0x24,

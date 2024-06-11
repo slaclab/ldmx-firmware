@@ -7,7 +7,7 @@ import surf.xilinx
 import ldmx_tracker
 
 class LdmxFebHw(pr.Device):
-    def __init__(self, numHybrids, febCore, **kwargs):
+    def __init__(self, numHybrids, febCore, febPgp, **kwargs):
         super().__init__(**kwargs)
 
         # AXI Version
@@ -19,17 +19,17 @@ class LdmxFebHw(pr.Device):
         self.add(ldmx_tracker.PhaseShift(
             name = 'HybridClockPhaseA',
             offset = 0x1000,
-            rx = febCore.FebFcRx))
+            rx = febPgp.FcReceiver.FcRxLogic))
 
         self.add(ldmx_tracker.PhaseShift(
             name = 'HybridClockPhaseB',
             offset = 0x2000,
-            rx = febCore.FebFcRx))
+            rx = febPgp.FcReceiver.FcRxLogic))
 
         self.add(ldmx_tracker.PhaseShift(
             name = 'AdcClockPhase',
             offset = 0x3000,
-            rx = febCore.FebFcRx))
+            rx = febPgp.FcReceiver.FcRxLogic))
         
 
         # Loc I2C Bus

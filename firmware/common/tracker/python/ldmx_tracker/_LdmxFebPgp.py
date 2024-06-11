@@ -11,7 +11,7 @@ class LdmxFebPgp(pr.Device):
         super().__init__(**kwargs)
 
         self.add(ldmx_tdaq.FcReceiver(
-            offset = 0x00000
+            offset = 0x00000,
             numVc = 3))
 
 
