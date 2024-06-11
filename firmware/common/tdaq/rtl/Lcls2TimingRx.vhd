@@ -2,7 +2,7 @@
 -- Title      : Lcls2 Timing Receiver
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Wrapper for LCLS-II timing receiver
@@ -272,7 +272,7 @@ begin
             clkOut(0) => timingRxOutClk,
 --            rstOut(0) => open,
             locked    => rxUsrClkActive);
-      
+
    end generate RX_CLK_MMCM_GEN;
 
    NO_RX_CLK_MMCM_GEN : if (not RX_CLK_MMCM_G) generate

@@ -38,14 +38,17 @@ use unisim.vcomponents.all;
 
 entity FcHubBittware is
    generic (
-      TPD_G                : time                        := 1 ns;
-      SIM_SPEEDUP_G        : boolean                     := true;
-      ROGUE_SIM_EN_G       : boolean                     := false;
-      ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000;
-      DMA_BURST_BYTES_G    : integer range 256 to 4096   := 4096;
-      DMA_BYTE_WIDTH_G     : integer range 8 to 64       := 8;
-      PGP_QUADS_G          : integer                     := 2;
-      BUILD_INFO_G         : BuildInfoType);
+      TPD_G                    : time                        := 1 ns;
+      SIM_SPEEDUP_G            : boolean                     := true;
+      ROGUE_SIM_EN_G           : boolean                     := false;
+      ROGUE_SIM_PORT_NUM_G     : natural range 1024 to 49151 := 11000;
+      DMA_BURST_BYTES_G        : integer range 256 to 4096   := 4096;
+      DMA_BYTE_WIDTH_G         : integer range 8 to 64       := 8;
+      PGP_QUADS_G              : integer                     := 2;
+      FC_HUB_REFCLKS_G         : integer range 1 to 4        := 1;
+      FC_HUB_QUADS_G           : integer range 1 to 4        := 1;
+      FC_HUB_QUAD_REFCLK_MAP_G : IntegerArray                := (0 => 0);  --, 1 => 0, 2 => 1, 3 => 1));  -- Map a refclk for each quad
+      BUILD_INFO_G             : BuildInfoType);
    port (
       ---------------------
       --  Application Ports
@@ -82,27 +85,35 @@ end FcHubBittware;
 
 architecture rtl of FcHubBittware is
 
-   -----------------------------------------
-   -- Fast Control Interface from Timing Hub
-   -----------------------------------------
-   signal fcRefClk185P    : sl;
-   signal fcRefClk185N    : sl;
-   signal fcRecClkP       : sl;
-   signal fcRecClkN       : sl;
-   signal fcTxP           : sl;
-   signal fcTxN           : sl;
-   signal fcRxP           : sl;
-   signal fcRxN           : sl;
-   ---------------------
-   --  PGP FC Interface to Tracker FEBs
-   ---------------------
-   signal dummyRxOutClk   : slv(31 downto 1);
-   signal febPgpFcRefClkP : slv(PGP_QUADS_G-1 downto 0);
-   signal febPgpFcRefClkN : slv(PGP_QUADS_G-1 downto 0);
-   signal febPgpFcRxP     : slv(PGP_QUADS_G*4-1 downto 0);
-   signal febPgpFcRxN     : slv(PGP_QUADS_G*4-1 downto 0);
-   signal febPgpFcTxP     : slv(PGP_QUADS_G*4-1 downto 0);
-   signal febPgpFcTxN     : slv(PGP_QUADS_G*4-1 downto 0);
+   ---------------------------
+   -- LCLS-II Timing Interface
+   ---------------------------
+   signal lclsTimingRefClk185P : sl;
+   signal lclsTimingRefClk185N : sl;
+   signal timingRecClkOutP     : sl;
+   signal timingRecClkOutN     : sl;
+   signal lclsTimingTxP        : sl;
+   signal lclsTimingTxN        : sl;
+   signal lclsTimingRxP        : sl;
+   signal lclsTimingRxN        : sl;
+   signal lclsTimingClk        : sl;
+   signal lclsTimingRst        : sl;
+
+   --------------------
+   --  FC Hub Interface
+   --------------------
+   signal fcHubRefClkP : slv(FC_HUB_REFCLKS_G-1 downto 0);
+   signal fcHubRefClkN : slv(FC_HUB_REFCLKS_G-1 downto 0);
+   signal fcHubTxP     : slv(FC_HUB_QUADS_G*4-1 downto 0);
+   signal fcHubTxN     : slv(FC_HUB_QUADS_G*4-1 downto 0);
+   signal fcHubRxP     : slv(FC_HUB_QUADS_G*4-1 downto 0);
+   signal fcHubRxN     : slv(FC_HUB_QUADS_G*4-1 downto 0);
+
+   -------
+   -- Misc
+   -------
+   signal dummyGlobalTriggerRor : FcTimestampType := FC_TIMESTAMP_INIT_C;
+   signal dummyRxOutClk         : slv(31 downto 1);
 
    --------------
    -- User Clocks
@@ -110,33 +121,21 @@ architecture rtl of FcHubBittware is
    signal userClk100 : sl;
    signal userRst100 : sl;
 
-   -----------------------------
-   -- Fast Control clock and bus
-   -----------------------------
-   signal fcClk185 : sl;
-   signal fcRst185 : sl;
-   signal fcBus    : FcBusType;
-
    -----------
    -- AXI Lite
    -----------
    -- Always check if this agrees with the MMCM configuration
    constant AXIL_CLK_FREQ_C : real := 125.0e6;
 
-   constant NUM_AXIL_MASTERS_C : natural := 2;
-   constant FC_RX_AXIL_C       : natural := 0;
-   constant FEB_PGP_AXIL_C     : natural := 1;
+   constant NUM_AXIL_MASTERS_C : natural := 1;
+   constant AXIL_FC_HUB_C      : natural := 0;
 
    constant AXIL_BASE_ADDR_C : slv(31 downto 0) := X"0080_0000";
 
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
-      FC_RX_AXIL_C    => (
+      AXIL_FC_HUB_C   => (
          baseAddr     => AXIL_BASE_ADDR_C + X"00_0000",
-         addrBits     => 20,
-         connectivity => X"FFFF"),
-      FEB_PGP_AXIL_C  => (
-         baseAddr     => AXIL_BASE_ADDR_C + X"10_0000",
-         addrBits     => 20,
+         addrBits     => 28,
          connectivity => X"FFFF"));
 
    signal axilClk          : sl;
@@ -270,99 +269,66 @@ begin
          mAxiReadMasters     => axilReadMasters,
          mAxiReadSlaves      => axilReadSlaves);
 
-
    -------------------------------------------------------------------------------------------------
-   -- Fast Control Receiver
+   -- Timing Hub
    -------------------------------------------------------------------------------------------------
-   U_FcReceiver_1 : entity ldmx_tdaq.FcReceiver
-      generic map (
-         TPD_G            => TPD_G,
-         SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
-         AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_C,
-         AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(FC_RX_AXIL_C).baseAddr)
-      port map (
-         fcRefClk185P    => fcRefClk185P,                    -- [in]
-         fcRefClk185N    => fcRefClk185N,                    -- [in]
-         fcRecClkP       => fcRecClkP,                       -- [out]
-         fcRecClkN       => fcRecClkN,                       -- [out]
-         fcTxP           => fcTxP,                           -- [out]
-         fcTxN           => fcTxN,                           -- [out]
-         fcRxP           => fcRxP,                           -- [in]
-         fcRxN           => fcRxN,                           -- [in]
-         fcClk185        => fcClk185,                        -- [out]
-         fcRst185        => fcRst185,                        -- [out]
-         fcBus           => fcBus,                           -- [out]
---         fcFb            => FC_FB_INIT_C,                    -- [in]
-         fcBunchClk37    => open,                            -- [out]
-         fcBunchRst37    => open,                            -- [out]
-         axilClk         => axilClk,                         -- [in]
-         axilRst         => axilRst,                         -- [in]
-         axilReadMaster  => axilReadMasters(FC_RX_AXIL_C),   -- [in]
-         axilReadSlave   => axilReadSlaves(FC_RX_AXIL_C),    -- [out]
-         axilWriteMaster => axilWriteMasters(FC_RX_AXIL_C),  -- [in]
-         axilWriteSlave  => axilWriteSlaves(FC_RX_AXIL_C));  -- [out]
-
-   -------------------------------------------------------------------------------------------------
-   -- PGP Interface to FEBs
-   -- Stream Lanes Tied to DMA
-   -------------------------------------------------------------------------------------------------
-   U_FebPgpArray : entity ldmx_tracker.TrackerPgpFcArray
+   U_FcHub_1 : entity ldmx_tdaq.FcHub
       generic map (
          TPD_G             => TPD_G,
          SIM_SPEEDUP_G     => SIM_SPEEDUP_G,
-         DMA_AXIS_CONFIG_G => DMA_AXIS_CONFIG_C,
-         PGP_QUADS_G       => PGP_QUADS_G,
+         REFCLKS_G         => FC_HUB_REFCLKS_G,
+         QUADS_G           => FC_HUB_QUADS_G,
+         QUAD_REFCLK_MAP_G => FC_HUB_QUAD_REFCLK_MAP_G,
          AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_C,
-         AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(FEB_PGP_AXIL_C).baseAddr)
+         AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_FC_HUB_C).baseAddr)
       port map (
-         pgpFcRefClkP    => febPgpFcRefClkP,                   -- [in]
-         pgpFcRefClkN    => febPgpFcRefClkN,                   -- [in]
-         pgpFcRxP        => febPgpFcRxP,                       -- [in]
-         pgpFcRxN        => febPgpFcRxN,                       -- [in]
-         pgpFcTxP        => febPgpFcTxP,                       -- [out]
-         pgpFcTxN        => febPgpFcTxN,                       -- [out]
-         fcClk185        => fcClk185,                          -- [in]
-         fcRst185        => fcRst185,                          -- [in]
-         fcBus           => fcBus,                             -- [in]
-         dmaClk          => dmaClk,                            -- [in]
-         dmaRst          => dmaRst,                            -- [in]
-         dmaBuffGrpPause => dmaBuffGrpPause,                   -- [in]
-         dmaObMasters    => dmaObMasters,                      -- [in]
-         dmaObSlaves     => dmaObSlaves,                       -- [out]
-         dmaIbMasters    => dmaIbMasters,                      -- [out]
-         dmaIbSlaves     => dmaIbSlaves,                       -- [in]
-         axilClk         => axilClk,                           -- [in]
-         axilRst         => axilRst,                           -- [in]
-         axilReadMaster  => axilReadMasters(FEB_PGP_AXIL_C),   -- [in]
-         axilReadSlave   => axilReadSlaves(FEB_PGP_AXIL_C),    -- [out]
-         axilWriteMaster => axilWriteMasters(FEB_PGP_AXIL_C),  -- [in]
-         axilWriteSlave  => axilWriteSlaves(FEB_PGP_AXIL_C));  -- [out]
+         lclsTimingRefClk185P => lclsTimingRefClk185P,                -- [in]
+         lclsTimingRefClk185N => lclsTimingRefClk185N,                -- [in]
+         lclsTimingRxP        => lclsTimingRxP,                       -- [in]
+         lclsTimingRxN        => lclsTimingRxN,                       -- [in]
+         lclsTimingTxP        => lclsTimingTxP,                       -- [out]
+         lclsTimingTxN        => lclsTimingTxN,                       -- [out]
+         timingRecClkOutP     => timingRecClkOutP,                    -- [out]
+         timingRecClkOutN     => timingRecClkOutN,                    -- [out]
+         lclsTimingClkOut     => lclsTimingClk,                       -- [out]
+         lclsTimingRstOut     => lclsTimingRst,                       -- [out]
+         globalTriggerRor     => dummyGlobalTriggerRor,               -- [in]
+         fcHubRefClkP         => fcHubRefClkP,                        -- [in]
+         fcHubRefClkN         => fcHubRefClkN,                        -- [in]
+         fcHubTxP             => fcHubTxP,                            -- [out]
+         fcHubTxN             => fcHubTxN,                            -- [out]
+         fcHubRxP             => fcHubRxP,                            -- [in]
+         fcHubRxN             => fcHubRxN,                            -- [in]
+         axilClk              => axilClk,                             -- [in]
+         axilRst              => axilRst,                             -- [in]
+         axilReadMaster       => axilReadMasters(AXIL_FC_HUB_C),      -- [in]
+         axilReadSlave        => axilReadSlaves(AXIL_FC_HUB_C),       -- [out]
+         axilWriteMaster      => axilWriteMasters(AXIL_FC_HUB_C),     -- [in]
+         axilWriteSlave       => axilWriteSlaves(AXIL_FC_HUB_C));     -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Map DD-QSFP ports
    -------------------------------------------------------------------------------------------------
-   -- FC RX is quad 0
-   fcRefClk185P   <= qsfpRefClkP(0);
-   fcRefClk185N   <= qsfpRefClkN(0);
-   qsfpRecClkP(0) <= fcRecClkP;
-   qsfpRecClkN(0) <= fcRecClkN;
-   qsfpTxP(0)     <= fcTxP;
-   qsfpTxN(0)     <= fcTxN;
-   fcRxP          <= qsfpRxP(0);
-   fcRxN          <= qsfpRxN(0);
+   -- LCLS-II Timing RX is quad 0
+   lclsTimingRefClk185P <= qsfpRefClkP(0);
+   lclsTimingRefClk185N <= qsfpRefClkN(0);
+   qsfpRecClkP(0)       <= timingRecClkOutP;
+   qsfpRecClkN(0)       <= timingRecClkOutN;
+   qsfpTxP(0)           <= lclsTimingTxP;
+   qsfpTxN(0)           <= lclsTimingTxN;
+   lclsTimingRxP        <= qsfpRxP(0);
+   lclsTimingRxN        <= qsfpRxN(0);
 
-
-   -- FEB PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0
+   -- FC Hub PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0
    GEN_FEB_REFCLK : for i in PGP_QUADS_G-1 downto 0 generate
-      febPgpFcRefClkP(i) <= qsfpRefClkP(i+4);
-      febPgpFcRefClkN(i) <= qsfpRefClkN(i+4);
+      fcHubRefClkP(i) <= qsfpRefClkP(i+4);
+      fcHubRefClkN(i) <= qsfpRefClkN(i+4);
    end generate GEN_FEB_REFCLK;
 
-   -- Unused GTs
-   qsfpTxP(PGP_QUADS_G*4+15 downto 16) <= febPgpFcTxP;
-   qsfpTxN(PGP_QUADS_G*4+15 downto 16) <= febPgpFcTxN;
-   febPgpFcRxP                         <= qsfpRxP(PGP_QUADS_G*4+15 downto 16);
-   febPgpFcRxN                         <= qsfpRxN(PGP_QUADS_G*4+15 downto 16);
+   qsfpTxP(PGP_QUADS_G*4+15 downto 16) <= fcHubTxP;
+   qsfpTxN(PGP_QUADS_G*4+15 downto 16) <= fcHubTxN;
+   fcHubRxP                            <= qsfpRxP(PGP_QUADS_G*4+15 downto 16);
+   fcHubRxN                            <= qsfpRxN(PGP_QUADS_G*4+15 downto 16);
 
    GEN_CLK_BUF : for i in 1 downto 0 generate
       U_ClkOutBufDiff_1 : entity surf.ClkOutBufDiff
@@ -370,7 +336,7 @@ begin
             TPD_G        => TPD_G,
             XIL_DEVICE_G => "ULTRASCALE_PLUS")
          port map (
-            clkIn   => fcClk185,        -- [in]
+            clkIn   => lclsTimingClk,   -- [in]
             clkOutP => fabClkOutP(i),   -- [out]
             clkOutN => fabClkOutN(i));  -- [out]
    end generate GEN_CLK_BUF;

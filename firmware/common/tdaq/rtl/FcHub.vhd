@@ -52,11 +52,14 @@ entity FcHub is
       lclsTimingRxN        : in  sl;
       lclsTimingTxP        : out sl;
       lclsTimingTxN        : out sl;
+      -- Recovered clock via GT dedicated clock pins
+      timingRecClkOutP     : out sl;
+      timingRecClkOutN     : out sl;
 
       ----------------------------------------------------------------------------------------------
       -- Global Trigger Interface
       ----------------------------------------------------------------------------------------------
-      -- LCLS Recovered Clock Output to pins
+      -- LCLS Recovered Clock Output via fabric pins
       lclsTimingClkOut : out sl;
       lclsTimingRstOut : out sl;
       globalTriggerRor : in  FcTimestampType;
@@ -174,8 +177,8 @@ begin
          timingTxN        => lclsTimingTxN,                            -- [out]
          timingRefClkInP  => lclsTimingRefClk185P,                     -- [in]
          timingRefClkInN  => lclsTimingRefClk185N,                     -- [in]
-         timingRecClkOutP => open,      -- [out]
-         timingRecClkOutN => open);     -- [out]
+         timingRecClkOutP => timingRecClkOutP,                         -- [out]
+         timingRecClkOutN => timingRecClkOutN);                        -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Fast Control Output Word Logic
