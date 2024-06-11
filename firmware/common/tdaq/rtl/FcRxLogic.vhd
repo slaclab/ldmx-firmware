@@ -74,7 +74,7 @@ architecture rtl of FcRxLogic is
       fcBunchClk37   => '0',
       rorCount       => (others => '0'),
       bunchClkAxiRst => '0',
-      fcClk37Rst     => '0',
+      fcClk37Rst     => '1',
       fcBus          => FC_BUS_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
