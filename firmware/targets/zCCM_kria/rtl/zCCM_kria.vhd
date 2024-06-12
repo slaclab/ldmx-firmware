@@ -166,58 +166,58 @@ architecture Behavioral of zCCM_kria is
       );
     end component;
 
-    -- component definition for FC receiver    
-    component FcReceiver
+    -- -- component definition for FC receiver    
+    -- component FcReceiver
 
-      generic (
-                TPD_G            : time                 := 1 ns;
-                SIM_SPEEDUP_G    : boolean              := false;
-                NUM_VC_EN_G      : integer range 0 to 4 := 0;
-                GEN_FC_EMU_G     : boolean              := true;
-                AXIL_CLK_FREQ_G  : real                 := 156.25e6;
-                AXIL_BASE_ADDR_G : slv(31 downto 0)     := (others => '0'));
-      port (
-      -- Reference clock
-      fcRefClk185P : in  sl;
-      fcRefClk185N : in  sl;
-      -- Output Recovered Clock
-      fcRecClkP    : out sl;
-      fcRecClkN    : out sl;
-      -- PGP serial IO
-      fcTxP        : out sl;
-      fcTxN        : out sl;
-      fcRxP        : in  sl;
-      fcRxN        : in  sl;
+    --   generic (
+    --             TPD_G            : time                 := 1 ns;
+    --             SIM_SPEEDUP_G    : boolean              := false;
+    --             NUM_VC_EN_G      : integer range 0 to 4 := 0;
+    --             GEN_FC_EMU_G     : boolean              := true;
+    --             AXIL_CLK_FREQ_G  : real                 := 156.25e6;
+    --             AXIL_BASE_ADDR_G : slv(31 downto 0)     := (others => '0'));
+    --   port (
+    --   -- Reference clock
+    --   fcRefClk185P : in  sl;
+    --   fcRefClk185N : in  sl;
+    --   -- Output Recovered Clock
+    --   fcRecClkP    : out sl;
+    --   fcRecClkN    : out sl;
+    --   -- PGP serial IO
+    --   fcTxP        : out sl;
+    --   fcTxN        : out sl;
+    --   fcRxP        : in  sl;
+    --   fcRxN        : in  sl;
 
-      -- RX FC and PGP interface
-      fcClk185     : out sl;
-      fcRst185     : out sl;
-      fcBus        : out FcBusType;
-      fcBunchClk37 : out sl;
-      fcBunchRst37 : out sl;
-      pgpRxIn      : in  Pgp2fcRxInType                               := PGP2FC_RX_IN_INIT_C;
-      pgpRxOut     : out Pgp2fcRxOutType;
-      pgpRxMasters : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_EN_G-1 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+    --   -- RX FC and PGP interface
+    --   fcClk185     : out sl;
+    --   fcRst185     : out sl;
+    --   fcBus        : out FcBusType;
+    --   fcBunchClk37 : out sl;
+    --   fcBunchRst37 : out sl;
+    --   pgpRxIn      : in  Pgp2fcRxInType                               := PGP2FC_RX_IN_INIT_C;
+    --   pgpRxOut     : out Pgp2fcRxOutType;
+    --   pgpRxMasters : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+    --   pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_EN_G-1 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
 
-      -- TX FC and PGP interface
-      txClk185     : out sl;
-      txRst185     : out sl;
-      -- fcFb         : in  FcFeedbackType;
-      pgpTxIn      : in  Pgp2fcTxInType                               := PGP2FC_TX_IN_INIT_C;
-      pgpTxOut     : out Pgp2fcTxOutType;
-      pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
+    --   -- TX FC and PGP interface
+    --   txClk185     : out sl;
+    --   txRst185     : out sl;
+    --   -- fcFb         : in  FcFeedbackType;
+    --   pgpTxIn      : in  Pgp2fcTxInType                               := PGP2FC_TX_IN_INIT_C;
+    --   pgpTxOut     : out Pgp2fcTxOutType;
+    --   pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+    --   pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
 
-      -- Axil inteface
-      axilClk         : in  sl;
-      axilRst         : in  sl;
-      axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+    --   -- Axil inteface
+    --   axilClk         : in  sl;
+    --   axilRst         : in  sl;
+    --   axilReadMaster  : in  AxiLiteReadMasterType;
+    --   axilReadSlave   : out AxiLiteReadSlaveType;
+    --   axilWriteMaster : in  AxiLiteWriteMasterType;
+    --   axilWriteSlave  : out AxiLiteWriteSlaveType);
 
-    end component;
+    -- end component;
     
     -- component definition for monitoring SFP bits
     component SFP_Monitor
@@ -475,6 +475,47 @@ begin
         );
 
 
+    gth_1 : TsGtyIpCoreWrapper
+      port map(
+        stableClk      => ,
+        stableRst      => ,
+
+        -- GTY FPGA IO
+        gtRefClk       => ,
+        gtUserRefClk   => ,
+        gtRxP          => ,
+        gtRxN          => ,
+        gtTxP          => ,
+        gtTxN          => ,
+
+        -- Rx ports
+        rxReset        => ,
+        rxUsrClkActive => ,
+        rxResetDone    => ,
+        rxUsrClk       => ,
+        rxData         => ,
+        rxDataK        => ,
+        rxDispErr      => ,
+        rxDecErr       => ,
+        rxPolarity     => ,
+        rxOutClk       => ,
+                       => ,
+        -- Tx ports    
+        txReset        => ,
+        txResetDone    => ,
+        txData         => ,
+        txDataK        => ,
+        loopback       => ,
+
+        -- AXI-Lite DRP interface
+        axilClk        => ,
+        axilRst        => ,
+        axilReadMaster => ,
+        axilReadSlave  => ,
+        axilWriteMaster=> ,
+        axilWriteSlave => 
+    );
+    
     -- - - - - - - - - - - - - - - - - - - - - -
     -- Wrapper for block diagram, which contains
     -- zynqmp and axi peripheral blocks such as 
@@ -484,11 +525,11 @@ begin
     fcrec_1 : FcReceiver         
       port map(
         -- Reference clock
-        fcRefClk185P => ,
-        fcRefClk185N => ,
+        fcRefClk185P =>  CLKGEN_MGTCLK_AC_P,
+        fcRefClk185N =>  CLKGEN_MGTCLK_AC_N,
         -- Output Recovered Clock
-        fcRecClkP    => ,
-        fcRecClkN    => ,
+        fcRecClkP    =>  BEAMCLK_P,
+        fcRecClkN    =>  BEAMCLK_N,
         -- PGP serial IO
         fcTxP        => ,
         fcTxN        => ,
@@ -501,19 +542,6 @@ begin
         fcBus        => ,
         fcBunchClk37 => ,
         fcBunchRst37 => ,
-        pgpRxIn      => ,
-        pgpRxOut     => ,
-        pgpRxMasters => ,
-        pgpRxCtrl    => ,
-
-        -- TX FC and PGP interface
-        txClk185     => ,
-        txRst185     => ,
-        -- fcFb 
-        pgpTxIn      => ,
-        pgpTxOut     => ,
-        pgpTxMasters => ,
-        pgpTxSlaves  => ,
         
         -- Axil inteface
         axilClk         => ,
