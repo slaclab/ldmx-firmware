@@ -42,6 +42,8 @@ entity FcReceiver is
       -- Reference clock
       fcRefClk185P : in  sl;
       fcRefClk185N : in  sl;
+      fcRefClk185G : out sl;
+      fcRefRst185  : out sl;
       -- Output Recovered Clock
       fcRecClkP    : out sl;
       fcRecClkN    : out sl;
@@ -59,8 +61,8 @@ entity FcReceiver is
       fcBunchRst37 : out sl;
       pgpRxIn      : in  Pgp2fcRxInType                               := PGP2FC_RX_IN_INIT_C;
       pgpRxOut     : out Pgp2fcRxOutType;
-      pgpRxMasters : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_EN_G-1 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+      pgpRxMasters : out AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpRxCtrl    : in  AxiStreamCtrlArray(3 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
 
       -- TX FC and PGP interface
       txClk185     : out sl;
@@ -68,8 +70,8 @@ entity FcReceiver is
 --      fcFb         : in  FcFeedbackType;
       pgpTxIn      : in  Pgp2fcTxInType                               := PGP2FC_TX_IN_INIT_C;
       pgpTxOut     : out Pgp2fcTxOutType;
-      pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
+      pgpTxMasters : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpTxSlaves  : out AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
 
       -- Axil inteface
       axilClk         : in  sl;
@@ -118,10 +120,10 @@ architecture rtl of FcReceiver is
    signal fcRst185Loc        : sl;
 
    -- PGP IO
-   signal pgpRxInLoc  : Pgp2fcRxInType;
+   signal pgpRxInLoc  : Pgp2fcRxInType := PGP2FC_RX_IN_INIT_C;
    signal pgpRxOutLoc : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
    signal pgpTxInLoc  : Pgp2fcTxInType  := PGP2FC_TX_IN_INIT_C;
-   signal pgpTxOutLoc : Pgp2fcTxOutType;
+   signal pgpTxOutLoc : Pgp2fcTxOutType := PGP2FC_TX_OUT_INIT_C;
 
    -- Rx FC Word
    signal fcValid : sl;
@@ -141,7 +143,10 @@ begin
 
    -- Eventually mix FC feedback in here
 --   pgpTxInLoc <= pgpTxIn;
-   pgpRxOut   <= pgpRxOutLoc;
+   pgpRxOut <= pgpRxOutLoc;
+
+   fcRefClk185G <= pgpUserRefClk;
+   fcRefRst185  <= pgpUserRefRst;
 
    ---------------------
    -- AXI-Lite Crossbar
@@ -214,7 +219,7 @@ begin
 --          port map (
 --             clk    => pgpUserRefClk,
 --             rstOut => pgpUserRefRst);
-   
+
    RstSync_1 : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,

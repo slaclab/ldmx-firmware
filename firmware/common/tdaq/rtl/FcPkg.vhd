@@ -198,6 +198,7 @@ package body FcPkg is
       end if;
 
       retVar.pulseID := vector(PULSE_ID_RANGE_C);
+      retVar.message := vector;
 
       return retVar;
    end function;

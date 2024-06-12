@@ -80,7 +80,7 @@ end entity LdmxFebBoardModel;
 
 architecture sim of LdmxFebBoardModel is
 
-   constant CLK_185_PERIOD_G  : real := 5.3848e-9;
+   constant CLK_185_PERIOD_G : real := 5.3848e-9;
    constant ADC_CLK_PERIOD_C : time := CLK_185_PERIOD_G * 5 sec;
 
    constant HY_AVDD_PWR_C : RealArray(0 to 7) := (0.5, 0.4, 0.3, 0.2, 0.5, 0.4, 0.3, 0.2);
@@ -129,6 +129,12 @@ architecture sim of LdmxFebBoardModel is
    signal a18vdSenseP    : real;
    signal a18vdSenseN    : real;
 
+   signal dpDummy10   : slv(1 downto 0) := "00";
+   signal dpDummy1514 : slv(1 downto 0) := "00";
+   signal dnDummy10   : slv(1 downto 0) := "00";
+   signal dnDummy1514 : slv(1 downto 0) := "00";
+
+   signal rout3Dummy : realArray(HYBRIDS_G-1 downto 0) := (others => 0.0);
 
 begin
 
@@ -182,7 +188,7 @@ begin
             vin(7 downto 2)   => adcAin(i*2)(5 downto 0),    -- [in]
             vin(13 downto 8)  => adcAin(i*2+1)(5 downto 0),  -- [in]
             vin(15 downto 14) => (others => 0.0),            -- [in]
-            dP(1 downto 0)    => open,                       -- [out]
+            dP(1 downto 0)    => dpDummy10,                  -- [out]
             dp(2)             => adcDataP(i*2)(5),           -- [out]
             dp(3)             => adcDataP(i*2)(4),           -- [out]
             dp(4)             => adcDataP(i*2)(3),           -- [out]
@@ -195,8 +201,8 @@ begin
             dp(11)            => adcDataP(i*2+1)(2),         -- [out]
             dp(12)            => adcDataP(i*2+1)(1),         -- [out]
             dp(13)            => adcDataP(i*2+1)(0),         -- [out]
-            dp(15 downto 14)  => open,                       -- [out]
-            dN(1 downto 0)    => open,                       -- [out]
+            dp(15 downto 14)  => dpDummy1514,                -- [out]
+            dN(1 downto 0)    => dNDummy10,                  -- [out]
             dN(2)             => adcDataN(i*2)(5),           -- [out]
             dN(3)             => adcDataN(i*2)(4),           -- [out]
             dN(4)             => adcDataN(i*2)(3),           -- [out]
@@ -209,7 +215,7 @@ begin
             dN(11)            => adcDataN(i*2+1)(2),         -- [out]
             dN(12)            => adcDataN(i*2+1)(1),         -- [out]
             dN(13)            => adcDataN(i*2+1)(0),         -- [out]
-            dN(15 downto 14)  => open,                       -- [out]
+            dN(15 downto 14)  => dnDummy1514,                -- [out]
             dcoP(0)           => adcDClkP(i*2),              -- [out]
             dcoP(1)           => adcDClkP(i*2+1),            -- [out]
             dcoN(0)           => adcDClkN(i*2),              -- [out]
@@ -351,7 +357,7 @@ begin
             rout(0) => hyPwrTrim(i).dvdd,
             rout(1) => hyPwrTrim(i).avdd,
             rout(2) => hyPwrTrim(i).v125,
-            rout(3) => open);
+            rout(3) => rout3Dummy(i));
 
       -- Simulate power drivers and sense resistors
       hyPwrInt(i).avdd      <= ite(hyPwrEnOut(i) = '1', (0.8 * (37.4e3 + 14.0e3 + hyPwrTrim(i).avdd)) / (14.0e3 + hyPwrTrim(i).avdd), 0.0);

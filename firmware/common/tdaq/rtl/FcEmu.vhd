@@ -76,7 +76,7 @@ architecture rtl of FcEmu is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      enableTimingMsg       => '0',
+      enableTimingMsg       => '1',
       enableRoR             => '0',
       usrRoR                => '0',
       timingMsgReq          => '0',
@@ -198,17 +198,13 @@ begin
 
          end if;
 
-         -- the bunch Count strobe eventually triggers an RoR, and increments the bunch Counter
-         if (r.bunchCountPeriodCount = r.bunchCountPeriod-2) then
-            -- strobe me just before the rollover so that the RoR
-            -- gets the appropriate bunchCount value
-            v.bunchCountStrb := '1';
-         elsif (r.bunchCountPeriodCount = r.bunchCountPeriod-1) then
+         if (r.bunchCountPeriodCount = r.bunchCountPeriod-1) then
             v.bunchCountPeriodCount := (others => '0');
+            v.bunchCountStrb        := '1';
          end if;
 
          -- bunch Count control. resets to zero foreach timing message request
-         if (r.timingMsgReq = '1') then
+         if (v.timingMsgReq = '1') then
             v.fcMsg.bunchCount := (others => '0');
          elsif (v.bunchCountStrb = '1') then
             v.fcMsg.bunchCount := r.fcMsg.bunchCount + 1;
@@ -233,7 +229,7 @@ begin
          v.fcMsg.msgType := MSG_TYPE_ROR_C;
          v.fcMsg.message := toSlv(r.fcMsg);
          v.fcMsg.valid   := '1';
-      elsif (r.bunchCountStrb = '1' and r.enableRoR = '1') then
+      elsif (v.bunchCountStrb = '1' and r.enableRoR = '1') then
          -- periodic RoR. Have to check the RoR Period counter first
          v.rOrPeriodCount := r.rOrPeriodCount + 1;
          if (r.rOrPeriodCount = r.rOrPeriod) then
@@ -243,7 +239,7 @@ begin
             v.fcMsg.message  := toSlv(r.fcMsg);
             v.fcMsg.valid    := '1';
          end if;
-      elsif (r.timingMsgReq = '1') then
+      elsif (v.timingMsgReq = '1') then
          -- simple Timing Message
          v.fcMsg.stateChanged := toSl(v.fcMsg.runState /= r.fcRunStateSet);
          v.fcMsg.runState     := r.fcRunStateSet;

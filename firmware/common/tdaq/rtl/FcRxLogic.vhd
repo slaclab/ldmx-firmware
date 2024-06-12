@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      :
 -------------------------------------------------------------------------------
 -- File       : FcRxLogic.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -54,7 +54,6 @@ architecture rtl of FcRxLogic is
    constant BUNCH_CLK_PRE_RISE_C : integer := 3;
 
    type RegType is record
-      divCounter     : slv(2 downto 0);
       runTime        : slv(63 downto 0);
       rorLatch       : sl;
       fcClkLost      : sl;
@@ -69,14 +68,13 @@ architecture rtl of FcRxLogic is
 
    -- Timing comes up already enabled so that ADC can be read before sync is established
    constant REG_INIT_C : RegType := (
-      divCounter     => (others => '0'),
       runTime        => (others => '0'),
       rorLatch       => '0',
       fcClkLost      => '1',
       fcBunchClk37   => '0',
       rorCount       => (others => '0'),
       bunchClkAxiRst => '0',
-      fcClk37Rst     => '0',
+      fcClk37Rst     => '1',
       fcBus          => FC_BUS_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -160,6 +158,7 @@ begin
 
       -- Decode incomming fast control messages from PGPFC
       fcMsg := toFcMessage(fcWord, fcValid);
+      v.fcBus.fcMsg.valid := fcValid;
 
       -- Process FC Messages
       if (fcMsg.valid = '1') then
@@ -180,6 +179,7 @@ begin
                v.fcBus.bunchCount   := fcMsg.bunchCount;
                v.fcBus.runState     := fcMsg.runState;
                v.fcBus.stateChanged := fcMsg.stateChanged;
+               v.fcBus.subCount := (others => '0');
 
                -- State specific actions
                if (fcMsg.stateChanged = '1') then
@@ -190,9 +190,8 @@ begin
                         v.fcBus.bunchClkAligned := '0';
                      when RUN_STATE_CLOCK_ALIGN_C =>
                         -- Algin Bunch clock
-                        v.divCounter            := (others => '0');
                         v.fcBunchClk37          := '0';
-                        v.fcClkLost             := '1';  -- Creats a bunchClkRst                        
+                        v.fcClkLost             := '1';  -- Creats a bunchClkRst
                         v.fcBus.bunchClkAligned := '1';
                      when RUN_STATE_RUNNING_C =>
                         -- Reset runtime timestamp counter
