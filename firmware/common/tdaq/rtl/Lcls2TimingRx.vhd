@@ -80,9 +80,9 @@ end Lcls2TimingRx;
 architecture rtl of Lcls2TimingRx is
 
    -- AXI Lite signals and constants
+   constant NUM_AXIL_C        : integer := 2;
    constant AXIL_CORE_INDEX_C : integer := 0;
    constant AXIL_GTH_INDEX_C  : integer := 1;
-   constant NUM_AXIL_C        : integer := 2;
 
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_C-1 downto 0) := (
       AXIL_CORE_INDEX_C => (
@@ -90,8 +90,8 @@ architecture rtl of Lcls2TimingRx is
          addrBits       => 18,
          connectivity   => x"FFFF"),
       AXIL_GTH_INDEX_C  => (
-         baseAddr       => (AXIL_BASE_ADDR_G+x"00800000"),
-         addrBits       => 23,
+         baseAddr       => (AXIL_BASE_ADDR_G+x"00040000"),
+         addrBits       => 12,
          connectivity   => x"FFFF"));
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
@@ -107,7 +107,7 @@ architecture rtl of Lcls2TimingRx is
    -- Recovered clocks
    signal timingRxOutClkGt : sl;
    signal timingRxOutClk   : sl;
-   signal timingRxOutRst : sl;
+   signal timingRxOutRst   : sl;
    signal timingRxRecClk   : sl;
 
    -- Rx ports
@@ -212,7 +212,9 @@ begin
          TPD_G             => TPD_G,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_GTH_INDEX_C).baseAddr,
          EXTREF_G          => TIME_GEN_EXTREF_G,
-         DISABLE_TIME_GT_G => false)
+         DISABLE_TIME_GT_G => false,
+         ADDR_BITS_G       => 12,
+         GTY_DRP_OFFSET_G  => x"00001000")
       port map (
          axilClk         => axilClk,
          axilRst         => axilRst,

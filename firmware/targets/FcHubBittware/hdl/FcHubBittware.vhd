@@ -44,7 +44,6 @@ entity FcHubBittware is
       ROGUE_SIM_PORT_NUM_G     : natural range 1024 to 49151 := 11000;
       DMA_BURST_BYTES_G        : integer range 256 to 4096   := 4096;
       DMA_BYTE_WIDTH_G         : integer range 8 to 64       := 8;
-      PGP_QUADS_G              : integer                     := 2;
       FC_HUB_REFCLKS_G         : integer range 1 to 4        := 1;
       FC_HUB_QUADS_G           : integer range 1 to 4        := 1;
       FC_HUB_QUAD_REFCLK_MAP_G : IntegerArray                := (0 => 0);  --, 1 => 0, 2 => 1, 3 => 1));  -- Map a refclk for each quad
@@ -56,8 +55,8 @@ entity FcHubBittware is
       -- QSFP-DD Ports
       qsfpRefClkP    : in  slv(7 downto 0);
       qsfpRefClkN    : in  slv(7 downto 0);
-      qsfpRecClkP    : out slv(7 downto 0);
-      qsfpRecClkN    : out slv(7 downto 0);
+      qsfpRecClkP    : out slv(0 downto 0);
+      qsfpRecClkN    : out slv(0 downto 0);
       qsfpRxP        : in  slv(31 downto 0);
       qsfpRxN        : in  slv(31 downto 0);
       qsfpTxP        : out slv(31 downto 0);
@@ -135,7 +134,7 @@ architecture rtl of FcHubBittware is
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
       AXIL_FC_HUB_C   => (
          baseAddr     => AXIL_BASE_ADDR_C + X"00_0000",
-         addrBits     => 28,
+         addrBits     => 22,
          connectivity => X"FFFF"));
 
    signal axilClk          : sl;
@@ -157,10 +156,10 @@ architecture rtl of FcHubBittware is
    signal dmaClk          : sl;
    signal dmaRst          : sl;
    signal dmaBuffGrpPause : slv(7 downto 0);
-   signal dmaObMasters    : AxiStreamMasterArray(PGP_QUADS_G-1 downto 0);
-   signal dmaObSlaves     : AxiStreamSlaveArray(PGP_QUADS_G-1 downto 0);
-   signal dmaIbMasters    : AxiStreamMasterArray(PGP_QUADS_G-1 downto 0);
-   signal dmaIbSlaves     : AxiStreamSlaveArray(PGP_QUADS_G-1 downto 0);
+   signal dmaObMasters    : AxiStreamMasterArray(0 downto 0);
+   signal dmaObSlaves     : AxiStreamSlaveArray(0 downto 0);
+   signal dmaIbMasters    : AxiStreamMasterArray(0 downto 0);
+   signal dmaIbSlaves     : AxiStreamSlaveArray(0 downto 0);
 
 begin
 
@@ -210,7 +209,7 @@ begin
          ROGUE_SIM_CH_COUNT_G => 4,
          DMA_BURST_BYTES_G    => DMA_BURST_BYTES_G,
          DMA_AXIS_CONFIG_G    => DMA_AXIS_CONFIG_C,
-         DMA_SIZE_G           => PGP_QUADS_G)
+         DMA_SIZE_G           => 1)
       port map (
          ------------------------
          --  Top Level Interfaces
@@ -320,15 +319,15 @@ begin
    lclsTimingRxN        <= qsfpRxN(0);
 
    -- FC Hub PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0
-   GEN_FEB_REFCLK : for i in PGP_QUADS_G-1 downto 0 generate
+   GEN_FEB_REFCLK : for i in FC_HUB_QUADS_G-1 downto 0 generate
       fcHubRefClkP(i) <= qsfpRefClkP(i+4);
       fcHubRefClkN(i) <= qsfpRefClkN(i+4);
    end generate GEN_FEB_REFCLK;
 
-   qsfpTxP(PGP_QUADS_G*4+15 downto 16) <= fcHubTxP;
-   qsfpTxN(PGP_QUADS_G*4+15 downto 16) <= fcHubTxN;
-   fcHubRxP                            <= qsfpRxP(PGP_QUADS_G*4+15 downto 16);
-   fcHubRxN                            <= qsfpRxN(PGP_QUADS_G*4+15 downto 16);
+   qsfpTxP(FC_HUB_QUADS_G*4+15 downto 16) <= fcHubTxP;
+   qsfpTxN(FC_HUB_QUADS_G*4+15 downto 16) <= fcHubTxN;
+   fcHubRxP                               <= qsfpRxP(FC_HUB_QUADS_G*4+15 downto 16);
+   fcHubRxN                               <= qsfpRxN(FC_HUB_QUADS_G*4+15 downto 16);
 
    GEN_CLK_BUF : for i in 1 downto 0 generate
       U_ClkOutBufDiff_1 : entity surf.ClkOutBufDiff
@@ -375,27 +374,27 @@ begin
       generic map (
          TPD_G        => TPD_G,
          SIMULATION_G => SIM_SPEEDUP_G,
-         WIDTH_G      => 8)
+         WIDTH_G      => 32-(FC_HUB_QUADS_G*4+16))
       port map (
          refClk   => axilCLk,                      -- [in]
-         rxoutClk => dummyRxOutClk(31 downto 24),  -- [out]
-         gtRxP    => qsfpRxP(31 downto 24),        -- [in]
-         gtRxN    => qsfpRxN(31 downto 24),        -- [in]
-         gtTxP    => qsfpTxP(31 downto 24),        -- [out]
-         gtTxN    => qsfpTxN(31 downto 24));       -- [out]
+         rxoutClk => dummyRxOutClk(31 downto FC_HUB_QUADS_G*4+16),  -- [out]
+         gtRxP    => qsfpRxP(31 downto FC_HUB_QUADS_G*4+16),        -- [in]
+         gtRxN    => qsfpRxN(31 downto FC_HUB_QUADS_G*4+16),        -- [in]
+         gtTxP    => qsfpTxP(31 downto FC_HUB_QUADS_G*4+16),        -- [out]
+         gtTxN    => qsfpTxN(31 downto FC_HUB_QUADS_G*4+16));       -- [out]
 
-   GEN_DUMMY_RECCLK_BUF : for i in 7 downto 1 generate
-      U_mgtRecClk : OBUFDS_GTE4
-         generic map (
-            REFCLK_EN_TX_PATH => '1',
-            REFCLK_ICNTL_TX   => "00000")
-         port map (
-            O   => qsfpRecClkP(i),
-            OB  => qsfpRecClkN(i),
-            CEB => '0',
-            I   => dummyRxOutClk(i*4));  -- using rxRecClk from Channel=0
+   --GEN_DUMMY_RECCLK_BUF : for i in 7 downto 1 generate
+   --   U_mgtRecClk : OBUFDS_GTE4
+   --      generic map (
+   --         REFCLK_EN_TX_PATH => '1',
+   --         REFCLK_ICNTL_TX   => "00000")
+   --      port map (
+   --         O   => qsfpRecClkP(i),
+   --         OB  => qsfpRecClkN(i),
+   --         CEB => '0',
+   --         I   => dummyRxOutClk(i*4));  -- using rxRecClk from Channel=0
 
-   end generate GEN_DUMMY_RECCLK_BUF;
+   --end generate GEN_DUMMY_RECCLK_BUF;
 
 
 end rtl;
