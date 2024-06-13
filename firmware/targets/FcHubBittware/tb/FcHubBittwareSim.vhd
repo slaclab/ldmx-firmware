@@ -2,10 +2,10 @@
 -- Title      : Testbench for design "BittWareXupVv8Pgp2fc"
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of pgp-pcie-apps. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory
@@ -30,29 +30,28 @@ library ldmx_tracker;
 
 ----------------------------------------------------------------------------------------------------
 
-entity TrackerBittwareSim is
+entity FcHubBittwareSim is
    generic (
       TPD_G                : time                        := 0.2 ns;
       BUILD_INFO_G         : BuildInfoType               := BUILD_INFO_C;
       SIM_SPEEDUP_G        : boolean                     := true;
       ROGUE_SIM_EN_G       : boolean                     := true;
       ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000;
-      PGP_QUADS_G          : integer                     := 1);
+      FC_HUB_QUADS_G       : integer range 1 to 4        := 1);
    port (
-      fcRxP     : in  sl;
-      fcRxN     : in  sl;
-      fcTxP     : out sl;
-      fcTxN     : out sl;
-      febPgpFcRxP : in  slv(PGP_QUADS_G*4-1 downto 0);   -- [in]
-      febPgpFcRxN : in  slv(PGP_QUADS_G*4-1 downto 0);   -- [in]
-      febPgpFcTxP : out slv(PGP_QUADS_G*4-1 downto 0);   -- [out]
-      febPgpFcTxN : out slv(PGP_QUADS_G*4-1 downto 0));  -- [out]
-
-end entity TrackerBittwareSim;
+      lclsTimingRxP     : in  sl;
+      lclsTimingRxN     : in  sl;
+      lclsTimingTxP     : out sl;
+      lclsTimingTxN     : out sl;
+      fcHubTxP          : out slv(FC_HUB_QUADS_G*4-1 downto 0);
+      fcHubTxN          : out slv(FC_HUB_QUADS_G*4-1 downto 0);
+      fcHubRxP          : in  slv(FC_HUB_QUADS_G*4-1 downto 0);
+      fcHubRxN          : in  slv(FC_HUB_QUADS_G*4-1 downto 0));
+end entity FcHubBittwareSim;
 
 ----------------------------------------------------------------------------------------------------
 
-architecture sim of TrackerBittwareSim is
+architecture sim of FcHubBittwareSim is
 
    -- component generics
    constant DMA_BURST_BYTES_G : integer range 256 to 4096 := 4096;
@@ -61,8 +60,8 @@ architecture sim of TrackerBittwareSim is
    -- component ports
    signal qsfpRefClkP    : slv(7 downto 0)  := (others => '0');  -- [in]
    signal qsfpRefClkN    : slv(7 downto 0)  := (others => '0');  -- [in]
-   signal qsfpRecClkP    : slv(7 downto 0)  := (others => '0');  -- [out]
-   signal qsfpRecClkN    : slv(7 downto 0)  := (others => '0');  -- [out]
+   signal qsfpRecClkP    : slv(0 downto 0)  := (others => '0');  -- [out]
+   signal qsfpRecClkN    : slv(0 downto 0)  := (others => '0');  -- [out]
    signal qsfpRxP        : slv(31 downto 0) := (others => '0');  -- [in]
    signal qsfpRxN        : slv(31 downto 0) := (others => '0');  -- [in]
    signal qsfpTxP        : slv(31 downto 0) := (others => '0');  -- [out]
@@ -81,26 +80,15 @@ architecture sim of TrackerBittwareSim is
    signal pciTxN         : slv(15 downto 0) := (others => '0');  -- [out]
 
    -- Internal signals
-   signal fcRefClk185P    : sl;
-   signal fcRefClk185N    : sl;
+   signal timingRefClk185P : sl;
+   signal timingRefClk185N : sl;
 
 
 
 begin
-   
-   fcTxP <= qsfpTxP(0);
-   fcTxN <= qsfpTxN(0);
-   qsfpRxP(0) <= fcRxP;
-   qsfpRxN(0) <= fcRxN;
 
-   febPgpFcTxP(PGP_QUADS_G*4-1 downto 0) <= qsfpTxP(PGP_QUADS_G*4+15 downto 16);
-   febPgpFcTxN(PGP_QUADS_G*4-1 downto 0) <= qsfpTxN(PGP_QUADS_G*4+15 downto 16);
-   qsfpRxP(PGP_QUADS_G*4+15 downto 16) <= febPgpFcRxP(PGP_QUADS_G*4-1 downto 0);
-   qsfpRxN(PGP_QUADS_G*4+15 downto 16) <= febPgpFcRxN(PGP_QUADS_G*4-1 downto 0);   
-   
-
-   -- FPGA 
-   U_TrackerBittware_1 : entity ldmx_tracker.TrackerBittware
+   -- FPGA
+   U_TrackerBittware_1 : entity ldmx_tracker.FcHubBittware
       generic map (
          TPD_G                => TPD_G,
          SIM_SPEEDUP_G        => SIM_SPEEDUP_G,
@@ -108,7 +96,7 @@ begin
          ROGUE_SIM_PORT_NUM_G => ROGUE_SIM_PORT_NUM_G,
          DMA_BURST_BYTES_G    => DMA_BURST_BYTES_G,
          DMA_BYTE_WIDTH_G     => DMA_BYTE_WIDTH_G,
-         PGP_QUADS_G          => PGP_QUADS_G,
+         FC_HUB_QUADS_G       => FC_HUB_QUADS_G,
          BUILD_INFO_G         => BUILD_INFO_G)
       port map (
          qsfpRefClkP    => qsfpRefClkP,     -- [in]
@@ -141,17 +129,28 @@ begin
          RST_HOLD_TIME_G   => 5 us,
          SYNC_RESET_G      => true)
       port map (
-         clkP => fcRefClk185P,
-         clkN => fcRefClk185N);
+         clkP => timingRefClk185P,
+         clkN => timingRefClk185N);
 
-   -- FC is on quad 0
-   qsfpRefClkP(0) <= fcRefClk185P;
-   qsfpRefClkN(0) <= fcRefClk185N;
+  -- Timing is on quad 0
+  qsfpRefClkP(0) <= timingRefClk185P;
+  qsfpRefClkN(0) <= timingRefClk185N;
 
-   -- FEB PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0   
-   GEN_PGP_REFCLK: for i in PGP_QUADS_G-1 downto 0 generate
-      qsfpRefClkP(i+4) <= fabClkOutP(0);
-      qsfpRefClkN(i+4) <= fabClkOutN(0);
+  lclsTimingTxP  <= qsfpTxP(0);
+  lclsTimingTxN  <= qsfpTxN(0);
+
+  qsfpRxP(0)     <= lclsTimingRxP;
+  qsfpRxN(0)     <= lclsTimingRxN;
+
+  fcHubTxP                               <= qsfpTxP(FC_HUB_QUADS_G*4+15 downto 16);
+  fcHubTxN                               <= qsfpTxN(FC_HUB_QUADS_G*4+15 downto 16);
+  qsfpRxP(FC_HUB_QUADS_G*4+15 downto 16) <= fcHubRxP;
+  qsfpRxN(FC_HUB_QUADS_G*4+15 downto 16) <= fcHubRxN;
+
+   -- FEB PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0
+   GEN_PGP_REFCLK: for i in FC_HUB_QUADS_G-1 downto 0 generate
+      qsfpRefClkP(i+4) <= qsfpRecClkP(0);
+      qsfpRefClkN(i+4) <= qsfpRecClkN(0);
    end generate GEN_PGP_REFCLK;
 
    U_ClkRst_USERCLK : entity surf.ClkRst
