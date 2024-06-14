@@ -41,6 +41,7 @@ entity TsRxLogic is
       tsRst250         : in  sl;
       tsRxPhyInit      : out sl := '0';
       tsRxPhyResetDone : in  sl;
+      tsRxPhyLoopback  : out slv(2 downto 0);
       tsRxData         : in  slv(15 downto 0);
       tsRxDataK        : in  slv(1 downto 0);
       tsRxMsg          : out TsData6ChMsgType;
@@ -78,6 +79,8 @@ architecture rtl of TsRxLogic is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   signal writeRegister : slv32Array(0 downto 0);
 
 begin
 
@@ -143,6 +146,30 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   U_AxiLiteRegs_1 : entity surf.AxiLiteRegs
+      generic map (
+         TPD_G           => TPD_G,
+         NUM_WRITE_REG_G => 1,
+         NUM_READ_REG_G  => 1)
+      port map (
+         axiClk         => axilClk,          -- [in]
+         axiClkRst      => axilRst,           -- [in]
+         axiReadMaster  => axilReadMaster,   -- [in]
+         axiReadSlave   => axilReadSlave,    -- [out]
+         axiWriteMaster => axilWriteMaster,  -- [in]
+         axiWriteSlave  => axilWriteSlave,   -- [out]
+         writeRegister  => writeRegister);    -- [out]
+
+      U_SynchronizerVector_1 : entity surf.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 3)
+      port map (
+         clk     => tsClk250,                      -- [in]
+         rst     => tsRst250,                      -- [in]
+         dataIn  => writeRegister(0)(2 downto 0),  -- [in]
+         dataOut => tsRxPhyLoopback);              -- [out]
 
 
 end rtl;

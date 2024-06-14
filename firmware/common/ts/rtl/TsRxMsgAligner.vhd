@@ -115,31 +115,23 @@ begin
    -- It's purpose is to align TS data to the FC clock
    -------------------------------------------------------------------------------------------------
    GEN_TS_RX_FIFOS : for i in TS_LANES_G-1 downto 0 generate
-      -- Convert to SLV for FIFO
-      tsMsgFifoWrData(i) <= toSlv(tsRxMsgs(i));
-      U_Fifo_TsData : entity surf.Fifo
+      U_TsMsgFifo_1 : entity ldmx_ts.TsMsgFifo
          generic map (
             TPD_G           => TPD_G,
             GEN_SYNC_FIFO_G => false,
-            FWFT_EN_G       => true,
             SYNTH_MODE_G    => "inferred",
             MEMORY_TYPE_G   => "distributed",
-            PIPE_STAGES_G   => 0,
-            DATA_WIDTH_G    => TS_DATA_6CH_MSG_SIZE_C,
             ADDR_WIDTH_G    => 4)
          port map (
-            rst           => tsRecRsts(i),        -- [in]
-            wr_clk        => tsRecClks(i),        -- [in]
-            wr_en         => tsRxMsgs(i).strobe,  -- [in]
-            din           => tsMsgFifoWrData(i),  -- [in]
-            wr_data_count => open,                -- [out]
-            rd_clk        => fcClk185,            -- [in]
-            rd_en         => r.tsMsgFifoRdEn(i),  -- [in]
-            dout          => tsMsgFifoRdData(i),  -- [out]
-            rd_data_count => open,                -- [out]
-            valid         => tsMsgFifoValid(i));  -- [out]
-
-      tsMsgFifoMsgs(i) <= toTsData6ChMsg(tsMsgFifoRdData(i), tsMsgFifoValid(i));
+            rst     => tsRecRsts(i),        -- [in]
+            wrClk   => tsRecClks(i),        -- [in]
+            wrEn    => tsRxMsgs(i).strobe,  -- [in]
+            wrFull  => open,                -- [out]
+            wrMsg   => tsRxMsgs(i),         -- [in]
+            rdClk   => fcClk185,            -- [in]
+            rdEn    => r.tsMsgFifoRdEn(i),  -- [in]
+            rdMsg   => tsMsgFifoMsgs(i),    -- [out]
+            rdValid => open);               -- [out]
    end generate GEN_TS_RX_FIFOS;
 
    -------------------------------------------------------------------------------------------------

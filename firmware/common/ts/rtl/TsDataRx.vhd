@@ -71,9 +71,10 @@ end entity TsDataRx;
 architecture rtl of TsDataRx is
 
    -- AXI Lite
-   constant NUM_AXIL_MASTERS_C      : natural := 2;
+   constant NUM_AXIL_MASTERS_C      : natural := 3;
    constant AXIL_TS_RX_LANE_ARRAY_C : natural := 0;
    constant AXIL_TS_RX_ALIGNER_C    : natural := 1;
+   constant AXIL_TS_TX_PLAYBACK_C   : natural := 2;
 
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
       AXIL_TS_RX_LANE_ARRAY_C => (
@@ -83,7 +84,12 @@ architecture rtl of TsDataRx is
       AXIL_TS_RX_ALIGNER_C    => (
          baseAddr             => AXIL_BASE_ADDR_G + X"10_0000",
          addrBits             => 8,
+         connectivity         => X"FFFF"),
+      AXIL_TS_TX_PLAYBACK_C   => (
+         baseAddr             => AXIL_BASE_ADDR_G + X"1000_0000",
+         addrBits             => 28,
          connectivity         => X"FFFF"));
+
 
 
    signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
@@ -98,8 +104,8 @@ architecture rtl of TsDataRx is
 
    signal tsTxClks : slv(TS_LANES_G-1 downto 0);
    signal tsTxRsts : slv(TS_LANES_G-1 downto 0);
-   signal tsTxMsgs  : TsData6ChMsgArray(TS_LANES_G-1 downto 0);   
-   
+   signal tsTxMsgs : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
+
 
 
 begin
@@ -156,6 +162,28 @@ begin
          axilReadSlave   => locAxilReadSlaves(AXIL_TS_RX_LANE_ARRAY_C),    -- [out]
          axilWriteMaster => locAxilWriteMasters(AXIL_TS_RX_LANE_ARRAY_C),  -- [in]
          axilWriteSlave  => locAxilWriteSlaves(AXIL_TS_RX_LANE_ARRAY_C));  -- [out]
+
+   -------------------------------------------------------------------------------------------------
+   -- TS Message Playback
+   -------------------------------------------------------------------------------------------------
+   U_TsTxMsgPlayback_1 : entity ldmx_ts.TsTxMsgPlayback
+      generic map (
+         TPD_G            => TPD_G,
+         TS_LANES_G       => TS_LANES_G,
+         AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G)
+      port map (
+         tsTxClks        => tsTxClks,                                    -- [in]
+         tsTxRsts        => tsTxRsts,                                    -- [in]
+         tsTxMsgs        => tsTxMsgs,                                    -- [out]
+         fcClk185        => fcClk185,                                    -- [in]
+         fcRst185        => fcRst185,                                    -- [in]
+         fcBus           => fcBus,                                       -- [in]
+         axilClk         => axilClk,                                     -- [in]
+         axilRst         => axilRst,                                     -- [in]
+         axilReadMaster  => locAxilReadMasters(AXIL_TS_TX_PLAYBACK_C),   -- [in]
+         axilReadSlave   => locAxilReadSlaves(AXIL_TS_TX_PLAYBACK_C),    -- [out]
+         axilWriteMaster => locAxilWriteMasters(AXIL_TS_TX_PLAYBACK_C),  -- [in]
+         axilWriteSlave  => locAxilWriteSlaves(AXIL_TS_TX_PLAYBACK_C));  -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- TS Message Aligner

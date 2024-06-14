@@ -87,8 +87,8 @@ architecture rtl of S30xlAppCore is
          addrBits     => 20,
          connectivity => X"FFFF"),
       AXIL_TS_RX_C    => (
-         baseAddr     => X"0100_0000",
-         addrBits     => 24,
+         baseAddr     => X"2000_0000",
+         addrBits     => 29,
          connectivity => X"FFFF"),
       AXIL_TS_DAQ_C   => (
          baseAddr     => X"00100000",

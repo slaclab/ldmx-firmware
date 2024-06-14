@@ -74,7 +74,7 @@ begin
          GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
          SYNTH_MODE_G    => SYNTH_MODE_G,
          MEMORY_TYPE_G   => MEMORY_TYPE_G,
-         PIPE_STAGES_G   => PIPE_STAGES_G,
+         PIPE_STAGES_G   => 0,
          DATA_WIDTH_G    => TS_DATA_6CH_MSG_SIZE_C,
          ADDR_WIDTH_G    => ADDR_WIDTH_G)
       port map (

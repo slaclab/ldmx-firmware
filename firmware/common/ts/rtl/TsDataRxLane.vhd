@@ -182,7 +182,7 @@ begin
          axilWriteMaster => locAxilWriteMasters(AXIL_GTY_C),  -- [in]
          axilWriteSlave  => locAxilWriteSlaves(AXIL_GTY_C));  -- [out]
 
-   -- For now don't use MMCM
+   -- Don't need MMCM
    tsRecClkMmcm       <= tsRecClkGt;
    tsRecClkMmcmLocked <= '1';
 
@@ -211,6 +211,7 @@ begin
          tsRst250         => tsRecClkRst,                        -- [in]
          tsRxPhyInit      => tsRxPhyInit,                        -- [out]
          tsRxPhyResetDone => tsRxPhyResetDone,                   -- [in]
+         tsRxPhyLoopback => loopback,        -- [out]         
          tsRxData         => tsRxData,                           -- [in]
          tsRxDataK        => tsRxDataK,                          -- [in]
          tsRxMsg          => tsRxMsg,                            -- [out]
