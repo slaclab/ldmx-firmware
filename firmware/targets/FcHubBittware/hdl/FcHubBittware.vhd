@@ -31,8 +31,6 @@ use axi_pcie_core.AxiPciePkg.all;
 library ldmx_tdaq;
 use ldmx_tdaq.FcPkg.all;
 
-library ldmx_tracker;
-
 library unisim;
 use unisim.vcomponents.all;
 

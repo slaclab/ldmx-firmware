@@ -25,5 +25,6 @@ from ._WaveformCapture import *
 from ._TrackerBittwareRoot import *
 from ._TrackerBittware import *
 from ._TrackerPgpFcArray import *
+from ._FcHubBittware import *
 
 
