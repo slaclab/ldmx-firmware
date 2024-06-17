@@ -141,7 +141,7 @@ architecture rtl of S30xlAPx is
          connectivity       => X"FFFF"),
       AXIL_ETH_C            => (
          baseAddr           => X"10000000",
-         addrBits           => 16,
+         addrBits           => 24,
          connectivity       => X"FFFF"),
       AXIL_FC_HUB_C         => (
          baseAddr           => X"20000000",
@@ -152,8 +152,8 @@ architecture rtl of S30xlAPx is
          addrBits           => 8,
          connectivity       => X"FFFF"),
       AXIL_APP_CORE_C       => (
-         baseAddr           => X"40000000",
-         addrBits           => 28,
+         baseAddr           => X"80000000",
+         addrBits           => 31,
          connectivity       => X"FFFF"));
 
    signal axilClk : sl;
