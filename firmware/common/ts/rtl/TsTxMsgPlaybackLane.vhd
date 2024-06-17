@@ -76,7 +76,7 @@ architecture rtl of TsTxMsgPlaybackLane is
    signal ramAxilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal ramAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
 
-   signal ramDout : slv16Array(NUM_CHANNELS_C-1 downto 0);
+   signal ramDout : slv(95 downto 0);
 
    signal rdValid : sl;
 
@@ -104,55 +104,55 @@ begin
    ---------------------
    -- AXI-Lite Crossbar
    ---------------------
-   U_XBAR : entity surf.AxiLiteCrossbar
-      generic map (
-         TPD_G              => TPD_G,
-         NUM_SLAVE_SLOTS_G  => 1,
-         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
-         MASTERS_CONFIG_G   => AXIL_XBAR_CFG_C)
-      port map (
-         axiClk              => axilClk,
-         axiClkRst           => axilRst,
-         sAxiWriteMasters(0) => axilWriteMaster,
-         sAxiWriteSlaves(0)  => axilWriteSlave,
-         sAxiReadMasters(0)  => axilReadMaster,
-         sAxiReadSlaves(0)   => axilReadSlave,
-         mAxiWriteMasters    => ramAxilWriteMasters,
-         mAxiWriteSlaves     => ramAxilWriteSlaves,
-         mAxiReadMasters     => ramAxilReadMasters,
-         mAxiReadSlaves      => ramAxilReadSlaves);
+--    U_XBAR : entity surf.AxiLiteCrossbar
+--       generic map (
+--          TPD_G              => TPD_G,
+--          NUM_SLAVE_SLOTS_G  => 1,
+--          NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
+--          MASTERS_CONFIG_G   => AXIL_XBAR_CFG_C)
+--       port map (
+--          axiClk              => axilClk,
+--          axiClkRst           => axilRst,
+--          sAxiWriteMasters(0) => axilWriteMaster,
+--          sAxiWriteSlaves(0)  => axilWriteSlave,
+--          sAxiReadMasters(0)  => axilReadMaster,
+--          sAxiReadSlaves(0)   => axilReadSlave,
+--          mAxiWriteMasters    => ramAxilWriteMasters,
+--          mAxiWriteSlaves     => ramAxilWriteSlaves,
+--          mAxiReadMasters     => ramAxilReadMasters,
+--          mAxiReadSlaves      => ramAxilReadSlaves);
 
    -------------------------------------------------------------------------------------------------
    -- Make a RAM for each TS channel (6 or 8)
    -------------------------------------------------------------------------------------------------
-   GEN_RAM : for i in NUM_CHANNELS_C-1 downto 0 generate
-      U_AxiDualPortRam_1 : entity surf.AxiDualPortRam
-         generic map (
-            TPD_G            => TPD_G,
-            SYNTH_MODE_G     => "inferred",
-            MEMORY_TYPE_G    => "ultra",
-            READ_LATENCY_G   => 3,
-            AXI_WR_EN_G      => true,
-            SYS_WR_EN_G      => false,
-            SYS_BYTE_WR_EN_G => false,
-            COMMON_CLK_G     => false,
-            ADDR_WIDTH_G     => 14,
-            DATA_WIDTH_G     => 16)
-         port map (
-            axiClk         => axilClk,                 -- [in]
-            axiRst         => axilRst,                 -- [in]
-            axiReadMaster  => ramAxilReadMasters(i),   -- [in]
-            axiReadSlave   => ramAxilReadSlaves(i),    -- [out]
-            axiWriteMaster => ramAxilWriteMasters(i),  -- [in]
-            axiWriteSlave  => ramAxilWriteSlaves(i),   -- [out]
-            clk            => fcClk185,                -- [in]
-            rst            => fcRst185,                -- [in]
-            addr           => r.ramAddr,               -- [in]
-            dout           => ramDout(i));             -- [out]
-   end generate GEN_RAM;
+--   GEN_RAM : for i in NUM_CHANNELS_C-1 downto 0 generate
+   U_AxiDualPortRam_1 : entity surf.AxiDualPortRam
+      generic map (
+         TPD_G            => TPD_G,
+         SYNTH_MODE_G     => "inferred",
+         MEMORY_TYPE_G    => "ultra",
+         READ_LATENCY_G   => 3,
+         AXI_WR_EN_G      => true,
+         SYS_WR_EN_G      => false,
+         SYS_BYTE_WR_EN_G => false,
+         COMMON_CLK_G     => false,
+         ADDR_WIDTH_G     => 14,
+         DATA_WIDTH_G     => 96)
+      port map (
+         axiClk         => axilClk,          -- [in]
+         axiRst         => axilRst,          -- [in]
+         axiReadMaster  => axilReadMaster,   -- [in]
+         axiReadSlave   => axilReadSlave,    -- [out]
+         axiWriteMaster => axilWriteMaster,  -- [in]
+         axiWriteSlave  => axilWriteSlave,   -- [out]
+         clk            => fcClk185,         -- [in]
+         rst            => fcRst185,         -- [in]
+         addr           => r.ramAddr,        -- [in]
+         dout           => ramDout);         -- [out]
+--   end generate GEN_RAM;
 
 
-   comb : process (fcRst185, r) is
+   comb : process (fcBus, fcRst185, r, ramDout) is
       variable v : RegType := REG_INIT_C;
    begin
       v := r;
@@ -163,16 +163,17 @@ begin
 
       v.tsMsg := TS_DATA_6CH_MSG_INIT_C;
       for i in 5 downto 0 loop
-         v.tsMsg.adc(i) := ramDout(i)(7 downto 0);
-         v.tsMsg.tdc(i) := ramDout(i)(13 downto 8);
-         v.tsMsg.capId  := (others => '0');  -- ramDout(0)(7 downto 6);
-         v.tsMsg.ce     := '0';              --ramDout(0)(14);
+         v.tsMsg := toTsData6ChMsg(ramDout(TS_DATA_6CH_MSG_SIZE_C-1 downto 0));
+--          v.tsMsg.adc(i) := ramDout(i)(7 downto 0);
+--          v.tsMsg.tdc(i) := ramDout(i)(13 downto 8);
+--          v.tsMsg.capId  := (others => '0');  -- ramDout(0)(7 downto 6);
+--          v.tsMsg.ce     := '0';              --ramDout(0)(14);
       end loop;
 
       case r.state is
          when WAIT_T0_S =>
             v.ramAddr := (others => '0');
-            if (fcBus.pulseStrobe = '1' and fcBus.stateChanged = '1' and fcBus.runState = RUN_STATE_PRESTART_C and ramDout(0)(15) = '1') then
+            if (fcBus.pulseStrobe = '1' and fcBus.stateChanged = '1' and fcBus.runState = RUN_STATE_PRESTART_C and ramDout(95) = '1') then
                v.tsMsg.strobe := '1';
                v.tsMsg.bc0    := '1';
                v.ramAddr      := r.ramAddr + 1;
@@ -183,7 +184,7 @@ begin
             if (fcBus.bunchStrobe = '1') then
                v.tsMsg.strobe := '1';
                v.ramAddr      := r.ramAddr + 1;
-               if (ramDout(0)(14) = '1') then
+               if (ramDout(94) = '1') then
                   v.state := WAIT_T0_S;
                end if;
             end if;
