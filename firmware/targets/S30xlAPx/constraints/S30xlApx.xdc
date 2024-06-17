@@ -42,8 +42,11 @@ create_clock -name appFcTxOutClkPcs -period 5.384 [get_pins -hier * -filter {nam
 create_clock -name tsRxOutClk0 -period 4.0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[0]*/RXOUTCLK}]
 create_clock -name tsRxOutClk1 -period 4.0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[1]*/RXOUTCLK}]
 
-create_generated_clock -name tsTxOutClk0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[0]*/TXOUTCLK}]
-create_generated_clock -name tsTxOutClk1 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[1]*/TXOUTCLK}]
+create_clock -name tsTxOutClk0 -period 4.0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[0]*/TXOUTCLK}]
+create_clock -name tsTxOutClk1 -period 4.0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[1]*/TXOUTCLK}]
+
+create_clock -name tsTxOutClkMon0  -period 4.0 [get_pins -hier * -filter {name=~ */U_TsDataRx_1/*/GEN_LANES[0]*/bufg_gt_txoutclkmon_inst/O}]
+create_clock -name tsTxOutClkMon1  -period 4.0 [get_pins -hier * -filter {name=~ */U_TsDataRx_1/*/GEN_LANES[1]*/bufg_gt_txoutclkmon_inst/O}]
 
 # Eth GT Clocks
 create_generated_clock -name ethTxOutClk [get_pins -hier * -filter {name=~U_TenGigEthGtyCore_1/*/TXOUTCLK}]
@@ -51,6 +54,13 @@ create_generated_clock -name ethTxOutClkPcs [get_pins -hier * -filter {name=~U_T
 create_generated_clock -name ethRxOutClk [get_pins -hier * -filter {name=~U_TenGigEthGtyCore_1/*/RXOUTCLK}]
 
 
+set daqClk37Pin [get_pins { U_S30xlAppCore_1/U_FcReceiver_1/U_FcRxLogic_1/r_reg[fcBunchClk37]/Q }]
+create_generated_clock \
+    -name fcClk37 \
+    -source [get_pins -hier * -filter {name=~*/*U_FcReceiver_1/*U_Mmcm/CLKOUT0}] \
+    -edges {1 7 11} \
+    ${daqClk37Pin}
+		 
 ########################################################
 # Clock Groups
 ########################################################
@@ -68,7 +78,7 @@ set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks tsRefClk250] \
     -group [get_clocks -include_generated_clocks ethRefClk156] \
     -group [get_clocks -include_generated_clocks lclsTimingRxOutClk] \
-    -group [get_clocks -include_generated_clocks apFcRxOutClk]
+    -group [get_clocks -include_generated_clocks appFcRxOutClk]
 
 set_clock_groups -asynchronous \
     -group [get_clocks appFcTxOutClkPcs] \
