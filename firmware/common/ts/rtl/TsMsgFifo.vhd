@@ -71,6 +71,7 @@ begin
    U_Fifo_1 : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
+         FWFT_EN_G       => true,
          GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
          SYNTH_MODE_G    => SYNTH_MODE_G,
          MEMORY_TYPE_G   => MEMORY_TYPE_G,
