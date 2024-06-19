@@ -155,7 +155,7 @@ begin
    U_Lcls2TimingRx_1 : entity ldmx_tdaq.Lcls2TimingRx
       generic map (
          TPD_G             => TPD_G,
-         TIME_GEN_EXTREF_G => true,
+         TIME_GEN_EXTREF_G => false,
          RX_CLK_MMCM_G     => true,
          USE_TPGMINI_G     => true,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CONFIG_C(AXIL_LCLS_TIMING_C).baseAddr)

@@ -35,7 +35,7 @@ use unisim.vcomponents.all;
 entity Lcls2TimingRx is
    generic (
       TPD_G             : time    := 1 ns;
-      TIME_GEN_EXTREF_G : boolean := true;
+      TIME_GEN_EXTREF_G : boolean := false;
       RX_CLK_MMCM_G     : boolean := true;
       USE_TPGMINI_G     : boolean := true;
       AXIL_BASE_ADDR_G : slv(31 downto 0) := X"00000000");

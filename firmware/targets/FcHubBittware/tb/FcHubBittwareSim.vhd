@@ -88,7 +88,7 @@ architecture sim of FcHubBittwareSim is
 begin
 
    -- FPGA
-   U_TrackerBittware_1 : entity ldmx_tracker.FcHubBittware
+   U_FcHubBittware_1 : entity ldmx_tracker.FcHubBittware
       generic map (
          TPD_G                => TPD_G,
          SIM_SPEEDUP_G        => SIM_SPEEDUP_G,
@@ -136,6 +136,7 @@ begin
   qsfpRefClkP(0) <= timingRefClk185P;
   qsfpRefClkN(0) <= timingRefClk185N;
 
+  -- loopback the timing link
   lclsTimingTxP  <= qsfpTxP(0);
   lclsTimingTxN  <= qsfpTxN(0);
 

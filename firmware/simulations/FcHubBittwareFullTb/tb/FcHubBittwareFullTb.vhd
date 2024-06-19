@@ -67,18 +67,22 @@ architecture sim of FcHubBittwareFullTb is
    constant FC_HUB_QUADS_G               : integer                     := 1;
    constant PGP_QUADS_G                  : integer                     := 1;
 
-   signal fcRxP       : sl;                               -- [in]
-   signal fcRxN       : sl;                               -- [in]
-   signal fcTxP       : sl;                               -- [out]
-   signal fcTxN       : sl;                               -- [out]
-   signal fcHubRxP    : slv(FC_HUB_QUADS_G*4-1 downto 0); -- [in]
-   signal fcHubRxN    : slv(FC_HUB_QUADS_G*4-1 downto 0); -- [in]
-   signal fcHubTxP    : slv(FC_HUB_QUADS_G*4-1 downto 0); -- [out]
-   signal fcHubTxN    : slv(FC_HUB_QUADS_G*4-1 downto 0); -- [out]
-   signal febPgpFcRxP : slv(PGP_QUADS_G*4-1 downto 0);    -- [in]
-   signal febPgpFcRxN : slv(PGP_QUADS_G*4-1 downto 0);    -- [in]
-   signal febPgpFcTxP : slv(PGP_QUADS_G*4-1 downto 0);    -- [out]
-   signal febPgpFcTxN : slv(PGP_QUADS_G*4-1 downto 0);    -- [out]
+   signal lclsTimingRxP : sl;                               -- [in]
+   signal lclsTimingRxN : sl;                               -- [in]
+   signal lclsTimingTxP : sl;                               -- [out]
+   signal lclsTimingTxN : sl;                               -- [out]
+   signal fcRxP         : sl;                               -- [in]
+   signal fcRxN         : sl;                               -- [in]
+   signal fcTxP         : sl;                               -- [out]
+   signal fcTxN         : sl;                               -- [out]
+   signal fcHubRxP      : slv(FC_HUB_QUADS_G*4-1 downto 0); -- [in]
+   signal fcHubRxN      : slv(FC_HUB_QUADS_G*4-1 downto 0); -- [in]
+   signal fcHubTxP      : slv(FC_HUB_QUADS_G*4-1 downto 0); -- [out]
+   signal fcHubTxN      : slv(FC_HUB_QUADS_G*4-1 downto 0); -- [out]
+   signal febPgpFcRxP   : slv(PGP_QUADS_G*4-1 downto 0);    -- [in]
+   signal febPgpFcRxN   : slv(PGP_QUADS_G*4-1 downto 0);    -- [in]
+   signal febPgpFcTxP   : slv(PGP_QUADS_G*4-1 downto 0);    -- [out]
+   signal febPgpFcTxN   : slv(PGP_QUADS_G*4-1 downto 0);    -- [out]
 
 begin
 
@@ -91,14 +95,14 @@ begin
          ROGUE_SIM_PORT_NUM_G => ROGUE_SIM_PORT_FCHUB_NUM_G,
          FC_HUB_QUADS_G       => FC_HUB_QUADS_G)
       port map (
-         lclsTimingRxP => '0',         -- [in]
-         lclsTimingRxN => '1',         -- [in]
-         lclsTimingTxP => open,        -- [out]
-         lclsTimingTxN => open,        -- [out]
-         fcHubTxP      => fcHubTxP,    -- [in]
-         fcHubTxN      => fcHubTxN,    -- [in]
-         fcHubRxP      => fcHubRxP,    -- [out]
-         fcHubRxN      => fcHubRxN);   -- [out]
+         lclsTimingRxP => lclsTimingRxP, -- [in]
+         lclsTimingRxN => lclsTimingRxN, -- [in]
+         lclsTimingTxP => lclsTimingTxP, -- [out]
+         lclsTimingTxN => lclsTimingTxN, -- [out]
+         fcHubTxP      => fcHubTxP,      -- [in]
+         fcHubTxN      => fcHubTxN,      -- [in]
+         fcHubRxP      => fcHubRxP,      -- [out]
+         fcHubRxN      => fcHubRxN);     -- [out]
 
    U_TrackerBittwareSim_1 : entity ldmx_tracker.TrackerBittwareSim
       generic map (
@@ -118,15 +122,19 @@ begin
          febPgpFcTxP => febPgpFcTxP,    -- [out]
          febPgpFcTxN => febPgpFcTxN);   -- [out]
 
-   -- connect Hub to Tracker
-   febPgpFcRxP <= fcHubTxP;
-   febPgpFcRxN <= fcHubTxN;
-   fcHubRxP    <= febPgpFcTxP;
-   fcHubRxN    <= febPgpFcTxN;
+   -- loopback tracker feb connections
+   febPgpFcRxP <= febPgpFcTxP;
+   febPgpFcRxN <= febPgpFcTxN;
 
-   -- Loop back FEBs
-   fcRxP <= fcTxP;
-   fcRxN <= fcTxN;
+   -- loopback the timing link
+   lclsTimingRxP <= lclsTimingTxP;
+   lclsTimingRxN <= lclsTimingTxN;
+
+   -- connect fc hub to tracker
+   fcHubRxP(0) <= fcTxP;
+   fcHubRxN(0) <= fcTxN;
+   fcRxP       <= fcHubTxP(0);
+   fcRxN       <= fcHubTxN(0);
 
 end architecture sim;
 
