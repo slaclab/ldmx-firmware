@@ -155,9 +155,11 @@ begin
    U_Lcls2TimingRx_1 : entity ldmx_tdaq.Lcls2TimingRx
       generic map (
          TPD_G             => TPD_G,
-         TIME_GEN_EXTREF_G => false,
-         RX_CLK_MMCM_G     => true,
+         SIMULATION_G      => SIM_SPEEDUP_G,
+         TIME_GEN_EXTREF_G => true,
+         RX_CLK_MMCM_G     => false,
          USE_TPGMINI_G     => true,
+         AXI_CLK_FREQ_G    => AXIL_CLK_FREQ_G,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CONFIG_C(AXIL_LCLS_TIMING_C).baseAddr)
       port map (
          stableClk        => axilClk,   -- [in] -- axilClk from TenGigEth core is not mmcm

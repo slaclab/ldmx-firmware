@@ -35,10 +35,12 @@ use unisim.vcomponents.all;
 entity Lcls2TimingRx is
    generic (
       TPD_G             : time    := 1 ns;
+      SIMULATION_G      : boolean := false;
       TIME_GEN_EXTREF_G : boolean := false;
       RX_CLK_MMCM_G     : boolean := true;
       USE_TPGMINI_G     : boolean := true;
-      AXIL_BASE_ADDR_G : slv(31 downto 0) := X"00000000");
+      AXI_CLK_FREQ_G    : real             := 156.25e6;
+      AXIL_BASE_ADDR_G  : slv(31 downto 0) := X"00000000");
    port (
       stableClk        : in  sl;
       stableRst        : in  sl;
@@ -210,6 +212,8 @@ begin
    TimingGtCoreWrapper_1 : entity lcls_timing_core.TimingGtCoreWrapper
       generic map (
          TPD_G             => TPD_G,
+         SIMULATION_G      => SIMULATION_G,
+         AXI_CLK_FREQ_G    => AXI_CLK_FREQ_G,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_GTH_INDEX_C).baseAddr,
          EXTREF_G          => TIME_GEN_EXTREF_G,
          DISABLE_TIME_GT_G => false,

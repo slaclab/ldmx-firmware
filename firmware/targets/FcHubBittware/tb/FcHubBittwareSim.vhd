@@ -124,6 +124,7 @@ begin
    U_ClkRst_REFCLK : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 5.3848 ns,  -- 185.714285 MHz = 5.3846 ns
+         --CLK_PERIOD_G      => 2.6924 ns,  -- 371.416 MHz = 2.6924 ns
          CLK_DELAY_G       => 1 ns,
          RST_START_DELAY_G => 0 ns,
          RST_HOLD_TIME_G   => 5 us,
@@ -136,7 +137,6 @@ begin
   qsfpRefClkP(0) <= timingRefClk185P;
   qsfpRefClkN(0) <= timingRefClk185N;
 
-  -- loopback the timing link
   lclsTimingTxP  <= qsfpTxP(0);
   lclsTimingTxN  <= qsfpTxN(0);
 
