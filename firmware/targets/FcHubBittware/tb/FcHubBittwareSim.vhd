@@ -43,6 +43,8 @@ entity FcHubBittwareSim is
       lclsTimingRxN     : in  sl;
       lclsTimingTxP     : out sl;
       lclsTimingTxN     : out sl;
+      timingRefClkP     : in  sl;
+      timingRefClkN     : in  sl;
       fcHubTxP          : out slv(FC_HUB_QUADS_G*4-1 downto 0);
       fcHubTxN          : out slv(FC_HUB_QUADS_G*4-1 downto 0);
       fcHubRxP          : in  slv(FC_HUB_QUADS_G*4-1 downto 0);
@@ -120,22 +122,9 @@ begin
          pciTxP         => pciTxP,          -- [out]
          pciTxN         => pciTxN);         -- [out]
 
-   -- Fast Control Refclk
-   U_ClkRst_REFCLK : entity surf.ClkRst
-      generic map (
-         CLK_PERIOD_G      => 5.3848 ns,  -- 185.714285 MHz = 5.3846 ns
-         --CLK_PERIOD_G      => 2.6924 ns,  -- 371.416 MHz = 2.6924 ns
-         CLK_DELAY_G       => 1 ns,
-         RST_START_DELAY_G => 0 ns,
-         RST_HOLD_TIME_G   => 5 us,
-         SYNC_RESET_G      => true)
-      port map (
-         clkP => timingRefClk185P,
-         clkN => timingRefClk185N);
-
   -- Timing is on quad 0
-  qsfpRefClkP(0) <= timingRefClk185P;
-  qsfpRefClkN(0) <= timingRefClk185N;
+  qsfpRefClkP(0) <= timingRefClkP;
+  qsfpRefClkN(0) <= timingRefClkN;
 
   lclsTimingTxP  <= qsfpTxP(0);
   lclsTimingTxN  <= qsfpTxN(0);

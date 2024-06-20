@@ -71,6 +71,8 @@ architecture sim of FcHubBittwareFullTb is
    signal lclsTimingRxN : sl;                               -- [in]
    signal lclsTimingTxP : sl;                               -- [out]
    signal lclsTimingTxN : sl;                               -- [out]
+   signal timingRefClkP : sl;                               -- [in]
+   signal timingRefClkN : sl;                               -- [in]
    signal fcRxP         : sl;                               -- [in]
    signal fcRxN         : sl;                               -- [in]
    signal fcTxP         : sl;                               -- [out]
@@ -86,6 +88,19 @@ architecture sim of FcHubBittwareFullTb is
 
 begin
 
+   -- Fast Control Refclk
+   U_ClkRst_REFCLK : entity surf.ClkRst
+      generic map (
+         CLK_PERIOD_G      => 5.3848 ns,  -- 185.714285 MHz = 5.3846 ns
+         --CLK_PERIOD_G      => 2.6924 ns,  -- 371.416 MHz = 2.6924 ns
+         CLK_DELAY_G       => 1 ns,
+         RST_START_DELAY_G => 0 ns,
+         RST_HOLD_TIME_G   => 5 us,
+         SYNC_RESET_G      => true)
+      port map (
+         clkP => timingRefClkP,
+         clkN => timingRefClkN);
+
    U_FcHubBittwareSim_1 : entity ldmx_tracker.FcHubBittwareSim
       generic map (
          TPD_G                => TPD_G,
@@ -99,6 +114,8 @@ begin
          lclsTimingRxN => lclsTimingRxN, -- [in]
          lclsTimingTxP => lclsTimingTxP, -- [out]
          lclsTimingTxN => lclsTimingTxN, -- [out]
+         timingRefClkP => timingRefClkP, -- [in]
+         timingRefClkN => timingRefClkN, -- [in]
          fcHubTxP      => fcHubTxP,      -- [in]
          fcHubTxN      => fcHubTxN,      -- [in]
          fcHubRxP      => fcHubRxP,      -- [out]
