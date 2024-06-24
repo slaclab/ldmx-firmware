@@ -16,7 +16,10 @@ create_generated_clock -name axilClk [get_pins {U_axilClk/PllGen.U_Pll/CLKOUT0}]
 
 
 # Tracker FEB PGP Ref Clocks
-create_clock -name fcRefClk185 -period 5.384 [get_ports {qsfpRefClkP[0]}]
+# The fcRefClk period is subject to change, depending on the GT used:
+# EXTREF -> 5.384 (185.x MHz)
+# FIXEDLAT -> 2.691 (371.x MHz)
+create_clock -name fcRefClk -period 5.384 [get_ports {qsfpRefClkP[0]}]
 create_clock -name febPgpFcRefClk0 -period 5.384 [get_ports {qsfpRefClkP[4]}]
 create_clock -name febPgpFcRefClk1 -period 5.384 [get_ports {qsfpRefClkP[5]}]
 # create_clock -name febPgpFcRefClk3 -period 5.384 [get_ports {febPgpRcRefClkP[3]}]
@@ -26,7 +29,7 @@ create_clock -name febPgpFcRefClk1 -period 5.384 [get_ports {qsfpRefClkP[5]}]
 # create_clock -name febPgpFcRefClk7 -period 5.384 [get_ports {febPgpRcRefClkP[7]}]
 
 # Recovered FC clock after MMCM
-create_generated_clock -name fcRecClk185 [get_pins U_FcReceiver_1/U_LdmxPgpFcLane_1/RX_CLK_MMCM_GEN.U_ClockManager/MmcmGen.U_Mmcm/CLKOUT0]
+create_generated_clock -name fcRecClk [get_pins U_FcHub_1/U_Lcls2TimingRx_1/RX_CLK_MMCM_GEN.U_ClockManager/MmcmGen.U_Mmcm/CLKOUT0]
 
 # set_clock_groups -asynchronous \
 #     -group [get_clocks -include_generated_clocks axilClk] \
@@ -35,10 +38,10 @@ create_generated_clock -name fcRecClk185 [get_pins U_FcReceiver_1/U_LdmxPgpFcLan
 set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks axilClk] \
     -group [get_clocks -include_generated_clocks dmaClk] \    
-    -group [get_clocks -include_generated_clocks fcRefClk185] \
+    -group [get_clocks -include_generated_clocks fcRefClk] \
     -group [get_clocks -include_generated_clocks febPgpFcRefClk0] \
     -group [get_clocks -include_generated_clocks febPgpFcRefClk1] \
-    -group [get_clocks fcRecClk185] \
+    -group [get_clocks fcRecClk] \
     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/RXOUTCLK}]] \
     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/TXOUTCLK}]] \
     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/TXOUTCLKPCS}]]  
