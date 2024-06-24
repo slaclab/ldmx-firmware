@@ -85,16 +85,16 @@ architecture rtl of FcHubBittware is
    ---------------------------
    -- LCLS-II Timing Interface
    ---------------------------
-   signal lclsTimingRefClk185P : sl;
-   signal lclsTimingRefClk185N : sl;
-   signal timingRecClkOutP     : sl;
-   signal timingRecClkOutN     : sl;
-   signal lclsTimingTxP        : sl;
-   signal lclsTimingTxN        : sl;
-   signal lclsTimingRxP        : sl;
-   signal lclsTimingRxN        : sl;
-   signal lclsTimingClk        : sl;
-   signal lclsTimingRst        : sl;
+   signal lclsTimingRefClkP : sl;
+   signal lclsTimingRefClkN : sl;
+   signal timingRecClkOutP  : sl;
+   signal timingRecClkOutN  : sl;
+   signal lclsTimingTxP     : sl;
+   signal lclsTimingTxN     : sl;
+   signal lclsTimingRxP     : sl;
+   signal lclsTimingRxN     : sl;
+   signal lclsTimingClk     : sl;
+   signal lclsTimingRst     : sl;
 
    --------------------
    --  FC Hub Interface
@@ -279,8 +279,8 @@ begin
          AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_C,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_FC_HUB_C).baseAddr)
       port map (
-         lclsTimingRefClk185P => lclsTimingRefClk185P,                -- [in]
-         lclsTimingRefClk185N => lclsTimingRefClk185N,                -- [in]
+         lclsTimingRefClkP    => lclsTimingRefClkP,                   -- [in]
+         lclsTimingRefClkN    => lclsTimingRefClkN,                   -- [in]
          lclsTimingRxP        => lclsTimingRxP,                       -- [in]
          lclsTimingRxN        => lclsTimingRxN,                       -- [in]
          lclsTimingTxP        => lclsTimingTxP,                       -- [out]
@@ -307,14 +307,14 @@ begin
    -- Map DD-QSFP ports
    -------------------------------------------------------------------------------------------------
    -- LCLS-II Timing RX is quad 0
-   lclsTimingRefClk185P <= qsfpRefClkP(0);
-   lclsTimingRefClk185N <= qsfpRefClkN(0);
-   qsfpRecClkP(0)       <= timingRecClkOutP;
-   qsfpRecClkN(0)       <= timingRecClkOutN;
-   qsfpTxP(0)           <= lclsTimingTxP;
-   qsfpTxN(0)           <= lclsTimingTxN;
-   lclsTimingRxP        <= qsfpRxP(0);
-   lclsTimingRxN        <= qsfpRxN(0);
+   lclsTimingRefClkP <= qsfpRefClkP(0);
+   lclsTimingRefClkN <= qsfpRefClkN(0);
+   qsfpRecClkP(0)    <= timingRecClkOutP;
+   qsfpRecClkN(0)    <= timingRecClkOutN;
+   qsfpTxP(0)        <= lclsTimingTxP;
+   qsfpTxN(0)        <= lclsTimingTxN;
+   lclsTimingRxP     <= qsfpRxP(0);
+   lclsTimingRxN     <= qsfpRxN(0);
 
    -- FC Hub PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0
    GEN_FEB_REFCLK : for i in FC_HUB_QUADS_G-1 downto 0 generate

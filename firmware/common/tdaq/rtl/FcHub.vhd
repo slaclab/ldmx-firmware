@@ -44,9 +44,9 @@ entity FcHub is
       ----------------------------------------------------------------------------------------------
       -- LCLS Timing Interface
       ----------------------------------------------------------------------------------------------
-      -- 185 MHz Ref Clk for LCLS timing recovery
-      lclsTimingRefClk185P : in  sl;
-      lclsTimingRefClk185N : in  sl;
+      -- 185/371 MHz Ref Clk for LCLS timing recovery (freq used depends on GT configuration)
+      lclsTimingRefClkP    : in  sl;
+      lclsTimingRefClkN    : in  sl;
       -- LCLS-II timing interface
       lclsTimingRxP        : in  sl;
       lclsTimingRxN        : in  sl;
@@ -177,8 +177,8 @@ begin
          timingRxN        => lclsTimingRxN,                            -- [in]
          timingTxP        => lclsTimingTxP,                            -- [out]
          timingTxN        => lclsTimingTxN,                            -- [out]
-         timingRefClkInP  => lclsTimingRefClk185P,                     -- [in]
-         timingRefClkInN  => lclsTimingRefClk185N,                     -- [in]
+         timingRefClkInP  => lclsTimingRefClkP,                        -- [in]
+         timingRefClkInN  => lclsTimingRefClkN,                        -- [in]
          timingRecClkOutP => timingRecClkOutP,                         -- [out]
          timingRecClkOutN => timingRecClkOutN);                        -- [out]
 
