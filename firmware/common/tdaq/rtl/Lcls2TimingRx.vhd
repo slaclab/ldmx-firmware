@@ -137,7 +137,6 @@ architecture rtl of Lcls2TimingRx is
    signal timingStrobe     : sl;
    signal timingValid      : sl;
    signal rxPmaRstDoneOut  : sl;
-   signal rxClkMmcmRst     : sl;
 
 
 begin
@@ -277,12 +276,10 @@ begin
             CLKOUT0_DIVIDE_F_G => 6.500)
          port map(
             clkIn     => timingRxOutClkGt,
-            rstIn     => rxClkMmcmRst,
+            rstIn     => rxPmaRstDoneOut, -- reset polarity low -> active-low reset
             clkOut(0) => timingRxOutClk,
 --            rstOut(0) => open,
             locked    => rxUsrClkActive);
-
-      rxClkMmcmRst <= not(rxPmaRstDoneOut);
 
    end generate RX_CLK_MMCM_GEN;
 
