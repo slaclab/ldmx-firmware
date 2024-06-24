@@ -113,29 +113,31 @@ architecture rtl of Lcls2TimingRx is
    signal timingRxRecClk   : sl;
 
    -- Rx ports
-   signal rxReset        : sl;
-   signal rxUsrClkActive : sl;
-   signal rxCdrStable    : sl;
-   signal rxStatus       : TimingPhyStatusType;
-   signal rxControl      : TimingPhyControlType;
-   signal rxData         : slv(15 downto 0);
-   signal rxDataK        : slv(1 downto 0);
-   signal rxDispErr      : slv(1 downto 0);
-   signal rxDecErr       : slv(1 downto 0);
-   signal txUsrClk       : sl;
-   signal txUsrRst       : sl;
-   signal txUsrClkActive : sl;
-   signal txStatus       : TimingPhyStatusType := TIMING_PHY_STATUS_INIT_C;
-   signal timingPhy      : TimingPhyType;
-   signal coreTimingPhy  : TimingPhyType;
-   signal loopback       : slv(2 downto 0);
-   signal refclksel      : slv(2 downto 0);
-   signal appBus         : TimingBusType;
-   signal appTimingClk : sl;
-   signal appTimingRst : sl;
-   signal appTimingMode  : sl;
-   signal timingStrobe   : sl;
-   signal timingValid    : sl;
+   signal rxReset          : sl;
+   signal rxUsrClkActive   : sl;
+   signal rxCdrStable      : sl;
+   signal rxStatus         : TimingPhyStatusType;
+   signal rxControl        : TimingPhyControlType;
+   signal rxData           : slv(15 downto 0);
+   signal rxDataK          : slv(1 downto 0);
+   signal rxDispErr        : slv(1 downto 0);
+   signal rxDecErr         : slv(1 downto 0);
+   signal txUsrClk         : sl;
+   signal txUsrRst         : sl;
+   signal txUsrClkActive   : sl;
+   signal txStatus         : TimingPhyStatusType := TIMING_PHY_STATUS_INIT_C;
+   signal timingPhy        : TimingPhyType;
+   signal coreTimingPhy    : TimingPhyType;
+   signal loopback         : slv(2 downto 0);
+   signal refclksel        : slv(2 downto 0);
+   signal appBus           : TimingBusType;
+   signal appTimingClk     : sl;
+   signal appTimingRst     : sl;
+   signal appTimingMode    : sl;
+   signal timingStrobe     : sl;
+   signal timingValid      : sl;
+   signal rxPmaRstDoneOut  : sl;
+   signal rxClkMmcmRst     : sl;
 
 
 begin
@@ -238,6 +240,7 @@ begin
          rxStatus        => rxStatus,
          rxUsrClkActive  => rxUsrClkActive,
          rxCdrStable     => rxCdrStable,
+         rxPmaRstDoneOut => rxPmaRstDoneOut,
          rxUsrClk        => timingRxOutClk,
          rxData          => rxData,
          rxDataK         => rxDataK,
@@ -274,10 +277,12 @@ begin
             CLKOUT0_DIVIDE_F_G => 6.500)
          port map(
             clkIn     => timingRxOutClkGt,
-            rstIn     => rxStatus.resetDone,
+            rstIn     => rxClkMmcmRst,
             clkOut(0) => timingRxOutClk,
 --            rstOut(0) => open,
             locked    => rxUsrClkActive);
+
+      rxClkMmcmRst <= not(rxPmaRstDoneOut);
 
    end generate RX_CLK_MMCM_GEN;
 
