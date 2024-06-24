@@ -139,8 +139,8 @@ begin
 
    -- FEB PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0
    GEN_PGP_REFCLK: for i in FC_HUB_QUADS_G-1 downto 0 generate
-      qsfpRefClkP(i+4) <= qsfpRecClkP(0);
-      qsfpRefClkN(i+4) <= qsfpRecClkN(0);
+      qsfpRefClkP(i+4) <= fabClkOutP(0);
+      qsfpRefClkN(i+4) <= fabClkOutN(0);
    end generate GEN_PGP_REFCLK;
 
    U_ClkRst_USERCLK : entity surf.ClkRst
