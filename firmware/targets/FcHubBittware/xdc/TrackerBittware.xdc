@@ -37,16 +37,19 @@ create_generated_clock -name fcRecClk [get_pins U_FcHub_1/U_Lcls2TimingRx_1/RX_C
 
 set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks axilClk] \
-    -group [get_clocks -include_generated_clocks dmaClk] \    
+    -group [get_clocks -include_generated_clocks dmaClk] \
     -group [get_clocks -include_generated_clocks fcRefClk] \
     -group [get_clocks -include_generated_clocks febPgpFcRefClk0] \
     -group [get_clocks -include_generated_clocks febPgpFcRefClk1] \
     -group [get_clocks fcRecClk] \
+    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Lcls2TimingRx_1/*/RXOUTCLK}]] \
+    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Lcls2TimingRx_1/*/TXOUTCLK}]] \
+    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Lcls2TimingRx_1/*/TXOUTCLKPCS}]] \
     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/RXOUTCLK}]] \
     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/TXOUTCLK}]] \
-    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/TXOUTCLKPCS}]]  
-    
-    
+    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/TXOUTCLKPCS}]]
+
+
 #    -group [get_clocks -include_generated_clocks qsfpRefClk0]
 #    -group [get_clocks -include_generated_clocks qsfpRefClk1] \
 #    -group [get_clocks -include_generated_clocks qsfpRefClk2] \
