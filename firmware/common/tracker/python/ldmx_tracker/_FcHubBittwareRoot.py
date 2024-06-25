@@ -27,9 +27,9 @@ class FcHubBittwareRoot(pr.Root):
     def __init__(
             self,
             dev = '/dev/datadev_0',
-            sim = False,
+            sim = True,
             prbsEn = False,
-            numPgpQuads = 2,
+            numPgpQuads = 1,
             numVc = 4,
             **kwargs):
         super().__init__(**kwargs)
@@ -87,22 +87,14 @@ class FcHubBittwareRoot(pr.Root):
             sim         = sim,
         ))
 
-        self.add(ldmx_tdaq.FcReceiver(
+        self.add(ldmx_tdaq.FcHub(
             offset = 0x00800000,
             memBase = self.memMap,
             expand = True
         ))
 
-        self.add(ldmx_tracker.TrackerPgpFcArray(
-            offset = 0x00900000,
-            memBase = self.memMap,
-            numPgpQuads = numPgpQuads,
-            expand = True
-        ))
 
-
-
-class TrackerPciePgpFcArgParser(argparse.ArgumentParser):
+class FcHubArgParser(argparse.ArgumentParser):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 

@@ -22,9 +22,7 @@ from ._AdcConfig import *
 from ._LdmxFebPgp import *
 from ._PhaseShift import *
 from ._WaveformCapture import *
+from ._FcHubBittwareRoot import *
 from ._TrackerBittwareRoot import *
 from ._TrackerBittware import *
 from ._TrackerPgpFcArray import *
-from ._FcHubBittware import *
-
-
