@@ -2,7 +2,7 @@
 -- Title      : Lcls2 Timing Receiver
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Wrapper for LCLS-II timing receiver
@@ -35,10 +35,12 @@ use unisim.vcomponents.all;
 entity Lcls2TimingRx is
    generic (
       TPD_G             : time    := 1 ns;
-      TIME_GEN_EXTREF_G : boolean := true;
+      SIMULATION_G      : boolean := false;
+      TIME_GEN_EXTREF_G : boolean := false;
       RX_CLK_MMCM_G     : boolean := true;
       USE_TPGMINI_G     : boolean := true;
-      AXIL_BASE_ADDR_G : slv(31 downto 0) := X"00000000");
+      AXI_CLK_FREQ_G    : real             := 156.25e6;
+      AXIL_BASE_ADDR_G  : slv(31 downto 0) := X"00000000");
    port (
       stableClk        : in  sl;
       stableRst        : in  sl;
@@ -80,9 +82,9 @@ end Lcls2TimingRx;
 architecture rtl of Lcls2TimingRx is
 
    -- AXI Lite signals and constants
+   constant NUM_AXIL_C        : integer := 2;
    constant AXIL_CORE_INDEX_C : integer := 0;
    constant AXIL_GTH_INDEX_C  : integer := 1;
-   constant NUM_AXIL_C        : integer := 2;
 
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_C-1 downto 0) := (
       AXIL_CORE_INDEX_C => (
@@ -90,8 +92,8 @@ architecture rtl of Lcls2TimingRx is
          addrBits       => 18,
          connectivity   => x"FFFF"),
       AXIL_GTH_INDEX_C  => (
-         baseAddr       => (AXIL_BASE_ADDR_G+x"00800000"),
-         addrBits       => 23,
+         baseAddr       => (AXIL_BASE_ADDR_G+x"00040000"),
+         addrBits       => 12,
          connectivity   => x"FFFF"));
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
@@ -107,33 +109,34 @@ architecture rtl of Lcls2TimingRx is
    -- Recovered clocks
    signal timingRxOutClkGt : sl;
    signal timingRxOutClk   : sl;
-   signal timingRxOutRst : sl;
+   signal timingRxOutRst   : sl;
    signal timingRxRecClk   : sl;
 
    -- Rx ports
-   signal rxReset        : sl;
-   signal rxUsrClkActive : sl;
-   signal rxCdrStable    : sl;
-   signal rxStatus       : TimingPhyStatusType;
-   signal rxControl      : TimingPhyControlType;
-   signal rxData         : slv(15 downto 0);
-   signal rxDataK        : slv(1 downto 0);
-   signal rxDispErr      : slv(1 downto 0);
-   signal rxDecErr       : slv(1 downto 0);
-   signal txUsrClk       : sl;
-   signal txUsrRst       : sl;
-   signal txUsrClkActive : sl;
-   signal txStatus       : TimingPhyStatusType := TIMING_PHY_STATUS_INIT_C;
-   signal timingPhy      : TimingPhyType;
-   signal coreTimingPhy  : TimingPhyType;
-   signal loopback       : slv(2 downto 0);
-   signal refclksel      : slv(2 downto 0);
-   signal appBus         : TimingBusType;
-   signal appTimingClk : sl;
-   signal appTimingRst : sl;
-   signal appTimingMode  : sl;
-   signal timingStrobe   : sl;
-   signal timingValid    : sl;
+   signal rxReset          : sl;
+   signal rxUsrClkActive   : sl;
+   signal rxCdrStable      : sl;
+   signal rxStatus         : TimingPhyStatusType;
+   signal rxControl        : TimingPhyControlType;
+   signal rxData           : slv(15 downto 0);
+   signal rxDataK          : slv(1 downto 0);
+   signal rxDispErr        : slv(1 downto 0);
+   signal rxDecErr         : slv(1 downto 0);
+   signal txUsrClk         : sl;
+   signal txUsrRst         : sl;
+   signal txUsrClkActive   : sl;
+   signal txStatus         : TimingPhyStatusType := TIMING_PHY_STATUS_INIT_C;
+   signal timingPhy        : TimingPhyType;
+   signal coreTimingPhy    : TimingPhyType;
+   signal loopback         : slv(2 downto 0);
+   signal refclksel        : slv(2 downto 0);
+   signal appBus           : TimingBusType;
+   signal appTimingClk     : sl;
+   signal appTimingRst     : sl;
+   signal appTimingMode    : sl;
+   signal timingStrobe     : sl;
+   signal timingValid      : sl;
+   signal rxPmaRstDoneOut  : sl;
 
 
 begin
@@ -210,9 +213,13 @@ begin
    TimingGtCoreWrapper_1 : entity lcls_timing_core.TimingGtCoreWrapper
       generic map (
          TPD_G             => TPD_G,
+         SIMULATION_G      => SIMULATION_G,
+         AXI_CLK_FREQ_G    => AXI_CLK_FREQ_G,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_GTH_INDEX_C).baseAddr,
          EXTREF_G          => TIME_GEN_EXTREF_G,
-         DISABLE_TIME_GT_G => false)
+         DISABLE_TIME_GT_G => false,
+         ADDR_BITS_G       => 12,
+         GTY_DRP_OFFSET_G  => x"00001000")
       port map (
          axilClk         => axilClk,
          axilRst         => axilRst,
@@ -232,6 +239,7 @@ begin
          rxStatus        => rxStatus,
          rxUsrClkActive  => rxUsrClkActive,
          rxCdrStable     => rxCdrStable,
+         rxPmaRstDoneOut => rxPmaRstDoneOut,
          rxUsrClk        => timingRxOutClk,
          rxData          => rxData,
          rxDataK         => rxDataK,
@@ -262,17 +270,17 @@ begin
             NUM_CLOCKS_G       => 1,
             -- MMCM attributes
             BANDWIDTH_G        => "OPTIMIZED",
-            CLKIN_PERIOD_G     => 5.355,
+            CLKIN_PERIOD_G     => 5.384,
             DIVCLK_DIVIDE_G    => 1,
             CLKFBOUT_MULT_F_G  => 6.500,
             CLKOUT0_DIVIDE_F_G => 6.500)
          port map(
             clkIn     => timingRxOutClkGt,
-            rstIn     => rxStatus.resetDone,
+            rstIn     => rxPmaRstDoneOut, -- reset polarity low -> active-low reset
             clkOut(0) => timingRxOutClk,
 --            rstOut(0) => open,
             locked    => rxUsrClkActive);
-      
+
    end generate RX_CLK_MMCM_GEN;
 
    NO_RX_CLK_MMCM_GEN : if (not RX_CLK_MMCM_G) generate
