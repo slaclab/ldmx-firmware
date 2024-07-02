@@ -12,15 +12,15 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 entity FastCommandSynch is
-    Port ( fast_command : in STD_LOGIC_VECTOR (31 downto 0);
+    Port ( fast_command : in STD_LOGIC_VECTOR (3 downto 0);
            pulse : out STD_LOGIC;
-           fast_command_config : in STD_LOGIC_VECTOR (31 downto 0);
+           fast_command_config : in STD_LOGIC_VECTOR (3 downto 0);
            clk : in STD_LOGIC;
            areset_n : in STD_LOGIC);
 end FastCommandSynch;
 
 architecture Behavioral of FastCommandSynch is
-signal command_buffer : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
+signal command_buffer : STD_LOGIC_VECTOR (3 downto 0) := (others => '0');
 begin   
 
 process (clk, areset_n)
