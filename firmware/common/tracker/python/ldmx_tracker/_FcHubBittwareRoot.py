@@ -78,6 +78,10 @@ class FcHubBittwareRoot(pr.Root):
                     self.prbsTx[lane][vc] >> self.dmaStream[lane][vc]
                     self.add(self.prbsTx[lane][vc])
 
+        # Zmq Server
+        self.zmqServer = pyrogue.interfaces.ZmqServer(root=self, addr='127.0.0.1', port=0)
+        self.addInterface(self.zmqServer)
+
         # Add the PCIe core device to base
         self.add(axipcie.AxiPcieCore(
             offset      = 0x00000000,
@@ -90,6 +94,7 @@ class FcHubBittwareRoot(pr.Root):
         self.add(ldmx_tdaq.FcHub(
             offset = 0x00800000,
             memBase = self.memMap,
+            numQuads = numPgpQuads,
             expand = True
         ))
 
