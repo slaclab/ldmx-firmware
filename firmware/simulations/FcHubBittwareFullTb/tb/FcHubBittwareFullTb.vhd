@@ -51,7 +51,7 @@ architecture sim of FcHubBittwareFullTb is
    -- Shared generics
    -------------------------------------------------------------------------------------------------
    constant TPD_G        : time          := 0.2 ns;
-   constant BUILD_INFO_G : BuildInfoType := BUILD_INFO_DEFAULT_SLV_C;
+   constant BUILD_INFO_G : BuildInfoType := BUILD_INFO_C;
 
    -------------------------------------------------------------------------------------------------
    -- FEB Generics and signals
