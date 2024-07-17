@@ -32,6 +32,8 @@ class FcHubBittwareRoot(pr.Root):
             numPgpQuads = 1,
             numVc = 4,
             **kwargs):
+        if sim:
+            kwargs['timeout'] = 100000000 # firmware simulation slow and timeout base on real time
         super().__init__(**kwargs)
 
 #################################################################
