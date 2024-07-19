@@ -84,14 +84,14 @@ architecture rtl of Lcls2TimingRx is
    -- AXI Lite signals and constants
    constant NUM_AXIL_C        : integer := 2;
    constant AXIL_CORE_INDEX_C : integer := 0;
-   constant AXIL_GTH_INDEX_C  : integer := 1;
+   constant AXIL_GTY_INDEX_C  : integer := 1;
 
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_C-1 downto 0) := (
       AXIL_CORE_INDEX_C => (
          baseAddr       => (AXIL_BASE_ADDR_G+x"00000000"),
          addrBits       => 18,
          connectivity   => x"FFFF"),
-      AXIL_GTH_INDEX_C  => (
+      AXIL_GTY_INDEX_C  => (
          baseAddr       => (AXIL_BASE_ADDR_G+x"00040000"),
          addrBits       => 12,
          connectivity   => x"FFFF"));
@@ -215,7 +215,7 @@ begin
          TPD_G             => TPD_G,
          SIMULATION_G      => SIMULATION_G,
          AXI_CLK_FREQ_G    => AXI_CLK_FREQ_G,
-         AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_GTH_INDEX_C).baseAddr,
+         AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_GTY_INDEX_C).baseAddr,
          EXTREF_G          => TIME_GEN_EXTREF_G,
          DISABLE_TIME_GT_G => false,
          ADDR_BITS_G       => 12,
@@ -223,10 +223,10 @@ begin
       port map (
          axilClk         => axilClk,
          axilRst         => axilRst,
-         axilReadMaster  => axilReadMasters(AXIL_GTH_INDEX_C),
-         axilReadSlave   => axilReadSlaves(AXIL_GTH_INDEX_C),
-         axilWriteMaster => axilWriteMasters(AXIL_GTH_INDEX_C),
-         axilWriteSlave  => axilWriteSlaves(AXIL_GTH_INDEX_C),
+         axilReadMaster  => axilReadMasters(AXIL_GTY_INDEX_C),
+         axilReadSlave   => axilReadSlaves(AXIL_GTY_INDEX_C),
+         axilWriteMaster => axilWriteMasters(AXIL_GTY_INDEX_C),
+         axilWriteSlave  => axilWriteSlaves(AXIL_GTY_INDEX_C),
          stableClk       => stableClk,
          stableRst       => stableRst,
          gtRefClk        => timingRefClk,

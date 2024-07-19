@@ -27,11 +27,13 @@ class FcHubBittwareRoot(pr.Root):
     def __init__(
             self,
             dev = '/dev/datadev_0',
-            sim = False,
+            sim = True,
             prbsEn = False,
-            numPgpQuads = 2,
+            numPgpQuads = 1,
             numVc = 4,
             **kwargs):
+        if sim:
+            kwargs['timeout'] = 100000000 # firmware simulation slow and timeout base on real time
         super().__init__(**kwargs)
 
 #################################################################
@@ -78,6 +80,10 @@ class FcHubBittwareRoot(pr.Root):
                     self.prbsTx[lane][vc] >> self.dmaStream[lane][vc]
                     self.add(self.prbsTx[lane][vc])
 
+        # Zmq Server
+        self.zmqServer = pyrogue.interfaces.ZmqServer(root=self, addr='127.0.0.1', port=0)
+        self.addInterface(self.zmqServer)
+
         # Add the PCIe core device to base
         self.add(axipcie.AxiPcieCore(
             offset      = 0x00000000,
@@ -87,22 +93,15 @@ class FcHubBittwareRoot(pr.Root):
             sim         = sim,
         ))
 
-        self.add(ldmx_tdaq.FcReceiver(
+        self.add(ldmx_tdaq.FcHub(
             offset = 0x00800000,
             memBase = self.memMap,
-            expand = True
-        ))
-
-        self.add(ldmx_tracker.TrackerPgpFcArray(
-            offset = 0x00900000,
-            memBase = self.memMap,
-            numPgpQuads = numPgpQuads,
+            numQuads = numPgpQuads,
             expand = True
         ))
 
 
-
-class TrackerPciePgpFcArgParser(argparse.ArgumentParser):
+class FcHubArgParser(argparse.ArgumentParser):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 

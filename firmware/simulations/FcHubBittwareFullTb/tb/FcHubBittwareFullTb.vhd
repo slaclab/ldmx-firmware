@@ -37,10 +37,21 @@ end entity FcHubBittwareFullTb;
 architecture sim of FcHubBittwareFullTb is
 
    -------------------------------------------------------------------------------------------------
+   -- Dummy Module (for VCS)
+   -------------------------------------------------------------------------------------------------
+   component DummyModule
+      port(
+         clk     : in std_logic;
+         rst     : in std_logic;
+         inPort  : in std_logic;
+         outPort : out std_logic);
+   end component;
+
+   -------------------------------------------------------------------------------------------------
    -- Shared generics
    -------------------------------------------------------------------------------------------------
    constant TPD_G        : time          := 0.2 ns;
-   constant BUILD_INFO_G : BuildInfoType := BUILD_INFO_DEFAULT_SLV_C;
+   constant BUILD_INFO_G : BuildInfoType := BUILD_INFO_C;
 
    -------------------------------------------------------------------------------------------------
    -- FEB Generics and signals
@@ -152,6 +163,14 @@ begin
    fcHubRxN(0) <= fcTxN;
    fcRxP       <= fcHubTxP(0);
    fcRxN       <= fcHubTxN(0);
+
+   -- dummy module for vcs (it has to be vhdl+verilog in some vcs versions)
+   Dummy_inst: DummyModule
+      port map(
+         clk     => timingRefClkP,
+         rst     => timingRefClkN,
+         inPort  => '0',
+         outPort => open);
 
 end architecture sim;
 
