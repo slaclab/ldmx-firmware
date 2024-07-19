@@ -93,7 +93,7 @@ architecture rtl of Lcls2TimingRx is
          connectivity   => x"FFFF"),
       AXIL_GTY_INDEX_C  => (
          baseAddr       => (AXIL_BASE_ADDR_G+x"00040000"),
-         addrBits       => 12,
+         addrBits       => 13,
          connectivity   => x"FFFF"));
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
@@ -218,7 +218,6 @@ begin
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_GTY_INDEX_C).baseAddr,
          EXTREF_G          => TIME_GEN_EXTREF_G,
          DISABLE_TIME_GT_G => false,
-         ADDR_BITS_G       => 12,
          GTY_DRP_OFFSET_G  => x"00001000")
       port map (
          axilClk         => axilClk,

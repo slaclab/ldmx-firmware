@@ -16,7 +16,7 @@ class FcHub(pr.Device):
         # self.add(ldmx_tdaq.FcTxLogic(
         #     name   = "FcTxLogic",
         #     numVc  = 0,
-        #     offset = 0x010000))
+        #     offset = 0x100000))
 
         self.add(ldmx_tdaq.LdmxPgpFcLane(
             name   = "FcSenderLane",

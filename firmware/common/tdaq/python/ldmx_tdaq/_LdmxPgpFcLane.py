@@ -30,6 +30,3 @@ class LdmxPgpFcLane(pr.Device):
                 numberLanes = numVc,
                 hideConfig = False,
                 chName = None))
-
-
-        
