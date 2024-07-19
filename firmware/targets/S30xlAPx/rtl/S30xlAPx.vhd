@@ -65,8 +65,8 @@ entity S30xlAPx is
       -- LCLS Timing Interface
       ----------------------------------------------------------------------------------------------
       -- 185 MHz Ref Clk for LCLS timing recovery
-      lclsTimingRefClk185P : in  sl;
-      lclsTimingRefClk185N : in  sl;
+      lclsTimingRefClkP    : in  sl;
+      lclsTimingRefClkN    : in  sl;
       -- LCLS-II timing interface
       lclsTimingRxP        : in  sl;
       lclsTimingRxN        : in  sl;
@@ -311,27 +311,27 @@ begin
          AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_C,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CONFIG_C(AXIL_FC_HUB_C).baseAddr)
       port map (
-         lclsTimingRefClk185P => lclsTimingRefClk185P,                -- [in]
-         lclsTimingRefClk185N => lclsTimingRefClk185N,                -- [in]
-         lclsTimingRxP        => lclsTimingRxP,                       -- [in]
-         lclsTimingRxN        => lclsTimingRxN,                       -- [in]
-         lclsTimingTxP        => lclsTimingTxP,                       -- [out]
-         lclsTimingTxN        => lclsTimingTxN,                       -- [out]
-         lclsTimingClkOut     => lclsTimingClk,                       -- [out]
-         lclsTimingRstOut     => lclsTimingRst,                       -- [out]
-         globalTriggerRor     => globalTriggerRor,
-         fcHubRefClkP         => fcHubRefClkP,                        -- [in]
-         fcHubRefClkN         => fcHubRefClkN,                        -- [in]
-         fcHubTxP             => fcHubTxP,                            -- [out]
-         fcHubTxN             => fcHubTxN,                            -- [out]
-         fcHubRxP             => fcHubRxP,                            -- [in]
-         fcHubRxN             => fcHubRxN,                            -- [in]
-         axilClk              => axilClk,                             -- [in]
-         axilRst              => axilRst,                             -- [in]
-         axilReadMaster       => locAxilReadMasters(AXIL_FC_HUB_C),   -- [in]
-         axilReadSlave        => locAxilReadSlaves(AXIL_FC_HUB_C),    -- [out]
-         axilWriteMaster      => locAxilWriteMasters(AXIL_FC_HUB_C),  -- [in]
-         axilWriteSlave       => locAxilWriteSlaves(AXIL_FC_HUB_C));  -- [out]
+         lclsTimingRefClkP => lclsTimingRefClkP,                   -- [in]
+         lclsTimingRefClkN => lclsTimingRefClkN,                   -- [in]
+         lclsTimingRxP     => lclsTimingRxP,                       -- [in]
+         lclsTimingRxN     => lclsTimingRxN,                       -- [in]
+         lclsTimingTxP     => lclsTimingTxP,                       -- [out]
+         lclsTimingTxN     => lclsTimingTxN,                       -- [out]
+         lclsTimingClkOut  => lclsTimingClk,                       -- [out]
+         lclsTimingRstOut  => lclsTimingRst,                       -- [out]
+         globalTriggerRor  => globalTriggerRor,
+         fcHubRefClkP      => fcHubRefClkP,                        -- [in]
+         fcHubRefClkN      => fcHubRefClkN,                        -- [in]
+         fcHubTxP          => fcHubTxP,                            -- [out]
+         fcHubTxN          => fcHubTxN,                            -- [out]
+         fcHubRxP          => fcHubRxP,                            -- [in]
+         fcHubRxN          => fcHubRxN,                            -- [in]
+         axilClk           => axilClk,                             -- [in]
+         axilRst           => axilRst,                             -- [in]
+         axilReadMaster    => locAxilReadMasters(AXIL_FC_HUB_C),   -- [in]
+         axilReadSlave     => locAxilReadSlaves(AXIL_FC_HUB_C),    -- [out]
+         axilWriteMaster   => locAxilWriteMasters(AXIL_FC_HUB_C),  -- [in]
+         axilWriteSlave    => locAxilWriteSlaves(AXIL_FC_HUB_C));  -- [out]
 
    GEN_LCLS_CLK_OUT : for i in 1 downto 0 generate
       U_ClkOutBufDiff_2 : entity surf.ClkOutBufDiff
