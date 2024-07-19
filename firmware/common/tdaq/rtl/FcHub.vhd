@@ -98,15 +98,15 @@ architecture rtl of FcHub is
 
    constant AXIL_XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(AXIL_NUM_C-1 downto 0) := (
       AXIL_LCLS_TIMING_C => (
-         baseAddr        => X"00000000",
+         baseAddr        => AXIL_BASE_ADDR_G + X"0000_0000",
          addrBits        => 20,
          connectivity    => X"FFFF"),
       AXIL_TX_LOGIC_C    => (
-         baseAddr        => X"00100000",
+         baseAddr        => AXIL_BASE_ADDR_G +X"0010_0000",
          addrBits        => 8,
          connectivity    => X"FFFF"),
       AXIL_FC_ARRAY_C    => (
-         baseAddr        => X"00200000",
+         baseAddr        => AXIL_BASE_ADDR_G +X"0020_0000",
          addrBits        => 20,
          connectivity    => X"FFFF"));
 
