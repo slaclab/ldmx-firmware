@@ -201,7 +201,7 @@ begin
          CEMASK  => '1',
          CLR     => '0',
          CLRMASK => '1',
-         DIV     => "001",              -- Divide by 2
+         DIV     => "000",
          O       => timingRefClkDiv2);
 
 --   appTimingRefClk     <= timingRefClk;
