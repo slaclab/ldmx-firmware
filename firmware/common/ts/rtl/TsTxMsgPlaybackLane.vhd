@@ -162,13 +162,7 @@ begin
       -- Place message into a FIFO
 
       v.tsMsg := TS_DATA_6CH_MSG_INIT_C;
-      for i in 5 downto 0 loop
-         v.tsMsg := toTsData6ChMsg(ramDout(TS_DATA_6CH_MSG_SIZE_C-1 downto 0));
---          v.tsMsg.adc(i) := ramDout(i)(7 downto 0);
---          v.tsMsg.tdc(i) := ramDout(i)(13 downto 8);
---          v.tsMsg.capId  := (others => '0');  -- ramDout(0)(7 downto 6);
---          v.tsMsg.ce     := '0';              --ramDout(0)(14);
-      end loop;
+      v.tsMsg := toTsData6ChMsg(ramDout(TS_DATA_6CH_MSG_SIZE_C-1 downto 0));
 
       case r.state is
          when WAIT_T0_S =>
