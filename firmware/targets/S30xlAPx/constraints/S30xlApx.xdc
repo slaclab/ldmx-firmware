@@ -1,6 +1,6 @@
 # Input Clocks
 create_clock -name clk125In -period 8.0 [get_ports clk125InP];
-create_clock -name lclsTimingRefClk -period 5.384 [get_ports lclsTimingRefClk185P]
+create_clock -name lclsTimingRefClk -period 2.692 [get_ports lclsTimingRefClkP]
 create_clock -name fcHubRefClk0 -period 5.384 [get_ports fcHubRefClkP[0]]
 create_clock -name fcHubRefClk1 -period 5.384 [get_ports fcHubRefClkP[1]]
 create_clock -name appFcRefClk -period 5.384 [get_ports appFcRefClkP]
@@ -150,13 +150,13 @@ set_property -dict {PACKAGE_PIN M27 IOSTANDARD LVDS} [get_ports lclsTimingRecClk
 # BOT_0 Refclk
 # set_property PACKAGE_PIN AN36 [get_ports ]; # BOTS_0P
 # set_property PACKAGE_PIN AN37 [get_ports ]; # BOTS_0N
-# set_property PACKAGE_PIN AM34 [get_ports ]; # BOTA_0P
-# set_property PACKAGE_PIN AM35 [get_ports ]; # BOTA_0N
+# set_property PACKAGE_PIN AM34 [get_ports lclsTimingRefClkP]; # BOTA_0P
+# set_property PACKAGE_PIN AM35 [get_ports lclsTimingRefClkN]; # BOTA_0N
 
-# set_property PACKAGE_PIN BF38 [get_ports ]; # TX0P - FFLY_TX4P
-# set_property PACKAGE_PIN BF39 [get_ports ]; # TX0N - FFLY_TX4N
-# set_property PACKAGE_PIN BF33 [get_ports ]; # RX0P - FFLY_RX2N - Pin Swap
-# set_property PACKAGE_PIN BF34 [get_ports ]; # RX0N - FFLY_RX2P - Pin Swap
+# set_property PACKAGE_PIN BF38 [get_ports lclsTimingTxP]; # TX0P - FFLY_TX4P
+# set_property PACKAGE_PIN BF39 [get_ports lclsTimingTxN]; # TX0N - FFLY_TX4N
+# set_property PACKAGE_PIN BF33 [get_ports lclsTimingRxP]; # RX0P - FFLY_RX2N - Pin Swap
+# set_property PACKAGE_PIN BF34 [get_ports lclsTimingRxN]; # RX0N - FFLY_RX2P - Pin Swap
 # set_property PACKAGE_PIN BE36 [get_ports ]; # TX1P - FFLY_TX3P
 # set_property PACKAGE_PIN BE37 [get_ports ]; # TX1N - FFLY_TX3N
 # set_property PACKAGE_PIN BD33 [get_ports ]; # RX1P - FFLY_RX1N - Pin Swap
@@ -355,8 +355,8 @@ set_property PACKAGE_PIN H44 [get_ports fcHubRxN[7]]; # RX3N - FFLY_RX4N
 # Bank 131 - FFLY L9 - FF17 - P6-far
 # set_property PACKAGE_PIN N36 [get_ports ]; # BOTS_6P
 # set_property PACKAGE_PIN N37 [get_ports ]; # BOTS_6N
-set_property PACKAGE_PIN M34 [get_ports lclsTimingRefClk185P]; # BOTA_6P
-set_property PACKAGE_PIN M35 [get_ports lclsTimingRefClk185N]; # BOTA_6N
+set_property PACKAGE_PIN M34 [get_ports lclsTimingRefClkP]; # BOTA_6P
+set_property PACKAGE_PIN M35 [get_ports lclsTimingRefClkN]; # BOTA_6N
 set_property PACKAGE_PIN G40 [get_ports lclsTimingTxP]; # TX0P - FFLY_TX3P
 set_property PACKAGE_PIN G41 [get_ports lclsTimingTxN]; # TX0N - FFLY_TX3N
 set_property PACKAGE_PIN G45 [get_ports lclsTimingRxP]; # RX0P - FFLY_RX1P
