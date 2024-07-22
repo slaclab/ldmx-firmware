@@ -170,7 +170,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          TS_LANES_G       => TS_LANES_G,
-         AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G)
+         AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(AXIL_TS_TX_PLAYBACK_C).baseAddr)
       port map (
          tsTxClks        => tsTxClks,                                    -- [in]
          tsTxRsts        => tsTxRsts,                                    -- [in]

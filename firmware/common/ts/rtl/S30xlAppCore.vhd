@@ -17,6 +17,8 @@
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -83,19 +85,19 @@ architecture rtl of S30xlAppCore is
 
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(AXIL_NUM_C-1 downto 0) := (
       AXIL_FC_RX_C    => (
-         baseAddr     => X"0000_0000",
+         baseAddr     => AXIL_BASE_ADDR_G + X"0000_0000",
          addrBits     => 20,
          connectivity => X"FFFF"),
       AXIL_TS_RX_C    => (
-         baseAddr     => X"2000_0000",
+         baseAddr     => AXIL_BASE_ADDR_G + X"2000_0000",
          addrBits     => 29,
          connectivity => X"FFFF"),
       AXIL_TS_DAQ_C   => (
-         baseAddr     => X"00100000",
+         baseAddr     => AXIL_BASE_ADDR_G + X"00100000",
          addrBits     => 8,
          connectivity => X"FFFF"),
       AXIL_TS_TRIG_C  => (
-         baseAddr     => X"00100100",
+         baseAddr     => AXIL_BASE_ADDR_G + X"00100100",
          addrBits     => 8,
          connectivity => X"FFFF"));
 
@@ -253,16 +255,16 @@ begin
          TPD_G      => TPD_G,
          TS_LANES_G => TS_LANES_G)
       port map (
-         fcClk185         => fcClk185,              -- [in]
-         fcRst185         => fcRst185,              -- [in]
-         fcBus            => fcBus,                 -- [in]
-         tsTrigValid      => tsTrigValid,           -- [in]
-         tsTrigTimestamp  => tsTrigTimestamp,       -- [in]
-         tsTrigHits       => tsTrigHits,            -- [in]
-         tsTrigAmplitudes => tsTrigAmplitudes,      -- [in]
-         axisClk          => axisClk,               -- [in]
-         axisRst          => axisRst,               -- [in]
-         tsTrigAxisMaster => tsDaqTrigAxisMaster,   -- [out]
+         fcClk185         => fcClk185,             -- [in]
+         fcRst185         => fcRst185,             -- [in]
+         fcBus            => fcBus,                -- [in]
+         tsTrigValid      => tsTrigValid,          -- [in]
+         tsTrigTimestamp  => tsTrigTimestamp,      -- [in]
+         tsTrigHits       => tsTrigHits,           -- [in]
+         tsTrigAmplitudes => tsTrigAmplitudes,     -- [in]
+         axisClk          => axisClk,              -- [in]
+         axisRst          => axisRst,              -- [in]
+         tsTrigAxisMaster => tsDaqTrigAxisMaster,  -- [out]
          tsTrigAxisSlave  => tsDaqTrigAxisSlave);  -- [in]
 
 
