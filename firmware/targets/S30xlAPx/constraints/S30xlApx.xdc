@@ -2,7 +2,7 @@
 create_clock -name clk125In -period 8.0 [get_ports clk125InP];
 create_clock -name lclsTimingRefClk -period 2.692 [get_ports lclsTimingRefClkP]
 create_clock -name fcHubRefClk0 -period 5.384 [get_ports fcHubRefClkP[0]]
-create_clock -name fcHubRefClk1 -period 5.384 [get_ports fcHubRefClkP[1]]
+#create_clock -name fcHubRefClk1 -period 5.384 [get_ports fcHubRefClkP[1]]
 create_clock -name appFcRefClk -period 5.384 [get_ports appFcRefClkP]
 create_clock -name tsRefClk250 -period 4.0 [get_ports tsRefClk250P]
 create_clock -name ethRefClk156 -period 6.4 [get_ports ethRefClk156P]
@@ -19,18 +19,19 @@ create_clock -name fcHubRxOutClk0  -period 5.384 [get_pins -hier * -filter {name
 create_clock -name fcHubRxOutClk1  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[1]*/*/RXOUTCLK}]
 create_clock -name fcHubRxOutClk2  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[2]*/*/RXOUTCLK}]
 create_clock -name fcHubRxOutClk3  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[3]*/*/RXOUTCLK}]
-create_clock -name fcHubRxOutClk4  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[0]*/*/RXOUTCLK}]
-create_clock -name fcHubRxOutClk5  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[1]*/*/RXOUTCLK}]
-create_clock -name fcHubRxOutClk6  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[2]*/*/RXOUTCLK}]
-create_clock -name fcHubRxOutClk7  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[3]*/*/RXOUTCLK}]
-create_clock -name fcHubRxOutClk8  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[0]*/*/RXOUTCLK}]
-create_clock -name fcHubRxOutClk9  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[1]*/*/RXOUTCLK}]
-create_clock -name fcHubRxOutClk10 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[2]*/*/RXOUTCLK}]
-create_clock -name fcHubRxOutClk11 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[3]*/*/RXOUTCLK}]
-create_clock -name fcHubRxOutClk12 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[0]*/*/RXOUTCLK}]
-create_clock -name fcHubRxOutClk13 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[1]*/*/RXOUTCLK}]
-create_clock -name fcHubRxOutClk14 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[2]*/*/RXOUTCLK}]
-create_clock -name fcHubRxOutClk15 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[3]*/*/RXOUTCLK}]
+# create_clock -name fcHubRxOutClk4  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[0]*/*/RXOUTCLK}]
+# create_clock -name fcHubRxOutClk5  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[1]*/*/RXOUTCLK}]
+# create_clock -name fcHubRxOutClk6  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[2]*/*/RXOUTCLK}]
+# create_clock -name fcHubRxOutClk7  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[3]*/*/RXOUTCLK}]
+# create_clock -name fcHubRxOutClk8  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[0]*/*/RXOUTCLK}]
+# create_clock -name fcHubRxOutClk9  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[1]*/*/RXOUTCLK}]
+# create_clock -name fcHubRxOutClk10 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[2]*/*/RXOUTCLK}]
+# create_clock -name fcHubRxOutClk11 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[3]*/*/RXOUTCLK}]
+# create_clock -name fcHubRxOutClk12 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[0]*/*/RXOUTCLK}]
+# create_clock -name fcHubRxOutClk13 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[1]*/*/RXOUTCLK}]
+# create_clock -name fcHubRxOutClk14 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[2]*/*/RXOUTCLK}]
+# create_clock -name fcHubRxOutClk15 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[3]*/*/RXOUTCLK}]
+
 
 # App FC Clocks
 create_clock -name appFcRxOutClk -period 5.384 [get_pins -hier * -filter {name=~*/U_FcReceiver_1/*/RXOUTCLK}]
@@ -67,7 +68,12 @@ create_generated_clock \
 # set_clock_groups -asynchronous \
 #     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/RXOUTCLK}]] \
 #     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/TXOUTCLK}]] \
-#     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/TXOUTCLKPCS}]]
+    #     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/TXOUTCLKPCS}]]
+
+# LCLS Timing
+set_clock_groups -asynchronous \
+    -group [get_clocks lclsTimingTxOutClkPcs] \
+    -group [get_clocks -include_generated_clocks lclsTimingRefClk]
 
 # Primary clocks and recovered clocks
 set_clock_groups -asynchronous \
@@ -335,22 +341,22 @@ set_property PACKAGE_PIN R36 [get_ports fcHubRefClkP[0]]; # BOTS_5P
 set_property PACKAGE_PIN R37 [get_ports fcHubRefClkN[0]]; # BOTS_5N
 # set_property PACKAGE_PIN P34 [get_ports ]; # BOTA_5P
 # set_property PACKAGE_PIN P35 [get_ports ]; # BOTA_5N
-set_property PACKAGE_PIN L40 [get_ports fcHubTxP[4]]; # TX0P - FFLY_TX3P
-set_property PACKAGE_PIN L41 [get_ports fcHubTxN[4]]; # TX0N - FFLY_TX3N
-set_property PACKAGE_PIN L45 [get_ports fcHubRxP[4]]; # RX0P - FFLY_RX1P
-set_property PACKAGE_PIN L46 [get_ports fcHubRxN[4]]; # RX0N - FFLY_RX1N
-set_property PACKAGE_PIN K38 [get_ports fcHubTxP[5]]; # TX1P - FFLY_TX4P
-set_property PACKAGE_PIN K39 [get_ports fcHubTxN[5]]; # TX1N - FFLY_TX4N
-set_property PACKAGE_PIN K43 [get_ports fcHubRxP[5]]; # RX1P - FFLY_RX2P
-set_property PACKAGE_PIN K44 [get_ports fcHubRxN[5]]; # RX1N - FFLY_RX2N
-set_property PACKAGE_PIN J40 [get_ports fcHubTxP[6]]; # TX2P - FFLY_TX1P
-set_property PACKAGE_PIN J41 [get_ports fcHubTxN[6]]; # TX2N - FFLY_TX1N 
-set_property PACKAGE_PIN J45 [get_ports fcHubRxP[6]]; # RX2P - FFLY_RX3P
-set_property PACKAGE_PIN J46 [get_ports fcHubRxN[6]]; # RX2N - FFLY_RX3N
-set_property PACKAGE_PIN H38 [get_ports fcHubTxP[7]]; # TX3P - FFLY_TX2P
-set_property PACKAGE_PIN H39 [get_ports fcHubTxN[7]]; # TX3N - FFLY_TX2N
-set_property PACKAGE_PIN H43 [get_ports fcHubRxP[7]]; # RX3P - FFLY_RX4P
-set_property PACKAGE_PIN H44 [get_ports fcHubRxN[7]]; # RX3N - FFLY_RX4N
+# set_property PACKAGE_PIN L40 [get_ports fcHubTxP[4]]; # TX0P - FFLY_TX3P
+# set_property PACKAGE_PIN L41 [get_ports fcHubTxN[4]]; # TX0N - FFLY_TX3N
+# set_property PACKAGE_PIN L45 [get_ports fcHubRxP[4]]; # RX0P - FFLY_RX1P
+# set_property PACKAGE_PIN L46 [get_ports fcHubRxN[4]]; # RX0N - FFLY_RX1N
+# set_property PACKAGE_PIN K38 [get_ports fcHubTxP[5]]; # TX1P - FFLY_TX4P
+# set_property PACKAGE_PIN K39 [get_ports fcHubTxN[5]]; # TX1N - FFLY_TX4N
+# set_property PACKAGE_PIN K43 [get_ports fcHubRxP[5]]; # RX1P - FFLY_RX2P
+# set_property PACKAGE_PIN K44 [get_ports fcHubRxN[5]]; # RX1N - FFLY_RX2N
+# set_property PACKAGE_PIN J40 [get_ports fcHubTxP[6]]; # TX2P - FFLY_TX1P
+# set_property PACKAGE_PIN J41 [get_ports fcHubTxN[6]]; # TX2N - FFLY_TX1N 
+# set_property PACKAGE_PIN J45 [get_ports fcHubRxP[6]]; # RX2P - FFLY_RX3P
+# set_property PACKAGE_PIN J46 [get_ports fcHubRxN[6]]; # RX2N - FFLY_RX3N
+# set_property PACKAGE_PIN H38 [get_ports fcHubTxP[7]]; # TX3P - FFLY_TX2P
+# set_property PACKAGE_PIN H39 [get_ports fcHubTxN[7]]; # TX3N - FFLY_TX2N
+# set_property PACKAGE_PIN H43 [get_ports fcHubRxP[7]]; # RX3P - FFLY_RX4P
+# set_property PACKAGE_PIN H44 [get_ports fcHubRxN[7]]; # RX3N - FFLY_RX4N
 
 # Bank 131 - FFLY L9 - FF17 - P6-far
 # set_property PACKAGE_PIN N36 [get_ports ]; # BOTS_6P
@@ -375,44 +381,44 @@ set_property PACKAGE_PIN G46 [get_ports lclsTimingRxN]; # RX0N - FFLY_RX1N
 # set_property PACKAGE_PIN E32 [get_ports ]; # RX3N - FFLY_RX2P - Pin swap
 
 # Bank 132 - FFLY L10 - FF13 - P4-far
-set_property PACKAGE_PIN L36 [get_ports fcHubRefClkP[1]]; # BOTS_7P
-set_property PACKAGE_PIN L37 [get_ports fcHubRefClkN[1]]; # BOTS_7N
+# set_property PACKAGE_PIN L36 [get_ports fcHubRefClkP[1]]; # BOTS_7P
+# set_property PACKAGE_PIN L37 [get_ports fcHubRefClkN[1]]; # BOTS_7N
 # set_property PACKAGE_PIN K34 [get_ports ]; # BOTA_7P
 # set_property PACKAGE_PIN K35 [get_ports ]; # BOTA_7N
-set_property PACKAGE_PIN E40 [get_ports fcHubTxP[8]]; # TX0P - FFLY_TX4N - Pin swap
-set_property PACKAGE_PIN E41 [get_ports fcHubTxN[8]]; # TX0N - FFLY_TX4P - Pin swap
-set_property PACKAGE_PIN E45 [get_ports fcHubRxP[8]]; # RX0P - FFLY_RX1P
-set_property PACKAGE_PIN E46 [get_ports fcHubRxN[8]]; # RX0N - FFLY_RX1N
-set_property PACKAGE_PIN E36 [get_ports fcHubTxP[9]]; # TX1P - FFLY_TX2N - Pin swap
-set_property PACKAGE_PIN E37 [get_ports fcHubTxN[9]]; # TX1N - FFLY_TX2P - Pin swap
-set_property PACKAGE_PIN D43 [get_ports fcHubRxP[9]]; # RX1P - FFLY_RX3P
-set_property PACKAGE_PIN D44 [get_ports fcHubRxN[9]]; # RX1N - FFLY_RX3N
-set_property PACKAGE_PIN C40 [get_ports fcHubTxP[10]]; # TX2P - FFLY_TX3N - Pin swap
-set_property PACKAGE_PIN C41 [get_ports fcHubTxN[10]]; # TX2N - FFLY_TX3P  - Pin swap
-set_property PACKAGE_PIN C45 [get_ports fcHubRxP[10]]; # RX2P - FFLY_RX2P
-set_property PACKAGE_PIN C46 [get_ports fcHubRxN[10]]; # RX2N - FFLY_RX2N
-set_property PACKAGE_PIN A40 [get_ports fcHubTxP[11]]; # TX3P - FFLY_TX1N - Pin swap
-set_property PACKAGE_PIN A41 [get_ports fcHubTxN[11]]; # TX3N - FFLY_TX1P - Pin swap
-set_property PACKAGE_PIN B43 [get_ports fcHubRxP[11]]; # RX3P - FFLY_RX4P
-set_property PACKAGE_PIN B44 [get_ports fcHubRxN[11]]; # RX3N - FFLY_RX4N
+# set_property PACKAGE_PIN E40 [get_ports fcHubTxP[8]]; # TX0P - FFLY_TX4N - Pin swap
+# set_property PACKAGE_PIN E41 [get_ports fcHubTxN[8]]; # TX0N - FFLY_TX4P - Pin swap
+# set_property PACKAGE_PIN E45 [get_ports fcHubRxP[8]]; # RX0P - FFLY_RX1P
+# set_property PACKAGE_PIN E46 [get_ports fcHubRxN[8]]; # RX0N - FFLY_RX1N
+# set_property PACKAGE_PIN E36 [get_ports fcHubTxP[9]]; # TX1P - FFLY_TX2N - Pin swap
+# set_property PACKAGE_PIN E37 [get_ports fcHubTxN[9]]; # TX1N - FFLY_TX2P - Pin swap
+# set_property PACKAGE_PIN D43 [get_ports fcHubRxP[9]]; # RX1P - FFLY_RX3P
+# set_property PACKAGE_PIN D44 [get_ports fcHubRxN[9]]; # RX1N - FFLY_RX3N
+# set_property PACKAGE_PIN C40 [get_ports fcHubTxP[10]]; # TX2P - FFLY_TX3N - Pin swap
+# set_property PACKAGE_PIN C41 [get_ports fcHubTxN[10]]; # TX2N - FFLY_TX3P  - Pin swap
+# set_property PACKAGE_PIN C45 [get_ports fcHubRxP[10]]; # RX2P - FFLY_RX2P
+# set_property PACKAGE_PIN C46 [get_ports fcHubRxN[10]]; # RX2N - FFLY_RX2N
+# set_property PACKAGE_PIN A40 [get_ports fcHubTxP[11]]; # TX3P - FFLY_TX1N - Pin swap
+# set_property PACKAGE_PIN A41 [get_ports fcHubTxN[11]]; # TX3N - FFLY_TX1P - Pin swap
+# set_property PACKAGE_PIN B43 [get_ports fcHubRxP[11]]; # RX3P - FFLY_RX4P
+# set_property PACKAGE_PIN B44 [get_ports fcHubRxN[11]]; # RX3N - FFLY_RX4N
 
 # Bank 133 - FFLY11 - FF9 - P4-near
-set_property PACKAGE_PIN D38 [get_ports fcHubTxP[12]]; # TX0P - FFLY_TX3N - Pin swap
-set_property PACKAGE_PIN D39 [get_ports fcHubTxN[12]]; # TX0N - FFLY_TX3P - Pin swap
-set_property PACKAGE_PIN D33 [get_ports fcHubRxP[12]]; # RX0P - FFLY_RX1P
-set_property PACKAGE_PIN D34 [get_ports fcHubRxN[12]]; # RX0N - FFLY_RX1N
-set_property PACKAGE_PIN C36 [get_ports fcHubTxP[13]]; # TX1P - FFLY_TX2N - Pin swap
-set_property PACKAGE_PIN C37 [get_ports fcHubTxN[13]]; # TX1N - FFLY_TX2P - Pin swap
-set_property PACKAGE_PIN C31 [get_ports fcHubRxP[13]]; # RX1P - FFLY_RX3P
-set_property PACKAGE_PIN C32 [get_ports fcHubRxN[13]]; # RX1N - FFLY_RX3N
-set_property PACKAGE_PIN B38 [get_ports fcHubTxP[14]]; # TX2P - FFLY_TX4N - Pin swap
-set_property PACKAGE_PIN B39 [get_ports fcHubTxN[14]]; # TX2N - FFLY_TX4P  - Pin swap
-set_property PACKAGE_PIN B33 [get_ports fcHubRxP[14]]; # RX2P - FFLY_RX2P
-set_property PACKAGE_PIN B34 [get_ports fcHubRxN[14]]; # RX2N - FFLY_RX2N
-set_property PACKAGE_PIN A36 [get_ports fcHubTxP[15]]; # TX3P - FFLY_TX1N - Pin swap
-set_property PACKAGE_PIN A37 [get_ports fcHubTxN[15]]; # TX3N - FFLY_TX1P - Pin swap
-set_property PACKAGE_PIN A31 [get_ports fcHubRxP[15]]; # RX3P - FFLY_RX4P
-set_property PACKAGE_PIN A32 [get_ports fcHubRxN[15]]; # RX3N - FFLY_RX4N
+# set_property PACKAGE_PIN D38 [get_ports fcHubTxP[12]]; # TX0P - FFLY_TX3N - Pin swap
+# set_property PACKAGE_PIN D39 [get_ports fcHubTxN[12]]; # TX0N - FFLY_TX3P - Pin swap
+# set_property PACKAGE_PIN D33 [get_ports fcHubRxP[12]]; # RX0P - FFLY_RX1P
+# set_property PACKAGE_PIN D34 [get_ports fcHubRxN[12]]; # RX0N - FFLY_RX1N
+# set_property PACKAGE_PIN C36 [get_ports fcHubTxP[13]]; # TX1P - FFLY_TX2N - Pin swap
+# set_property PACKAGE_PIN C37 [get_ports fcHubTxN[13]]; # TX1N - FFLY_TX2P - Pin swap
+# set_property PACKAGE_PIN C31 [get_ports fcHubRxP[13]]; # RX1P - FFLY_RX3P
+# set_property PACKAGE_PIN C32 [get_ports fcHubRxN[13]]; # RX1N - FFLY_RX3N
+# set_property PACKAGE_PIN B38 [get_ports fcHubTxP[14]]; # TX2P - FFLY_TX4N - Pin swap
+# set_property PACKAGE_PIN B39 [get_ports fcHubTxN[14]]; # TX2N - FFLY_TX4P  - Pin swap
+# set_property PACKAGE_PIN B33 [get_ports fcHubRxP[14]]; # RX2P - FFLY_RX2P
+# set_property PACKAGE_PIN B34 [get_ports fcHubRxN[14]]; # RX2N - FFLY_RX2N
+# set_property PACKAGE_PIN A36 [get_ports fcHubTxP[15]]; # TX3P - FFLY_TX1N - Pin swap
+# set_property PACKAGE_PIN A37 [get_ports fcHubTxN[15]]; # TX3N - FFLY_TX1P - Pin swap
+# set_property PACKAGE_PIN A31 [get_ports fcHubRxP[15]]; # RX3P - FFLY_RX4P
+# set_property PACKAGE_PIN A32 [get_ports fcHubRxN[15]]; # RX3N - FFLY_RX4N
 
 
 
