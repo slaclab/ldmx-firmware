@@ -21,6 +21,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
+library unisim;
+use unisim.vcomponents.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -124,6 +127,8 @@ architecture rtl of S30xlEthCore is
 
    signal ethClk : sl;
    signal ethRst : sl;
+
+   signal ethClkTmp : sl;               -- Used only in sim
 
    signal efuse    : slv(31 downto 0);
    signal localMac : slv(47 downto 0);
