@@ -1,6 +1,6 @@
 # Input Clocks
 create_clock -name clk125In -period 8.0 [get_ports clk125InP];
-create_clock -name lclsTimingRefClk -period 2.692 [get_ports lclsTimingRefClkP]
+create_clock -name lclsTimingRefClk -period 5.384 [get_ports lclsTimingRefClkP]
 create_clock -name fcHubRefClk0 -period 5.384 [get_ports fcHubRefClkP[0]]
 #create_clock -name fcHubRefClk1 -period 5.384 [get_ports fcHubRefClkP[1]]
 create_clock -name appFcRefClk -period 5.384 [get_ports appFcRefClkP]
