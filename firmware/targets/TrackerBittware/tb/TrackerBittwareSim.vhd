@@ -85,7 +85,6 @@ architecture sim of TrackerBittwareSim is
    signal fcRefClk185N    : sl;
 
 
-
 begin
    
    fcTxP <= qsfpTxP(0);

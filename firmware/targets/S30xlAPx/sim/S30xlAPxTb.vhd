@@ -189,8 +189,8 @@ begin
          clkN => appFcRefClkN);
 
    GEN_FC_HUB_REF_CLKS : for i in FC_HUB_REFCLKS_G-1 downto 0 generate
-      fcHubRefClkP(i) <= lclsTimingRecClkOutP;
-      fcHubRefClkN(i) <= lclsTimingRecClkOutN;
+      fcHubRefClkP(i) <= lclsTimingRecClkOutP(0);
+      fcHubRefClkN(i) <= lclsTimingRecClkOutN(0);
    end generate GEN_FC_HUB_REF_CLKS;
 
    GEN_TS_REF_CLKS : for i in TS_REFCLKS_G-1 downto 0 generate
@@ -206,7 +206,7 @@ begin
             clkN => tsRefClk250N(i));
    end generate;
 
-   U_ClkRst_CLK_125 : entity surf.ClkRst
+   U_ClkRst_ETH_CLK_156 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 6.4 ns,
          CLK_DELAY_G       => 1 ns,
