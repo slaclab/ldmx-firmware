@@ -54,8 +54,8 @@ entity S30xlEthCore is
       phyReady            : out sl;
       rssiStatus          : out slv7Array(2 downto 0);
       -- AXI-Lite Interface for local register access
-      axilClk             : out sl;
-      axilRst             : out sl;
+      axilClk             : in  sl;
+      axilRst             : in  sl;
       mAxilReadMaster     : out AxiLiteReadMasterType;
       mAxilReadSlave      : in  AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       mAxilWriteMaster    : out AxiLiteWriteMasterType;
@@ -88,7 +88,7 @@ architecture rtl of S30xlEthCore is
 
    -- Both RSSI ports use the same TDEST and stream config
    constant RSSI_SIZE_C   : positive            := 1;
-   constant AXIS_CONFIG_C : AxiStreamConfigType := EMAC_AXIS_CONFIG_C; -- ssiAxiStreamConfig(dataBytes => 8, tDestBits => 8, tUserBits => 8);
+   constant AXIS_CONFIG_C : AxiStreamConfigType := EMAC_AXIS_CONFIG_C;  -- ssiAxiStreamConfig(dataBytes => 8, tDestBits => 8, tUserBits => 8);
 
    constant RSSI_AXIS_CONFIG_C : AxiStreamConfigArray(RSSI_SIZE_C-1 downto 0) := (others => AXIS_CONFIG_C);
 
@@ -183,8 +183,6 @@ architecture rtl of S30xlEthCore is
 
 begin
 
-   axilClk <= ethClk;
-   axilRst <= ethRst;
    --------------------
    -- Local MAC Address
    --------------------
@@ -667,8 +665,8 @@ begin
          mAxisMaster      => srpRssiIbMasters(DEST_LOCAL_SRP_DATA_C),
          mAxisSlave       => srpRssiIbSlaves(DEST_LOCAL_SRP_DATA_C),
          -- AXI Lite Bus (axilClk domain)
-         axilClk          => ethClk,
-         axilRst          => ethRst,
+         axilClk          => axilClk,
+         axilRst          => axilRst,
          mAxilReadMaster  => mAxilReadMaster,
          mAxilReadSlave   => mAxilReadSlave,
          mAxilWriteMaster => mAxilWriteMaster,

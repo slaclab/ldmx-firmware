@@ -127,7 +127,7 @@ end entity S30xlAPx;
 
 architecture rtl of S30xlAPx is
 
-   constant AXIL_CLK_FREQ_C : real := 156.25e6;
+   constant AXIL_CLK_FREQ_C : real := 125.0e6;
 
    constant AXIL_NUM_C            : integer := 5;
    constant AXIL_VERSION_C        : integer := 0;
@@ -208,6 +208,19 @@ begin
             clkOutP => clk125OutP(i),   -- [out]
             clkOutN => clk125OutN(i));  -- [out]
    end generate GEN_CLKOUT_125;
+
+   -------------------------------------------------------------------------------------------------
+   -- Use 125 MHz clock for axi lite clock
+   -------------------------------------------------------------------------------------------------
+   axilClk <= clk125In;
+
+   U_RstSync_1 : entity surf.RstSync
+      generic map (
+         TPD_G         => TPD_G,
+         OUT_REG_RST_G => true)
+      port map (
+         clk     => clk125In,           -- [in]
+         syncRst => axilRst);           -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Top Level AXI-Lite crossbar
