@@ -148,6 +148,9 @@ begin
    fcHubRxP(0) <= appFcTxP;
    fcHubRxN(0) <= appFcTxN;
 
+   lclsTimingRxP <= lclsTimingTxP;
+   lclsTimingRxN <= lclsTimingTxN;
+
 
    -------------------------------------------------------------------------------------------------
    -- Clocks
