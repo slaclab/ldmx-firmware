@@ -317,43 +317,6 @@ begin
 
    end generate GEN_MON;
 
-
---    U_Wtd : entity surf.WatchDogRst
---       generic map(
---          TPD_G      => TPD_G,
---          DURATION_G => getTimeRatio(AXI_CLK_FREQ_G, 0.2))  -- 5 s timeout
---       port map (
---          clk    => axilClk,
---          monIn  => pgpRxOut.remLinkReady,
---          rstOut => wdtRst);
-
---    U_PwrUpRst : entity surf.PwrUpRst
---       generic map (
---          TPD_G         => TPD_G,
---          SIM_SPEEDUP_G => false,
---          DURATION_G    => getTimeRatio(AXI_CLK_FREQ_G, 10.0))  -- 100 ms reset pulse
---       port map (
---          clk    => axilClk,
---          arst   => wdtRst,
---          rstOut => pwrUpRstOut);
-
---    U_RstSync_Tx : entity surf.RstSync
---       generic map (
---          TPD_G => TPD_G)
---       port map (
---          clk      => pgpTxClk,          -- [in]
---          asyncRst => pgpTxRstAsync,     -- [in]
---          syncRst  => pgpTxRst);         -- [out]
-
-   U_RstSync_Rx : entity surf.RstSync
-      generic map (
-         TPD_G         => TPD_G,
-         IN_POLARITY_G => '0')
-      port map (
-         clk      => pgpRxUsrClk,       -- [in]
-         asyncRst => pgpRxResetDone,    -- [in]
-         syncRst  => pgpRxRst);         -- [out]
-
    pgpRxRstOut <= pgpRxRst;
 
 end rtl;
