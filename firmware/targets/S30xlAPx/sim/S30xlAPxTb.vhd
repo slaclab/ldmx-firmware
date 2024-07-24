@@ -168,7 +168,7 @@ begin
 
    U_ClkRst_LCLS_TIMING_REF : entity surf.ClkRst
       generic map (
-         CLK_PERIOD_G      => 2.691 ns,
+         CLK_PERIOD_G      => 5.384 ns,
          CLK_DELAY_G       => 1 ns,
          RST_START_DELAY_G => 0 ns,
          RST_HOLD_TIME_G   => 5 us,
