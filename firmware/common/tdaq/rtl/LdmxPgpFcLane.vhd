@@ -100,7 +100,7 @@ architecture rtl of LdmxPgpFcLane is
 
    signal pgpRxResetDone    : sl;
    signal pgpRxPmaResetDone : sl;
-   signal pgpRxRst          : sl;
+   signal pgpRxRst          : sl := '0';
 
    signal pgpRxOutClkGt   : sl;
    signal pgpRxUsrClk     : sl;
@@ -345,14 +345,14 @@ begin
 --          asyncRst => pgpTxRstAsync,     -- [in]
 --          syncRst  => pgpTxRst);         -- [out]
 
-   U_RstSync_Rx : entity surf.RstSync
-      generic map (
-         TPD_G         => TPD_G,
-         IN_POLARITY_G => '0')
-      port map (
-         clk      => pgpRxUsrClk,       -- [in]
-         asyncRst => pgpRxResetDone,    -- [in]
-         syncRst  => pgpRxRst);         -- [out]
+--    U_RstSync_Rx : entity surf.RstSync
+--       generic map (
+--          TPD_G         => TPD_G,
+--          IN_POLARITY_G => '0')
+--       port map (
+--          clk      => pgpRxUsrClk,       -- [in]
+--          asyncRst => pgpRxResetDone,    -- [in]
+--          syncRst  => pgpRxRst);         -- [out]
 
    pgpRxRstOut <= pgpRxRst;
 
