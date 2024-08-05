@@ -76,7 +76,7 @@ architecture rtl of FcEmu is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      enableTimingMsg       => '1',
+      enableTimingMsg       => '0',
       enableRoR             => '0',
       usrRoR                => '0',
       timingMsgReq          => '0',
