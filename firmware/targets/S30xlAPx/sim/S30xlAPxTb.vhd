@@ -34,11 +34,12 @@ end entity S30xlAPxTb;
 architecture sim of S30xlAPxTb is
 
    -- component generics
-   constant TPD_G                    : time                 := 1 ns;
+   constant TPD_G                    : time                 := 0.5 ns;
    constant BUILD_INFO_G             : BuildInfoType        := BUILD_INFO_DEFAULT_SLV_C;
    constant SIMULATION_G             : boolean              := true;
-   constant SIM_SRP_PORT_NUM_G       : integer              := 12000;
-   constant SIM_DATA_PORT_NUM_G      : integer              := 13000;
+   constant SIM_SRP_PORT_NUM_G       : integer              := 10000;
+   constant SIM_RAW_DATA_PORT_NUM_G  : integer              := 11000;
+   constant SIM_TRIG_DATA_PORT_NUM_G : integer              := 12000;
    constant DHCP_G                   : boolean              := false;
    constant IP_ADDR_G                : slv(31 downto 0)     := x"0A01A8C0";
    constant MAC_ADDR_G               : slv(47 downto 0)     := x"00_00_16_56_00_08";
@@ -49,7 +50,7 @@ architecture sim of S30xlAPxTb is
    constant FC_HUB_QUADS_G           : integer range 1 to 4 := 1;
    constant FC_HUB_QUAD_REFCLK_MAP_G : IntegerArray         := (0 => 0);
 
-   -- component ports
+   -- component portsStsdata
    signal clk125InP            : sl;                                                   -- [in]
    signal clk125InN            : sl;                                                   -- [in]
    signal clk125OutP           : slv(1 downto 0);                                      -- [out]
@@ -78,6 +79,8 @@ architecture sim of S30xlAPxTb is
    signal tsRefClk250N         : slv(TS_REFCLKS_G-1 downto 0);                         -- [in]
    signal tsDataRxP            : slv(TS_LANES_G-1 downto 0);                           -- [in]
    signal tsDataRxN            : slv(TS_LANES_G-1 downto 0);                           -- [in]
+   signal tsDataTxP            : slv(TS_LANES_G-1 downto 0);                           -- [in]
+   signal tsDataTxN            : slv(TS_LANES_G-1 downto 0);                           -- [in]
    signal ethRefClk156P        : sl;                                                   -- [in]
    signal ethRefClk156N        : sl;                                                   -- [in]
    signal ethTxP               : sl                               := '0';              -- [out]
@@ -94,7 +97,8 @@ begin
          BUILD_INFO_G             => BUILD_INFO_G,
          SIMULATION_G             => SIMULATION_G,
          SIM_SRP_PORT_NUM_G       => SIM_SRP_PORT_NUM_G,
-         SIM_DATA_PORT_NUM_G      => SIM_DATA_PORT_NUM_G,
+         SIM_RAW_DATA_PORT_NUM_G  => SIM_RAW_DATA_PORT_NUM_G,
+         SIM_TRIG_DATA_PORT_NUM_G => SIM_TRIG_DATA_PORT_NUM_G,
          DHCP_G                   => DHCP_G,
          IP_ADDR_G                => IP_ADDR_G,
          MAC_ADDR_G               => MAC_ADDR_G,
@@ -133,6 +137,8 @@ begin
          tsRefClk250N         => tsRefClk250N,          -- [in]
          tsDataRxP            => tsDataRxP,             -- [in]
          tsDataRxN            => tsDataRxN,             -- [in]
+         tsDataTxP            => tsDataTxP,             -- [out]
+         tsDataTxN            => tsDataTxN,             -- [out]
          ethRefClk156P        => ethRefClk156P,         -- [in]
          ethRefClk156N        => ethRefClk156N,         -- [in]
          ethTxP               => ethTxP,                -- [out]
@@ -143,14 +149,16 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Loopbacks
    -------------------------------------------------------------------------------------------------
-   appFcRxP <= fcHubTxP(0);
-   appFcRxN <= fcHubTxN(0);
+   appFcRxP    <= fcHubTxP(0);
+   appFcRxN    <= fcHubTxN(0);
    fcHubRxP(0) <= appFcTxP;
    fcHubRxN(0) <= appFcTxN;
 
    lclsTimingRxP <= lclsTimingTxP;
    lclsTimingRxN <= lclsTimingTxN;
 
+--    tsDataRxP <= tsDataTxP;
+--    tsDataRxN <= tsDataTxN;
 
    -------------------------------------------------------------------------------------------------
    -- Clocks

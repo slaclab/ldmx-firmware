@@ -46,6 +46,8 @@ entity TsDataRx is
       tsRefClk250N : in slv(TS_REFCLKS_G-1 downto 0);
       tsDataRxP    : in slv(TS_LANES_G-1 downto 0);
       tsDataRxN    : in slv(TS_LANES_G-1 downto 0);
+      tsDataTxP    : out slv(TS_LANES_G-1 downto 0);
+      tsDataTxN    : out slv(TS_LANES_G-1 downto 0);
 
       -- Fast Control Interface
       fcClk185 : in sl;
@@ -148,8 +150,8 @@ begin
          tsRefClk250N    => tsRefClk250N,                                  -- [in]
          tsDataRxP       => tsDataRxP,                                     -- [in]
          tsDataRxN       => tsDataRxN,                                     -- [in]
---          tsDataTxP       => tsDataTxP,                                     -- [out]
---          tsDataTxN       => tsDataTxN,                                     -- [out]
+         tsDataTxP       => tsDataTxP,                                     -- [out]
+         tsDataTxN       => tsDataTxN,                                     -- [out]
          tsRecClks       => tsRecClks,                                     -- [out]
          tsRecRsts       => tsRecRsts,                                     -- [out]
          tsRxMsgs        => tsRxMsgs,                                      -- [out]

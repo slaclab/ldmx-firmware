@@ -65,7 +65,8 @@ end entity TsTxMsgPlaybackLane;
 
 architecture rtl of TsTxMsgPlaybackLane is
 
-   constant NUM_CHANNELS_C : integer := 6;
+   constant NUM_CHANNELS_C  : integer := 6;
+   constant RAM_ADDR_BITS_C : integer := 8;
 
    constant NUM_AXIL_MASTERS_C : natural := NUM_CHANNELS_C;
 
@@ -76,23 +77,23 @@ architecture rtl of TsTxMsgPlaybackLane is
    signal ramAxilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal ramAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
 
-   signal ramDout : slv(95 downto 0);
+   signal ramDout : slv(127 downto 0);
 
    signal rdValid : sl;
 
    type StateType is (
-      WAIT_T0_S,
-      SEND_DATA_S);
+      WAIT_START_S,
+      RUNNING_S);
 
    -- fcClk185 signals
    type RegType is record
       state   : StateType;
-      ramAddr : slv(13 downto 0);
+      ramAddr : slv(RAM_ADDR_BITS_C-1 downto 0);
       tsMsg   : TsData6ChMsgType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state   => WAIT_T0_S,
+      state   => WAIT_START_S,
       ramAddr => (others => '0'),
       tsMsg   => TS_DATA_6CH_MSG_INIT_C);
 
@@ -136,8 +137,8 @@ begin
          SYS_WR_EN_G      => false,
          SYS_BYTE_WR_EN_G => false,
          COMMON_CLK_G     => false,
-         ADDR_WIDTH_G     => 14,
-         DATA_WIDTH_G     => 96)
+         ADDR_WIDTH_G     => RAM_ADDR_BITS_C,
+         DATA_WIDTH_G     => 128)
       port map (
          axiClk         => axilClk,          -- [in]
          axiRst         => axilRst,          -- [in]
@@ -162,32 +163,36 @@ begin
       -- Place message into a FIFO
 
       v.tsMsg := TS_DATA_6CH_MSG_INIT_C;
-      v.tsMsg := toTsData6ChMsg(ramDout(TS_DATA_6CH_MSG_SIZE_C-1 downto 0));
+      v.tsMsg := toTsData6ChMsg128(ramDout);
 
       case r.state is
-         when WAIT_T0_S =>
+         when WAIT_START_S =>
             v.ramAddr := (others => '0');
-            if (fcBus.pulseStrobe = '1' and fcBus.stateChanged = '1' and fcBus.runState = RUN_STATE_PRESTART_C and ramDout(95) = '1') then
-               v.tsMsg.strobe := '1';
-               v.tsMsg.bc0    := '1';
+            if (fcBus.bunchStrobe = '1' and ramDout(127) = '1') then
                v.ramAddr      := r.ramAddr + 1;
-               v.state        := SEND_DATA_S;
+               v.tsMsg.strobe := '1';
+               v.state        := RUNNING_S;
+            end if;
+         when RUNNING_S =>
+            -- Send data every bunch strobe
+            if (fcBus.bunchStrobe = '1') then
+               v.ramAddr      := r.ramAddr + 1;
+               v.tsMsg.strobe := '1';
             end if;
 
-         when SEND_DATA_S =>
-            if (fcBus.bunchStrobe = '1') then
-               v.tsMsg.strobe := '1';
-               v.ramAddr      := r.ramAddr + 1;
-               if (ramDout(94) = '1') then
-                  v.state := WAIT_T0_S;
+            -- Check for stop each time through
+            if (r.ramAddr = 0) then
+               if (fcBus.bunchStrobe = '1' and ramDout(127) = '0') then
+                  v.tsMsg.strobe := '0';
+                  v.state := WAIT_START_S;
                end if;
             end if;
       end case;
 
-      if (fcBus.runState = RUN_STATE_RESET_C) then
-         v.state := WAIT_T0_S;
+      if (r.state = RUNNING_S and fcBus.pulseStrobe = '1' and fcBus.stateChanged = '1' and fcBus.runState = RUN_STATE_PRESTART_C) then
+         v.tsMsg.bc0 := '1';
       end if;
-
+               
 
       -- Reset
       if (fcRst185 = '1') then

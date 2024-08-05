@@ -43,7 +43,8 @@ entity S30xlAPx is
       BUILD_INFO_G             : BuildInfoType        := BUILD_INFO_DEFAULT_SLV_C;
       SIMULATION_G             : boolean              := false;
       SIM_SRP_PORT_NUM_G       : integer              := 9000;
-      SIM_DATA_PORT_NUM_G      : integer              := 9100;
+      SIM_RAW_DATA_PORT_NUM_G  : integer              := 9100;
+      SIM_TRIG_DATA_PORT_NUM_G : integer              := 9200;
       DHCP_G                   : boolean              := false;  -- true = DHCP, false = static address
       IP_ADDR_G                : slv(31 downto 0)     := x"0A01A8C0";  -- 192.168.1.10 (before DHCP)
       MAC_ADDR_G               : slv(47 downto 0)     := x"00_00_16_56_00_08";
@@ -106,10 +107,12 @@ entity S30xlAPx is
       ----------------------------------------------------------------------------------------------
       -- App TS Interface
       ----------------------------------------------------------------------------------------------
-      tsRefClk250P : in slv(TS_REFCLKS_G-1 downto 0);
-      tsRefClk250N : in slv(TS_REFCLKS_G-1 downto 0);
-      tsDataRxP    : in slv(TS_LANES_G-1 downto 0);
-      tsDataRxN    : in slv(TS_LANES_G-1 downto 0);
+      tsRefClk250P : in  slv(TS_REFCLKS_G-1 downto 0);
+      tsRefClk250N : in  slv(TS_REFCLKS_G-1 downto 0);
+      tsDataRxP    : in  slv(TS_LANES_G-1 downto 0);
+      tsDataRxN    : in  slv(TS_LANES_G-1 downto 0);
+      tsDataTxP    : out slv(TS_LANES_G-1 downto 0);
+      tsDataTxN    : out slv(TS_LANES_G-1 downto 0);
 
       ----------------------------------------------------------------------------------------------
       -- Ethernet refclk and interface
@@ -219,8 +222,9 @@ begin
          TPD_G         => TPD_G,
          OUT_REG_RST_G => true)
       port map (
-         clk     => clk125In,           -- [in]
-         syncRst => axilRst);           -- [out]
+         clk      => clk125In,          -- [in]
+         asyncRst => '0',               -- [in]
+         syncRst  => axilRst);          -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Top Level AXI-Lite crossbar
@@ -252,14 +256,15 @@ begin
    -------------------------------------------------------------------------------------------------
    U_TenGigEthGtyCore_1 : entity ldmx_ts.S30xlEthCore
       generic map (
-         TPD_G               => TPD_G,
-         SIMULATION_G        => SIMULATION_G,
-         SIM_SRP_PORT_NUM_G  => SIM_SRP_PORT_NUM_G,
-         SIM_DATA_PORT_NUM_G => SIM_DATA_PORT_NUM_G,
-         AXIL_BASE_ADDR_G    => AXIL_XBAR_CONFIG_C(AXIL_ETH_C).baseAddr,
-         DHCP_G              => DHCP_G,
-         IP_ADDR_G           => IP_ADDR_G,
-         MAC_ADDR_G          => MAC_ADDR_G)
+         TPD_G                    => TPD_G,
+         SIMULATION_G             => SIMULATION_G,
+         SIM_SRP_PORT_NUM_G       => SIM_SRP_PORT_NUM_G,
+         SIM_RAW_DATA_PORT_NUM_G  => SIM_RAW_DATA_PORT_NUM_G,
+         SIM_TRIG_DATA_PORT_NUM_G => SIM_TRIG_DATA_PORT_NUM_G,
+         AXIL_BASE_ADDR_G         => AXIL_XBAR_CONFIG_C(AXIL_ETH_C).baseAddr,
+         DHCP_G                   => DHCP_G,
+         IP_ADDR_G                => IP_ADDR_G,
+         MAC_ADDR_G               => MAC_ADDR_G)
       port map (
          extRst              => '0',    -- [in] -- might need PwrUpRst here
          ethGtRefClkP        => ethRefClk156P,                    -- [in]
@@ -366,6 +371,7 @@ begin
    U_S30xlAppCore_1 : entity ldmx_ts.S30xlAppCore
       generic map (
          TPD_G            => TPD_G,
+         SIM_SPEEDUP_G    => SIMULATION_G,
          TS_LANES_G       => TS_LANES_G,
          TS_REFCLKS_G     => TS_REFCLKS_G,
          TS_REFCLK_MAP_G  => TS_REFCLK_MAP_G,
@@ -382,6 +388,8 @@ begin
          tsRefClk250N        => tsRefClk250N,                          -- [in]
          tsDataRxP           => tsDataRxP,                             -- [in]
          tsDataRxN           => tsDataRxN,                             -- [in]
+         tsDataTxP           => tsDataTxP,                             -- [out]
+         tsDataTxN           => tsDataTxN,                             -- [out]
          axilClk             => axilClk,                               -- [in]
          axilRst             => axilRst,                               -- [in]
          axilReadMaster      => locAxilReadMasters(AXIL_APP_CORE_C),   -- [in]

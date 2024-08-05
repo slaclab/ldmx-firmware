@@ -55,6 +55,8 @@ entity S30xlAppCore is
       tsRefClk250N : in slv(TS_REFCLKS_G-1 downto 0);
       tsDataRxP    : in slv(TS_LANES_G-1 downto 0);
       tsDataRxN    : in slv(TS_LANES_G-1 downto 0);
+      tsDataTxP    : out slv(TS_LANES_G-1 downto 0);
+      tsDataTxN    : out slv(TS_LANES_G-1 downto 0);
 
       -- AXI Lite interface
       axilClk         : in  sl;
@@ -200,6 +202,8 @@ begin
          tsRefClk250N    => tsRefClk250N,                       -- [in]
          tsDataRxP       => tsDataRxP,                          -- [in]
          tsDataRxN       => tsDataRxN,                          -- [in]
+         tsDataTxP       => tsDataTxP,                          -- [out]
+         tsDataTxN       => tsDataTxN,                          -- [out]
          fcClk185        => fcClk185,                           -- [in]
          fcRst185        => fcRst185,                           -- [in]
          fcBus           => fcBus,                              -- [in]
