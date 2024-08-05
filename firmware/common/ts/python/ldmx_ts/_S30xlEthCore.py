@@ -1,8 +1,11 @@
 import pyrogue as pr
+import surf.protocols.rssi
+import surf.ethernet.udp
+import surf.ethernet.ten_gig
 import ldmx_ts
 
 class S30xlApxEthCore(pr.Device):
-    def __init__(self, **kwargs)
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self.add(surf.protocols.rssi.RssiCore(
@@ -30,6 +33,5 @@ class S30xlApxEthCore(pr.Device):
 
         self.add(surf.ethernet.ten_gig.TenGigEthReg(
             enabled = False,
-            gtxe2_read_only = True,
             offset = 0x00000))
         

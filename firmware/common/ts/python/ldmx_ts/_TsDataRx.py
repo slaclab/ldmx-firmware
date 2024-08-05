@@ -1,9 +1,9 @@
 import pyrogue as pr
-import lmdx_tdaq
+import ldmx_tdaq
 import ldmx_ts
 
 class TsDataRx(pr.Device):
-    def __init__(self, lanes=2, **kwargs)
+    def __init__(self, lanes=2, **kwargs):
         super().__init__(**kwargs)
 
         self.add(ldmx_ts.TsDataRxLaneArray(
