@@ -3,7 +3,7 @@ import pyrogue as pr
 import ldmx_tdaq
 
 class FcReceiver(pr.Device):
-    def __init__(self, numVc, **kwargs):
+    def __init__(self, numVc=0, **kwargs):
         super().__init__(**kwargs)
 
         self.add(ldmx_tdaq.LdmxPgpFcLane(
