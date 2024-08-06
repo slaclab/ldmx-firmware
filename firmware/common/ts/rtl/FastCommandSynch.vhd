@@ -2,29 +2,22 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity FastCommandSynch is
     Port ( fast_command : in STD_LOGIC_VECTOR (3 downto 0);
            pulse : out STD_LOGIC;
-           fast_command_config : in STD_LOGIC_VECTOR (3 downto 0);
            clk : in STD_LOGIC;
-           areset_n : in STD_LOGIC
-
+           areset_n : in STD_LOGIC;
            -- AXI-Lite Interface (axilClk domain)
            axilClk           : in    sl;
            axilRst           : in    sl;
            mAxilWriteMaster  : in    AxiLiteWriteMasterType;
            mAxilWriteSlave   : out   AxiLiteWriteSlaveType;
            mAxilReadMaster   : in    AxiLiteReadMasterType;
-           mAxilReadSlave    : out   AxiLiteReadSlaveType;
+           mAxilReadSlave    : out   AxiLiteReadSlaveType
            );
 
 end FastCommandSynch;
@@ -37,8 +30,8 @@ architecture Behavioral of FastCommandSynch is
   -- (0) count of command seen
   signal writeReg : Slv32Array(2 downto 0) := (others => '0');
   -- (0) command configuration
-  -- (1) delay
-  -- (2) prescale
+  -- (1) delay (not implemented)
+  -- (2) prescale (not implemented)
   
 begin
   
@@ -69,6 +62,7 @@ begin
       if command_buffer = writeReg(0)(3 downto 0) then
         pulse <= '1';
         command_buffer <= (others => '0');
+        readReg(0) <= std_logic_vector(to_unsigned(to_integer(unsigned(readReg(0)))+1,readReg(0)'length));
       else
         command_buffer <= fast_command;
         pulse <= '0';                

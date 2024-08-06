@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------
 -- Company: FNAL
--- Engineer: A. Whitbeck
+-- Author: A. Whitbeck
 -- 
 -- Create Date: 05/30/2024 12:46:12 PM
 -- Design Name: 
@@ -182,7 +182,7 @@ begin
    --------------
    -- Application
    --------------
-   U_App : entity ldmx_ts.Application
+   U_App : entity ldmx_ts.zccmApplication
       generic map (
          TPD_G            => TPD_G,
          AXIL_CLK_FREQ_G  => 100.0E+6, -- 100MHz
@@ -234,8 +234,21 @@ begin
         appClk            => axiClk,
         appRes            => axiRes,
         MCLK              => MCLK,
-        MGTREFCLK0        => CLKGEN_MGTCLK_AC_P,
-        MGTREFCLK1        => MGTREFCLK1_AC_P,
+        MGTREFCLK0_P      => CLKGEN_MGTCLK_AC_P,
+        MGTREFCLK0_N      => CLKGEN_MGTCLK_AC_N,        
+        MGTREFCLK1_P      => MGTREFCLK1_AC_P,
+        MGTREFCLK1_N      => MGTREFCLK1_AC_N,
+
+        -- Fast control signals
+        pulse_BCR_rtl     => pulse_BCR_rtl
+        pulse_LED_rtl     => pulse_LED_rtl,
+
+        -- SFP signals
+        SFP_TX_P          => SFP0_out.MGT_TX_P,
+        SFP_TX_N          => SFP0_out.MGT_TX_N,
+        SFP_RX_P          => SFP0_out.MGT_RX_P,
+        SFP_RX_N          => SFP0_out.MGT_RX_N,
+
         -- AXI-Lite Interface (axilClk domain)
         axilClk           => axilClk,
         axilRst           => axilRst,
@@ -291,6 +304,8 @@ begin
       OB => SOC_CLKREF_TO_CLKGEN_N,   -- 1-bit output: Diff_n output (connect directly to top-level port)
       I  => MCLK     -- 1-bit input: Buffer input
     );
-        
+
+    MCLK_BUF_SEL <= '1';
+    
 end Behavioral;
 

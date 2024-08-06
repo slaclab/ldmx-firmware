@@ -87,7 +87,7 @@ begin
    LOL : Slow_Control_Monitor 
         Port Map(
                  d => clk_con.LOL,
-                 counter => r.LOL
+                 counter => r.LOL,
                  clk => clk,
                  reset_n => reset_n
                  );
