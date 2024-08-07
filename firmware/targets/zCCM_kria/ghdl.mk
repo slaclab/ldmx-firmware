@@ -5,19 +5,15 @@
 
 GHDL=ghdl
 GHDL_WORKDIR=ghdl
-GHDL_LIBRARY=work
-GHDLFLAGS= --workdir=${GHDL_WORKDIR} --work=${GHDL_LIBRARY} --ieee=synopsys -fexplicit -frelaxed-rules  --warn-no-library
+GHDLFLAGS=  --ieee=synopsys -fexplicit -frelaxed-rules  --warn-no-library
 GHDLRUNFLAGS=
 
-all: dir import
+all: syntax import makefiles
 
 clean :
 	$(GHDL) --clean $(GHDLFLAGS)
 
-dir:
-	test -d $(GHDL_WORKDIR) || mkdir $(GHDL_WORKDIR)
-
-import : $(FILES)
+import : 
 	@echo "============================================================================="
 	@echo Importing: surf
 	@echo "============================================================================="
@@ -41,11 +37,11 @@ import : $(FILES)
 
 	$(GHDL) -i $(GHDLFLAGS) --work=work ../../common/ts/rtl/zccmApplication.vhd
 
-syntax: 
+syntax: import
 	@echo "============================================================================="
 	@echo Syntax Checking:
 	@echo "============================================================================="
-	$(GHDL) -s $(GHDLFLAGS) zccmApplication.vhd
+	$(GHDL) -s $(GHDLFLAGS) --work=work ../../common/ts/rtl/zccmApplication.vhd
 
 makefiles: import
 	@echo "============================================================================="
