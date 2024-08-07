@@ -329,7 +329,7 @@ begin
          appTimingClk     => appTimingClk,
          appTimingRst     => appTimingRst,
          appTimingMode    => open,
-         appTimingBus     => appBus,
+         appTimingBus     => appTimingBus,
          tpgMiniTimingPhy => coreTimingPhy,
          timingClkSel     => open,
          axilClk          => axilClk,
@@ -338,24 +338,5 @@ begin
          axilReadSlave    => axilReadSlaves(AXIL_CORE_INDEX_C),
          axilWriteMaster  => axilWriteMasters(AXIL_CORE_INDEX_C),
          axilWriteSlave   => axilWriteSlaves(AXIL_CORE_INDEX_C));
-
-   process(appTimingClk)
-   begin
-      if rising_edge(appTimingClk) then
-         timingStrobe <= appBus.strobe after TPD_G;  -- Pipeline for register replication during impl_1
-         timingValid  <= appBus.valid  after TPD_G;  -- Pipeline for register replication during impl_1
-      end if;
-   end process;
-
-   -- No pipelining: message, V1, and V2 only updated during strobe's HIGH cycle
-   process(appBus, timingStrobe, timingValid)
-      variable v : TimingBusType;
-   begin
-      v            := appBus;
-      v.strobe     := timingStrobe;
-      v.valid      := timingValid;
-      appTimingBus <= v;
-   end process;
-
 
 end rtl;
