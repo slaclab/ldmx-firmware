@@ -149,6 +149,7 @@ begin
       if (r.fcBus.subCount = BUNCH_CLK_RISE_C) then
          v.fcBunchClk37      := '1';
          v.fcBus.bunchStrobe := '1';
+         v.fcBus.bunchCount := r.fcBus.bunchCount + 1;
       end if;
 
       if (r.fcBus.subCount = BUNCH_CLK_PRE_RISE_C) then
@@ -176,7 +177,7 @@ begin
                -- Output fields
                v.fcBus.pulseStrobe  := '1';
                v.fcBus.pulseId      := fcMsg.pulseId;
-               v.fcBus.bunchCount   := fcMsg.bunchCount;
+               v.fcBus.bunchCount   := fcMsg.bunchCount;  -- Should always be 0
                v.fcBus.runState     := fcMsg.runState;
                v.fcBus.stateChanged := fcMsg.stateChanged;
                v.fcBus.subCount := (others => '0');
