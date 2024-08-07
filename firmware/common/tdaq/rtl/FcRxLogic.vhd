@@ -188,7 +188,7 @@ begin
                         -- Reset counters and FIFOs
                         v.rorCount              := (others => '0');
                         v.fcBus.bunchClkAligned := '0';
-                     when RUN_STATE_CLOCK_ALIGN_C =>
+                     when RUN_STATE_IDLE_C =>
                         -- Algin Bunch clock
                         v.fcBunchClk37          := '0';
                         v.fcClkLost             := '1';  -- Creats a bunchClkRst
@@ -204,7 +204,7 @@ begin
 
             -- Process readout requests
             when MSG_TYPE_ROR_C =>
-               if (r.fcBus.runState = RUN_STATE_RUNNING_C) then
+               if (r.fcBus.runState = RUN_STATE_BC0_C or r.fcBus.runState = RUN_STATE_RUNNING_C) then
                   -- Place on output bus
                   v.fcBus.readoutRequest.bunchCount := fcMsg.bunchCount;
                   v.fcBus.readoutRequest.pulseId    := fcMsg.pulseId;
@@ -213,9 +213,7 @@ begin
                end if;
             when others => null;
          end case;
-
       end if;
-
 
 
       -- AXI Lite registers

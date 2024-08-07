@@ -47,15 +47,15 @@ architecture rtl of RorDaqDataDelay is
 
    type StateType is (
       INIT_S,
-      WAIT_T0_ID_S,
-      WAIT_T0_DATA_S,
+      WAIT_BC0_ID_S,
+      WAIT_BC0_DATA_S,
       WAIT_ROR_S,
       ALIGNED_S);
 
    -- fcClk185 signals
    type RegType is record
       state    : StateType;
-      t0Id     : slv(63 downto 0);
+      bc0Id     : slv(63 downto 0);
       fifoWrEn : sl;
       fifoRdEn : sl;
       fifoRst  : sl;
@@ -64,7 +64,7 @@ architecture rtl of RorDaqDataDelay is
 
    constant REG_INIT_C : RegType := (
       state    => INIT_S,
-      t0Id     => (others => '0'),
+      bc0Id     => (others => '0'),
       fifoWrEn => '0',
       fifoRdEn => '0',
       fifoRst  => '0',
@@ -109,20 +109,26 @@ begin
             v.fifoRst := '1';
             v.state   := WAIT_T0_ID_S;
 
-         when WAIT_T0_ID_S =>
+         when WAIT_BC0_ID_S =>
             if (fcBus.pulseStrobe = '1' and
-                fcBus.stateChanged = '1' and
-                fcBus.runState = RUN_STATE_CLOCK_ALIGN_C) then
-
-               v.t0Id  := fcBus.pulseID;
-               v.state := WAIT_T0_DATA_S;
+                fcBus.stateChanged = '1') then
+               if (fcBus.runState = RUN_STATE_BC0_C) then
+                  v.bc0Id  := fcBus.pulseID;
+                  v.state := WAIT_T0_DATA_S;
+               else
+                  v.state := INIT_S;
+               end if;
             end if;
 
-         when WAIT_T0_DATA_S =>
-            -- Wait until T0 data arrives then start writing into FIFO
-            if (timestampIn.valid = '1' and timestampIn.pulseID = r.t0Id) then
+         when WAIT_BC0_DATA_S =>
+            -- Wait until BC0 data arrives then start writing into FIFO
+            if (timestampIn.valid = '1' and timestampIn.pulseID = r.bc0Id) then
                v.fifoWrEn := '1';
                v.state    := WAIT_ROR_S;
+            end if;
+            
+            if (fcBus.stateChanged = '1') then
+               v.state := INIT_S;
             end if;
 
 

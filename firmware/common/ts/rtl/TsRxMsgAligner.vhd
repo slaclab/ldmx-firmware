@@ -66,12 +66,9 @@ end entity TsRxMsgAligner;
 
 architecture rtl of TsRxMsgAligner is
 
-   -- tsClk250 signals
-   signal tsRxMsgSlv : slv(TS_DATA_6CH_MSG_SIZE_C-1 downto 0);
-
    type StateType is (
-      WAIT_CLOCK_ALIGN_S,
-      WAIT_BC0_S,
+      WAIT_BC0_STATE_S,
+      WAIT_BC0_DATA_S,
       ALIGNED_S);
 
    -- fcClk185 signals
@@ -98,9 +95,6 @@ architecture rtl of TsRxMsgAligner is
    signal rin : RegType;
 
    -- Ts Msg FIFO
-   signal tsMsgFifoWrData : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
-   signal tsMsgFifoRdData : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
-   signal tsMsgFifoValid  : slv(TS_LANES_G-1 downto 0);
    signal tsMsgFifoMsgs   : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
 
    -- Timestamp FIFO
@@ -178,7 +172,7 @@ begin
 
 
       case r.state is
-         when WAIT_CLOCK_ALIGN_S =>
+         when WAIT_BC0_STATE_S =>
             -- Bleed off both fifo's when in reset state
             if (fcBus.runState = RUN_STATE_RESET_C) then
                v.tsMsgFifoRdEn     := (others => '1');
@@ -186,16 +180,16 @@ begin
             end if;
 
             -- Start alignment when FC runState moves to CLOCK_ALIGN state
-            if (fcBus.pulseStrobe = '1' and fcBus.stateChanged = '1' and fcBus.runState = RUN_STATE_CLOCK_ALIGN_C) then
+            if (fcBus.pulseStrobe = '1' and fcBus.stateChanged = '1' and fcBus.runState = RUN_STATE_BC0_C) then
                -- Stop bleeding the timestamp fifo
                v.timestampFifoRdEn   := '0';
                -- Start writing timestamps
                v.timestampFifoWrEn   := '1';
                v.timestampFifoWrData := fcBus.pulseId & fcBus.bunchCount;
-               v.state               := WAIT_BC0_S;
+               v.state               := WAIT_BC0_DATA_S;
             end if;
 
-         when WAIT_BC0_S =>
+         when WAIT_BC0_DATA_S =>
             if (fcBus.bunchStrobe = '1') then
                -- Write a new timestamp with each bunch strobe
                v.timestampFifoWrEn   := '1';
@@ -218,8 +212,8 @@ begin
             end if;
 
             -- Reset alignment if run state transitions before BC0
-            if (fcBus.runState /= RUN_STATE_CLOCK_ALIGN_C) then
-               v.state := WAIT_CLOCK_ALIGN_S;
+            if (fcBus.runState /= RUN_STATE_BC0_C) then
+               v.state := WAIT_BC0_STATE_S;
             end if;
 
          when ALIGNED_S =>
