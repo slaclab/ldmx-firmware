@@ -32,6 +32,35 @@ create_clock -name fcHubRxOutClk3  -period 5.384 [get_pins -hier * -filter {name
 # create_clock -name fcHubRxOutClk14 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[2]*/*/RXOUTCLK}]
 # create_clock -name fcHubRxOutClk15 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[3]*/*/RXOUTCLK}]
 
+# FC Hub TXOUT Clocks
+create_clock -name fcHubTxOutClk0  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[0]*/*/TXOUTCLK}]
+create_clock -name fcHubTxOutClk1  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[1]*/*/TXOUTCLK}]
+create_clock -name fcHubTxOutClk2  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[2]*/*/TXOUTCLK}]
+create_clock -name fcHubTxOutClk3  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[3]*/*/TXOUTCLK}]
+# create_clock -name fcHubTxOutClk4  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[0]*/*/TXOUTCLK}]
+# create_clock -name fcHubTxOutClk5  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[1]*/*/TXOUTCLK}]
+# create_clock -name fcHubTxOutClk6  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[2]*/*/TXOUTCLK}]
+# create_clock -name fcHubTxOutClk7  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[1].GEN_CHANNELS[3]*/*/TXOUTCLK}]
+# create_clock -name fcHubTxOutClk8  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[0]*/*/TXOUTCLK}]
+# create_clock -name fcHubTxOutClk9  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[1]*/*/TXOUTCLK}]
+# create_clock -name fcHubTxOutClk10 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[2]*/*/TXOUTCLK}]
+# create_clock -name fcHubTxOutClk11 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[2].GEN_CHANNELS[3]*/*/TXOUTCLK}]
+# create_clock -name fcHubTxOutClk12 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[0]*/*/TXOUTCLK}]
+# create_clock -name fcHubTxOutClk13 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[1]*/*/TXOUTCLK}]
+# create_clock -name fcHubTxOutClk14 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[2]*/*/TXOUTCLK}]
+# create_clock -name fcHubTxOutClk15 -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[3].GEN_CHANNELS[3]*/*/TXOUTCLK}]
+
+create_clock -name fcHubTxOutClkMon0  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[0]*/*/bufg_gt_txoutclkmon_inst/O}]
+create_clock -name fcHubTxOutClkMon1  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[1]*/*/bufg_gt_txoutclkmon_inst/O}]
+create_clock -name fcHubTxOutClkMon2  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[2]*/*/bufg_gt_txoutclkmon_inst/O}]
+create_clock -name fcHubTxOutClkMon3  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[3]*/*/bufg_gt_txoutclkmon_inst/O}]
+
+create_clock -name fcHubTxOutClkPcs0  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[0]*/*/TXOUTCLKPCS}]
+create_clock -name fcHubTxOutClkPcs1  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[1]*/*/TXOUTCLKPCS}]
+create_clock -name fcHubTxOutClkPcs2  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[2]*/*/TXOUTCLKPCS}]
+create_clock -name fcHubTxOutClkPcs3  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[3]*/*/TXOUTCLKPCS}]
+
+
 
 # App FC Clocks
 create_clock -name appFcRxOutClk -period 5.384 [get_pins -hier * -filter {name=~*/U_FcReceiver_1/*/RXOUTCLK}]
@@ -117,7 +146,8 @@ set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks appFcRxOutClk]
 
 set_clock_groups -asynchronous \
-    -group [get_clocks -include_generated_clocks lclsTimingRxOutClk]
+    -group [get_clocks clk125In] \
+    -group [get_clocks -include_generated_clocks lclsTimingRxOutClk] \
     -group [get_clocks ethRefClk156] \
     -group [get_clocks tsRxOutClk0] \
     -group [get_clocks tsRxOutClk1] \    
