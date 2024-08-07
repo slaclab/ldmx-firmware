@@ -165,34 +165,40 @@ begin
       v.tsMsg := TS_DATA_6CH_MSG_INIT_C;
       v.tsMsg := toTsData6ChMsg128(ramDout);
 
-      case r.state is
-         when WAIT_START_S =>
-            v.ramAddr := (others => '0');
-            if (fcBus.bunchStrobe = '1' and ramDout(127) = '1') then
-               v.ramAddr      := r.ramAddr + 1;
-               v.tsMsg.strobe := '1';
-               v.state        := RUNNING_S;
-            end if;
-         when RUNNING_S =>
-            -- Send data every bunch strobe
-            if (fcBus.bunchStrobe = '1') then
-               v.ramAddr      := r.ramAddr + 1;
-               v.tsMsg.strobe := '1';
-            end if;
+      if (fcBus.bunchStrobe = '1') then
+         v.ramAddr      := r.ramAddr + 1;
+         v.tsMsg.strobe := '1';
+      end if;
 
-            -- Check for stop each time through
-            if (r.ramAddr = 0) then
-               if (fcBus.bunchStrobe = '1' and ramDout(127) = '0') then
-                  v.tsMsg.strobe := '0';
-                  v.state := WAIT_START_S;
-               end if;
-            end if;
-      end case;
 
-      if (r.state = RUNNING_S and fcBus.pulseStrobe = '1' and fcBus.stateChanged = '1' and fcBus.runState = RUN_STATE_PRESTART_C) then
+--       case r.state is
+--          when WAIT_START_S =>
+--             v.ramAddr := (others => '0');
+--             if (fcBus.bunchStrobe = '1' and ramDout(127) = '1') then
+--                v.ramAddr      := r.ramAddr + 1;
+--                v.tsMsg.strobe := '1';
+--                v.state        := RUNNING_S;
+--             end if;
+--          when RUNNING_S =>
+--             -- Send data every bunch strobe
+--             if (fcBus.bunchStrobe = '1') then
+--                v.ramAddr      := r.ramAddr + 1;
+--                v.tsMsg.strobe := '1';
+--             end if;
+
+--             -- Check for stop each time through
+--             if (r.ramAddr = 0) then
+--                if (fcBus.bunchStrobe = '1' and ramDout(127) = '0') then
+--                   v.tsMsg.strobe := '0';
+--                   v.state := WAIT_START_S;
+--                end if;
+--             end if;
+--       end case;
+
+      if (fcBus.pulseStrobe = '1' and fcBus.stateChanged = '1' and fcBus.runState = RUN_STATE_CLOCK_ALIGN_C) then
          v.tsMsg.bc0 := '1';
       end if;
-               
+
 
       -- Reset
       if (fcRst185 = '1') then
