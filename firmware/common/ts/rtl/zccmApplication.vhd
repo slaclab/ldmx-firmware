@@ -314,52 +314,15 @@ architecture mapping of zccmApplication is
 
    constant I2C_SCL_FREQ_C  : real := ite(SIMULATION_G, 2.0e6, 100.0E+3);
    constant I2C_MIN_PULSE_C : real := ite(SIMULATION_G, 50.0e-9, 100.0E-9);
-   
-   -- signal dmaClk       : sl;
-   -- signal dmaRst       : sl;
-   -- signal dmaObMasters : AxiStreamMasterArray(DMA_SIZE_C-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   -- signal dmaObSlaves  : AxiStreamSlaveArray(DMA_SIZE_C-1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-   -- signal dmaIbMasters : AxiStreamMasterArray(DMA_SIZE_C-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   -- signal dmaIbSlaves  : AxiStreamSlaveArray(DMA_SIZE_C-1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-
-   -- signal axilReadMaster  : AxiLiteReadMasterType;
-   -- signal axilReadSlave   : AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
-   -- signal axilWriteMaster : AxiLiteWriteMasterType;
-   -- signal axilWriteSlave  : AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
 
    signal mainAxilWriteMasters : AxiLiteWriteMasterArray(MAIN_XBAR_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
    signal mainAxilWriteSlaves  : AxiLiteWriteSlaveArray(MAIN_XBAR_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
    signal mainAxilReadMasters  : AxiLiteReadMasterArray(MAIN_XBAR_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
    signal mainAxilReadSlaves   : AxiLiteReadSlaveArray(MAIN_XBAR_MASTERS_C-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
-   type RegType is record
-     RM_PEN      : slv(5 downto 0);       -- power enable for each RM pair 
-     RM_RESET    : slv(5 downto 0);       -- reset for each RM pair
-     Synth_RST   : sl;                    -- reset for generator chip
-     Jitter_RST  : sl;                    -- reset for jitter cleaning clock chip
-     SFP_TX_DIS  : slv(3 downto 0);       -- SFP Transmit disable for each module
-     BCR_Command : slv(3 downto 0);       -- command BCR is synchronized to
-     LED_Command : slv(3 downto 0);       -- command LED is synchronized to
-     scratch     : slv(31 downto 0);      -- scratch register
-     axilReadSlave  : AxiLiteReadSlaveType;
-     axilWriteSlave : AxiLiteWriteSlaveType;
-   end record RegType;
-
-   constant REG_INIT_C : RegType := (
-     RM_PEN      => (others => '0'),
-     RM_RESET    => (others => '0'),
-     Synth_RST   => '0',
-     Jitter_RST  => '0',
-     SFP_TX_DIS  => (others => '0'),
-     BCR_Command => (others => '0'),
-     LED_Command => (others => '0'),
-     scratch     => (others => '0'),
-     axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-     axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
+   constant INI_WRITE_REG_C : slv32array(1 downto 0) := (others => x"0000_0000");
+   signal output_register : slv32array(1 downto 0) := (others => x"0000_0000");
    
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-
    signal appRes_n : sl ;
    
    signal reset : sl := '0';
@@ -388,7 +351,50 @@ architecture mapping of zccmApplication is
 begin
 
   appRes_n <= not appRes;
+
+  RM0_control_out.PEN     <= output_register(0)(0);
+  RM1_control_out.PEN     <= output_register(0)(1);
+  RM2_control_out.PEN     <= output_register(0)(2);
+  RM3_control_out.PEN     <= output_register(0)(3);
+  RM4_control_out.PEN     <= output_register(0)(4);
+  RM5_control_out.PEN     <= output_register(0)(5);
   
+  RM0_control_out.RESET   <= output_register(0)(6);
+  RM1_control_out.RESET   <= output_register(0)(7);
+  RM2_control_out.RESET   <= output_register(0)(8);
+  RM3_control_out.RESET   <= output_register(0)(9);
+  RM4_control_out.RESET   <= output_register(0)(10);
+  RM5_control_out.RESET   <= output_register(0)(11);
+   
+  Synth_Control_out.RST   <= output_register(0)(12);
+  Jitter_Control_out.RST  <= output_register(0)(13);
+  
+  SFP0_control_out.TX_DIS <= output_register(0)(14);
+  SFP1_control_out.TX_DIS <= output_register(0)(15);
+  SFP2_control_out.TX_DIS <= output_register(0)(16);
+  SFP3_control_out.TX_DIS <= output_register(0)(17);
+
+    U_AxiLiteRegs : entity surf.AxiLiteRegs
+      generic map (
+         TPD_G           => TPD_G,
+         NUM_WRITE_REG_G => 2,
+         INI_WRITE_REG_G => INI_WRITE_REG_C,
+         NUM_READ_REG_G  => 0)
+      port map (
+         -- AXI-Lite Bus
+         axiClk          => axilClk,
+         axiClkRst       => axilRst,
+         axiReadMaster   => mainAxilReadMasters(AXIL_OUTPUT_REG_INDEX_C),
+         axiReadSlave    => mainAxilReadSlaves(AXIL_OUTPUT_REG_INDEX_C),
+         axiWriteMaster  => mainAxilWriteMasters(AXIL_OUTPUT_REG_INDEX_C),
+         axiWriteSlave   => mainAxilWriteSlaves(AXIL_OUTPUT_REG_INDEX_C),
+         -- User Read/Write registers
+         writeRegister   => output_register,
+         readRegister    => open );
+
+  -------------------------------------------------------
+  --synchronize LED and BCR with commands from FC Rec.
+  -------------------------------------------------------
   synch_led :  entity ldmx_ts.FastCommandSynch
     Port Map ( 
       fast_command => fcBus.fcMsg.msgType,
@@ -752,65 +758,5 @@ begin
         axilWriteMaster => mainAxilWriteMasters(AXIL_FCREC_REG_INDEX_C),  -- [in] 
         axilWriteSlave  => mainAxilWriteSlaves(AXIL_FCREC_REG_INDEX_C)    -- [out]
         );
-    
-    comb : process (r, mainAxilWriteMaster(AXIL_OUTPUT_REG_INDEX_C), mainAxilReadMaster(AXIL_OUTPUT_REG_INDEX_C)) is
-      variable v      : RegType;
-      variable axilEp : AxiLiteEndpointType;
-
-    begin
-
-      v := r;
-
-      -- AXI Lite registers
-      axiSlaveWaitTxn(axilEp, mainAxilWriteMaster(AXIL_OUTPUT_REG_INDEX_C), mainAxilReadMaster(AXIL_OUTPUT_REG_INDEX_C), v.axilWriteSlave, v.axilReadSlave);
-      
-      axiSlaveRegister(axilEp, X"00", 0, v.RM_PEN);
-      axiSlaveRegister(axilEp, X"04", 0, v.RM_RESET);
-      axiSlaveRegister(axilEp, X"08", 0, v.Synth_RST);
-      axiSlaveRegister(axilEp, X"0C", 0, v.Jitter_RST);
-      axiSlaveRegister(axilEp, X"10", 0, v.SFP_TX_DIS);
-      axiSlaveRegister(axilEp, X"14", 0, v.BCR_Command);    
-      axiSlaveRegister(axilEp, X"18", 0, v.LED_Command); 
-
-      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
-      
-      mainAxilReadSlave(AXIL_OUTPUT_REG_INDEX_C)  <= r.axilReadSlave;
-      mainAxilWriteSlave(AXIL_OUTPUT_REG_INDEX_C) <= r.axilWriteSlave;
-      rin <= v;
-
-    end process comb;
-    
-    seq : process (axilClk, axilRst) is
-
-    begin
-
-      if (axilRst = '1') then
-        r <= REG_INIT_C after TPD_G;
-      elsif (rising_edge(axilClk)) then
-        r <= rin after TPD_G;
-      end if;
-
-    end process seq;  
-        
-    RM0_control_out.PEN     <= r.RM_PEN(0); 
-    RM0_control_out.RESET   <= r.RM_RESET(0); 
-    RM1_control_out.PEN     <= r.RM_PEN(0); 
-    RM1_control_out.RESET   <= r.RM_RESET(0); 
-    RM2_control_out.PEN     <= r.RM_PEN(0);  
-    RM2_control_out.RESET   <= r.RM_RESET(0); 
-    RM3_control_out.PEN     <= r.RM_PEN(0);   
-    RM3_control_out.RESET   <= r.RM_RESET(0); 
-    RM4_control_out.PEN     <= r.RM_PEN(0);   
-    RM4_control_out.RESET   <= r.RM_RESET(0);   
-    RM5_control_out.PEN     <= r.RM_PEN(0);   
-    RM5_control_out.RESET   <= r.RM_RESET(0);   
-    
-    Synth_Control_out.RST   <= r.Synth_RST; 
-    Jitter_Control_out.RST  <= r.Jitter_RST;
-    
-    SFP0_control_out.TX_DIS <= r.SFP_TX_DIS(0);
-    SFP1_control_out.TX_DIS <= r.SFP_TX_DIS(1);
-    SFP2_control_out.TX_DIS <= r.SFP_TX_DIS(2);
-    SFP3_control_out.TX_DIS <= r.SFP_TX_DIS(3);
-
+            
 end mapping;
