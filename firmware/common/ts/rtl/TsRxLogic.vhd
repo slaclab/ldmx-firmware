@@ -91,7 +91,7 @@ architecture rtl of TsRxLogic is
       rxErrorCount    => (others => '0'),
       countReset      => '0',
       tsRxPhyInit     => '0',
-      tsRxPhyLoopback => "000",
+      tsRxPhyLoopback => "010",
       tsRxMsg         => TS_DATA_6CH_MSG_INIT_C,
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C);
