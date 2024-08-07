@@ -9,4 +9,4 @@ class TsDataRxLaneArray(pr.Device):
         for i in range(lanes):
             self.add(ldmx_ts.TsDataRxLane(
                 name = f'TsDataRxLane[{i}]',
-                offset = 0x4000 * i))
+                offset = 0x8000 * i))
