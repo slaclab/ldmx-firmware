@@ -321,7 +321,8 @@ architecture mapping of zccmApplication is
    signal mainAxilReadSlaves   : AxiLiteReadSlaveArray(MAIN_XBAR_MASTERS_C-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
    constant INI_WRITE_REG_C : slv32array(1 downto 0) := (others => x"0000_0000");
-   signal output_register : slv32array(1 downto 0) := (others => x"0000_0000");
+   signal output_register   : slv32array(1 downto 0) := (others => x"0000_0000");
+   signal read_register     : slv32array(0 downto 0) := (others => x"0000_0000");      
    
    signal appRes_n : sl ;
    
@@ -379,7 +380,7 @@ begin
          TPD_G           => TPD_G,
          NUM_WRITE_REG_G => 2,
          INI_WRITE_REG_G => INI_WRITE_REG_C,
-         NUM_READ_REG_G  => 0)
+         NUM_READ_REG_G  => 1)
       port map (
          -- AXI-Lite Bus
          axiClk          => axilClk,
@@ -390,12 +391,14 @@ begin
          axiWriteSlave   => mainAxilWriteSlaves(AXIL_OUTPUT_REG_INDEX_C),
          -- User Read/Write registers
          writeRegister   => output_register,
-         readRegister    => open );
+         readRegister    => read_register );
 
   -------------------------------------------------------
   --synchronize LED and BCR with commands from FC Rec.
   -------------------------------------------------------
   synch_led :  entity ldmx_ts.FastCommandSynch
+    generic Map(
+      TPD_G => TPD_G)
     Port Map ( 
       fast_command => fcBus.fcMsg.msgType,
       pulse => pulse_LED_rtl,
@@ -411,6 +414,8 @@ begin
       );
   
   synch_bcr : entity ldmx_ts.FastCommandSynch
+    generic Map(
+      TPD_G => TPD_G)
     Port Map ( 
       fast_command => fcBus.fcMsg.msgType,
       pulse => pulse_BCR_rtl,

@@ -1,13 +1,15 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.Numeric_Std.ALL;
 
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 entity FastCommandSynch is
-    Port ( fast_command : in STD_LOGIC_VECTOR (3 downto 0);
+  Generic( TPD_G : time := 1 ns);
+  Port ( fast_command : in STD_LOGIC_VECTOR (3 downto 0);
            pulse : out STD_LOGIC;
            clk : in STD_LOGIC;
            areset_n : in STD_LOGIC;
@@ -26,9 +28,10 @@ architecture Behavioral of FastCommandSynch is
 
   signal command_buffer : STD_LOGIC_VECTOR (3 downto 0) := (others => '0');
 
-  signal readReg  : slv32Array(0 downto 0) := (others => '0');
+  signal readReg  : slv32Array(0 downto 0) := (others => x"0000_0000");
   -- (0) count of command seen
-  signal writeReg : Slv32Array(2 downto 0) := (others => '0');
+  constant INI_WRITE_REG_C : slv32Array(1 downto 0) := (others => x"0000_0000");
+  signal writeReg : Slv32Array(1 downto 0) := (others => x"0000_0000");
   -- (0) command configuration
   -- (1) delay (not implemented)
   -- (2) prescale (not implemented)
@@ -38,17 +41,17 @@ begin
   U_AxiLiteRegs : entity surf.AxiLiteRegs
       generic map (
          TPD_G           => TPD_G,
-         NUM_WRITE_REG_G => 1,
+         NUM_WRITE_REG_G => 2,
          INI_WRITE_REG_G => INI_WRITE_REG_C,
-         NUM_READ_REG_G  => 2)
+         NUM_READ_REG_G  => 1)
       port map (
          -- AXI-Lite Bus
          axiClk          => axilClk,
          axiClkRst       => axilRst,
-         axiReadMaster   => axilReadMasters(AXIL_VERSION_INDEX_C),
-         axiReadSlave    => axilReadSlaves(AXIL_VERSION_INDEX_C),
-         axiWriteMaster  => axilWriteMasters(AXIL_VERSION_INDEX_C),
-         axiWriteSlave   => axilWriteSlaves(AXIL_VERSION_INDEX_C),
+         axiReadMaster   => mAxilReadMaster,
+         axiReadSlave    => mAxilReadSlave,
+         axiWriteMaster  => mAxilWriteMaster,
+         axiWriteSlave   => mAxilWriteSlave,
          -- User Read/Write registers
          writeRegister   => writeReg,
          readRegister    => readReg);

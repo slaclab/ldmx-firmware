@@ -36,7 +36,10 @@ library axi_soc_ultra_plus_core;
 use axi_soc_ultra_plus_core.AxiSocUltraPlusPkg.all;
 
 entity zCCM_kria is
-    Port (
+  Generic(
+    TPD_G : time := 1 ns;
+    BUILD_INFO_G : BuildInfoType);
+  Port (
           -- clock pins to RMs
           MCLK_BUF_SEL    : out    STD_LOGIC;
           MCLK_REF_P      : in  STD_LOGIC ;
@@ -119,6 +122,12 @@ entity zCCM_kria is
           SFP1_i2c : inout I2C_Signals;
           SFP2_i2c : inout I2C_Signals;
           SFP3_i2c : inout I2C_Signals;
+
+          -- PMU Ports
+          fanEnableL : out   sl;
+          -- SYSMON Ports
+          vPIn       : in    sl;
+          vNIn       : in    sl
           );
 end zCCM_kria;
 
@@ -138,8 +147,9 @@ architecture Behavioral of zCCM_kria is
    signal mAxilWriteMasters : AxiLiteWriteMasterArray(0 downto 0);
    signal mAxilWriteSlaves  : AxiLiteWriteSlaveArray(0 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
-   signal vPin : sl;
-   signal vNin: sl;
+   signal pulse_BCR_rtl : sl := '0' ;
+   signal pulse_LED_rtl : sl := '0' ;
+   signal MCLK          : sl := '0' ;
    
 begin
 
@@ -231,8 +241,8 @@ begin
         Jitter_control_out => Jitter_Control_out,
 
         -- Clocks
-        appClk            => axiClk,
-        appRes            => axiRes,
+        appClk            => axilClk,
+        appRes            => axilRst,
         MCLK              => MCLK,
         MGTREFCLK0_P      => CLKGEN_MGTCLK_AC_P,
         MGTREFCLK0_N      => CLKGEN_MGTCLK_AC_N,        
@@ -240,14 +250,14 @@ begin
         MGTREFCLK1_N      => MGTREFCLK1_AC_N,
 
         -- Fast control signals
-        pulse_BCR_rtl     => pulse_BCR_rtl
+        pulse_BCR_rtl     => pulse_BCR_rtl,
         pulse_LED_rtl     => pulse_LED_rtl,
 
         -- SFP signals
         SFP_TX_P          => SFP0_out.MGT_TX_P,
         SFP_TX_N          => SFP0_out.MGT_TX_N,
-        SFP_RX_P          => SFP0_out.MGT_RX_P,
-        SFP_RX_N          => SFP0_out.MGT_RX_N,
+        SFP_RX_P          => SFP0.MGT_RX_P,
+        SFP_RX_N          => SFP0.MGT_RX_N,
 
         -- AXI-Lite Interface (axilClk domain)
         axilClk           => axilClk,
