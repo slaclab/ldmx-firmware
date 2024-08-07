@@ -19,9 +19,6 @@ use UNISIM.vcomponents.all;
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
-library ldmx_ts;
-use ldmx_ts.zCCM_Pkg.ALL;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -29,13 +26,21 @@ use surf.AxiStreamPkg.all;
 use surf.Pgp2FcPkg.all;
 use surf.I2cPkg.all;
 
-library ldmx_tdaq;
-use ldmx_tdaq.FcPkg.all;
-
 library axi_soc_ultra_plus_core;
 use axi_soc_ultra_plus_core.AxiSocUltraPlusPkg.all;
 
+library ldmx_tdaq;
+use ldmx_tdaq.FcPkg.all;
+
+library ldmx_ts;
+use ldmx_ts.zCCM_Pkg.ALL;
+
+
 entity zCCM_kria is
+   generic (
+      TPD_G : time := 0.5 ns;
+      SIMULATION_G : boolean := false;
+      BUILD_INFO_G : BuildInfoType);
     Port (
           -- clock pins to RMs
           MCLK_BUF_SEL    : out    STD_LOGIC;
@@ -119,7 +124,14 @@ entity zCCM_kria is
           SFP1_i2c : inout I2C_Signals;
           SFP2_i2c : inout I2C_Signals;
           SFP3_i2c : inout I2C_Signals;
-          );
+
+      fcRxP     : in  sl;
+      fcRxN     : in  sl;
+      fcTxP     : out sl;
+      fcTxN     : out sl;
+          
+
+          fanEnableL : out sl);
 end zCCM_kria;
 
 architecture Behavioral of zCCM_kria is
@@ -140,6 +152,11 @@ architecture Behavioral of zCCM_kria is
 
    signal vPin : sl;
    signal vNin: sl;
+
+   signal mclk : sl;
+   signal MCLK37 : sl;
+   signal pulse_BCR_rtl : sl;
+   signal pulse_LED_rtl : sl;
    
 begin
 
@@ -185,6 +202,7 @@ begin
    U_App : entity ldmx_ts.zccmApplication
       generic map (
          TPD_G            => TPD_G,
+         SIMULATION_G => SIMULATION_G,
          AXIL_CLK_FREQ_G  => 100.0E+6, -- 100MHz
          AXIL_BASE_ADDR_G => APP_ADDR_OFFSET_C)
       port map (
@@ -231,23 +249,23 @@ begin
         Jitter_control_out => Jitter_Control_out,
 
         -- Clocks
-        appClk            => axiClk,
-        appRes            => axiRes,
-        MCLK              => MCLK,
+        appClk            => axilClk,
+        appRes            => axilRst,
+        MCLK37              => MCLK37,
         MGTREFCLK0_P      => CLKGEN_MGTCLK_AC_P,
         MGTREFCLK0_N      => CLKGEN_MGTCLK_AC_N,        
         MGTREFCLK1_P      => MGTREFCLK1_AC_P,
         MGTREFCLK1_N      => MGTREFCLK1_AC_N,
 
         -- Fast control signals
-        pulse_BCR_rtl     => pulse_BCR_rtl
+        pulse_BCR_rtl     => pulse_BCR_rtl,
         pulse_LED_rtl     => pulse_LED_rtl,
 
         -- SFP signals
-        SFP_TX_P          => SFP0_out.MGT_TX_P,
-        SFP_TX_N          => SFP0_out.MGT_TX_N,
-        SFP_RX_P          => SFP0_out.MGT_RX_P,
-        SFP_RX_N          => SFP0_out.MGT_RX_N,
+      fcRxP    => fcRxP,
+      fcRxN    => fcRxN,
+      fcTxP    => fcTxP,
+      fcTxN    => fcTxN,
 
         -- AXI-Lite Interface (axilClk domain)
         axilClk           => axilClk,
@@ -280,12 +298,13 @@ begin
     
     -- differential output buffer for MCLK_FROM_SOC to clock fanout
     -- expected to be 37.142 MHz
-    MCLK_FROM_SOC_OBUFDS : OBUFDS
-    port map (
-      O  => MCLK_FROM_SOC_P,   -- 1-bit output: Diff_p output (connect directly to top-level port)
-      OB => MCLK_FROM_SOC_N,   -- 1-bit output: Diff_n output (connect directly to top-level port)
-      I  => MCLK     -- 1-bit input: Buffer input
-    );
+    U_ClkOutBufDiff_1: entity surf.ClkOutBufDiff
+       generic map (
+          TPD_G          => TPD_G)
+       port map (
+          clkIn   => MCLK37,             -- [in]
+          clkOutP => MCLK_FROM_SOC_P,           -- [out]
+          clkOutN => MCLK_FROM_SOC_N);          -- [out]
     
     -- differential output buffer for BEAMCLK to ???
     -- expectd to be 37.142 MHz

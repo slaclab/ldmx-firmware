@@ -86,7 +86,7 @@ entity zccmApplication is
         -- Clocks
         appClk            : in sl;
         appRes            : in sl;
-        MCLK              : out sl;
+        MCLK37              : out sl;
         MGTREFCLK0_P      : in sl;
         MGTREFCLK0_N      : in sl;
         MGTREFCLK1_P      : in sl;
@@ -97,11 +97,11 @@ entity zccmApplication is
         pulse_LED_rtl     : out sl;
 
         -- SFP signals
-        SFP_TX_P          : out sl;
-        SFP_TX_N          : out sl;
-        SFP_RX_P          : in  sl;
-        SFP_RX_N          : in  sl;
-        
+              fcRxP     : in  sl;
+      fcRxN     : in  sl;
+      fcTxP     : out sl;
+      fcTxN     : out sl;
+          
       -- AXI-Lite Interface (axilClk domain)
       axilClk           : in    sl;
       axilRst           : in    sl;
@@ -379,7 +379,7 @@ begin
          TPD_G           => TPD_G,
          NUM_WRITE_REG_G => 2,
          INI_WRITE_REG_G => INI_WRITE_REG_C,
-         NUM_READ_REG_G  => 0)
+         NUM_READ_REG_G  => 1)
       port map (
          -- AXI-Lite Bus
          axiClk          => axilClk,
@@ -395,242 +395,242 @@ begin
   -------------------------------------------------------
   --synchronize LED and BCR with commands from FC Rec.
   -------------------------------------------------------
-  synch_led :  entity ldmx_ts.FastCommandSynch
-    Port Map ( 
-      fast_command => fcBus.fcMsg.msgType,
-      pulse => pulse_LED_rtl,
-      clk => appClk,
-      areset_n => appRes_n,
-      -- AXI-Lite Interface
-      axilClk => axilClk,
-      axilRst => axilRst,
-      mAxilWriteMaster=> mainAxilWriteMasters(AXIL_SYNCHLED_REG_INDEX_C), 
-      mAxilWriteSlave => mainAxilWriteSlaves(AXIL_SYNCHLED_REG_INDEX_C),  
-      mAxilReadMaster => mainAxilReadMasters(AXIL_SYNCHLED_REG_INDEX_C),
-      mAxilReadSlave  => mainAxilReadSlaves(AXIL_SYNCHLED_REG_INDEX_C) 
-      );
+--   synch_led :  entity ldmx_ts.FastCommandSynch
+--     Port Map ( 
+--       fast_command => fcBus.fcMsg.msgType,
+--       pulse => pulse_LED_rtl,
+--       clk => appClk,
+--       areset_n => appRes_n,
+--       -- AXI-Lite Interface
+--       axilClk => axilClk,
+--       axilRst => axilRst,
+--       mAxilWriteMaster=> mainAxilWriteMasters(AXIL_SYNCHLED_REG_INDEX_C), 
+--       mAxilWriteSlave => mainAxilWriteSlaves(AXIL_SYNCHLED_REG_INDEX_C),  
+--       mAxilReadMaster => mainAxilReadMasters(AXIL_SYNCHLED_REG_INDEX_C),
+--       mAxilReadSlave  => mainAxilReadSlaves(AXIL_SYNCHLED_REG_INDEX_C) 
+--       );
   
-  synch_bcr : entity ldmx_ts.FastCommandSynch
-    Port Map ( 
-      fast_command => fcBus.fcMsg.msgType,
-      pulse => pulse_BCR_rtl,
-      clk => appClk,
-      areset_n => appRes_n,
-      -- AXI-Lite Interface
-      axilClk => axilClk,
-      axilRst => axilRst,
-      mAxilWriteMaster=> mainAxilWriteMasters(AXIL_SYNCHBCR_REG_INDEX_C),
-      mAxilWriteSlave => mainAxilWriteSlaves(AXIL_SYNCHBCR_REG_INDEX_C),
-      mAxilReadMaster => mainAxilReadMasters(AXIL_SYNCHBCR_REG_INDEX_C),
-      mAxilReadSlave  => mainAxilReadSlaves(AXIL_SYNCHBCR_REG_INDEX_C) 
-      );
+--   synch_bcr : entity ldmx_ts.FastCommandSynch
+--     Port Map ( 
+--       fast_command => fcBus.fcMsg.msgType,
+--       pulse => pulse_BCR_rtl,
+--       clk => appClk,
+--       areset_n => appRes_n,
+--       -- AXI-Lite Interface
+--       axilClk => axilClk,
+--       axilRst => axilRst,
+--       mAxilWriteMaster=> mainAxilWriteMasters(AXIL_SYNCHBCR_REG_INDEX_C),
+--       mAxilWriteSlave => mainAxilWriteSlaves(AXIL_SYNCHBCR_REG_INDEX_C),
+--       mAxilReadMaster => mainAxilReadMasters(AXIL_SYNCHBCR_REG_INDEX_C),
+--       mAxilReadSlave  => mainAxilReadSlaves(AXIL_SYNCHBCR_REG_INDEX_C) 
+--       );
 
   -- - - - - - - - - - - - - - - - - - - - - -
   -- components for managing state changes on SPFs
   -- - - - - - - - - - - - - - - - - - - - - -
   
-  SFP0_mon : entity ldmx_ts.SFP_Monitor
-    generic map(
-      TPD_G          => TPD_G)
-    Port Map(
-      sfp_con => SFP0_control,
-      clk     => appClk,
-      reset_n => appRes_n,
-      -- Axil interface
-      axilClk        => axilClk,
-      axilRst        => axilRst,
-      axilReadMaster  => mainAxilReadMasters(AXIL_SFP0_REG_INDEX_C),   -- [in]
-      axilReadSlave   => mainAxilReadSlaves(AXIL_SFP0_REG_INDEX_C),    -- [out]
-      axilWriteMaster => mainAxilWriteMasters(AXIL_SFP0_REG_INDEX_C),  -- [in]
-      axilWriteSlave  => mainAxilWriteSlaves(AXIL_SFP0_REG_INDEX_C)    -- [out
-      );
+--   SFP0_mon : entity ldmx_ts.SFP_Monitor
+--     generic map(
+--       TPD_G          => TPD_G)
+--     Port Map(
+--       sfp_con => SFP0_control,
+--       clk     => appClk,
+--       reset_n => appRes_n,
+--       -- Axil interface
+--       axilClk        => axilClk,
+--       axilRst        => axilRst,
+--       axilReadMaster  => mainAxilReadMasters(AXIL_SFP0_REG_INDEX_C),   -- [in]
+--       axilReadSlave   => mainAxilReadSlaves(AXIL_SFP0_REG_INDEX_C),    -- [out]
+--       axilWriteMaster => mainAxilWriteMasters(AXIL_SFP0_REG_INDEX_C),  -- [in]
+--       axilWriteSlave  => mainAxilWriteSlaves(AXIL_SFP0_REG_INDEX_C)    -- [out
+--       );
   
-  SFP1_mon : entity ldmx_ts.SFP_Monitor
-    generic map(
-      TPD_G          => TPD_G)
-    Port Map(
-      sfp_con => SFP1_control,
-      clk     => appClk,
-      reset_n => appRes_n,
-      -- Axil interface
-      axilClk        => axilClk,
-      axilRst        => axilRst,
-      axilReadMaster  => mainAxilReadMasters(AXIL_SFP1_REG_INDEX_C),   -- [in]
-      axilReadSlave   => mainAxilReadSlaves(AXIL_SFP1_REG_INDEX_C),    -- [out]
-      axilWriteMaster => mainAxilWriteMasters(AXIL_SFP1_REG_INDEX_C),  -- [in]
-      axilWriteSlave  => mainAxilWriteSlaves(AXIL_SFP1_REG_INDEX_C)    -- [out
-      );
+--   SFP1_mon : entity ldmx_ts.SFP_Monitor
+--     generic map(
+--       TPD_G          => TPD_G)
+--     Port Map(
+--       sfp_con => SFP1_control,
+--       clk     => appClk,
+--       reset_n => appRes_n,
+--       -- Axil interface
+--       axilClk        => axilClk,
+--       axilRst        => axilRst,
+--       axilReadMaster  => mainAxilReadMasters(AXIL_SFP1_REG_INDEX_C),   -- [in]
+--       axilReadSlave   => mainAxilReadSlaves(AXIL_SFP1_REG_INDEX_C),    -- [out]
+--       axilWriteMaster => mainAxilWriteMasters(AXIL_SFP1_REG_INDEX_C),  -- [in]
+--       axilWriteSlave  => mainAxilWriteSlaves(AXIL_SFP1_REG_INDEX_C)    -- [out
+--       );
   
-  SFP2_mon : entity ldmx_ts.SFP_Monitor
-    generic map(
-      TPD_G          => TPD_G)
-    Port Map(
-      sfp_con => SFP2_control,
-      clk     => appClk,
-      reset_n => appRes_n,
-      -- Axil interface
-      axilClk        => axilClk,
-      axilRst        => axilRst,
-      axilReadMaster  => mainAxilReadMasters(AXIL_SFP2_REG_INDEX_C),   -- [in]
-      axilReadSlave   => mainAxilReadSlaves(AXIL_SFP2_REG_INDEX_C),    -- [out]
-      axilWriteMaster => mainAxilWriteMasters(AXIL_SFP2_REG_INDEX_C),  -- [in]
-      axilWriteSlave  => mainAxilWriteSlaves(AXIL_SFP2_REG_INDEX_C)    -- [out
-      );
+--   SFP2_mon : entity ldmx_ts.SFP_Monitor
+--     generic map(
+--       TPD_G          => TPD_G)
+--     Port Map(
+--       sfp_con => SFP2_control,
+--       clk     => appClk,
+--       reset_n => appRes_n,
+--       -- Axil interface
+--       axilClk        => axilClk,
+--       axilRst        => axilRst,
+--       axilReadMaster  => mainAxilReadMasters(AXIL_SFP2_REG_INDEX_C),   -- [in]
+--       axilReadSlave   => mainAxilReadSlaves(AXIL_SFP2_REG_INDEX_C),    -- [out]
+--       axilWriteMaster => mainAxilWriteMasters(AXIL_SFP2_REG_INDEX_C),  -- [in]
+--       axilWriteSlave  => mainAxilWriteSlaves(AXIL_SFP2_REG_INDEX_C)    -- [out
+--       );
   
-  SFP3_mon : entity ldmx_ts.SFP_Monitor
-    generic map(
-      TPD_G          => TPD_G)
-    Port Map(
-      sfp_con => SFP3_control,
-      clk     => appClk,
-      reset_n => appRes_n,
-      -- Axil interface
-      axilClk        => axilClk,
-      axilRst        => axilRst,
-      axilReadMaster  => mainAxilReadMasters(AXIL_SFP3_REG_INDEX_C),   -- [in]
-      axilReadSlave   => mainAxilReadSlaves(AXIL_SFP3_REG_INDEX_C),    -- [out]
-      axilWriteMaster => mainAxilWriteMasters(AXIL_SFP3_REG_INDEX_C),  -- [in]
-      axilWriteSlave  => mainAxilWriteSlaves(AXIL_SFP3_REG_INDEX_C)    -- [out
-      );             
+--   SFP3_mon : entity ldmx_ts.SFP_Monitor
+--     generic map(
+--       TPD_G          => TPD_G)
+--     Port Map(
+--       sfp_con => SFP3_control,
+--       clk     => appClk,
+--       reset_n => appRes_n,
+--       -- Axil interface
+--       axilClk        => axilClk,
+--       axilRst        => axilRst,
+--       axilReadMaster  => mainAxilReadMasters(AXIL_SFP3_REG_INDEX_C),   -- [in]
+--       axilReadSlave   => mainAxilReadSlaves(AXIL_SFP3_REG_INDEX_C),    -- [out]
+--       axilWriteMaster => mainAxilWriteMasters(AXIL_SFP3_REG_INDEX_C),  -- [in]
+--       axilWriteSlave  => mainAxilWriteSlaves(AXIL_SFP3_REG_INDEX_C)    -- [out
+--       );             
 
   -- - - - - - - - - - - - - - - - - - - - - -
   -- components for managing state changes on Clock chips
   -- - - - - - - - - - - - - - - - - - - - - -
-  synth_mon : entity ldmx_ts.Clock_Monitor
-    generic map(
-      TPD_G          => TPD_G)
-    Port Map(
-      clk_con => Synth_Control,
-      clk     => appClk,
-      reset_n => appRes_n,
-      -- Axil interface
-      axilClk        =>  axilClk,
-      axilRst        =>  axilRst,
-      axilReadMaster  => mainAxilReadMasters(AXIL_SYNTH_REG_INDEX_C),   -- [in]
-      axilReadSlave   => mainAxilReadSlaves(AXIL_SYNTH_REG_INDEX_C),    -- [out]
-      axilWriteMaster => mainAxilWriteMasters(AXIL_SYNTH_REG_INDEX_C),  -- [in]
-      axilWriteSlave  => mainAxilWriteSlaves(AXIL_SYNTH_REG_INDEX_C)    -- [out]
-      );    
+--   synth_mon : entity ldmx_ts.Clock_Monitor
+--     generic map(
+--       TPD_G          => TPD_G)
+--     Port Map(
+--       clk_con => Synth_Control,
+--       clk     => appClk,
+--       reset_n => appRes_n,
+--       -- Axil interface
+--       axilClk        =>  axilClk,
+--       axilRst        =>  axilRst,
+--       axilReadMaster  => mainAxilReadMasters(AXIL_SYNTH_REG_INDEX_C),   -- [in]
+--       axilReadSlave   => mainAxilReadSlaves(AXIL_SYNTH_REG_INDEX_C),    -- [out]
+--       axilWriteMaster => mainAxilWriteMasters(AXIL_SYNTH_REG_INDEX_C),  -- [in]
+--       axilWriteSlave  => mainAxilWriteSlaves(AXIL_SYNTH_REG_INDEX_C)    -- [out]
+--       );    
 
-  jitter_mon : entity ldmx_ts.Clock_Monitor
-    generic map(
-      TPD_G          => TPD_G)
-    Port Map(
-      clk_con => Jitter_Control,
-      clk     => appClk,
-      reset_n => appRes_n,
-      -- Axil interface
-      axilClk        => axilClk,
-      axilRst        => axilRst,
-      axilReadMaster  => mainAxilReadMasters(AXIL_JITTER_REG_INDEX_C),   -- [in]
-      axilReadSlave   => mainAxilReadSlaves(AXIL_JITTER_REG_INDEX_C),    -- [out]
-      axilWriteMaster => mainAxilWriteMasters(AXIL_JITTER_REG_INDEX_C),  -- [in]
-      axilWriteSlave  => mainAxilWriteSlaves(AXIL_JITTER_REG_INDEX_C)    -- [out
-      );
+--   jitter_mon : entity ldmx_ts.Clock_Monitor
+--     generic map(
+--       TPD_G          => TPD_G)
+--     Port Map(
+--       clk_con => Jitter_Control,
+--       clk     => appClk,
+--       reset_n => appRes_n,
+--       -- Axil interface
+--       axilClk        => axilClk,
+--       axilRst        => axilRst,
+--       axilReadMaster  => mainAxilReadMasters(AXIL_JITTER_REG_INDEX_C),   -- [in]
+--       axilReadSlave   => mainAxilReadSlaves(AXIL_JITTER_REG_INDEX_C),    -- [out]
+--       axilWriteMaster => mainAxilWriteMasters(AXIL_JITTER_REG_INDEX_C),  -- [in]
+--       axilWriteSlave  => mainAxilWriteSlaves(AXIL_JITTER_REG_INDEX_C)    -- [out
+--       );
   -- - - - - - - - - - - - - - - - - - - - - -
   -- components for managing state changes on RMs
   -- - - - - - - - - - - - - - - - - - - - - -
 
-  rm0_mon : entity ldmx_ts.RM_Monitor
-    generic map(
-      TPD_G          => TPD_G)
-    Port Map(
-      rm_con => RM0_control,
-      clk    => appClk,
-      reset_n=> appRes_n,
-      -- Axil interface
-      axilClk        => axilClk,
-      axilRst        => axilRst,
-      axilReadMaster  => mainAxilReadMasters(AXIL_RM0_REG_INDEX_C),   -- [in]
-      axilReadSlave   => mainAxilReadSlaves(AXIL_RM0_REG_INDEX_C),    -- [out]
-      axilWriteMaster => mainAxilWriteMasters(AXIL_RM0_REG_INDEX_C),  -- [in]
-      axilWriteSlave  => mainAxilWriteSlaves(AXIL_RM0_REG_INDEX_C)    -- [out
-      );
+--   rm0_mon : entity ldmx_ts.RM_Monitor
+--     generic map(
+--       TPD_G          => TPD_G)
+--     Port Map(
+--       rm_con => RM0_control,
+--       clk    => appClk,
+--       reset_n=> appRes_n,
+--       -- Axil interface
+--       axilClk        => axilClk,
+--       axilRst        => axilRst,
+--       axilReadMaster  => mainAxilReadMasters(AXIL_RM0_REG_INDEX_C),   -- [in]
+--       axilReadSlave   => mainAxilReadSlaves(AXIL_RM0_REG_INDEX_C),    -- [out]
+--       axilWriteMaster => mainAxilWriteMasters(AXIL_RM0_REG_INDEX_C),  -- [in]
+--       axilWriteSlave  => mainAxilWriteSlaves(AXIL_RM0_REG_INDEX_C)    -- [out
+--       );
   
-  rm1_mon : entity ldmx_ts.RM_Monitor
-    generic map(
-      TPD_G          => TPD_G)
-    Port Map(
-      rm_con => RM1_control,
-      clk    => appClk,
-      reset_n=> appRes_n,
-      -- Axil interface
-      axilClk        => axilClk,
-      axilRst        => axilRst,
-      axilReadMaster  => mainAxilReadMasters(AXIL_RM1_REG_INDEX_C),   -- [in]
-      axilReadSlave   => mainAxilReadSlaves(AXIL_RM1_REG_INDEX_C),    -- [out]
-      axilWriteMaster => mainAxilWriteMasters(AXIL_RM1_REG_INDEX_C),  -- [in]
-      axilWriteSlave  => mainAxilWriteSlaves(AXIL_RM1_REG_INDEX_C)    -- [out
-      );
+--   rm1_mon : entity ldmx_ts.RM_Monitor
+--     generic map(
+--       TPD_G          => TPD_G)
+--     Port Map(
+--       rm_con => RM1_control,
+--       clk    => appClk,
+--       reset_n=> appRes_n,
+--       -- Axil interface
+--       axilClk        => axilClk,
+--       axilRst        => axilRst,
+--       axilReadMaster  => mainAxilReadMasters(AXIL_RM1_REG_INDEX_C),   -- [in]
+--       axilReadSlave   => mainAxilReadSlaves(AXIL_RM1_REG_INDEX_C),    -- [out]
+--       axilWriteMaster => mainAxilWriteMasters(AXIL_RM1_REG_INDEX_C),  -- [in]
+--       axilWriteSlave  => mainAxilWriteSlaves(AXIL_RM1_REG_INDEX_C)    -- [out
+--       );
 
-  rm2_mon : entity ldmx_ts.RM_Monitor
-    generic map(
-      TPD_G          => TPD_G)
-    Port Map(
-      rm_con => RM2_control,
-      clk    => appClk,
-      reset_n=> appRes_n,
-      -- Axil interface
-      axilClk        => axilClk,
-      axilRst        => axilRst,
-      axilReadMaster  => mainAxilReadMasters(AXIL_RM2_REG_INDEX_C),   -- [in]
-      axilReadSlave   => mainAxilReadSlaves(AXIL_RM2_REG_INDEX_C),    -- [out]
-      axilWriteMaster => mainAxilWriteMasters(AXIL_RM2_REG_INDEX_C),  -- [in]
-      axilWriteSlave  => mainAxilWriteSlaves(AXIL_RM2_REG_INDEX_C)    -- [out
-      );
+--   rm2_mon : entity ldmx_ts.RM_Monitor
+--     generic map(
+--       TPD_G          => TPD_G)
+--     Port Map(
+--       rm_con => RM2_control,
+--       clk    => appClk,
+--       reset_n=> appRes_n,
+--       -- Axil interface
+--       axilClk        => axilClk,
+--       axilRst        => axilRst,
+--       axilReadMaster  => mainAxilReadMasters(AXIL_RM2_REG_INDEX_C),   -- [in]
+--       axilReadSlave   => mainAxilReadSlaves(AXIL_RM2_REG_INDEX_C),    -- [out]
+--       axilWriteMaster => mainAxilWriteMasters(AXIL_RM2_REG_INDEX_C),  -- [in]
+--       axilWriteSlave  => mainAxilWriteSlaves(AXIL_RM2_REG_INDEX_C)    -- [out
+--       );
 
-  rm3_mon : entity ldmx_ts.RM_Monitor
-    generic map(
-      TPD_G          => TPD_G)
-    Port Map(
-      rm_con => RM3_control,
-      clk    => appClk,
-      reset_n=> appRes_n,
-      -- Axil interface
-      axilClk        => axilClk,
-      axilRst        => axilRst,
-      axilReadMaster  => mainAxilReadMasters(AXIL_RM3_REG_INDEX_C),   -- [in]
-      axilReadSlave   => mainAxilReadSlaves(AXIL_RM3_REG_INDEX_C),    -- [out]
-      axilWriteMaster => mainAxilWriteMasters(AXIL_RM3_REG_INDEX_C),  -- [in]
-      axilWriteSlave  => mainAxilWriteSlaves(AXIL_RM3_REG_INDEX_C)    -- [out
-      );
+--   rm3_mon : entity ldmx_ts.RM_Monitor
+--     generic map(
+--       TPD_G          => TPD_G)
+--     Port Map(
+--       rm_con => RM3_control,
+--       clk    => appClk,
+--       reset_n=> appRes_n,
+--       -- Axil interface
+--       axilClk        => axilClk,
+--       axilRst        => axilRst,
+--       axilReadMaster  => mainAxilReadMasters(AXIL_RM3_REG_INDEX_C),   -- [in]
+--       axilReadSlave   => mainAxilReadSlaves(AXIL_RM3_REG_INDEX_C),    -- [out]
+--       axilWriteMaster => mainAxilWriteMasters(AXIL_RM3_REG_INDEX_C),  -- [in]
+--       axilWriteSlave  => mainAxilWriteSlaves(AXIL_RM3_REG_INDEX_C)    -- [out
+--       );
   
-  rm4_mon : entity ldmx_ts.RM_Monitor
-    generic map(
-      TPD_G          => TPD_G)
-    Port Map(
-      rm_con => RM4_control,
-      clk    => appClk,
-      reset_n=> appRes_n,
-      -- Axil interface
-      axilClk        => axilClk,
-      axilRst        => axilRst,
-      axilReadMaster  => mainAxilReadMasters(AXIL_RM4_REG_INDEX_C),   -- [in]
-      axilReadSlave   => mainAxilReadSlaves(AXIL_RM4_REG_INDEX_C),    -- [out]
-      axilWriteMaster => mainAxilWriteMasters(AXIL_RM4_REG_INDEX_C),  -- [in]
-      axilWriteSlave  => mainAxilWriteSlaves(AXIL_RM4_REG_INDEX_C)    -- [out
-      );
+--   rm4_mon : entity ldmx_ts.RM_Monitor
+--     generic map(
+--       TPD_G          => TPD_G)
+--     Port Map(
+--       rm_con => RM4_control,
+--       clk    => appClk,
+--       reset_n=> appRes_n,
+--       -- Axil interface
+--       axilClk        => axilClk,
+--       axilRst        => axilRst,
+--       axilReadMaster  => mainAxilReadMasters(AXIL_RM4_REG_INDEX_C),   -- [in]
+--       axilReadSlave   => mainAxilReadSlaves(AXIL_RM4_REG_INDEX_C),    -- [out]
+--       axilWriteMaster => mainAxilWriteMasters(AXIL_RM4_REG_INDEX_C),  -- [in]
+--       axilWriteSlave  => mainAxilWriteSlaves(AXIL_RM4_REG_INDEX_C)    -- [out
+--       );
 
-  rm5_mon : entity ldmx_ts.RM_Monitor 
-    generic map(
-      TPD_G          => TPD_G)
-    Port Map(
-      rm_con => RM5_control,
-      clk    => appClk,
-      reset_n=> appRes_n,
-      -- Axil interface
-      axilClk        => axilClk,
-      axilRst        => axilRst,
-      axilReadMaster  => mainAxilReadMasters(AXIL_RM4_REG_INDEX_C),   -- [in]
-      axilReadSlave   => mainAxilReadSlaves(AXIL_RM4_REG_INDEX_C),    -- [out]
-      axilWriteMaster => mainAxilWriteMasters(AXIL_RM4_REG_INDEX_C),  -- [in]
-      axilWriteSlave  => mainAxilWriteSlaves(AXIL_RM4_REG_INDEX_C)    -- [out
-      );
+--   rm5_mon : entity ldmx_ts.RM_Monitor 
+--     generic map(
+--       TPD_G          => TPD_G)
+--     Port Map(
+--       rm_con => RM5_control,
+--       clk    => appClk,
+--       reset_n=> appRes_n,
+--       -- Axil interface
+--       axilClk        => axilClk,
+--       axilRst        => axilRst,
+--       axilReadMaster  => mainAxilReadMasters(AXIL_RM4_REG_INDEX_C),   -- [in]
+--       axilReadSlave   => mainAxilReadSlaves(AXIL_RM4_REG_INDEX_C),    -- [out]
+--       axilWriteMaster => mainAxilWriteMasters(AXIL_RM4_REG_INDEX_C),  -- [in]
+--       axilWriteSlave  => mainAxilWriteSlaves(AXIL_RM4_REG_INDEX_C)    -- [out
+--       );
 
   -------------------------------------------------------------------------------------------------
   -- Main Axi Crossbar
   -------------------------------------------------------------------------------------------------
-  HpsAxiCrossbar : entity surf.AxiLiteCrossbar
+  MainAxiCrossbar : entity surf.AxiLiteCrossbar
     generic map (
       TPD_G              => TPD_G,
       NUM_SLAVE_SLOTS_G  => 1,
@@ -731,25 +731,31 @@ begin
     --  - add GTH Wrapper and connect to FC Rec.
     -- - - - - - - - - - - - - - - - - - - - - -
 
-    fcrec_1 : entity ldmx_tdaq.FcReceiver         
+  U_FcReceiver_1 : entity ldmx_tdaq.FcReceiver
+     generic map (
+        TPD_G            => TPD_G,
+        SIM_SPEEDUP_G    => SIMULATION_G,
+        GT_TYPE_G        => "GTH",
+        AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
+        AXIL_BASE_ADDR_G =>  MAIN_XBAR_CFG_C(AXIL_FCREC_REG_INDEX_C).baseAddr)
       port map(
         -- Reference clock
         fcRefClk185P =>  MGTREFCLK0_P,
         fcRefClk185N =>  MGTREFCLK0_N,
         -- Output Recovered Clock
-        fcRecClkP    =>  MCLK,
-        fcRecClkN    =>  open,
+--         fcRecClkP    =>  open,
+--         fcRecClkN    =>  open,
         -- PGP serial IO
-        fcTxP        => SFP_TX_P,
-        fcTxN        => SFP_TX_N,
-        fcRxP        => SFP_RX_P,
-        fcRxN        => SFP_RX_N,
+        fcTxP        => fcTxP,
+        fcTxN        => fcTxN,
+        fcRxP        => fcRxP,
+        fcRxN        => fcRxN,
         -- RX FC and PGP interface
         fcClk185     => MCLK185,
         fcRst185     => reset185,
         fcBus        => fcBus,
-        fcBunchClk37 => MCLK,
-        fcBunchRst37 => reset,
+        fcBunchClk37 => MCLK37,
+        fcBunchRst37 => open,
         -- Axil inteface
         axilClk         => axilClk,                                     -- [in] 
         axilRst         => axilRst,                                     -- [in] 
