@@ -86,7 +86,7 @@ entity zccmApplication is
         -- Clocks
         appClk            : in sl;
         appRes            : in sl;
-        MCLK              : out sl;
+        MCLK37              : out sl;
         MGTREFCLK0_P      : in sl;
         MGTREFCLK0_N      : in sl;
         MGTREFCLK1_P      : in sl;
@@ -97,11 +97,11 @@ entity zccmApplication is
         pulse_LED_rtl     : out sl;
 
         -- SFP signals
-        SFP_TX_P          : out sl;
-        SFP_TX_N          : out sl;
-        SFP_RX_P          : in  sl;
-        SFP_RX_N          : in  sl;
-        
+              fcRxP     : in  sl;
+      fcRxN     : in  sl;
+      fcTxP     : out sl;
+      fcTxN     : out sl;
+          
       -- AXI-Lite Interface (axilClk domain)
       axilClk           : in    sl;
       axilRst           : in    sl;
@@ -433,7 +433,6 @@ begin
   -- - - - - - - - - - - - - - - - - - - - - -
   -- components for managing state changes on SPFs
   -- - - - - - - - - - - - - - - - - - - - - -
-  
  SFP0_mon : entity ldmx_ts.SFP_Monitor
    generic map(
      TPD_G          => TPD_G)
@@ -535,7 +534,6 @@ begin
   -- - - - - - - - - - - - - - - - - - - - - -
   -- components for managing state changes on RMs
   -- - - - - - - - - - - - - - - - - - - - - -
-
  rm0_mon : entity ldmx_ts.RM_Monitor
    generic map(
      TPD_G          => TPD_G)
@@ -635,7 +633,7 @@ begin
   -------------------------------------------------------------------------------------------------
   -- Main Axi Crossbar
   -------------------------------------------------------------------------------------------------
-  HpsAxiCrossbar : entity surf.AxiLiteCrossbar
+  MainAxiCrossbar : entity surf.AxiLiteCrossbar
     generic map (
       TPD_G              => TPD_G,
       NUM_SLAVE_SLOTS_G  => 1,
@@ -736,25 +734,31 @@ begin
     --  - add GTH Wrapper and connect to FC Rec.
     -- - - - - - - - - - - - - - - - - - - - - -
 
-    fcrec_1 : entity ldmx_tdaq.FcReceiver         
+  U_FcReceiver_1 : entity ldmx_tdaq.FcReceiver
+     generic map (
+        TPD_G            => TPD_G,
+        SIM_SPEEDUP_G    => SIMULATION_G,
+        GT_TYPE_G        => "GTH",
+        AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
+        AXIL_BASE_ADDR_G =>  MAIN_XBAR_CFG_C(AXIL_FCREC_REG_INDEX_C).baseAddr)
       port map(
         -- Reference clock
         fcRefClk185P =>  MGTREFCLK0_P,
         fcRefClk185N =>  MGTREFCLK0_N,
         -- Output Recovered Clock
-        fcRecClkP    =>  open,
-        fcRecClkN    =>  open,
+        --fcRecClkP    =>  open,
+        --fcRecClkN    =>  open,
         -- PGP serial IO
-        fcTxP        => SFP_TX_P,
-        fcTxN        => SFP_TX_N,
-        fcRxP        => SFP_RX_P,
-        fcRxN        => SFP_RX_N,
+        fcTxP        => fcTxP,
+        fcTxN        => fcTxN,
+        fcRxP        => fcRxP,
+        fcRxN        => fcRxN,
         -- RX FC and PGP interface
         fcClk185     => MCLK185,
         fcRst185     => reset185,
         fcBus        => fcBus,
-        fcBunchClk37 => MCLK,
-        fcBunchRst37 => reset,
+        fcBunchClk37 => MCLK37,
+        fcBunchRst37 => open,
         -- Axil inteface
         axilClk         => axilClk,                                     -- [in] 
         axilRst         => axilRst,                                     -- [in] 

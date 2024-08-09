@@ -56,11 +56,15 @@ end entity TsTxLogic;
 
 architecture rtl of TsTxLogic is
 
+   constant K28_1_C : slv(7 downto 0) := "00111100";
    constant K28_5_C : slv(7 downto 0) := "10111100";  -- K28.5, 0xBC
    constant K28_2_C : slv(7 downto 0) := "01011100";  -- K28.2, 0x5C
    constant K29_7_C : slv(7 downto 0) := "11111101";  -- K29.7, 0xFD
 
    type StateType is (
+      INIT_0_S,      
+      INIT_1_S,
+      WAIT_RESET_DONE_S,
       IDLE_S,
       WORD_1_S,
       WORD_2_S,
@@ -69,29 +73,54 @@ architecture rtl of TsTxLogic is
       WORD_5_S);
 
    type RegType is record
-      state     : StateType;
-      idleSeq   : sl;
-      tsTxData  : slv(15 downto 0);
-      tsTxDataK : slv(1 downto 0);
+      state       : StateType;
+      tsTxPhyInit : sl;
+      idleSeq     : sl;
+      tsTxData    : slv(15 downto 0);
+      tsTxDataK   : slv(1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state     => IDLE_S,
-      idleSeq   => '0',
-      tsTxData  => (others => '0'),
-      tsTxDataK => (others => '0'));
+      state       => INIT_0_S,
+      tsTxPhyInit => '0',
+      idleSeq     => '0',
+      tsTxData    => (others => '0'),
+      tsTxDataK   => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (r, tsRst250, tsTxMsg) is
+--    U_PwrUpRst_1 : entity surf.PwrUpRst
+--       generic map (
+--          TPD_G      => TPD_G,
+--          DURATION_G => 1000)
+--       port map (
+--          arst   => r.tsTxPhyInit,       -- [in]
+--          clk    => tsClk250,            -- [in]
+--          rstOut => tsTxPhyInit);        -- [out]
+
+   tsTxPhyInit <= r.tsTxPhyInit;
+
+   comb : process (r, tsRst250, tsTxMsg, tsTxPhyResetDone) is
       variable v : RegType := REG_INIT_C;
    begin
       v := r;
 
+      v.tsTxPhyInit := '0';
+
       case r.state is
+         when INIT_0_S =>
+            v.state := INIT_1_S;
+         when INIT_1_S =>
+            -- Init the phy
+            v.tsTxPhyInit := '1';
+            v.state       := WAIT_RESET_DONE_S;
+         when WAIT_RESET_DONE_S =>
+            if (tsTxPhyResetDone = '1') then
+               v.state := IDLE_S;
+            end if;
          when IDLE_S =>
             v.idleSeq   := not r.idleSeq;
             v.tsTxDataK := "11";

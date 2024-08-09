@@ -66,12 +66,9 @@ end entity TsRxMsgAligner;
 
 architecture rtl of TsRxMsgAligner is
 
-   -- tsClk250 signals
-   signal tsRxMsgSlv : slv(TS_DATA_6CH_MSG_SIZE_C-1 downto 0);
-
    type StateType is (
-      WAIT_CLOCK_ALIGN_S,
-      WAIT_BC0_S,
+      WAIT_BC0_STATE_S,
+      WAIT_BC0_DATA_S,
       ALIGNED_S);
 
    -- fcClk185 signals
@@ -98,9 +95,6 @@ architecture rtl of TsRxMsgAligner is
    signal rin : RegType;
 
    -- Ts Msg FIFO
-   signal tsMsgFifoWrData : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
-   signal tsMsgFifoRdData : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
-   signal tsMsgFifoValid  : slv(TS_LANES_G-1 downto 0);
    signal tsMsgFifoMsgs   : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
 
    -- Timestamp FIFO
@@ -115,31 +109,23 @@ begin
    -- It's purpose is to align TS data to the FC clock
    -------------------------------------------------------------------------------------------------
    GEN_TS_RX_FIFOS : for i in TS_LANES_G-1 downto 0 generate
-      -- Convert to SLV for FIFO
-      tsMsgFifoWrData(i) <= toSlv(tsRxMsgs(i));
-      U_Fifo_TsData : entity surf.Fifo
+      U_TsMsgFifo_1 : entity ldmx_ts.TsMsgFifo
          generic map (
             TPD_G           => TPD_G,
             GEN_SYNC_FIFO_G => false,
-            FWFT_EN_G       => true,
             SYNTH_MODE_G    => "inferred",
             MEMORY_TYPE_G   => "distributed",
-            PIPE_STAGES_G   => 0,
-            DATA_WIDTH_G    => TS_DATA_6CH_MSG_SIZE_C,
             ADDR_WIDTH_G    => 4)
          port map (
-            rst           => tsRecRsts(i),        -- [in]
-            wr_clk        => tsRecClks(i),        -- [in]
-            wr_en         => tsRxMsgs(i).strobe,  -- [in]
-            din           => tsMsgFifoWrData(i),  -- [in]
-            wr_data_count => open,                -- [out]
-            rd_clk        => fcClk185,            -- [in]
-            rd_en         => r.tsMsgFifoRdEn(i),  -- [in]
-            dout          => tsMsgFifoRdData(i),  -- [out]
-            rd_data_count => open,                -- [out]
-            valid         => tsMsgFifoValid(i));  -- [out]
-
-      tsMsgFifoMsgs(i) <= toTsData6ChMsg(tsMsgFifoRdData(i), tsMsgFifoValid(i));
+            rst     => tsRecRsts(i),        -- [in]
+            wrClk   => tsRecClks(i),        -- [in]
+            wrEn    => tsRxMsgs(i).strobe,  -- [in]
+            wrFull  => open,                -- [out]
+            wrMsg   => tsRxMsgs(i),         -- [in]
+            rdClk   => fcClk185,            -- [in]
+            rdEn    => r.tsMsgFifoRdEn(i),  -- [in]
+            rdMsg   => tsMsgFifoMsgs(i),    -- [out]
+            rdValid => open);               -- [out]
    end generate GEN_TS_RX_FIFOS;
 
    -------------------------------------------------------------------------------------------------
@@ -186,7 +172,7 @@ begin
 
 
       case r.state is
-         when WAIT_CLOCK_ALIGN_S =>
+         when WAIT_BC0_STATE_S =>
             -- Bleed off both fifo's when in reset state
             if (fcBus.runState = RUN_STATE_RESET_C) then
                v.tsMsgFifoRdEn     := (others => '1');
@@ -194,16 +180,16 @@ begin
             end if;
 
             -- Start alignment when FC runState moves to CLOCK_ALIGN state
-            if (fcBus.pulseStrobe = '1' and fcBus.stateChanged = '1' and fcBus.runState = RUN_STATE_CLOCK_ALIGN_C) then
+            if (fcBus.pulseStrobe = '1' and fcBus.stateChanged = '1' and fcBus.runState = RUN_STATE_BC0_C) then
                -- Stop bleeding the timestamp fifo
                v.timestampFifoRdEn   := '0';
                -- Start writing timestamps
                v.timestampFifoWrEn   := '1';
                v.timestampFifoWrData := fcBus.pulseId & fcBus.bunchCount;
-               v.state               := WAIT_BC0_S;
+               v.state               := WAIT_BC0_DATA_S;
             end if;
 
-         when WAIT_BC0_S =>
+         when WAIT_BC0_DATA_S =>
             if (fcBus.bunchStrobe = '1') then
                -- Write a new timestamp with each bunch strobe
                v.timestampFifoWrEn   := '1';
@@ -226,8 +212,8 @@ begin
             end if;
 
             -- Reset alignment if run state transitions before BC0
-            if (fcBus.runState /= RUN_STATE_CLOCK_ALIGN_C) then
-               v.state := WAIT_CLOCK_ALIGN_S;
+            if (fcBus.runState /= RUN_STATE_BC0_C) then
+               v.state := WAIT_BC0_STATE_S;
             end if;
 
          when ALIGNED_S =>

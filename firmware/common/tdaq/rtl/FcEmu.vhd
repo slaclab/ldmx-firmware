@@ -76,7 +76,7 @@ architecture rtl of FcEmu is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      enableTimingMsg       => '1',
+      enableTimingMsg       => '0',
       enableRoR             => '0',
       usrRoR                => '0',
       timingMsgReq          => '0',
@@ -143,18 +143,18 @@ begin
       axiSlaveWaitTxn(axilEp, syncAxilWriteMaster, syncAxilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Map the read registers
-      axiSlaveRegister (axilEp, x"000", 0, v.enableTimingMsg);  -- If high, Timing Msg Period cnt
+      axiSlaveRegister (axilEp, x"00", 0, v.enableTimingMsg);  -- If high, Timing Msg Period cnt
                                                                 -- rolls and msgs are being sent
-      axiSlaveRegister (axilEp, x"004", 0, v.enableRoR);        -- If high, RoR Period Counter
+      axiSlaveRegister (axilEp, x"04", 0, v.enableRoR);        -- If high, RoR Period Counter
                                                                 -- increments every 5 cycles,
                                                                 -- and RoRs are being sent
-      axiSlaveRegister (axilEp, x"008", 0, v.usrRoR);           -- Sends a single RoR for every
+      axiSlaveRegister (axilEp, x"08", 0, v.usrRoR);           -- Sends a single RoR for every
                                                                 -- low-to-high transition
-      axiSlaveRegister (axilEp, x"00C", 0, v.pulseIDinit);      -- Set pulseID initial value
-      axiSlaveRegister (axilEp, x"014", 0, v.timingMsgPeriodSet);   -- Timing Message period
-      axiSlaveRegister (axilEp, x"018", 0, v.bunchCountPeriodSet);  -- Bunch Count period
-      axiSlaveRegister (axilEp, x"01C", 0, v.fcRunStateSet);    -- Next FC run state set value
-      axiSlaveRegister (axilEp, x"020", 0, v.rOrPeriod);        -- Read-Out-Req period
+      axiSlaveRegister (axilEp, x"0C", 0, v.pulseIDinit);      -- Set pulseID initial value
+      axiSlaveRegister (axilEp, x"14", 0, v.timingMsgPeriodSet);   -- Timing Message period
+      axiSlaveRegister (axilEp, x"18", 0, v.bunchCountPeriodSet);  -- Bunch Count period
+      axiSlaveRegister (axilEp, x"1C", 0, v.fcRunStateSet);    -- Next FC run state set value
+      axiSlaveRegister (axilEp, x"20", 0, v.rOrPeriod);        -- Read-Out-Req period
                                                                 -- (units of 5*timing clk period)
 
 

@@ -68,15 +68,15 @@ architecture rtl of TsDataRxLane is
 
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_C-1 downto 0) := (
       AXIL_GTY_C      => (
-         baseAddr     => AXIL_BASE_ADDR_G + X"0_0000",
+         baseAddr     => AXIL_BASE_ADDR_G + X"0000",
          addrBits     => 13,
          connectivity => X"FFFF"),
       AXIL_TS_RX_C    => (
-         baseAddr     => AXIL_BASE_ADDR_G + X"1_0000",
+         baseAddr     => AXIL_BASE_ADDR_G + X"2000",
          addrBits     => 8,
          connectivity => X"FFFF"),
       AXIL_TS_TX_C    => (
-         baseAddr     => AXIL_BASE_ADDR_G + X"1_0100",
+         baseAddr     => AXIL_BASE_ADDR_G + X"2100",
          addrBits     => 8,
          connectivity => X"FFFF"));
 
@@ -104,8 +104,9 @@ architecture rtl of TsDataRxLane is
    signal tsTxData         : slv(15 downto 0);
    signal tsTxDataK        : slv(1 downto 0);
 
-   signal loopback : slv(2 downto 0) := (others => '0');
-
+   signal loopback     : slv(2 downto 0) := "000";
+   signal resetRxPwrUp : sl;
+   signal rxReset      : sl;
 
 begin
 
@@ -134,14 +135,22 @@ begin
    -- Various Reset synchronization
    -------------------------------------------------------------------------------------------------
    -- Sync phy init to stableClk (axilClk)
-   U_RstSync_1 : entity surf.SynchronizerOneShot
+--    U_RstSync_1 : entity surf.SynchronizerOneShot
+--       generic map (
+--          TPD_G         => TPD_G,
+--          PULSE_WIDTH_G => ite(SIMULATION_G, 12500, 125000000))  -- 100us in sim; 1s in silicon
+--       port map (
+--          clk     => axilClk,                                    -- [in]
+--          dataIn  => tsRxPhyInit,                                -- [in]
+--          dataOut => tsRxPhyInitSync);                           -- [out]
+
+   U_RstSync_1 : entity surf.RstSync
       generic map (
-         TPD_G         => TPD_G,
-         PULSE_WIDTH_G => ite(SIMULATION_G, 12500, 125000000))  -- 100us in sim; 1s in silicon
+         TPD_G => TPD_G)
       port map (
-         clk     => axilClk,                                    -- [in]
-         dataIn  => tsRxPhyInit,                                -- [in]
-         dataOut => tsRxPhyInitSync);                           -- [out]
+         clk      => axilClk,
+         asyncRst => tsRxPhyInit,
+         syncRst  => tsRxPhyInitSync);
 
 
    -------------------------------------------------------------------------------------------------
@@ -150,6 +159,7 @@ begin
    U_TsGtyIpCoreWrapper_1 : entity ldmx_ts.TsGtyIpCoreWrapper
       generic map (
          TPD_G             => TPD_G,
+         SIMULATION_G      => SIMULATION_G,
          USE_ALIGN_CHECK_G => true,
          AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_G,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_GTY_C).baseAddr)
@@ -160,7 +170,9 @@ begin
          gtUserRefClk    => tsUserClk250,                     -- [in]
          gtRxP           => tsDataRxP,                        -- [in]
          gtRxN           => tsDataRxN,                        -- [in]
-         rxReset         => tsRxPhyInitSync,                  -- [in]
+         gtTxP           => tsDataTxP,                        -- [out]
+         gtTxN           => tsDataTxN,                        -- [out]
+         rxReset         => rxReset,                          -- [in]
          rxUsrClkActive  => tsRecClkMmcmLocked,               -- [in]
          rxResetDone     => tsRxPhyResetDone,                 -- [out]
          rxUsrClk        => tsRecClkMmcm,                     -- [in]
@@ -171,7 +183,7 @@ begin
          rxPolarity      => '0',                              -- [in]
          rxOutClk        => tsRecClkGt,                       -- [out]
          txReset         => tsTxPhyInit,                      -- [in]
-         txResetDone     => open,                             -- [out]
+         txResetDone     => tsTxPhyResetDone,                 -- [out]
          txData          => tsTxData,                         -- [in]
          txDataK         => tsTxDataK,                        -- [in]
          loopback        => loopback,                         -- [in]
@@ -182,7 +194,7 @@ begin
          axilWriteMaster => locAxilWriteMasters(AXIL_GTY_C),  -- [in]
          axilWriteSlave  => locAxilWriteSlaves(AXIL_GTY_C));  -- [out]
 
-   -- For now don't use MMCM
+   -- Don't need MMCM
    tsRecClkMmcm       <= tsRecClkGt;
    tsRecClkMmcmLocked <= '1';
 
@@ -199,6 +211,18 @@ begin
 
    tsRecClk <= tsRecClkMmcm;
 
+   U_RstSync_2 : entity surf.PwrUpRst
+      generic map (
+         TPD_G      => TPD_G,
+         DURATION_G => 12500)           -- 100us in sim; 1s in silicon
+      port map (
+         arst   => '0',                 -- [in]
+         clk    => axilClk,             -- [in]
+         rstOut => resetRxPwrUp);       -- [out]
+
+
+   rxReset <= tsRxPhyInitSync or resetRxPwrUp;
+
    -------------------------------------------------------------------------------------------------
    -- TS Message Decoder
    -- Decodes 8b10b stream into TS messages
@@ -211,8 +235,11 @@ begin
          tsRst250         => tsRecClkRst,                        -- [in]
          tsRxPhyInit      => tsRxPhyInit,                        -- [out]
          tsRxPhyResetDone => tsRxPhyResetDone,                   -- [in]
+         tsRxPhyLoopback  => loopback,                           -- [out]         
          tsRxData         => tsRxData,                           -- [in]
          tsRxDataK        => tsRxDataK,                          -- [in]
+         tsRxDispErr      => tsRxDispErr,                        -- [in]
+         tsRxDecErr       => tsRxDecErr,                         -- [in]
          tsRxMsg          => tsRxMsg,                            -- [out]
          axilClk          => axilClk,                            -- [in]
          axilRst          => axilRst,                            -- [in]

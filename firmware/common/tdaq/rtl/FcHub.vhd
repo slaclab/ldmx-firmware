@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      :
 -------------------------------------------------------------------------------
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -37,29 +37,33 @@ entity FcHub is
       SIM_SPEEDUP_G     : boolean              := false;
       REFCLKS_G         : integer range 1 to 4 := 1;
       QUADS_G           : integer range 1 to 4 := 1;
-      QUAD_REFCLK_MAP_G : IntegerArray         := (0      => 0); --, 1 => 0, 2 => 1, 3 => 1);  -- Map a refclk for each quad
+      QUAD_REFCLK_MAP_G : IntegerArray         := (0      => 0);  --, 1 => 0, 2 => 1, 3 => 1);  -- Map a refclk for each quad
       AXIL_CLK_FREQ_G   : real                 := 156.25e6;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)     := (others => '0'));
    port (
       ----------------------------------------------------------------------------------------------
       -- LCLS Timing Interface
       ----------------------------------------------------------------------------------------------
-      -- 185 MHz Ref Clk for LCLS timing recovery
-      lclsTimingRefClk185P : in  sl;
-      lclsTimingRefClk185N : in  sl;
+      -- 185/371 MHz Ref Clk for LCLS timing recovery (freq used depends on GT configuration)
+      lclsTimingRefClkP : in  sl;
+      lclsTimingRefClkN : in  sl;
       -- LCLS-II timing interface
-      lclsTimingRxP        : in  sl;
-      lclsTimingRxN        : in  sl;
-      lclsTimingTxP        : out sl;
-      lclsTimingTxN        : out sl;
+      lclsTimingRxP     : in  sl;
+      lclsTimingRxN     : in  sl;
+      lclsTimingTxP     : out sl;
+      lclsTimingTxN     : out sl;
+      -- Recovered clock via GT dedicated clock pins
+      timingRecClkOutP  : out sl;
+      timingRecClkOutN  : out sl;
 
       ----------------------------------------------------------------------------------------------
       -- Global Trigger Interface
       ----------------------------------------------------------------------------------------------
-      -- LCLS Recovered Clock Output to pins
-      lclsTimingClkOut : out sl;
-      lclsTimingRstOut : out sl;
-      globalTriggerRor : in  FcTimestampType;
+      -- LCLS Recovered Clock Output via fabric pins
+      lclsTimingClkOut  : out sl;
+      lclsTimingRstOut  : out sl;
+      lclsTimingFcTxMsg : out FcMessageType;
+      globalTriggerRor  : in  FcTimestampType;
 
       ----------------------------------------------------------------------------------------------
       -- FC HUB
@@ -95,16 +99,16 @@ architecture rtl of FcHub is
 
    constant AXIL_XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(AXIL_NUM_C-1 downto 0) := (
       AXIL_LCLS_TIMING_C => (
-         baseAddr        => X"00000000",
-         addrBits        => 24,
+         baseAddr        => AXIL_BASE_ADDR_G + X"0000_0000",
+         addrBits        => 20,
          connectivity    => X"FFFF"),
       AXIL_TX_LOGIC_C    => (
-         baseAddr        => X"01000000",
+         baseAddr        => AXIL_BASE_ADDR_G +X"0010_0000",
          addrBits        => 8,
          connectivity    => X"FFFF"),
       AXIL_FC_ARRAY_C    => (
-         baseAddr        => X"02000000",
-         addrBits        => 24,
+         baseAddr        => AXIL_BASE_ADDR_G +X"0020_0000",
+         addrBits        => 20,
          connectivity    => X"FFFF"));
 
    signal locAxilReadMasters  : AxiLiteReadMasterArray(AXIL_NUM_C-1 downto 0);
@@ -121,7 +125,7 @@ architecture rtl of FcHub is
    signal fcTxMsg : FcMessageType;
 
 begin
-   
+
    -------------------------------------------------------------------------------------------------
    -- AXI-Lite crossbar
    -------------------------------------------------------------------------------------------------
@@ -143,7 +147,7 @@ begin
          mAxiReadMasters     => locAxilReadMasters,
          mAxiReadSlaves      => locAxilReadSlaves);
 
-   
+
    -------------------------------------------------------------------------------------------------
    -- LCLS TIMING RX
    -------------------------------------------------------------------------------------------------
@@ -152,9 +156,11 @@ begin
    U_Lcls2TimingRx_1 : entity ldmx_tdaq.Lcls2TimingRx
       generic map (
          TPD_G             => TPD_G,
+         SIMULATION_G      => SIM_SPEEDUP_G,
          TIME_GEN_EXTREF_G => true,
          RX_CLK_MMCM_G     => true,
          USE_TPGMINI_G     => true,
+         AXI_CLK_FREQ_G    => AXIL_CLK_FREQ_G,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CONFIG_C(AXIL_LCLS_TIMING_C).baseAddr)
       port map (
          stableClk        => axilClk,   -- [in] -- axilClk from TenGigEth core is not mmcm
@@ -172,10 +178,10 @@ begin
          timingRxN        => lclsTimingRxN,                            -- [in]
          timingTxP        => lclsTimingTxP,                            -- [out]
          timingTxN        => lclsTimingTxN,                            -- [out]
-         timingRefClkInP  => lclsTimingRefClk185P,                     -- [in]
-         timingRefClkInN  => lclsTimingRefClk185N,                     -- [in]
-         timingRecClkOutP => open,      -- [out]
-         timingRecClkOutN => open);     -- [out]
+         timingRefClkInP  => lclsTimingRefClkP,                        -- [in]
+         timingRefClkInN  => lclsTimingRefClkN,                        -- [in]
+         timingRecClkOutP => timingRecClkOutP,                         -- [out]
+         timingRecClkOutN => timingRecClkOutN);                        -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Fast Control Output Word Logic
@@ -184,17 +190,17 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         lclsTimingClk    => lclsTimingClk,     -- [in]
-         lclsTimingRst    => lclsTimingRst,     -- [in]
-         lclsTimingBus    => lclsTimingBus,     -- [in]
-         globalTriggerRor => globalTriggerRor,  -- [in]
-         fcMsg            => fcTxMsg,           -- [out]
-         axilClk          => axilClk,           -- [in]
-         axilRst          => axilRst,           -- [in]
-         axilReadMaster   => locAxilReadMasters(AXIL_TX_LOGIC_C),    -- [in]
-         axilReadSlave    => locAxilReadSlaves(AXIL_TX_LOGIC_C),     -- [out]
-         axilWriteMaster  => locAxilWriteMasters(AXIL_TX_LOGIC_C),   -- [in]
-         axilWriteSlave   => locAxilWriteSlaves(AXIL_TX_LOGIC_C));   -- [out]
+         lclsTimingClk    => lclsTimingClk,                         -- [in]
+         lclsTimingRst    => lclsTimingRst,                         -- [in]
+         lclsTimingBus    => lclsTimingBus,                         -- [in]
+         globalTriggerRor => globalTriggerRor,                      -- [in]
+         fcMsg            => fcTxMsg,                               -- [out]
+         axilClk          => axilClk,                               -- [in]
+         axilRst          => axilRst,                               -- [in]
+         axilReadMaster   => locAxilReadMasters(AXIL_TX_LOGIC_C),   -- [in]
+         axilReadSlave    => locAxilReadSlaves(AXIL_TX_LOGIC_C),    -- [out]
+         axilWriteMaster  => locAxilWriteMasters(AXIL_TX_LOGIC_C),  -- [in]
+         axilWriteSlave   => locAxilWriteSlaves(AXIL_TX_LOGIC_C));  -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Fast Control Fanout to Subsystems

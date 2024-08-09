@@ -149,6 +149,7 @@ begin
       if (r.fcBus.subCount = BUNCH_CLK_RISE_C) then
          v.fcBunchClk37      := '1';
          v.fcBus.bunchStrobe := '1';
+         v.fcBus.bunchCount := r.fcBus.bunchCount + 1;
       end if;
 
       if (r.fcBus.subCount = BUNCH_CLK_PRE_RISE_C) then
@@ -176,7 +177,7 @@ begin
                -- Output fields
                v.fcBus.pulseStrobe  := '1';
                v.fcBus.pulseId      := fcMsg.pulseId;
-               v.fcBus.bunchCount   := fcMsg.bunchCount;
+               v.fcBus.bunchCount   := fcMsg.bunchCount;  -- Should always be 0
                v.fcBus.runState     := fcMsg.runState;
                v.fcBus.stateChanged := fcMsg.stateChanged;
                v.fcBus.subCount := (others => '0');
@@ -188,7 +189,7 @@ begin
                         -- Reset counters and FIFOs
                         v.rorCount              := (others => '0');
                         v.fcBus.bunchClkAligned := '0';
-                     when RUN_STATE_CLOCK_ALIGN_C =>
+                     when RUN_STATE_IDLE_C =>
                         -- Algin Bunch clock
                         v.fcBunchClk37          := '0';
                         v.fcClkLost             := '1';  -- Creats a bunchClkRst
@@ -204,7 +205,7 @@ begin
 
             -- Process readout requests
             when MSG_TYPE_ROR_C =>
-               if (r.fcBus.runState = RUN_STATE_RUNNING_C) then
+               if (r.fcBus.runState = RUN_STATE_BC0_C or r.fcBus.runState = RUN_STATE_RUNNING_C) then
                   -- Place on output bus
                   v.fcBus.readoutRequest.bunchCount := fcMsg.bunchCount;
                   v.fcBus.readoutRequest.pulseId    := fcMsg.pulseId;
@@ -213,9 +214,7 @@ begin
                end if;
             when others => null;
          end case;
-
       end if;
-
 
 
       -- AXI Lite registers

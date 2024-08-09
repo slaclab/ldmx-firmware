@@ -19,6 +19,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library unisim;
+use unisim.vcomponents.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -40,7 +43,8 @@ entity S30xlAPx is
       BUILD_INFO_G             : BuildInfoType        := BUILD_INFO_DEFAULT_SLV_C;
       SIMULATION_G             : boolean              := false;
       SIM_SRP_PORT_NUM_G       : integer              := 9000;
-      SIM_DATA_PORT_NUM_G      : integer              := 9100;
+      SIM_RAW_DATA_PORT_NUM_G  : integer              := 9100;
+      SIM_TRIG_DATA_PORT_NUM_G : integer              := 9200;
       DHCP_G                   : boolean              := false;  -- true = DHCP, false = static address
       IP_ADDR_G                : slv(31 downto 0)     := x"0A01A8C0";  -- 192.168.1.10 (before DHCP)
       MAC_ADDR_G               : slv(47 downto 0)     := x"00_00_16_56_00_08";
@@ -65,8 +69,8 @@ entity S30xlAPx is
       -- LCLS Timing Interface
       ----------------------------------------------------------------------------------------------
       -- 185 MHz Ref Clk for LCLS timing recovery
-      lclsTimingRefClk185P : in  sl;
-      lclsTimingRefClk185N : in  sl;
+      lclsTimingRefClkP    : in  sl;
+      lclsTimingRefClkN    : in  sl;
       -- LCLS-II timing interface
       lclsTimingRxP        : in  sl;
       lclsTimingRxN        : in  sl;
@@ -103,10 +107,12 @@ entity S30xlAPx is
       ----------------------------------------------------------------------------------------------
       -- App TS Interface
       ----------------------------------------------------------------------------------------------
-      tsRefClk250P : in slv(TS_REFCLKS_G-1 downto 0);
-      tsRefClk250N : in slv(TS_REFCLKS_G-1 downto 0);
-      tsDataRxP    : in slv(TS_LANES_G-1 downto 0);
-      tsDataRxN    : in slv(TS_LANES_G-1 downto 0);
+      tsRefClk250P : in  slv(TS_REFCLKS_G-1 downto 0);
+      tsRefClk250N : in  slv(TS_REFCLKS_G-1 downto 0);
+      tsDataRxP    : in  slv(TS_LANES_G-1 downto 0);
+      tsDataRxN    : in  slv(TS_LANES_G-1 downto 0);
+      tsDataTxP    : out slv(TS_LANES_G-1 downto 0);
+      tsDataTxN    : out slv(TS_LANES_G-1 downto 0);
 
       ----------------------------------------------------------------------------------------------
       -- Ethernet refclk and interface
@@ -124,7 +130,7 @@ end entity S30xlAPx;
 
 architecture rtl of S30xlAPx is
 
-   constant AXIL_CLK_FREQ_C : real := 156.25e6;
+   constant AXIL_CLK_FREQ_C : real := 125.0e6;
 
    constant AXIL_NUM_C            : integer := 5;
    constant AXIL_VERSION_C        : integer := 0;
@@ -141,7 +147,7 @@ architecture rtl of S30xlAPx is
          connectivity       => X"FFFF"),
       AXIL_ETH_C            => (
          baseAddr           => X"10000000",
-         addrBits           => 16,
+         addrBits           => 24,
          connectivity       => X"FFFF"),
       AXIL_FC_HUB_C         => (
          baseAddr           => X"20000000",
@@ -152,8 +158,8 @@ architecture rtl of S30xlAPx is
          addrBits           => 8,
          connectivity       => X"FFFF"),
       AXIL_APP_CORE_C       => (
-         baseAddr           => X"40000000",
-         addrBits           => 28,
+         baseAddr           => X"80000000",
+         addrBits           => 31,
          connectivity       => X"FFFF"));
 
    signal axilClk : sl;
@@ -207,6 +213,20 @@ begin
    end generate GEN_CLKOUT_125;
 
    -------------------------------------------------------------------------------------------------
+   -- Use 125 MHz clock for axi lite clock
+   -------------------------------------------------------------------------------------------------
+   axilClk <= clk125In;
+
+   U_RstSync_1 : entity surf.RstSync
+      generic map (
+         TPD_G         => TPD_G,
+         OUT_REG_RST_G => true)
+      port map (
+         clk      => clk125In,          -- [in]
+         asyncRst => '0',               -- [in]
+         syncRst  => axilRst);          -- [out]
+
+   -------------------------------------------------------------------------------------------------
    -- Top Level AXI-Lite crossbar
    -------------------------------------------------------------------------------------------------
    U_XBAR : entity surf.AxiLiteCrossbar
@@ -236,14 +256,15 @@ begin
    -------------------------------------------------------------------------------------------------
    U_TenGigEthGtyCore_1 : entity ldmx_ts.S30xlEthCore
       generic map (
-         TPD_G               => TPD_G,
-         SIMULATION_G        => SIMULATION_G,
-         SIM_SRP_PORT_NUM_G  => SIM_SRP_PORT_NUM_G,
-         SIM_DATA_PORT_NUM_G => SIM_DATA_PORT_NUM_G,
-         AXIL_BASE_ADDR_G    => AXIL_XBAR_CONFIG_C(AXIL_ETH_C).baseAddr,
-         DHCP_G              => DHCP_G,
-         IP_ADDR_G           => IP_ADDR_G,
-         MAC_ADDR_G          => MAC_ADDR_G)
+         TPD_G                    => TPD_G,
+         SIMULATION_G             => SIMULATION_G,
+         SIM_SRP_PORT_NUM_G       => SIM_SRP_PORT_NUM_G,
+         SIM_RAW_DATA_PORT_NUM_G  => SIM_RAW_DATA_PORT_NUM_G,
+         SIM_TRIG_DATA_PORT_NUM_G => SIM_TRIG_DATA_PORT_NUM_G,
+         AXIL_BASE_ADDR_G         => AXIL_XBAR_CONFIG_C(AXIL_ETH_C).baseAddr,
+         DHCP_G                   => DHCP_G,
+         IP_ADDR_G                => IP_ADDR_G,
+         MAC_ADDR_G               => MAC_ADDR_G)
       port map (
          extRst              => '0',    -- [in] -- might need PwrUpRst here
          ethGtRefClkP        => ethRefClk156P,                    -- [in]
@@ -311,27 +332,27 @@ begin
          AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_C,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CONFIG_C(AXIL_FC_HUB_C).baseAddr)
       port map (
-         lclsTimingRefClk185P => lclsTimingRefClk185P,                -- [in]
-         lclsTimingRefClk185N => lclsTimingRefClk185N,                -- [in]
-         lclsTimingRxP        => lclsTimingRxP,                       -- [in]
-         lclsTimingRxN        => lclsTimingRxN,                       -- [in]
-         lclsTimingTxP        => lclsTimingTxP,                       -- [out]
-         lclsTimingTxN        => lclsTimingTxN,                       -- [out]
-         lclsTimingClkOut     => lclsTimingClk,                       -- [out]
-         lclsTimingRstOut     => lclsTimingRst,                       -- [out]
-         globalTriggerRor     => globalTriggerRor,
-         fcHubRefClkP         => fcHubRefClkP,                        -- [in]
-         fcHubRefClkN         => fcHubRefClkN,                        -- [in]
-         fcHubTxP             => fcHubTxP,                            -- [out]
-         fcHubTxN             => fcHubTxN,                            -- [out]
-         fcHubRxP             => fcHubRxP,                            -- [in]
-         fcHubRxN             => fcHubRxN,                            -- [in]
-         axilClk              => axilClk,                             -- [in]
-         axilRst              => axilRst,                             -- [in]
-         axilReadMaster       => locAxilReadMasters(AXIL_FC_HUB_C),   -- [in]
-         axilReadSlave        => locAxilReadSlaves(AXIL_FC_HUB_C),    -- [out]
-         axilWriteMaster      => locAxilWriteMasters(AXIL_FC_HUB_C),  -- [in]
-         axilWriteSlave       => locAxilWriteSlaves(AXIL_FC_HUB_C));  -- [out]
+         lclsTimingRefClkP => lclsTimingRefClkP,                   -- [in]
+         lclsTimingRefClkN => lclsTimingRefClkN,                   -- [in]
+         lclsTimingRxP     => lclsTimingRxP,                       -- [in]
+         lclsTimingRxN     => lclsTimingRxN,                       -- [in]
+         lclsTimingTxP     => lclsTimingTxP,                       -- [out]
+         lclsTimingTxN     => lclsTimingTxN,                       -- [out]
+         lclsTimingClkOut  => lclsTimingClk,                       -- [out]
+         lclsTimingRstOut  => lclsTimingRst,                       -- [out]
+         globalTriggerRor  => globalTriggerRor,
+         fcHubRefClkP      => fcHubRefClkP,                        -- [in]
+         fcHubRefClkN      => fcHubRefClkN,                        -- [in]
+         fcHubTxP          => fcHubTxP,                            -- [out]
+         fcHubTxN          => fcHubTxN,                            -- [out]
+         fcHubRxP          => fcHubRxP,                            -- [in]
+         fcHubRxN          => fcHubRxN,                            -- [in]
+         axilClk           => axilClk,                             -- [in]
+         axilRst           => axilRst,                             -- [in]
+         axilReadMaster    => locAxilReadMasters(AXIL_FC_HUB_C),   -- [in]
+         axilReadSlave     => locAxilReadSlaves(AXIL_FC_HUB_C),    -- [out]
+         axilWriteMaster   => locAxilWriteMasters(AXIL_FC_HUB_C),  -- [in]
+         axilWriteSlave    => locAxilWriteSlaves(AXIL_FC_HUB_C));  -- [out]
 
    GEN_LCLS_CLK_OUT : for i in 1 downto 0 generate
       U_ClkOutBufDiff_2 : entity surf.ClkOutBufDiff
@@ -350,6 +371,7 @@ begin
    U_S30xlAppCore_1 : entity ldmx_ts.S30xlAppCore
       generic map (
          TPD_G            => TPD_G,
+         SIM_SPEEDUP_G    => SIMULATION_G,
          TS_LANES_G       => TS_LANES_G,
          TS_REFCLKS_G     => TS_REFCLKS_G,
          TS_REFCLK_MAP_G  => TS_REFCLK_MAP_G,
@@ -366,6 +388,8 @@ begin
          tsRefClk250N        => tsRefClk250N,                          -- [in]
          tsDataRxP           => tsDataRxP,                             -- [in]
          tsDataRxN           => tsDataRxN,                             -- [in]
+         tsDataTxP           => tsDataTxP,                             -- [out]
+         tsDataTxN           => tsDataTxN,                             -- [out]
          axilClk             => axilClk,                               -- [in]
          axilRst             => axilRst,                               -- [in]
          axilReadMaster      => locAxilReadMasters(AXIL_APP_CORE_C),   -- [in]

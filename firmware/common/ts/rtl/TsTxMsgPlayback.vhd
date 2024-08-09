@@ -35,8 +35,9 @@ use ldmx_ts.TsPkg.all;
 entity TsTxMsgPlayback is
 
    generic (
-      TPD_G      : time    := 1 ns;
-      TS_LANES_G : integer := 2);
+      TPD_G            : time             := 1 ns;
+      TS_LANES_G       : integer          := 2;
+      AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
       --------------
       -- Main Output
@@ -50,7 +51,7 @@ entity TsTxMsgPlayback is
       -----------------------------
       fcClk185 : in sl;
       fcRst185 : in sl;
-      fcBus    : in FastControlBusType;
+      fcBus    : in FcBusType;
 
       -- Axil inteface
       axilClk         : in  sl;
@@ -64,55 +65,57 @@ end entity TsTxMsgPlayback;
 
 architecture rtl of TsTxMsgPlayback is
 
+   constant NUM_AXIL_MASTERS_C : natural := TS_LANES_G;
 
-   type StateType is (
-      WAIT_CLOCK_ALIGN_S,
-      WAIT_BC0_S,
-      ALIGNED_S);
+   constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 28, 20);
 
-   -- fcClk185 signals
-   type RegType is record
-      state : StateType;
-   end record RegType;
-
-   constant REG_INIT_C : RegType := (
-      state => WAIT_CLOCK_ALIGN_S);
-   
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-
+   signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal locAxilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
 
 begin
 
+   ---------------------
+   -- AXI-Lite Crossbar
+   ---------------------
+   U_XBAR : entity surf.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
+         MASTERS_CONFIG_G   => AXIL_XBAR_CFG_C)
+      port map (
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
+         sAxiWriteMasters(0) => axilWriteMaster,
+         sAxiWriteSlaves(0)  => axilWriteSlave,
+         sAxiReadMasters(0)  => axilReadMaster,
+         sAxiReadSlaves(0)   => axilReadSlave,
+         mAxiWriteMasters    => locAxilWriteMasters,
+         mAxiWriteSlaves     => locAxilWriteSlaves,
+         mAxiReadMasters     => locAxilReadMasters,
+         mAxiReadSlaves      => locAxilReadSlaves);
 
-
-   comb : process (fcBus, fcRst185, r, timestampFifoRdData, tsMsgFifoMsgs) is
-      variable v : RegType := REG_INIT_C;
-   begin
-      v := r;
-
-
-      -- Reset
-      if (fcRst185 = '1') then
-         v := REG_INIT_C;
-      end if;
-
-      -- Outputs
-      fcTsRxMsgs <= r.fcTsRxMsgs;
-      fcMsgTime  <= r.fcMsgTime;
-
-      rin <= v;
-
-
-   end process comb;
-
-   seq : process (fcClk185) is
-   begin
-      if (rising_edge(fcClk185)) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
-
+   GEN_LANES : for i in TS_LANES_G-1 downto 0 generate
+      U_TsTxMsgPlaybackLane_1 : entity ldmx_ts.TsTxMsgPlaybackLane
+         generic map (
+            TPD_G            => TPD_G,
+            AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(i).baseAddr)
+         port map (
+            tsTxClk         => tsTxClks(i),             -- [in]
+            tsTxRst         => tsTxRsts(i),             -- [in]
+            tsTxMsg         => tsTxMsgs(i),             -- [out]
+            fcClk185        => fcClk185,                -- [in]
+            fcRst185        => fcRst185,                -- [in]
+            fcBus           => fcBus,                   -- [in]
+            axilClk         => axilClk,                 -- [in]
+            axilRst         => axilRst,                 -- [in]
+            axilReadMaster  => locAxilReadMasters(i),   -- [in]
+            axilReadSlave   => locAxilReadSlaves(i),    -- [out]
+            axilWriteMaster => locAxilWriteMasters(i),  -- [in]
+            axilWriteSlave  => locAxilWriteSlaves(i));  -- [out]
+   end generate GEN_LANES;
 
 end rtl;
 
