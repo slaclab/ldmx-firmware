@@ -68,7 +68,8 @@ architecture Behavioral of RM_Monitor is
     axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
     axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
-  signal r   : RegType := REG_INIT_C;
+  signal r         : RegType := REG_INIT_C;
+  signal r_local   : RegType := REG_INIT_C; 
   signal rin : RegType;
   signal rm_reset : STD_LOGIC := '0';
 
@@ -77,19 +78,19 @@ begin
    pgood : Slow_Control_Monitor 
         Port Map(
                  d => rm_con.PGOOD,
-                 counter => r.PGOOD,
+                 counter => r_local.PGOOD,
                  clk => clk,
                  reset_n => reset_n
                  );
 
-   comb : process (r, axilReadMaster, axilWriteMaster) is
+   comb : process (r_local, r, axilReadMaster, axilWriteMaster) is
      variable v      : RegType;
      variable axilEp : AxiLiteEndpointType;
 
    begin
 
      v := r;
-
+     v.PGOOD := r_local.PGOOD;
      -- AXI Lite registers
      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
      

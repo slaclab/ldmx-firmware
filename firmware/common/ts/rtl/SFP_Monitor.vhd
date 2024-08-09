@@ -74,7 +74,8 @@ architecture Behavioral of SFP_Monitor is
     axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
     axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
-  signal r   : RegType := REG_INIT_C;
+  signal r         : RegType := REG_INIT_C;
+  signal r_local   : RegType := REG_INIT_C; 
   signal rin : RegType;
 
 begin
@@ -82,7 +83,7 @@ begin
    RX_LOS : Slow_Control_Monitor 
         Port Map(
                  d => sfp_con.RX_LOS,
-                 counter => r.RX_LOS,
+                 counter => r_local.RX_LOS,
                  clk => clk,
                  reset_n => reset_n
                  );
@@ -90,7 +91,7 @@ begin
    TX_FAULT : Slow_Control_Monitor 
         Port Map(
                  d => sfp_con.TX_FAULT,
-                 counter => r.TX_FAULT,
+                 counter => r_local.TX_FAULT,
                  clk => clk,
                  reset_n => reset_n
                  );
@@ -98,19 +99,21 @@ begin
    MOD_ABS : Slow_Control_Monitor 
         Port Map(
                  d => sfp_con.MOD_ABS,
-                 counter => R.MOD_ABS,
+                 counter => r_local.MOD_ABS,
                  clk => clk,
                  reset_n => reset_n
                  );
 
-   comb : process (r, axilReadMaster, axilWriteMaster) is
+   comb : process (r_local, r, axilReadMaster, axilWriteMaster) is
      variable v      : RegType;
      variable axilEp : AxiLiteEndpointType;
 
    begin
 
      v := r;
-
+     v.MOD_ABS  := r_local.MOD_ABS;
+     v.TX_FAULT := r_local.TX_FAULT;
+     v.RX_LOS   := r_local.RX_LOS;
      -- AXI Lite registers
      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
      

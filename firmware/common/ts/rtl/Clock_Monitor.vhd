@@ -73,13 +73,13 @@ architecture Behavioral of Clock_Monitor is
 
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
-
+  signal r_local : RegType := REG_INIT_C;
 begin
 
    LOS_XAXB : Slow_Control_Monitor 
         Port Map(
                  d => clk_con.LOS_XAXB,
-                 counter => r.LOS_XAXB,
+                 counter => r_local.LOS_XAXB,
                  clk => clk,
                  reset_n => reset_n
                  );
@@ -87,19 +87,20 @@ begin
    LOL : Slow_Control_Monitor 
         Port Map(
                  d => clk_con.LOL,
-                 counter => r.LOL,
+                 counter => r_local.LOL,
                  clk => clk,
                  reset_n => reset_n
                  );
 
-      comb : process (r, axilReadMaster, axilWriteMaster) is
+   comb : process (r_local, r, axilReadMaster, axilWriteMaster) is
      variable v      : RegType;
      variable axilEp : AxiLiteEndpointType;
 
    begin
-
+     
      v := r;
-
+     v.LOS_XAXB := r_local.LOS_XAXB;
+     v.LOL      := r_local.LOL;
      -- AXI Lite registers
      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
      
