@@ -60,7 +60,7 @@ entity FcReceiver is
       fcBus        : out FcBusType;
       fcBunchClk37 : out sl;
       fcBunchRst37 : out sl;
-      pgpRxIn      : in  Pgp2fcRxInType                               := PGP2FC_RX_IN_INIT_C;
+      pgpRxIn      : in  Pgp2fcRxInType                   := PGP2FC_RX_IN_INIT_C;
       pgpRxOut     : out Pgp2fcRxOutType;
       pgpRxMasters : out AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpRxCtrl    : in  AxiStreamCtrlArray(3 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
@@ -69,7 +69,7 @@ entity FcReceiver is
       txClk185     : out sl;
       txRst185     : out sl;
 --      fcFb         : in  FcFeedbackType;
-      pgpTxIn      : in  Pgp2fcTxInType                               := PGP2FC_TX_IN_INIT_C;
+      pgpTxIn      : in  Pgp2fcTxInType                   := PGP2FC_TX_IN_INIT_C;
       pgpTxOut     : out Pgp2fcTxOutType;
       pgpTxMasters : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpTxSlaves  : out AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
@@ -121,7 +121,7 @@ architecture rtl of FcReceiver is
    signal fcRst185Loc        : sl;
 
    -- PGP IO
-   signal pgpRxInLoc  : Pgp2fcRxInType := PGP2FC_RX_IN_INIT_C;
+   signal pgpRxInLoc  : Pgp2fcRxInType  := PGP2FC_RX_IN_INIT_C;
    signal pgpRxOutLoc : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
    signal pgpTxInLoc  : Pgp2fcTxInType  := PGP2FC_TX_IN_INIT_C;
    signal pgpTxOutLoc : Pgp2fcTxOutType := PGP2FC_TX_OUT_INIT_C;
@@ -240,6 +240,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
+         GT_TYPE_G        => GT_TYPE_G,
          AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
          AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(PGP_FC_LANE_AXIL_C).baseAddr,
          TX_ENABLE_G      => true,
