@@ -39,7 +39,7 @@ entity TsS30xlThresholdTriggerWrapper is
       fcRst185  : in  sl;
       fcTsMsg   : in  TsData6ChMsgArray(1 downto 0);
       fcMsgTime : in  FcTimestampType;
-      daqData   : out TsS30xlThresholdTriggerDaqType,
+      daqData   : out TsS30xlThresholdTriggerDaqType;
       gtData    : out TriggerDataType);
 
 end entity TsS30xlThresholdTriggerWrapper;
