@@ -35,15 +35,12 @@ entity TsS30xlThresholdTriggerWrapper is
    generic (
       TPD_G : time := 1 ns);
    port (
-      fcClk185  : in sl;
-      fcRst185  : in sl;
-      fcTsMsg   : in TsData6ChMsgArray(1 downto 0);
-      fcMsgTime : in FcTimestampType;
-
-      outputValid       : out sl;
-      outputTimestamp   : out FcTimestampType;
-      channelHits       : out slv(11 downto 0);
-      channelAmplitudes : out slv17Array(11 downto 0));
+      fcClk185  : in  sl;
+      fcRst185  : in  sl;
+      fcTsMsg   : in  TsData6ChMsgArray(1 downto 0);
+      fcMsgTime : in  FcTimestampType;
+      daqData   : out TsS30xlThresholdTriggerDaqType,
+      gtData    : out TriggerDataType);
 
 end entity TsS30xlThresholdTriggerWrapper;
 
@@ -53,7 +50,9 @@ architecture rtl of TsS30xlThresholdTriggerWrapper is
          ap_clk        : in  std_logic;
          ap_rst        : in  std_logic;
          timestamp_in  : in  std_logic_vector (127 downto 0);
+         bc0_in        : in  sl;
          timestamp_out : out std_logic_vector (69 downto 0);
+         bc0_out       : out sl;
          dataReady_in  : in  std_logic_vector (7 downto 0);
          dataReady_out : out std_logic_vector (0 downto 0);
          FIFO_0        : in  std_logic_vector (13 downto 0);
@@ -104,6 +103,13 @@ architecture rtl of TsS30xlThresholdTriggerWrapper is
 
    signal fifoIn : Slv14Array(11 downto 0);
 
+   signal channelHits       : slv(11 downto 0);
+   signal channelAmplitudes : slv17Array(11 downto 0);
+
+   signal bc0Out : sl;
+
+   signal daqDataInt : TsS30xlThresholdTriggerDaqType;
+
 
 begin
 
@@ -129,7 +135,9 @@ begin
          ap_clk           => fcClk185,                -- [IN]
          ap_rst           => fcRst185,                -- [IN]
          timestamp_in     => fcMsgTimeSlv,            -- [IN]
+         bc0_in           => fcTsMsg(0).bc0,          -- [in]
          timestamp_out    => fcMsgTimeDelayedSlv,     -- [OUT]
+         bc0_out          => bc0Out,                  -- [out]
          dataReady_in     => inputValid,              -- [IN]
          dataReady_out(0) => outputValidInt,          -- [OUT]
          FIFO_0           => fifoIn(0),               -- [IN]
@@ -169,10 +177,14 @@ begin
          amplitude_10     => channelAmplitudes(10),   -- [OUT]
          amplitude_11     => channelAmplitudes(11));  -- [OUT]
 
-   outputTimestamp <= toFcTimestamp(fcMsgTimeDelayedSlv, outputValidInt);
-   outputValid     <= outputValidInt;
+   daqDataInt.valid      <= outputValidInt;
+   daqDataInt.bc0        <= bc0Out;
+   daqDataInt.timestamp  <= toFcTimestamp(fcMsgTimeDelayedSlv, outputValidInt);
+   daqDataInt.hits       <= channelHits;
+   daqDataInt.amplitudes <= channelAmplitudes;
 
-
+   daqData <= daqDataInt;
+   gtData  <= toTriggerData(daqDataInt);
 
 end architecture rtl;
 

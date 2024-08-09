@@ -115,6 +115,7 @@ package FcPkg is
       bunchCount      : slv(5 downto 0);
       subCount        : slv(2 downto 0);
       bunchClkAligned : sl;
+      bc0             : sl;
 
       -- 185 MHz counter from T0
       runTime : slv(63 downto 0);
@@ -138,6 +139,7 @@ package FcPkg is
       bunchCount      => (others => '0'),
       subCount        => (others => '0'),
       bunchClkAligned => '0',
+      bc0             => '0',
       runTime         => (others => '0'),
       readoutRequest  => FC_TIMESTAMP_INIT_C,
       fcMsg           => FC_MSG_INIT_C);

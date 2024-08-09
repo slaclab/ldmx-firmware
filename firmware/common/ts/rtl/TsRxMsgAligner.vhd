@@ -180,7 +180,7 @@ begin
             end if;
 
             -- Start alignment when FC runState moves to CLOCK_ALIGN state
-            if (fcBus.pulseStrobe = '1' and fcBus.stateChanged = '1' and fcBus.runState = RUN_STATE_BC0_C) then
+            if (fcBus.bc0 = '1') then
                -- Stop bleeding the timestamp fifo
                v.timestampFifoRdEn   := '0';
                -- Start writing timestamps

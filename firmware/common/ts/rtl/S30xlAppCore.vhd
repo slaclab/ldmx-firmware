@@ -51,10 +51,10 @@ entity S30xlAppCore is
       appFcTxN     : out sl;
 
       -- TS Interface
-      tsRefClk250P : in slv(TS_REFCLKS_G-1 downto 0);
-      tsRefClk250N : in slv(TS_REFCLKS_G-1 downto 0);
-      tsDataRxP    : in slv(TS_LANES_G-1 downto 0);
-      tsDataRxN    : in slv(TS_LANES_G-1 downto 0);
+      tsRefClk250P : in  slv(TS_REFCLKS_G-1 downto 0);
+      tsRefClk250N : in  slv(TS_REFCLKS_G-1 downto 0);
+      tsDataRxP    : in  slv(TS_LANES_G-1 downto 0);
+      tsDataRxN    : in  slv(TS_LANES_G-1 downto 0);
       tsDataTxP    : out slv(TS_LANES_G-1 downto 0);
       tsDataTxN    : out slv(TS_LANES_G-1 downto 0);
 
@@ -65,6 +65,11 @@ entity S30xlAppCore is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
+
+      -- GT Stream
+      fcClk185Out  : out sl;
+      fcRst185Out  : out sl;
+      tsTrigGtData : out TriggerDataType;
 
       -- DAQ Stream
       axisClk             : in  sl;
@@ -242,14 +247,12 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         fcClk185          => fcClk185,           -- [in]
-         fcRst185          => fcRst185,           -- [in]
-         fcTsMsg           => fcTsRxMsgs,         -- [in]
-         fcMsgTime         => fcMsgTime,          -- [in]
-         outputValid       => tsTrigValid,        -- [out]
-         outputTimestamp   => tsTrigTimestamp,    -- [out]
-         channelHits       => tsTrigHits,         -- [out]
-         channelAmplitudes => tsTrigAmplitudes);  -- [out]
+         fcClk185  => fcClk185,         -- [in]
+         fcRst185  => fcRst185,         -- [in]
+         fcTsMsg   => fcTsRxMsgs,       -- [in]
+         fcMsgTime => fcMsgTime,        -- [in]
+         daqData   => tsTrigDaqData,    -- [out]
+         gtData    => tsTrigGtData);    -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Trigger DAQ block
@@ -262,10 +265,7 @@ begin
          fcClk185         => fcClk185,             -- [in]
          fcRst185         => fcRst185,             -- [in]
          fcBus            => fcBus,                -- [in]
-         tsTrigValid      => tsTrigValid,          -- [in]
-         tsTrigTimestamp  => tsTrigTimestamp,      -- [in]
-         tsTrigHits       => tsTrigHits,           -- [in]
-         tsTrigAmplitudes => tsTrigAmplitudes,     -- [in]
+         tsTrigData       => tsTrigData,           -- [in]
          axisClk          => axisClk,              -- [in]
          axisRst          => axisRst,              -- [in]
          tsTrigAxisMaster => tsDaqTrigAxisMaster,  -- [out]
@@ -276,7 +276,9 @@ begin
    -- Data to GT Sender
    -- (Encodes trigger data for transmission to GT)
    -------------------------------------------------------------------------------------------------
-
+   fcClk185Out <= fcClk185;
+   fcRst185Out <= fcRst185;
+   
 
 end architecture rtl;
 

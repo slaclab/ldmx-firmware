@@ -127,6 +127,7 @@ begin
       v.fcBus.bunchStrobe           := '0';
       v.fcBus.bunchStrobePre        := '0';
       v.fcBus.readoutRequest.strobe := '0';
+      v.fcBus.bc0                   := '0';
 
       -- Count cycles from start of run
       v.runTime := r.runTime + 1;
@@ -149,7 +150,7 @@ begin
       if (r.fcBus.subCount = BUNCH_CLK_RISE_C) then
          v.fcBunchClk37      := '1';
          v.fcBus.bunchStrobe := '1';
-         v.fcBus.bunchCount := r.fcBus.bunchCount + 1;
+         v.fcBus.bunchCount  := r.fcBus.bunchCount + 1;
       end if;
 
       if (r.fcBus.subCount = BUNCH_CLK_PRE_RISE_C) then
@@ -158,7 +159,7 @@ begin
       end if;
 
       -- Decode incomming fast control messages from PGPFC
-      fcMsg := toFcMessage(fcWord, fcValid);
+      fcMsg               := toFcMessage(fcWord, fcValid);
       v.fcBus.fcMsg.valid := fcValid;
 
       -- Process FC Messages
@@ -171,16 +172,13 @@ begin
 
             -- Process timing messages
             when MSG_TYPE_TIMING_C =>
-               -- Align bunch clock every time?
-
-
                -- Output fields
                v.fcBus.pulseStrobe  := '1';
                v.fcBus.pulseId      := fcMsg.pulseId;
                v.fcBus.bunchCount   := fcMsg.bunchCount;  -- Should always be 0
                v.fcBus.runState     := fcMsg.runState;
                v.fcBus.stateChanged := fcMsg.stateChanged;
-               v.fcBus.subCount := (others => '0');
+               v.fcBus.subCount     := (others => '0');
 
                -- State specific actions
                if (fcMsg.stateChanged = '1') then
@@ -194,6 +192,8 @@ begin
                         v.fcBunchClk37          := '0';
                         v.fcClkLost             := '1';  -- Creats a bunchClkRst
                         v.fcBus.bunchClkAligned := '1';
+                     when RUN_STATE_BC0_C =>
+                        v.fcBus.bc0 := '1';
                      when RUN_STATE_RUNNING_C =>
                         -- Reset runtime timestamp counter
                         -- Might do this in an earlier state
