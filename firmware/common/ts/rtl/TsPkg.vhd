@@ -217,7 +217,7 @@ package body TsPkg is
       ret.valid             <= daqData.valid;
       ret.bc0               <= daqData.bc0;
       ret.data(11 downto 0) <= daqData.channelHits;
-      return ret;;
+      return ret;
    end function toTriggerData;
 
    function toThresholdTriggerDaq (triggerData : TriggerDataType; timestamp : FcTimestampType:= FC_TIMESTAMP_INIT_C) return TsS30xlThresholdTriggerDaqType is
