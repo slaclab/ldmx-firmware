@@ -133,7 +133,7 @@ entity zCCM_kria is
           );
 end zCCM_kria;
 
-architecture Behavioral of zCCM_kria is
+    architecture Behavioral of zCCM_kria is
 
    signal dmaClk       : sl;
    signal dmaRst       : sl;
@@ -296,7 +296,10 @@ begin
     -- expected to be 37.142 MHz
     U_ClkOutBufDiff_1: entity surf.ClkOutBufDiff
        generic map (
-          TPD_G          => TPD_G)
+          TPD_G          => TPD_G,
+          XIL_DEVICE_G   => "ULTRASCALE_PLUS",
+          RST_POLARITY_G => '1',
+          INVERT_G       => true)
        port map (
           clkIn   => MCLK37,             -- [in]
           clkOutP => MCLK_FROM_SOC_P,           -- [out]
