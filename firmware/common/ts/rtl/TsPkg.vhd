@@ -23,6 +23,9 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+library ldmx_tdaq;
+use ldmx_tdaq.TriggerPkg.all;
+
 package TsPkg is
 
    type TsData8ChMsgType is record
@@ -86,6 +89,26 @@ package TsPkg is
       vector : slv(127 downto 0);
       strobe : sl := '0')
       return TsData6ChMsgType;
+
+   type TsS30xlThresholdTriggerDaqType is record
+      valid      : sl;
+      bc0        : sl;
+      timestamp  : FcTimestampType;
+      hits       : slv(11 downto 0);
+      amplitudes : slv17Array(11 downto 0);
+   end record TsS30xlThresholdTriggerOutType;
+
+   constant TS_S30XL_THRESHOLD_TRIGGER_DAQ_INIT_C : TsS30xlThresholdTriggerDaqType := (
+      valid      => '0',
+      bc0        => '0',
+      timestamp  => FC_TIMESTAMP_INIT_C,
+      hits       => (others => '0'),
+      amplitudes => (others => (others => '0')));
+
+   function toTriggerData (daqData : TsS30xlThresholdTriggerDaqType) return TriggerDataType;
+
+   function toThresholdTriggerDaq (triggerData : TriggerDataType) return TsS30xlThresholdTriggerDaqType;
+
 
 end package TsPkg;
 
@@ -187,6 +210,25 @@ package body TsPkg is
       return ret;
 
    end function toTsData6ChMsg128;
+
+   function toTriggerData (daqData : TsS30xlThresholdTriggerDaqType) return TriggerDataType is
+      variable ret : TriggerDataType := TRIGGER_DATA_INIT_C;
+   begin
+      ret.valid             <= daqData.valid;
+      ret.bc0               <= daqData.bc0;
+      ret.data(11 downto 0) <= daqData.channelHits;
+      return ret;;
+   end function toTriggerData;
+
+   function toThresholdTriggerDaq (triggerData : TriggerDataType; timestamp : FcTimestampType:= FC_TIMESTAMP_INIT_C) return TsS30xlThresholdTriggerDaqType is
+      variable ret : TsS30xlThresholdTriggerDaqType := TS_S30XL_THRESHOLD_TRIGGER_DAQ_INIT_C;
+   begin
+      ret.valid <= triggerData.valid;
+      ret.bc0 <= triggerData.bc0;
+      ret.timestamp <= timestamp;
+      ret.hits <= triggerData.data(11 downto 0);
+      return ret;
+   end function toThresholdTriggerDaq;
 
 
 end package body TsPkg;

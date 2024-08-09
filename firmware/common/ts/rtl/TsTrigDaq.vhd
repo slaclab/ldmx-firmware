@@ -40,13 +40,14 @@ entity TsTrigDaq is
 
    port (
       -- TS Trig Data and Timing
-      fcClk185         : in sl;
-      fcRst185         : in sl;
-      fcBus            : in FcBusType;
-      tsTrigValid      : in sl;
-      tsTrigTimestamp  : in FcTimestampType;
-      tsTrigHits       : in slv(11 downto 0);
-      tsTrigAmplitudes : in slv17Array(11 downto 0);
+      fcClk185      : in sl;
+      fcRst185      : in sl;
+      fcBus         : in FcBusType;
+      tsTrigDaqData : in TsS30xlThresholdTriggerDaqType;
+--       tsTrigValid      : in sl;
+--       tsTrigTimestamp  : in FcTimestampType;
+--       tsTrigHits       : in slv(11 downto 0);
+--       tsTrigAmplitudes : in slv17Array(11 downto 0);
 
       -- Streaming interface to ETH
       axisClk          : in  sl;
@@ -69,19 +70,18 @@ architecture rtl of TsTrigDaq is
       TAIL_S);
 
    type RegType is record
-      state       : StateType;
-      fifoRdEn    : sl;
-      axisMaster  : AxiStreamMasterType;
+      state      : StateType;
+      fifoRdEn   : sl;
+      axisMaster : AxiStreamMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state       => WAIT_ROR_S,
-      fifoRdEn    => '0',
-      axisMaster  => axiStreamMasterInit(AXIS_CFG_C));
+      state      => WAIT_ROR_S,
+      fifoRdEn   => '0',
+      axisMaster => axiStreamMasterInit(AXIS_CFG_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-
 
 
    signal delayedAmplitudes : Slv17Array(11 downto 0);
@@ -92,7 +92,7 @@ architecture rtl of TsTrigDaq is
    signal rorTimestampFifoInSlv  : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
    signal rorTimestampFifoOutSlv : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
    signal rorTimestampFifoValid  : sl;
-   
+
    signal aligned  : slv(12 downto 0);
    signal axisCtrl : AxiStreamCtrlType;
 
@@ -109,13 +109,13 @@ begin
             DATA_WIDTH_G  => 17,
             MEMORY_TYPE_G => "block")
          port map (
-            fcClk185    => fcClk185,               -- [in]
-            fcRst185    => fcRst185,               -- [in]
-            fcBus       => fcBus,                  -- [in]
-            timestampIn => tsTrigTimestamp,        -- [in]
-            dataIn      => tsTrigAmplitudes(i),    -- [in]
-            aligned     => aligned(i),             -- [out]
-            dataOut     => delayedAmplitudes(i));  -- [out]
+            fcClk185    => fcClk185,                     -- [in]
+            fcRst185    => fcRst185,                     -- [in]
+            fcBus       => fcBus,                        -- [in]
+            timestampIn => tsTrigDaqData.timestamp,      -- [in]
+            dataIn      => tsTrigDaqData.amplitudes(i),  -- [in]
+            aligned     => aligned(i),                   -- [out]
+            dataOut     => delayedAmplitudes(i));        -- [out]
 
 
       -- Buffer delayed data in fifos upon each ROR
@@ -150,13 +150,13 @@ begin
          DATA_WIDTH_G  => 12,
          MEMORY_TYPE_G => "block")
       port map (
-         fcClk185    => fcClk185,               -- [in]
-         fcRst185    => fcRst185,               -- [in]
-         fcBus       => fcBus,                  -- [in]
-         timestampIn => tsTrigTimestamp,        -- [in]
-         dataIn      => tsTrigHits,    -- [in]
-         aligned     => aligned(12),            -- [out]
-         dataOut     => delayedHits);  -- [out]
+         fcClk185    => fcClk185,                 -- [in]
+         fcRst185    => fcRst185,                 -- [in]
+         fcBus       => fcBus,                    -- [in]
+         timestampIn => tsTrigDaqData.timestamp,  -- [in]
+         dataIn      => tsTrigDaqData.hits,       -- [in]
+         aligned     => aligned(12),              -- [out]
+         dataOut     => delayedHits);             -- [out]
 
 
    -- Buffer delayed data in fifos upon each ROR
