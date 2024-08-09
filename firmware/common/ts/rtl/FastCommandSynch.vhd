@@ -28,9 +28,10 @@ architecture Behavioral of FastCommandSynch is
 
   signal command_buffer : STD_LOGIC_VECTOR (3 downto 0) := (others => '0');
 
-  signal readReg  : slv32Array(0 downto 0) := (others => (others => '0'));
+  signal readReg  : slv32Array(0 downto 0) := (others => x"0000_0000");
   -- (0) count of command seen
-  signal writeReg : Slv32Array(2 downto 0) := (others => (others => '0'));
+  constant INI_WRITE_REG_C : slv32Array(1 downto 0) := (others => x"0000_0000");
+  signal writeReg : Slv32Array(1 downto 0) := (others => x"0000_0000");
   -- (0) command configuration
   -- (1) delay (not implemented)
   -- (2) prescale (not implemented)
