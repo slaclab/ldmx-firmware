@@ -43,93 +43,71 @@ entity zCCM_kria is
       BUILD_INFO_G : BuildInfoType);
     Port (
           -- clock pins to RMs
-          MCLK_BUF_SEL    : out    STD_LOGIC;
-          MCLK_REF_P      : in  STD_LOGIC ;
-          MCLK_REF_N      : in  STD_LOGIC ;
-          MCLK_FROM_SOC_P : out    STD_LOGIC;
-          MCLK_FROM_SOC_N : out    STD_LOGIC;
-          BCR_FROM_SOC_P  : out    STD_LOGIC;
-          BCR_FROM_SOC_N  : out    STD_LOGIC;
-          LED_FROM_SOC_P  : out    STD_LOGIC;
-          LED_FROM_SOC_N  : out    STD_LOGIC;
+          MCLK_BUF_SEL    : out    sl;
+          MCLK_REF_P      : in     sl;
+          MCLK_REF_N      : in     sl;
+          MCLK_FROM_SOC_P : out    sl;
+          MCLK_FROM_SOC_N : out    sl;
+          BCR_FROM_SOC_P  : out    sl;
+          BCR_FROM_SOC_N  : out    sl;
+          LED_FROM_SOC_P  : out    sl;
+          LED_FROM_SOC_N  : out    sl;
           
           -- clock pins to ASICs
-          BEAMCLK_P               : out    STD_LOGIC;
-          BEAMCLK_N               : out    STD_LOGIC;
-          CLKGEN_MGTCLK_AC_P      : in  STD_LOGIC;  -- for FC RX 
-          CLKGEN_MGTCLK_AC_N      : in  STD_LOGIC;  -- for FC RX
-          CLKGEN_CLK0_TO_SOC_AC_P : in  STD_LOGIC;
-          CLKGEN_CLK0_TO_SOC_AC_N : in  STD_LOGIC; 
-          CLKGEN_CLK1_TO_SOC_AC_P : in  STD_LOGIC;
-          CLKGEN_CLK1_TO_SOC_AC_N : in  STD_LOGIC;
-          SOC_CLKREF_TO_CLKGEN_P  : out    STD_LOGIC;
-          SOC_CLKREF_TO_CLKGEN_N  : out    STD_LOGIC;
-          MGTREFCLK1_AC_P         : in  STD_LOGIC; -- for FC TX
-          MGTREFCLK1_AC_N         : in  STD_LOGIC; -- for FC TX
-          SYNTH_TO_SOC_AC_P       : in STD_LOGIC;
-          SYNTH_TO_SOC_AC_N       : in STD_LOGIC;
+          BEAMCLK_P               : out sl;
+          BEAMCLK_N               : out sl;
+          CLKGEN_MGTCLK_AC_P      : in  sl;  -- for FC RX 
+          CLKGEN_MGTCLK_AC_N      : in  sl;  -- for FC RX
+          CLKGEN_CLK0_TO_SOC_AC_P : in  sl;
+          CLKGEN_CLK0_TO_SOC_AC_N : in  sl; 
+          SOC_CLKREF_TO_CLKGEN_P  : out sl;
+          SOC_CLKREF_TO_CLKGEN_N  : out sl;
+          MGTREFCLK1_AC_P         : in  sl; -- for FC TX
+          MGTREFCLK1_AC_N         : in  sl; -- for FC TX
+          SYNTH_TO_SOC_AC_P       : in  sl;
+          SYNTH_TO_SOC_AC_N       : in  sl;
 
           -- clock ASIC control
-          Synth_Control  : in Clock_Control;
-          Jitter_Control : in Clock_Control; 
+          Synth_Control_INTR      : in  sl;
+          Synth_Control_LOS_XAXB  : in  sl;
+          Synth_Control_LOL       : in  sl;
+          Synth_Control_RST       : out sl;
+          Jitter_Control_INTR     : in  sl;
+          Jitter_Control_LOS_XAXB : in  sl;
+          Jitter_Control_LOL      : in  sl;
+          Jitter_Control_RST      : out sl;
+          
+          Synth_i2c_SCL  : inout sl;
+          Synth_i2c_SDA  : inout sl;   
+          Jitter_i2c_SCL  : inout sl;
+          Jitter_i2c_SDA  : inout sl;  
 
-          Synth_Control_out  : out Clock_Control_Out;
-          Jitter_Control_out : out Clock_Control_Out; 
-          
-          Synth_i2c  : inout I2C_Signals;
-          Jitter_i2c  : inout I2C_Signals;
-          
           -- RM control signals 
-          RM0_control    : in RM_Control;          
-          RM1_control    : in RM_Control;          
-          RM2_control    : in RM_Control;          
-          RM3_control    : in RM_Control;          
-          RM4_control    : in RM_Control;          
-          RM5_control    : in RM_Control;
-
-          RM0_control_out    : out RM_Control_Out;          
-          RM1_control_out    : out RM_Control_Out;          
-          RM2_control_out    : out RM_Control_Out;          
-          RM3_control_out    : out RM_Control_Out;          
-          RM4_control_out    : out RM_Control_Out;          
-          RM5_control_out    : out RM_Control_Out;
-          
-          RM0_i2c : inout I2C_Signals;
-          RM1_i2c : inout I2C_Signals;
-          RM2_i2c : inout I2C_Signals;
-          RM3_i2c : inout I2C_Signals;
-          RM4_i2c : inout I2C_Signals;
-          RM5_i2c : inout I2C_Signals;
+          RM_control_PGOOD    : in  slv(5 downto 0);
+          RM_control_PEN      : out slv(5 downto 0);
+          RM_control_RESET    : out slv(5 downto 0);       
+        
+          RM_i2c_SDA : inout slv(5 downto 0);
+          RM_i2c_SCL : inout slv(5 downto 0);
           
           -- SFP data and control signals
-          SFP0           : in SFP_Data;
-          SFP0_control   : in SFP_Control;                             
-          SFP1           : in SFP_Data;          
-          SFP1_control   : in SFP_Control;                   
-          SFP2           : in SFP_Data;          
-          SFP2_control   : in SFP_Control;                   
-          SFP3           : in SFP_Data;
-          SFP3_control   : in SFP_Control;        
+          SFP_MGT_RX_P         : in  slv(3 downto 0);
+          SFP_MGT_RX_N         : in  slv(3 downto 0);   
+          SFP_MGT_TX_P         : out slv(3 downto 0);
+          SFP_MGT_TX_N         : out slv(3 downto 0);   
+          SFP_control_RX_LOS   : in  slv(3 downto 0);
+          SFP_control_TX_FAULT : in  slv(3 downto 0);
+          SFP_control_MOD_ABS  : in  slv(3 downto 0);
+          SFP_control_TX_DIS   : out slv(3 downto 0);
 
-          SFP0_out           : out SFP_Data_Out;
-          SFP0_control_out   : out SFP_Control_Out;                             
-          SFP1_out           : out SFP_Data_Out;          
-          SFP1_control_out   : out SFP_Control_Out;                   
-          SFP2_out           : out SFP_Data_Out;          
-          SFP2_control_out   : out SFP_Control_Out;                   
-          SFP3_out           : out SFP_Data_Out;
-          SFP3_control_out   : out SFP_Control_Out;        
-
-          SFP0_i2c : inout I2C_Signals;
-          SFP1_i2c : inout I2C_Signals;
-          SFP2_i2c : inout I2C_Signals;
-          SFP3_i2c : inout I2C_Signals;
+          SFP_i2c_SCL : inout slv(3 downto 0);
+          SFP_i2c_SDA : inout slv(3 downto 0)
 
           -- PMU Ports
-          fanEnableL : out   sl;
+          --fanEnableL : out   sl;
           -- SYSMON Ports
-          vPIn       : in    sl;
-          vNIn       : in    sl
+          --vPIn       : in    sl;
+          --vNIn       : in    sl
           );
 end zCCM_kria;
 
@@ -153,6 +131,10 @@ end zCCM_kria;
    signal pulse_LED_rtl : sl := '0' ;
    signal MCLK          : sl := '0' ;
    signal MCLK37 : sl;
+
+   signal fanEnableL : sl := '0';
+   signal vPIn : sl := '0';
+   signal vNIn : sl := '0';
    
 begin
 
@@ -199,50 +181,79 @@ begin
       generic map (
          TPD_G            => TPD_G,
          SIMULATION_G => SIMULATION_G,
-         AXIL_CLK_FREQ_G  => 100.0E+6, -- 100MHz
+         AXIL_CLK_FREQ_G  => 100.0E+6, -- half the LCLS frequency
          AXIL_BASE_ADDR_G => APP_ADDR_OFFSET_C)
       port map (
         -- i2c
-        RM0_i2c           => RM0_i2c,
-        RM1_i2c           => RM1_i2c,
-        RM2_i2c           => RM2_i2c,
-        RM3_i2c           => RM3_i2c,
-        Synth_i2c         => Synth_i2c,
-        Jitter_i2c        => Jitter_i2c,
-        SFP0_i2c          => SFP0_i2c,
-        SFP1_i2c          => SFP1_i2c,
-        SFP2_i2c          => SFP2_i2c,
-        SFP3_i2c          => SFP3_i2c,
+        RM0_i2c.SCL           => RM_i2c_SCL(0),
+        RM0_i2c.SDA           => RM_i2c_SDA(0),       
+        RM1_i2c.SCL           => RM_i2c_SCL(1),
+        RM1_i2c.SDA           => RM_i2c_SDA(1),
+        RM2_i2c.SCL           => RM_i2c_SCL(2),
+        RM2_i2c.SDA           => RM_i2c_SDA(2),
+        RM3_i2c.SCL           => RM_i2c_SCL(3),
+        RM3_i2c.SDA           => RM_i2c_SDA(3),
+        Synth_i2c.SCL         => Synth_i2c_SCL,
+        Synth_i2c.SDA         => Synth_i2c_SDA, 
+        Jitter_i2c.SCL        => Jitter_i2c_SCL,
+        Jitter_i2C.SDA        => Jitter_i2c_SDA,
+        SFP0_i2c.SCL          => SFP_i2c_SCL(0),
+        SFP0_i2c.SDA          => SFP_i2c_SDA(0),
+        SFP1_i2c.SCL          => SFP_i2c_SCL(1),
+        SFP1_i2c.SDA          => SFP_i2c_SDA(1),
+        SFP2_i2c.SCL          => SFP_i2c_SCL(2),
+        SFP2_i2c.SDA          => SFP_i2c_SDA(2),
+        SFP3_i2c.SCL          => SFP_i2c_SCL(3),
+        SFP3_i2c.SDA          => SFP_i2c_SDA(3),
         -- control signals
-        RM0_control       => RM0_control,
-        RM1_control       => RM1_control,
-        RM2_control       => RM2_control,
-        RM3_control       => RM3_control,
-        RM4_control       => RM4_control,
-        RM5_control       => RM5_control,
+        RM0_control.PGOOD     => RM_control_PGOOD(0),
+        RM1_control.PGOOD     => RM_control_PGOOD(1),
+        RM2_control.PGOOD     => RM_control_PGOOD(2),
+        RM3_control.PGOOD     => RM_control_PGOOD(3),
+        RM4_control.PGOOD     => RM_control_PGOOD(4),
+        RM5_control.PGOOD     => RM_control_PGOOD(5),
         
-        RM0_control_out   => RM0_control_out,
-        RM1_control_out   => RM1_control_out,
-        RM2_control_out   => RM2_control_out,
-        RM3_control_out   => RM3_control_out,
-        RM4_control_out   => RM4_control_out,
-        RM5_control_out   => RM5_control_out,
+        RM0_control_out.PEN   => RM_control_PEN(0),
+        RM0_control_out.RESET => RM_control_RESET(0),
+        RM1_control_out.PEN   => RM_control_PEN(1),
+        RM1_control_out.RESET => RM_control_RESET(1),
+        RM2_control_out.PEN   => RM_control_PEN(2),
+        RM2_control_out.RESET => RM_control_RESET(2),
+        RM3_control_out.PEN   => RM_control_PEN(3),
+        RM3_control_out.RESET => RM_control_RESET(3),
+        RM4_control_out.PEN   => RM_control_PEN(4),
+        RM4_control_out.RESET => RM_control_RESET(4),
+        RM5_control_out.PEN   => RM_control_PEN(5),
+        RM5_control_out.RESET => RM_control_RESET(5),
 
-        SFP0_control       => SFP0_control,
-        SFP1_control       => SFP1_control,
-        SFP2_control       => SFP2_control,
-        SFP3_control       => SFP3_control,
+        SFP0_control.RX_LOS   => SFP_control_RX_LOS(0),
+        SFP0_control.TX_FAULT   => SFP_control_TX_FAULT(0),
+        SFP0_control.MOD_ABS   => SFP_control_MOD_ABS(0),
+        SFP1_control.RX_LOS   => SFP_control_RX_LOS(1),
+        SFP1_control.TX_FAULT   => SFP_control_TX_FAULT(1),
+        SFP1_control.MOD_ABS   => SFP_control_MOD_ABS(1),
+        SFP2_control.RX_LOS   => SFP_control_RX_LOS(2),
+        SFP2_control.TX_FAULT   => SFP_control_TX_FAULT(2),
+        SFP2_control.MOD_ABS   => SFP_control_MOD_ABS(2),
+        SFP3_control.RX_LOS   => SFP_control_RX_LOS(3),
+        SFP3_control.TX_FAULT   => SFP_control_TX_FAULT(3),
+        SFP3_control.MOD_ABS   => SFP_control_MOD_ABS(3),
 
-        SFP0_control_out   => SFP0_control_out,
-        SFP1_control_out   => SFP1_control_out,
-        SFP2_control_out   => SFP2_control_out,
-        SFP3_control_out   => SFP3_control_out,
+        SFP0_control_out.TX_DIS=> SFP_control_TX_DIS(0),
+        SFP1_control_out.TX_DIS=> SFP_control_TX_DIS(1),
+        SFP2_control_out.TX_DIS=> SFP_control_TX_DIS(2),
+        SFP3_control_out.TX_DIS=> SFP_control_TX_DIS(3),
 
-        Synth_control      => Synth_Control,
-        Jitter_control     => Jitter_control,
-        
-        Synth_control_out  => Synth_Control_out,
-        Jitter_control_out => Jitter_Control_out,
+        Synth_control.INTR      => Synth_Control_INTR,
+        Synth_control.LOS_XAXB  => Synth_Control_LOS_XAXB,
+        Synth_control.LOL       => Synth_Control_LOL,
+
+        Jitter_control.INTR      => Jitter_Control_INTR,
+        Jitter_control.LOS_XAXB  => Jitter_Control_LOS_XAXB,
+        Jitter_control.LOL       => Jitter_Control_LOL,
+
+        Synth_control_out.RST   => Synth_Control_RST,           
+        Jitter_control_out.RST   => Jitter_Control_RST,           
 
         -- Clocks
         appClk            => axilClk,
@@ -258,10 +269,10 @@ begin
         pulse_LED_rtl     => pulse_LED_rtl,
 
         -- SFP signals
-        fcRxP    => SFP0.MGT_RX_P,
-        fcRxN    => SFP0.MGT_RX_N,
-        fcTxP    => SFP0_out.MGT_TX_P,
-        fcTxN    => SFP0_out.MGT_TX_N,
+        fcRxP    => SFP_MGT_RX_P(0),
+        fcRxN    => SFP_MGT_RX_N(0),
+        fcTxP    => SFP_MGT_TX_P(0),
+        fcTxN    => SFP_MGT_TX_N(0),
 
         -- AXI-Lite Interface (axilClk domain)
         axilClk           => axilClk,
