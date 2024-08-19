@@ -177,84 +177,24 @@ set_property IOSTANDARD DIFF_HSTL_I_18 [get_ports SYNTH_TO_SOC_AC_*]
 #set_property PACKAGE_PIN AF11 [get_ports "PL_STAT_LED3"];
 #set_property IOSTANDARD LVCMOS33 [get_ports "PL_STAT_LED*"];
 
-#create_generated_clock -name dmaClk [get_pins U_Core/REAL_CPU.U_CPU/U_Pll/PllGen.U_Pll/CLKOUT0]
-#create_generated_clock -name axilClk [get_pins U_Core/REAL_CPU.U_CPU/U_Pll/PllGen.U_Pll/CLKOUT1]
 
-#create_clock -period 5.384 -name appFcRefClk [get_ports {CLKGEN_MGTCLK_AC_P}]
+create_generated_clock -name dmaClk [get_pins {U_Core/REAL_CPU.U_CPU/U_Pll/PllGen.U_Pll/CLKOUT0}]
+create_generated_clock -name axilClk [get_pins {U_Core/REAL_CPU.U_CPU/U_Pll/PllGen.U_Pll/CLKOUT1}]
 
-#create_clock -name appFcRxOutClk -period 5.384 [get_pins -hier * -filter {name="*/U_FcReceiver_1/*/RXOUTCLK"}]
-#create_generated_clock -name appFcRxOutClkMmcm -source [get_pins -hier * -filter {name="*/U_FcReceiver_1/*/RXOUTCLK"}] -divide_by 1 [get_pins  U_App/U_FcReceiver_1/U_LdmxPgpFcLane_1/RX_CLK_MMCM_GEN.U_ClockManager/MmcmGen.U_Mmcm/CLKOUT0 ]
-#create_generated_clock -name appFcRxOutClkMmcm37 -source [get_pins {U_App/U_FcReceiver_1/U_LdmxPgpFcLane_1/RX_CLK_MMCM_GEN.U_ClockManager/MmcmGen.U_Mmcm/CLKOUT0}] -divide_by 1 [get_pins {U_App/U_FcReceiver_1/U_FcRxLogic_1/r_reg[fcBunchClk37]/Q}]
+create_clock -name appFcRefClk -period 5.384 [get_ports CLKGEN_MGTCLK_AC_P]
 
-#create_generated_clock -name appFcTxOutClkPcs [get_pins -hier * -filter {name="*/U_FcReceiver_1/*/TXOUTCLKPCS"}]
-#create_generated_clock -name appFcTxOutClk [get_pins -hier * -filter {name="*/U_FcReceiver_1/*/TXOUTCLK"}]
+create_clock -name appFcRxOutClk -period 5.384 [get_pins -hier * -filter {name=~*/U_FcReceiver_1/*/RXOUTCLK}]
+create_generated_clock -name appFcRxOutClkMmcm [get_pins  U_App/U_FcReceiver_1/U_LdmxPgpFcLane_1/RX_CLK_MMCM_GEN.U_ClockManager/MmcmGen.U_Mmcm/CLKOUT0 ]
+
+create_generated_clock -name appFcTxOutClkPcs [get_pins -hier * -filter {name=~*/U_FcReceiver_1/*/TXOUTCLKPCS}]
+create_generated_clock -name appFcTxOutClk [get_pins -hier * -filter {name=~*/U_FcReceiver_1/*/TXOUTCLK}]
 
 
-#set_clock_groups -asynchronous -group [get_clocks_ren dmaClk] -group [get_clocks_ren axilClk]
+set_clock_groups -asynchronous \
+    -group [get_clocks dmaClk] \
+    -group [get_clocks axilClk]
 
-set_clock_groups -asynchronous -group [get_clocks_ren appFcRxOutClk -include_generated_clocks] -group [get_clocks_ren appFcRefClk -include_generated_clocks] -group [get_clocks_ren dmaClk] -group [get_clocks_ren axilClk]
-#set_clock_groups -asynchronous -group [get_clocks appFcRefClk -include_generated_clocks] -group [get_clocks axilClk]
-
-# create_pblock pblock_rm4_mon  
-# add_cells_to_pblock [get_pblocks pblock_rm4_mon] [get_cells -quiet [list U_App/rm4_mon]]  
-# resize_pblock [get_pblocks pblock_rm4_mon] -add {SLICE_X18Y54:SLICE_X19Y56}  
-# create_pblock pblock_rm0_mon  
-# add_cells_to_pblock [get_pblocks pblock_rm0_mon] [get_cells -quiet [list U_App/rm0_mon]]  
-# resize_pblock [get_pblocks pblock_rm0_mon] -add {SLICE_X24Y64:SLICE_X25Y66}  
-# create_pblock pblock_jitter_mon  
-# add_cells_to_pblock [get_pblocks pblock_jitter_mon] [get_cells -quiet [list U_App/jitter_mon]]  
-# resize_pblock [get_pblocks pblock_jitter_mon] -add {SLICE_X32Y31:SLICE_X33Y34}  
-# create_pblock pblock_rm1_mon  
-# add_cells_to_pblock [get_pblocks pblock_rm1_mon] [get_cells -quiet [list U_App/rm1_mon]]  
-# resize_pblock [get_pblocks pblock_rm1_mon] -add {SLICE_X22Y57:SLICE_X23Y59}  
-# create_pblock pblock_rm2_mon  
-# add_cells_to_pblock [get_pblocks pblock_rm2_mon] [get_cells -quiet [list U_App/rm2_mon]]  
-# resize_pblock [get_pblocks pblock_rm2_mon] -add {SLICE_X28Y30:SLICE_X29Y32}  
-# create_pblock pblock_rm3_mon  
-# add_cells_to_pblock [get_pblocks pblock_rm3_mon] [get_cells -quiet [list U_App/rm3_mon]]  
-# resize_pblock [get_pblocks pblock_rm3_mon] -add {SLICE_X30Y38:SLICE_X31Y40}  
-# create_pblock pblock_rm5_mon  
-# add_cells_to_pblock [get_pblocks pblock_rm5_mon] [get_cells -quiet [list U_App/rm5_mon]]  
-# resize_pblock [get_pblocks pblock_rm5_mon] -add {SLICE_X26Y61:SLICE_X27Y63}  
-# create_pblock pblock_synch_bcr  
-# add_cells_to_pblock [get_pblocks pblock_synch_bcr] [get_cells -quiet [list U_App/synch_bcr]]  
-# resize_pblock [get_pblocks pblock_synch_bcr] -add {SLICE_X30Y33:SLICE_X31Y36}  
-# create_pblock pblock_synch_led  
-# add_cells_to_pblock [get_pblocks pblock_synch_led] [get_cells -quiet [list U_App/synch_led]]  
-# resize_pblock [get_pblocks pblock_synch_led] -add {SLICE_X28Y63:SLICE_X29Y67}  
-# create_pblock pblock_synth_mon  
-# add_cells_to_pblock [get_pblocks pblock_synth_mon] [get_cells -quiet [list U_App/synth_mon]]  
-# resize_pblock [get_pblocks pblock_synth_mon] -add {SLICE_X32Y36:SLICE_X33Y39}  
-# create_pblock pblock_U_AxI2cRgMstr_RM1  
-# add_cells_to_pblock [get_pblocks pblock_U_AxI2cRgMstr_RM1] [get_cells -quiet [list U_App/U_AxiI2cRegMaster_RM1]]  
-# resize_pblock [get_pblocks pblock_U_AxI2cRgMstr_RM1] -add {SLICE_X24Y68:SLICE_X37Y71}  
-# create_pblock pblock_U_AxI2cRgMstr_Synth  
-# add_cells_to_pblock [get_pblocks pblock_U_AxI2cRgMstr_Synth] [get_cells -quiet [list U_App/U_AxiI2cRegMaster_Synth]]  
-# resize_pblock [get_pblocks pblock_U_AxI2cRgMstr_Synth] -add {SLICE_X16Y41:SLICE_X21Y50}  
-# create_pblock pblock_SFP1_mon  
-# add_cells_to_pblock [get_pblocks pblock_SFP1_mon] [get_cells -quiet [list U_App/SFP1_mon]]  
-# resize_pblock [get_pblocks pblock_SFP1_mon] -add {SLICE_X22Y52:SLICE_X23Y56}  
-# create_pblock pblock_SFP0_mon  
-# add_cells_to_pblock [get_pblocks pblock_SFP0_mon] [get_cells -quiet [list U_App/SFP0_mon]]  
-# resize_pblock [get_pblocks pblock_SFP0_mon] -add {SLICE_X22Y61:SLICE_X25Y63}  
-# create_pblock pblock_SFP2_mon  
-# add_cells_to_pblock [get_pblocks pblock_SFP2_mon] [get_cells -quiet [list U_App/SFP2_mon]]  
-# resize_pblock [get_pblocks pblock_SFP2_mon] -add {SLICE_X30Y27:SLICE_X33Y29}  
-# create_pblock pblock_SFP3_mon  
-# add_cells_to_pblock [get_pblocks pblock_SFP3_mon] [get_cells -quiet [list U_App/SFP3_mon]]  
-# resize_pblock [get_pblocks pblock_SFP3_mon] -add {SLICE_X24Y43:SLICE_X25Y47}  
-# create_pblock pblock_U_AxI2cRgMstr_Jtr  
-# add_cells_to_pblock [get_pblocks pblock_U_AxI2cRgMstr_Jtr] [get_cells -quiet [list U_App/U_AxiI2cRegMaster_Jitter]]  
-# resize_pblock [get_pblocks pblock_U_AxI2cRgMstr_Jtr] -add {SLICE_X28Y41:SLICE_X35Y47}  
-# create_pblock pblock_U_AxI2cRgMstr_RM0  
-# add_cells_to_pblock [get_pblocks pblock_U_AxI2cRgMstr_RM0] [get_cells -quiet [list U_App/U_AxiI2cRegMaster_RM0]]  
-# resize_pblock [get_pblocks pblock_U_AxI2cRgMstr_RM0] -add {SLICE_X30Y61:SLICE_X39Y66}  
-# create_pblock pblock_U_AxI2cRgMstr_RM2  
-# add_cells_to_pblock [get_pblocks pblock_U_AxI2cRgMstr_RM2] [get_cells -quiet [list U_App/U_AxiI2cRegMaster_RM2]]  
-# resize_pblock [get_pblocks pblock_U_AxI2cRgMstr_RM2] -add {SLICE_X24Y29:SLICE_X27Y42}  
-# create_pblock pblock_U_AxI2cRgMstr_RM3  
-# add_cells_to_pblock [get_pblocks pblock_U_AxI2cRgMstr_RM3] [get_cells -quiet [list U_App/U_AxiI2cRegMaster_RM3]]  
-# resize_pblock [get_pblocks pblock_U_AxI2cRgMstr_RM3] -add {SLICE_X38Y47:SLICE_X41Y60}  
-# create_pblock pblock_MainAxiCrossbar  
-# add_cells_to_pblock [get_pblocks pblock_MainAxiCrossbar] [get_cells -quiet [list U_App/MainAxiCrossbar]]  
-# resize_pblock [get_pblocks pblock_MainAxiCrossbar] -add {SLICE_X24Y49:SLICE_X37Y60}  
+set_clock_groups -asynchronous \
+    -group [get_clocks appFcRxOutClkMmcm] \
+    -group [get_clocks appFcRefClk -include_generated_clocks] \    
+    -group [get_clocks axilClk]
