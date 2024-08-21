@@ -317,6 +317,15 @@ begin
 
    end generate GEN_MON;
 
+   U_RstSync_Rx : entity surf.RstSync
+      generic map (
+         TPD_G         => TPD_G,
+         IN_POLARITY_G => '0')
+      port map (
+         clk      => pgpRxUsrClk,       -- [in]
+         asyncRst => pgpRxResetDone,    -- [in]
+         syncRst  => pgpRxRst);         -- [out]
+
    pgpRxRstOut <= pgpRxRst;
 
 end rtl;
