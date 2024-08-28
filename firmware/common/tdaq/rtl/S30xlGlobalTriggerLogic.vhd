@@ -67,22 +67,30 @@ end entity S30xlGlobalTriggerLogic;
 architecture rtl of S30xlGlobalTriggerLogic is
 
    type RegType is record
-
+      gtRor : FcTimestampType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-);
+      gtRor => FC_TIMESTAMP_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   signal tsS30xlThresholdTriggerDaq : TsS30xlThresholdTriggerDaqType;
+
 begin
 
    tsS30xlThresholdTriggerDaq <= toThresholdTriggerDaq(tsThresholdTriggerData, triggerTimestamp);
 
-   comb : process () is
+   comb : process (r) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
+      v := r;
+
+      rin <= v;
+
+      gtRor <= r.gtRor;
    end process;
 
 
