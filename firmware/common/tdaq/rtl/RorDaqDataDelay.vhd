@@ -107,14 +107,14 @@ begin
          when INIT_S =>
             v.aligned := '0';
             v.fifoRst := '1';
-            v.state   := WAIT_T0_ID_S;
+            v.state   := WAIT_BC0_ID_S;
 
          when WAIT_BC0_ID_S =>
             if (fcBus.pulseStrobe = '1' and
                 fcBus.stateChanged = '1') then
                if (fcBus.runState = RUN_STATE_BC0_C) then
                   v.bc0Id  := fcBus.pulseID;
-                  v.state := WAIT_T0_DATA_S;
+                  v.state := WAIT_BC0_DATA_S;
                else
                   v.state := INIT_S;
                end if;

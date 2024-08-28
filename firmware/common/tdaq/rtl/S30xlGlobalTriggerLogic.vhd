@@ -32,7 +32,7 @@ library ldmx_ts;
 use ldmx_ts.TsPkg.all;
 
 
-entity S30xlGlobalTrigger is
+entity S30xlGlobalTriggerLogic is
 
    generic (
       TPD_G      : time    := 1 ns;
@@ -62,9 +62,9 @@ entity S30xlGlobalTrigger is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
-end entity S30xlGlobalTrigger;
+end entity S30xlGlobalTriggerLogic;
 
-architecture rtl of S30xlGlobalTrigger is
+architecture rtl of S30xlGlobalTriggerLogic is
 
    type RegType is record
 
