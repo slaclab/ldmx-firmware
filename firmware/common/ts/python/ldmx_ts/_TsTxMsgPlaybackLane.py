@@ -8,14 +8,14 @@ class TsTxMsgPlaybackLane(pr.Device):
     def __init__(self,  **kwargs):
         super().__init__(**kwargs)
 
-        self.add(pr.RemoteVariable(
-            name = f'RAM',
-            offset = 0,
-            hidden = True,
-            base = pr.UInt,
-            valueBits = 8,
-            valueStride = 8,
-            numValues = 2**12))
+#         self.add(pr.RemoteVariable(
+#             name = f'RAM',
+#             offset = 0,
+#             hidden = True,
+#             base = pr.UInt,
+#             valueBits = 8,
+#             valueStride = 8,
+#             numValues = 2**12))
 
 #         self.add(pr.RemoteVariable(
 #             name = f'RAM_B',
@@ -26,17 +26,27 @@ class TsTxMsgPlaybackLane(pr.Device):
 #             valueStride = 128,
 #             numValues = 2**12))
 
+        for i in range(6):
+            self.add(pr.RemoteVariable(
+                name = f'ADC[{i}]',
+                offset = 0,
+                bitOffset = i*8,                
+                hidden = True,
+                base = pr.UInt,
+                valueBits = 8,
+                valueStride = 128,
+                numValues = 2**8))
 
-
-#         for i in range(4):
-#             self.add(pr.RemoteVariable(
-#                 name = f'TDC[{i}]',
-#                 offset = 5+i,
-#                 hidden = True,
-#                 base = pr.UInt,
-#                 valueBits = 6,
-#                 valueStride = 128,
-#                 numValues = 4))
+        for i in range(6):
+            self.add(pr.RemoteVariable(
+                name = f'TDC[{i}]',
+                offset = 0,
+                bitOffset = 64 + (i*8),
+                hidden = True,
+                base = pr.UInt,
+                valueBits = 6,
+                valueStride = 128,
+                numValues = 2**8))
 
 #         self.add(pr.RemoteVariable(
 #             name = 'TxEnable',
@@ -68,15 +78,20 @@ class TsTxMsgPlaybackLane(pr.Device):
             tdcs = tdcs.astype(np.uint8)
 
             value = 0
-            for i in range(len(tdcs)):
-                for j in range(6):
-                    print(f'Set adc value {adcs[i, j]:x} at index {i*16+j:x}')
-                    self.RAM.set(value = int(adcs[i, j]), index=i*16+j, write=False)
-                for j in range(6):
-                    print(f'Set adc value {adcs[i, j]:x} at index {i*16+(j+6):x}')
-                    self.RAM.set(value = int(tdcs[i, j]), index=i*16+(6+j), write=False)
-                for j in range(12, 16):
-                    self.RAM.set(value = 0, index=i*16+j, write=False)
+            for sample in range(len(tdcs)):
+                for channel in range(6):
+                    #print(f'Set adc value {adcs[sample, channel]:x} at index {sample*16+channel:x}')
+                    #self.RAM.set(value = int(adcs[sample, channel]), index=sample*16+channel, write=False)
+                    print(f'Set adc value {adcs[sample, channel]:x} at index ADC[{channel}][{sample}]')
+                    self.ADC[channel].set(int(adcs[sample, channel]), index=sample, write=False)
+                for channel in range(6):
+#                     print(f'Set tdc value {tdcs[sample, channel]:x} at index {sample*16+(channel+6):x}')
+#                     self.RAM.set(value = int(tdcs[sample, channel]), index=sample*16+(6+channel), write=False)
+                    print(f'Set tdc value {tdcs[sample, channel]:x} at index TDC[{channel}][{sample}]')
+                    self.TDC[channel].set(int(tdcs[sample, channel])&0x3f, index=sample, write=False)
+                    
+#                 for channel in range(12, 16):
+#                     self.RAM.set(value = 0, index=sample*16+channel, write=False)
 
             self.writeBlocks()
             self.verifyBlocks()
