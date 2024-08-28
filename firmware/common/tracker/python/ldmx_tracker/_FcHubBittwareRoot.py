@@ -27,9 +27,10 @@ class FcHubBittwareRoot(pr.Root):
     def __init__(
             self,
             dev = '/dev/datadev_0',
-            sim = True,
+            sim = False,
             prbsEn = False,
             numPgpQuads = 1,
+            numLanes = 1,
             numVc = 4,
             **kwargs):
         if sim:

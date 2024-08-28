@@ -16,7 +16,7 @@ rogue.Logging.setFilter('pyrogue.SrpV3', rogue.Logging.Debug)
 parser = ldmx_tracker.FcHubArgParser()
 args = parser.parse_args()
 
-with ldmx_tracker.FcHubBittwareRoot(pollEn=False) as root:
+with ldmx_tracker.FcHubBittwareRoot(**vars(args)) as root:
     pyrogue.pydm.runPyDM(
         serverList = root.zmqServer.address,
         title='FcHubBittware')
