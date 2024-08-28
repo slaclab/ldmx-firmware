@@ -182,7 +182,7 @@ begin
 
 
    -- Buffer ROR timestamps
-   rorTimestampFifoInSlv <= toSlv(tsTrigTimestamp);
+   rorTimestampFifoInSlv <= toSlv( tsTrigDaqData.timestamp);
    ROR_TIMESTAMP_FIFO : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,

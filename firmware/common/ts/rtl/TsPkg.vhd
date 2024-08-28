@@ -25,6 +25,7 @@ use surf.StdRtlPkg.all;
 
 library ldmx_tdaq;
 use ldmx_tdaq.TriggerPkg.all;
+use ldmx_tdaq.FcPkg.all;
 
 package TsPkg is
 
@@ -96,7 +97,7 @@ package TsPkg is
       timestamp  : FcTimestampType;
       hits       : slv(11 downto 0);
       amplitudes : slv17Array(11 downto 0);
-   end record TsS30xlThresholdTriggerOutType;
+   end record TsS30xlThresholdTriggerDaqType;
 
    constant TS_S30XL_THRESHOLD_TRIGGER_DAQ_INIT_C : TsS30xlThresholdTriggerDaqType := (
       valid      => '0',
@@ -107,7 +108,7 @@ package TsPkg is
 
    function toTriggerData (daqData : TsS30xlThresholdTriggerDaqType) return TriggerDataType;
 
-   function toThresholdTriggerDaq (triggerData : TriggerDataType) return TsS30xlThresholdTriggerDaqType;
+   function toThresholdTriggerDaq (triggerData : TriggerDataType; timestamp : FcTimestampType := FC_TIMESTAMP_INIT_C) return TsS30xlThresholdTriggerDaqType;
 
 
 end package TsPkg;
@@ -214,19 +215,19 @@ package body TsPkg is
    function toTriggerData (daqData : TsS30xlThresholdTriggerDaqType) return TriggerDataType is
       variable ret : TriggerDataType := TRIGGER_DATA_INIT_C;
    begin
-      ret.valid             <= daqData.valid;
-      ret.bc0               <= daqData.bc0;
-      ret.data(11 downto 0) <= daqData.channelHits;
-      return ret;;
+      ret.valid             := daqData.valid;
+      ret.bc0               := daqData.bc0;
+      ret.data(11 downto 0) := daqData.hits;
+      return ret;
    end function toTriggerData;
 
-   function toThresholdTriggerDaq (triggerData : TriggerDataType; timestamp : FcTimestampType:= FC_TIMESTAMP_INIT_C) return TsS30xlThresholdTriggerDaqType is
+   function toThresholdTriggerDaq (triggerData : TriggerDataType; timestamp : FcTimestampType := FC_TIMESTAMP_INIT_C) return TsS30xlThresholdTriggerDaqType is
       variable ret : TsS30xlThresholdTriggerDaqType := TS_S30XL_THRESHOLD_TRIGGER_DAQ_INIT_C;
    begin
-      ret.valid <= triggerData.valid;
-      ret.bc0 <= triggerData.bc0;
-      ret.timestamp <= timestamp;
-      ret.hits <= triggerData.data(11 downto 0);
+      ret.valid     := triggerData.valid;
+      ret.bc0       := triggerData.bc0;
+      ret.timestamp := timestamp;
+      ret.hits      := triggerData.data(11 downto 0);
       return ret;
    end function toThresholdTriggerDaq;
 

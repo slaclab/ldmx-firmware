@@ -195,7 +195,7 @@ begin
 --             end if;
 --       end case;
 
-      if (fcBus.pulseStrobe = '1' and fcBus.stateChanged = '1' and fcBus.runState = RUN_STATE_CLOCK_ALIGN_C) then
+      if (fcBus.pulseStrobe = '1' and fcBus.stateChanged = '1' and fcBus.runState = RUN_STATE_BC0_C) then
          v.tsMsg.bc0 := '1';
       end if;
 

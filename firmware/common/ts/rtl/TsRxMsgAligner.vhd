@@ -83,7 +83,7 @@ architecture rtl of TsRxMsgAligner is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state               => WAIT_CLOCK_ALIGN_S,
+      state               => WAIT_BC0_STATE_S,
       tsMsgFifoRdEn       => (others => '0'),
       timestampFifoRdEn   => '0',
       timestampFifoWrEn   => '0',
@@ -233,7 +233,7 @@ begin
 
             -- Reset alignment when run state goes to reset
             if (fcBus.runState = RUN_STATE_RESET_C) then
-               v.state := WAIT_CLOCK_ALIGN_S;
+               v.state := WAIT_BC0_STATE_S;
             end if;
 
 

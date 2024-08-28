@@ -25,9 +25,11 @@ use surf.StdRtlPkg.all;
 
 library ldmx_tdaq;
 use ldmx_tdaq.FcPkg.all;
+use ldmx_tdaq.TriggerPkg.all;
 
 library ldmx_ts;
 use ldmx_ts.TsPkg.all;
+
 
 
 entity TsS30xlThresholdTriggerWrapper is
@@ -39,7 +41,7 @@ entity TsS30xlThresholdTriggerWrapper is
       fcRst185  : in  sl;
       fcTsMsg   : in  TsData6ChMsgArray(1 downto 0);
       fcMsgTime : in  FcTimestampType;
-      daqData   : out TsS30xlThresholdTriggerDaqType,
+      daqData   : out TsS30xlThresholdTriggerDaqType;
       gtData    : out TriggerDataType);
 
 end entity TsS30xlThresholdTriggerWrapper;

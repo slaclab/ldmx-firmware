@@ -27,6 +27,7 @@ use surf.AxiStreamPkg.all;
 
 library ldmx_tdaq;
 use ldmx_tdaq.FcPkg.all;
+use ldmx_tdaq.TriggerPkg.all;
 
 library ldmx_ts;
 use ldmx_ts.TsPkg.all;
@@ -125,6 +126,8 @@ architecture rtl of S30xlAppCore is
    ----------
    signal fcTsRxMsgs : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
    signal fcMsgTime  : FcTimestampType;
+
+   signal tsTrigDaqData : TsS30xlThresholdTriggerDaqType;
 
    ------------------------
    -- Trigger logic outputs
@@ -265,7 +268,7 @@ begin
          fcClk185         => fcClk185,             -- [in]
          fcRst185         => fcRst185,             -- [in]
          fcBus            => fcBus,                -- [in]
-         tsTrigData       => tsTrigData,           -- [in]
+         tsTrigDaqData    => tsTrigDaqData,        -- [in]
          axisClk          => axisClk,              -- [in]
          axisRst          => axisRst,              -- [in]
          tsTrigAxisMaster => tsDaqTrigAxisMaster,  -- [out]
@@ -278,7 +281,7 @@ begin
    -------------------------------------------------------------------------------------------------
    fcClk185Out <= fcClk185;
    fcRst185Out <= fcRst185;
-   
+
 
 end architecture rtl;
 
