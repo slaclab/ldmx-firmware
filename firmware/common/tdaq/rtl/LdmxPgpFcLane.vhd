@@ -107,6 +107,121 @@ architecture rtl of LdmxPgpFcLane is
    signal pgpRxUsrClk     : sl;
    signal pgpRxMmcmLocked : sl;
 
+   -------------------------------------------------------------------------------------------------
+   -- Components
+   -------------------------------------------------------------------------------------------------
+   component Pgp2fcGtyUltra is
+      generic (
+         TPD_G               : time                 := 1 ns;
+         SIMULATION_G        : boolean              := false;
+         -- GT Settings
+         SEL_FABRIC_REFCLK_G : boolean              := false;
+         -- PGP Settings
+         FC_WORDS_G          : integer range 1 to 8 := 1;
+         TX_POLARITY_G       : sl                   := '0';
+         RX_POLARITY_G       : sl                   := '0';
+         AXI_CLK_FREQ_G      : real                 := 125.0e6;
+         AXI_BASE_ADDR_G     : slv(31 downto 0)     := (others => '0');
+         TX_ENABLE_G         : boolean              := true;
+         RX_ENABLE_G         : boolean              := true;
+         PAYLOAD_CNT_TOP_G   : integer              := 7;  -- Top bit for payload counter
+         VC_INTERLEAVE_G     : integer              := 0;  -- Interleave Frames
+         NUM_VC_EN_G         : integer range 1 to 4 := 4);
+      port (
+         stableClk         : in  sl;
+         stableRst         : in  sl;
+         gtRefClk          : in  sl;
+         gtFabricRefClk    : in  sl;
+         gtUserRefClk      : in  sl;
+         rxRecClk          : out sl;
+         pgpGtTxP          : out sl;
+         pgpGtTxN          : out sl;
+         pgpGtRxP          : in  sl;
+         pgpGtRxN          : in  sl;
+         pgpTxReset        : in  sl;
+         pgpTxResetDone    : out sl;
+         pgpTxOutClk       : out sl;
+         pgpTxClk          : in  sl;
+         pgpTxMmcmLocked   : in  sl;
+         pgpRxReset        : in  sl;
+         pgpRxResetDone    : out sl;
+         pgpRxPmaResetDone : out sl;
+         pgpRxOutClk       : out sl;
+         pgpRxClk          : in  sl;
+         pgpRxMmcmLocked   : in  sl;
+         pgpRxIn           : in  Pgp2fcRxInType;
+         pgpRxOut          : out Pgp2fcRxOutType;
+         pgpTxIn           : in  Pgp2fcTxInType;
+         pgpTxOut          : out Pgp2fcTxOutType;
+         pgpTxMasters      : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+         pgpTxSlaves       : out AxiStreamSlaveArray(3 downto 0);
+         pgpRxMasters      : out AxiStreamMasterArray(3 downto 0);
+         pgpRxMasterMuxed  : out AxiStreamMasterType;
+         pgpRxCtrl         : in  AxiStreamCtrlArray(3 downto 0);
+         axilClk           : in  sl                               := '0';
+         axilRst           : in  sl                               := '0';
+         axilReadMaster    : in  AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
+         axilReadSlave     : out AxiLiteReadSlaveType;
+         axilWriteMaster   : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
+         axilWriteSlave    : out AxiLiteWriteSlaveType);
+   end component Pgp2fcGtyUltra;
+
+   component Pgp2fcGthUltra is
+      generic (
+         TPD_G               : time                 := 1 ns;
+         SIMULATION_G        : boolean              := false;
+         -- GT Settings
+         SEL_FABRIC_REFCLK_G : boolean              := false;
+         -- PGP Settings
+         FC_WORDS_G          : integer range 1 to 8 := 1;
+         TX_POLARITY_G       : sl                   := '0';
+         RX_POLARITY_G       : sl                   := '0';
+         AXI_CLK_FREQ_G      : real                 := 125.0e6;
+         AXI_BASE_ADDR_G     : slv(31 downto 0)     := (others => '0');
+         TX_ENABLE_G         : boolean              := true;
+         RX_ENABLE_G         : boolean              := true;
+         PAYLOAD_CNT_TOP_G   : integer              := 7;  -- Top bit for payload counter
+         VC_INTERLEAVE_G     : integer              := 0;  -- Interleave Frames
+         NUM_VC_EN_G         : integer range 1 to 4 := 4);
+      port (
+         stableClk         : in  sl;
+         stableRst         : in  sl;
+         gtRefClk          : in  sl;
+         gtFabricRefClk    : in  sl;
+         gtUserRefClk      : in  sl;
+         rxRecClk          : out sl;
+         pgpGtTxP          : out sl;
+         pgpGtTxN          : out sl;
+         pgpGtRxP          : in  sl;
+         pgpGtRxN          : in  sl;
+         pgpTxReset        : in  sl;
+         pgpTxResetDone    : out sl;
+         pgpTxOutClk       : out sl;
+         pgpTxClk          : in  sl;
+         pgpTxMmcmLocked   : in  sl;
+         pgpRxReset        : in  sl;
+         pgpRxResetDone    : out sl;
+         pgpRxPmaResetDone : out sl;
+         pgpRxOutClk       : out sl;
+         pgpRxClk          : in  sl;
+         pgpRxMmcmLocked   : in  sl;
+         pgpRxIn           : in  Pgp2fcRxInType;
+         pgpRxOut          : out Pgp2fcRxOutType;
+         pgpTxIn           : in  Pgp2fcTxInType;
+         pgpTxOut          : out Pgp2fcTxOutType;
+         pgpTxMasters      : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+         pgpTxSlaves       : out AxiStreamSlaveArray(3 downto 0);
+         pgpRxMasters      : out AxiStreamMasterArray(3 downto 0);
+         pgpRxMasterMuxed  : out AxiStreamMasterType;
+         pgpRxCtrl         : in  AxiStreamCtrlArray(3 downto 0);
+         axilClk           : in  sl                               := '0';
+         axilRst           : in  sl                               := '0';
+         axilReadMaster    : in  AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
+         axilReadSlave     : out AxiLiteReadSlaveType;
+         axilWriteMaster   : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
+         axilWriteSlave    : out AxiLiteWriteSlaveType);
+   end component Pgp2fcGthUltra;
+
 begin
 
 
@@ -136,7 +251,7 @@ begin
    -- PGP Core
    -----------
    GEN_GTY : if (GT_TYPE_G = "GTY") generate
-      U_Pgp : entity surf.Pgp2fcGtyUltra
+      U_Pgp : Pgp2fcGtyUltra
          generic map (
             TPD_G           => TPD_G,
             SIMULATION_G    => SIM_SPEEDUP_G,
@@ -195,7 +310,7 @@ begin
    end generate GEN_GTY;
 
    GEN_GTH : if (GT_TYPE_G = "GTH") generate
-      U_Pgp : entity surf.Pgp2fcGthUltra
+      U_Pgp : Pgp2fcGthUltra
          generic map (
             TPD_G           => TPD_G,
             SIMULATION_G    => SIM_SPEEDUP_G,
@@ -252,7 +367,7 @@ begin
             axilWriteMaster   => axilWriteMasters(GT_INDEX_C),  -- [in]
             axilWriteSlave    => axilWriteSlaves(GT_INDEX_C));  -- [out]
    end generate GEN_GTH;
-   
+
 
    -------------------------------------------------------------------------------------------------
    -- Tie Streaming IO to PGP module
