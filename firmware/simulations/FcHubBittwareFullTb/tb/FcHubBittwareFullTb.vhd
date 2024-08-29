@@ -57,7 +57,6 @@ architecture sim of FcHubBittwareFullTb is
    -- FEB Generics and signals
    -------------------------------------------------------------------------------------------------
    constant NUM_FEBS_C        : integer := 1;
-   constant SIMULATION_G      : boolean := true;
    constant ADCS_G            : integer := 4;
    constant HYBRIDS_G         : integer := 8;
    constant APVS_PER_HYBRID_G : integer := 6;
