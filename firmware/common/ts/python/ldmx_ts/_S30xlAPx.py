@@ -14,6 +14,10 @@ class S30xlAPx(pr.Device):
             offset = 0x8000_0000,
             expand = True))
 
+        self.add(ldmx_tdaq.S30xlGlobalTrigger(
+            name = 'GlobalTrigger',
+            offset = 0x3000_0000))
+
         self.add(ldmx_tdaq.FcHub(
             offset = 0x2000_0000))
 

@@ -54,14 +54,14 @@ end entity TriggerDataFifo;
 
 architecture rtl of TriggerDataFifo is
 
-   signal fifoDin   : slv(TRIGGER_WORD_SIZE_C-1 downto 0);
-   signal fifoDout  : slv(TRIGGER_WORD_SIZE_C-1 downto 0);
+   signal fifoDin   : slv(TRIGGER_WORD_SIZE_C downto 0);
+   signal fifoDout  : slv(TRIGGER_WORD_SIZE_C downto 0);
    signal fifoValid : sl;
 
 begin
 
    -- Convert to SLV for FIFO
-   fifoDin <= toSlv(wrMsg);
+   fifoDin <= toSlv(wrData);
 
    U_Fifo_1 : entity surf.Fifo
       generic map (
@@ -71,7 +71,7 @@ begin
          SYNTH_MODE_G    => SYNTH_MODE_G,
          MEMORY_TYPE_G   => MEMORY_TYPE_G,
          PIPE_STAGES_G   => 0,
-         DATA_WIDTH_G    => FC_TIMESTAMP_SIZE_C,
+         DATA_WIDTH_G    => TRIGGER_WORD_SIZE_C+1,
          ADDR_WIDTH_G    => ADDR_WIDTH_G)
       port map (
          rst           => rst,          -- [in]

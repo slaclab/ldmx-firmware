@@ -63,6 +63,7 @@ entity FcHub is
       lclsTimingClkOut  : out sl;
       lclsTimingRstOut  : out sl;
       lclsTimingFcTxMsg : out FcMessageType;
+      lclsTimingBus     : out TimingBusType;
       globalTriggerRor  : in  FcTimestampType;
 
       ----------------------------------------------------------------------------------------------
@@ -117,9 +118,9 @@ architecture rtl of FcHub is
    signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(AXIL_NUM_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
    -- Recovered LCLS Timing Clock and Bus
-   signal lclsTimingClk : sl;
-   signal lclsTimingRst : sl;
-   signal lclsTimingBus : TimingBusType;
+   signal lclsTimingClk    : sl;
+   signal lclsTimingRst    : sl;
+   signal lclsTimingBusLoc : TimingBusType;
 
    -- LDMX Fast Control Message to FC Senders
    signal fcTxMsg : FcMessageType;
@@ -152,6 +153,7 @@ begin
    -- LCLS TIMING RX
    -------------------------------------------------------------------------------------------------
    lclsTimingClkOut <= lclsTimingClk;
+   lclsTimingBus    <= lclsTimingBusLoc;
 
    U_Lcls2TimingRx_1 : entity ldmx_tdaq.Lcls2TimingRx
       generic map (
@@ -173,7 +175,7 @@ begin
          axilWriteSlave   => locAxilWriteSlaves(AXIL_LCLS_TIMING_C),   -- [out]
          recTimingClk     => lclsTimingClk,                            -- [out]
          recTimingRst     => lclsTimingRst,                            -- [out]
-         appTimingBus     => lclsTimingBus,                            -- [out]
+         appTimingBus     => lclsTimingBusLoc,                         -- [out]
          timingRxP        => lclsTimingRxP,                            -- [in]
          timingRxN        => lclsTimingRxN,                            -- [in]
          timingTxP        => lclsTimingTxP,                            -- [out]
@@ -192,7 +194,7 @@ begin
       port map (
          lclsTimingClk    => lclsTimingClk,                         -- [in]
          lclsTimingRst    => lclsTimingRst,                         -- [in]
-         lclsTimingBus    => lclsTimingBus,                         -- [in]
+         lclsTimingBus    => lclsTimingBusLoc,                      -- [in]
          globalTriggerRor => globalTriggerRor,                      -- [in]
          fcMsg            => fcTxMsg,                               -- [out]
          axilClk          => axilClk,                               -- [in]

@@ -55,6 +55,7 @@ architecture rtl of FcRxLogic is
 
    type RegType is record
       runTime        : slv(63 downto 0);
+      clkCounter     : slv(7 downto 0);
       rorLatch       : sl;
       fcClkLost      : sl;
       fcBunchClk37   : sl;
@@ -69,6 +70,7 @@ architecture rtl of FcRxLogic is
    -- Timing comes up already enabled so that ADC can be read before sync is established
    constant REG_INIT_C : RegType := (
       runTime        => (others => '0'),
+      clkCounter     => (others => '0'),
       rorLatch       => '0',
       fcClkLost      => '1',
       fcBunchClk37   => '0',

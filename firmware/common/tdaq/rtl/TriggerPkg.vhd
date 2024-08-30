@@ -41,6 +41,30 @@ package TriggerPkg is
 
    type TriggerDataArray is array (natural range <>) of TriggerDataType;
 
+   function toSlv (triggerData    : TriggerDataType) return slv;
+   function toTriggerData (vector : slv(TRIGGER_WORD_SIZE_C downto 0); valid : sl := '1') return TriggerDataType;
+
 end package;
+
+package body TriggerPkg is
+
+   function toSlv (triggerData : TriggerDataType) return slv is
+      variable ret : slv(TRIGGER_WORD_SIZE_C downto 0);
+   begin
+      ret(127 downto 0) := triggerData.data;
+      ret(128)          := triggerData.bc0;
+      return ret;
+   end function toSlv;
+
+   function toTriggerData (vector : slv(TRIGGER_WORD_SIZE_C downto 0); valid : sl := '1') return TriggerDataType is
+      variable ret : TriggerDataType;
+   begin
+      ret.data  := vector(127 downto 0);
+      ret.bc0   := vector(128);
+      ret.valid := valid;
+      return ret;
+   end function toTriggerData;
+
+end package body TriggerPkg;
 
 

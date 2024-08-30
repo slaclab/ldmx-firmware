@@ -32,9 +32,10 @@ use lcls_timing_core.TimingPkg.all;
 
 library ldmx_tdaq;
 use ldmx_tdaq.FcPkg.all;
+use ldmx_tdaq.TriggerPkg.all;
 
 library ldmx_ts;
-
+use ldmx_ts.TsPkg.all;
 
 entity S30xlAPx is
 
@@ -180,13 +181,21 @@ architecture rtl of S30xlAPx is
    signal tsDaqTrigAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal tsDaqTrigAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
-
    -- Timing hub
-   signal lclsTimingClk : sl;
-   signal lclsTimingRst : sl;
+   signal lclsTimingClk     : sl;
+   signal lclsTimingRst     : sl;
+   signal lclsTimingFcTxMsg : FcMessageType;
+   signal lclsTimingBus     : TimingBusType;
+
+   -- TS Trigger
+   signal tsFcClk185             : sl;
+   signal tsFcRst185             : sl;
+   signal tsThresholdTriggerData : TriggerDataType;
 
    -- Gloabl Trigger
-   signal globalTriggerRor : FcTimestampType := FC_TIMESTAMP_INIT_C;
+   signal gtRor           : FcTimestampType := FC_TIMESTAMP_INIT_C;
+   signal gtDaqAxisMaster : AxiStreamMasterType;
+   signal gtDaqAxisSlave  : AxiStreamSlaveType;
 
    signal clk125In : sl;
 
@@ -317,6 +326,26 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Global Trigger
    -------------------------------------------------------------------------------------------------
+   U_S30xlGlobalTrigger_1 : entity ldmx_tdaq.S30xlGlobalTrigger
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         fcClk185             => tsFcClk185,                                  -- [in]
+         fcRst185             => tsFcRst185,                                  -- [in]
+         thresholdTriggerData => tsThresholdTriggerData,                      -- [in]
+         lclsTimingClk        => lclsTimingClk,                               -- [in]
+         lclsTimingRst        => lclsTimingRst,                               -- [in]
+         lclsTimingFcTxMsg    => lclsTimingFcTxMsg,                           -- [in]
+         lclsTimingBus        => lclsTimingBus,                               -- [in]
+         gtRor                => gtRor,                                       -- [out]
+         gtDaqAxisMaster      => gtDaqAxisMaster,                             -- [out]
+         gtDaqAxisSlave       => gtDaqAxisSlave,                              -- [in]
+         axilClk              => axilClk,                                     -- [in]
+         axilRst              => axilRst,                                     -- [in]
+         axilReadMaster       => locAxilReadMasters(AXIL_GLOBAL_TRIGGER_C),   -- [in]
+         axilReadSlave        => locAxilReadSlaves(AXIL_GLOBAL_TRIGGER_C),    -- [out]
+         axilWriteMaster      => locAxilWriteMasters(AXIL_GLOBAL_TRIGGER_C),  -- [in]
+         axilWriteSlave       => locAxilWriteSlaves(AXIL_GLOBAL_TRIGGER_C));  -- [out]
 
 
    -------------------------------------------------------------------------------------------------
@@ -340,7 +369,9 @@ begin
          lclsTimingTxN     => lclsTimingTxN,                       -- [out]
          lclsTimingClkOut  => lclsTimingClk,                       -- [out]
          lclsTimingRstOut  => lclsTimingRst,                       -- [out]
-         globalTriggerRor  => globalTriggerRor,
+         lclsTimingFcTxMsg => lclsTimingFcTxMsg,                   -- [out]
+         lclsTimingBus     => lclsTimingBus,                       -- [out]
+         globalTriggerRor  => gtRor,                               -- [in]
          fcHubRefClkP      => fcHubRefClkP,                        -- [in]
          fcHubRefClkN      => fcHubRefClkN,                        -- [in]
          fcHubTxP          => fcHubTxP,                            -- [out]
@@ -378,29 +409,32 @@ begin
          AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_C,
          AXIL_BASE_ADDR_G => AXIL_XBAR_CONFIG_C(AXIL_APP_CORE_C).baseAddr)
       port map (
-         appFcRefClkP        => appFcRefClkP,                          -- [in]
-         appFcRefClkN        => appFcRefClkN,                          -- [in]
-         appFcRxP            => appFcRxP,                              -- [in]
-         appFcRxN            => appFcRxN,                              -- [in]
-         appFcTxP            => appFcTxP,                              -- [out]
-         appFcTxN            => appFcTxN,                              -- [out]
-         tsRefClk250P        => tsRefClk250P,                          -- [in]
-         tsRefClk250N        => tsRefClk250N,                          -- [in]
-         tsDataRxP           => tsDataRxP,                             -- [in]
-         tsDataRxN           => tsDataRxN,                             -- [in]
-         tsDataTxP           => tsDataTxP,                             -- [out]
-         tsDataTxN           => tsDataTxN,                             -- [out]
-         axilClk             => axilClk,                               -- [in]
-         axilRst             => axilRst,                               -- [in]
-         axilReadMaster      => locAxilReadMasters(AXIL_APP_CORE_C),   -- [in]
-         axilReadSlave       => locAxilReadSlaves(AXIL_APP_CORE_C),    -- [out]
-         axilWriteMaster     => locAxilWriteMasters(AXIL_APP_CORE_C),  -- [in]
-         axilWriteSlave      => locAxilWriteSlaves(AXIL_APP_CORE_C),   -- [out]
-         axisClk             => axilClk,                               -- [in]
-         axisRst             => axilRst,                               -- [in]
-         tsDaqRawAxisMaster  => tsDaqRawAxisMaster,                    -- [out]
-         tsDaqRawAxisSlave   => tsDaqRawAxisSlave,                     -- [in]
-         tsDaqTrigAxisMaster => tsDaqTrigAxisMaster,                   -- [out]
-         tsDaqTrigAxisSlave  => tsDaqTrigAxisSlave);                   -- [in]
+         appFcRefClkP         => appFcRefClkP,                          -- [in]
+         appFcRefClkN         => appFcRefClkN,                          -- [in]
+         appFcRxP             => appFcRxP,                              -- [in]
+         appFcRxN             => appFcRxN,                              -- [in]
+         appFcTxP             => appFcTxP,                              -- [out]
+         appFcTxN             => appFcTxN,                              -- [out]
+         tsRefClk250P         => tsRefClk250P,                          -- [in]
+         tsRefClk250N         => tsRefClk250N,                          -- [in]
+         tsDataRxP            => tsDataRxP,                             -- [in]
+         tsDataRxN            => tsDataRxN,                             -- [in]
+         tsDataTxP            => tsDataTxP,                             -- [out]
+         tsDataTxN            => tsDataTxN,                             -- [out]
+         axilClk              => axilClk,                               -- [in]
+         axilRst              => axilRst,                               -- [in]
+         axilReadMaster       => locAxilReadMasters(AXIL_APP_CORE_C),   -- [in]
+         axilReadSlave        => locAxilReadSlaves(AXIL_APP_CORE_C),    -- [out]
+         axilWriteMaster      => locAxilWriteMasters(AXIL_APP_CORE_C),  -- [in]
+         axilWriteSlave       => locAxilWriteSlaves(AXIL_APP_CORE_C),   -- [out]
+         fcClk185Out          => tsFcClk185,                            -- [out]
+         fcRst185Out          => tsFcRst185,                            -- [out]
+         thresholdTriggerData => tsThresholdTriggerData,                -- [out]
+         axisClk              => axilClk,                               -- [in]
+         axisRst              => axilRst,                               -- [in]
+         tsDaqRawAxisMaster   => tsDaqRawAxisMaster,                    -- [out]
+         tsDaqRawAxisSlave    => tsDaqRawAxisSlave,                     -- [in]
+         tsDaqTrigAxisMaster  => tsDaqTrigAxisMaster,                   -- [out]
+         tsDaqTrigAxisSlave   => tsDaqTrigAxisSlave);                   -- [in]
 
 end architecture rtl;

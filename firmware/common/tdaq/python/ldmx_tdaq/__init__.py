@@ -7,3 +7,4 @@ from ._FcReceiver import *
 from ._Pgp2fcGtyCoreWrapper import *
 from ._Lcls2TimingRx import *
 from ._TimingGtCoreWrapper import *
+from ._S30xlGlobalTrigger import *

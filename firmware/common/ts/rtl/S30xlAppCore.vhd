@@ -68,9 +68,9 @@ entity S30xlAppCore is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
       -- GT Stream
-      fcClk185Out  : out sl;
-      fcRst185Out  : out sl;
-      tsTrigGtData : out TriggerDataType;
+      fcClk185Out          : out sl;
+      fcRst185Out          : out sl;
+      thresholdTriggerData : out TriggerDataType;
 
       -- DAQ Stream
       axisClk             : in  sl;
@@ -250,12 +250,12 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         fcClk185  => fcClk185,         -- [in]
-         fcRst185  => fcRst185,         -- [in]
-         fcTsMsg   => fcTsRxMsgs,       -- [in]
-         fcMsgTime => fcMsgTime,        -- [in]
-         daqData   => tsTrigDaqData,    -- [out]
-         gtData    => tsTrigGtData);    -- [out]
+         fcClk185  => fcClk185,                 -- [in]
+         fcRst185  => fcRst185,                 -- [in]
+         fcTsMsg   => fcTsRxMsgs,               -- [in]
+         fcMsgTime => fcMsgTime,                -- [in]
+         daqData   => tsTrigDaqData,            -- [out]
+         gtData    => thresholdTriggerData);  -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Trigger DAQ block
