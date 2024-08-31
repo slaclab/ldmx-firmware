@@ -119,6 +119,7 @@ begin
 
       elsif (globalTriggerRor.valid = '1') then
          v.fcMsg.valid      := '1';
+         v.fcMsg.msgType    := MSG_TYPE_ROR_C;
          v.fcMsg.pulseId    := globalTriggerRor.pulseId;
          v.fcMsg.bunchCount := globalTriggerRor.bunchCount;
          v.fcMsg.message    := toSlv(v.fcMsg);

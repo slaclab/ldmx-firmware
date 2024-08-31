@@ -36,7 +36,7 @@ use ldmx_ts.TsPkg.all;
 entity S30xlGlobalTriggerLogic is
 
    generic (
-      TPD_G      : time    := 1 ns);
+      TPD_G : time := 1 ns);
    port (
       -----------------------------
       -- Raw Trigger Data In
@@ -52,7 +52,7 @@ entity S30xlGlobalTriggerLogic is
       --------
       gtRor           : out FcTimestampType;
       gtDaqAxisMaster : out AxiStreamMasterType;
-      gtDaqAxisSlave  : in AxiStreamSlaveType;
+      gtDaqAxisSlave  : in  AxiStreamSlaveType;
 
       -- Axil inteface
       axilClk         : in  sl;
@@ -88,8 +88,7 @@ begin
    tsS30xlThresholdTriggerDaq <= toThresholdTriggerDaq(tsThresholdTriggerData, triggerTimestamp);
    emuTriggerMessage          <= toFcMessage(emuTriggerData.data(FC_LEN_C-1 downto 0), emuTriggerData.valid);
 
-   comb : process (emuTriggerData, emuTriggerMessage, r, triggerTimestamp,
-                   tsS30xlThresholdTriggerDaq) is
+   comb : process (emuTriggerData, r, triggerTimestamp, tsS30xlThresholdTriggerDaq) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -124,16 +123,16 @@ begin
          end if;
 
          -- Synthetic triggering
-         if (emuTriggerData.valid = '1') then
-            if (emuTriggerMessage.msgType = MSG_TYPE_ROR_C) then
-               v.counter      := MIN_ROR_PERIOD_C;
-               v.gtRor        := triggerTimestamp;
-               v.gtRor.valid  := '1';
-               v.gtRor.strobe := '1';
-            end if;
+         if (emuTriggerData.valid = '1' and emuTriggerData.data(0) = '1') then
+            v.counter      := MIN_ROR_PERIOD_C;
+            v.gtRor        := triggerTimestamp;
+            v.gtRor.valid  := '1';
+            v.gtRor.strobe := '1';
          end if;
-
+         
       end if;
+
+
 
       rin <= v;
 
@@ -141,7 +140,7 @@ begin
    end process;
 
 
-   -- Have to use async reset since recovered lcls clock can drop out
+-- Have to use async reset since recovered lcls clock can drop out
    seq : process (lclsTimingClk, lclsTimingRst) is
    begin
       if (lclsTimingRst = '1') then

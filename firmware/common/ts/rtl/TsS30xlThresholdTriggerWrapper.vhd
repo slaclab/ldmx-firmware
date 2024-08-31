@@ -51,11 +51,11 @@ architecture rtl of TsS30xlThresholdTriggerWrapper is
       port (
          ap_clk        : in  std_logic;
          ap_rst        : in  std_logic;
-         timestamp_in  : in  std_logic_vector (127 downto 0);
+         timestamp_in  : in  std_logic_vector (69 downto 0);
          bc0_in        : in  sl;
          timestamp_out : out std_logic_vector (69 downto 0);
          bc0_out       : out sl;
-         dataReady_in  : in  std_logic_vector (7 downto 0);
+         dataReady_in  : in  std_logic_vector (0 downto 0);
          dataReady_out : out std_logic_vector (0 downto 0);
          FIFO_0        : in  std_logic_vector (13 downto 0);
          FIFO_1        : in  std_logic_vector (13 downto 0);
@@ -95,12 +95,11 @@ architecture rtl of TsS30xlThresholdTriggerWrapper is
          amplitude_11  : out std_logic_vector (16 downto 0));
    end component;
 
-   signal inputValid : slv(7 downto 0);
+   signal inputValid : sl;
 
-   signal onFlag         : slv(11 downto 0);
    signal outputValidInt : sl;
 
-   signal fcMsgTimeSlv        : slv(127 downto 0);
+   signal fcMsgTimeSlv        : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
    signal fcMsgTimeDelayedSlv : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
 
    signal fifoIn : Slv14Array(11 downto 0);
@@ -115,8 +114,8 @@ architecture rtl of TsS30xlThresholdTriggerWrapper is
 
 begin
 
-   inputValid   <= (others => fcMsgTime.valid);
-   fcMsgTimeSlv <= resize(toSlv(fcMsgTime), 128);
+   inputValid   <= fcMsgTime.valid;
+   fcMsgTimeSlv <= toSlv(fcMsgTime);
 
    FifoIn(0)  <= fcTsMsg(0).tdc(0) & fcTsMsg(0).adc(0);  -- [IN]
    FifoIn(1)  <= fcTsMsg(0).tdc(1) & fcTsMsg(0).adc(1);  -- [IN]
@@ -140,7 +139,7 @@ begin
          bc0_in           => fcTsMsg(0).bc0,          -- [in]
          timestamp_out    => fcMsgTimeDelayedSlv,     -- [OUT]
          bc0_out          => bc0Out,                  -- [out]
-         dataReady_in     => inputValid,              -- [IN]
+         dataReady_in(0)  => inputValid,              -- [IN]
          dataReady_out(0) => outputValidInt,          -- [OUT]
          FIFO_0           => fifoIn(0),               -- [IN]
          FIFO_1           => fifoIn(1),               -- [IN]

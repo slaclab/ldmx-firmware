@@ -188,6 +188,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Fast Control Output Word Logic
    -------------------------------------------------------------------------------------------------
+   lclsTimingFcTxMsg <= fcTxMsg;
    U_FcTxLogic_1 : entity ldmx_tdaq.FcTxLogic
       generic map (
          TPD_G => TPD_G)

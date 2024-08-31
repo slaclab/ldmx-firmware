@@ -170,11 +170,14 @@ begin
          when DO_DATA_S =>
             v.axisMaster.tValid                                   := '1';
             v.axisMaster.tData(TS_DATA_6CH_MSG_SIZE_C-1 downto 0) := tsRxMsgsSlvFifoOut(r.laneCounter);
-            v.laneCounter                                         := r.laneCounter + 1;
+
             if (r.laneCounter = TS_LANES_G-1) then
+               v.laneCounter      := 0;
                v.axisMaster.tLast := '1';
                v.fifoRdEn         := '1';
                v.state            := TAIL_S;
+            else
+               v.laneCounter := r.laneCounter + 1;
             end if;
 
          when TAIL_S =>

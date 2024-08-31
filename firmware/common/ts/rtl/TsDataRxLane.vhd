@@ -210,6 +210,7 @@ begin
          syncRst  => tsRecClkRst);
 
    tsRecClk <= tsRecClkMmcm;
+   tsRecRst <= tsRecClkRst;
 
    U_RstSync_2 : entity surf.PwrUpRst
       generic map (

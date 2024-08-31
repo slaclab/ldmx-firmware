@@ -128,6 +128,7 @@ begin
       v.fcBus.pulseStrobe           := '0';
       v.fcBus.bunchStrobe           := '0';
       v.fcBus.bunchStrobePre        := '0';
+      v.fcBus.stateChanged          := '0';
       v.fcBus.readoutRequest.strobe := '0';
       v.fcBus.bc0                   := '0';
 

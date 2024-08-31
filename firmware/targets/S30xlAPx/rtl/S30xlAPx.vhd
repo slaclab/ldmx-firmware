@@ -156,7 +156,7 @@ architecture rtl of S30xlAPx is
          connectivity       => X"FFFF"),
       AXIL_GLOBAL_TRIGGER_C => (
          baseAddr           => X"30000000",
-         addrBits           => 8,
+         addrBits           => 16,
          connectivity       => X"FFFF"),
       AXIL_APP_CORE_C       => (
          baseAddr           => X"80000000",
@@ -328,7 +328,8 @@ begin
    -------------------------------------------------------------------------------------------------
    U_S30xlGlobalTrigger_1 : entity ldmx_tdaq.S30xlGlobalTrigger
       generic map (
-         TPD_G => TPD_G)
+         TPD_G => TPD_G,
+         AXIL_BASE_ADDR_G => AXIL_XBAR_CONFIG_C(AXIL_GLOBAL_TRIGGER_C).baseAddr)
       port map (
          fcClk185             => tsFcClk185,                                  -- [in]
          fcRst185             => tsFcRst185,                                  -- [in]

@@ -52,9 +52,9 @@ entity S30xlGlobalTrigger is
       -----------------------------
       -- Prime FC messages
       -----------------------------
-      lclsTimingClk     : in  sl;
-      lclsTimingRst     : in  sl;
-      lclsTimingFcTxMsg : in  FcMessageType;
+      lclsTimingClk     : in sl;
+      lclsTimingRst     : in sl;
+      lclsTimingFcTxMsg : in FcMessageType;
       lclsTimingBus     : in TimingBusType;
 
       --------
@@ -79,30 +79,30 @@ end entity S30xlGlobalTrigger;
 architecture rtl of S30xlGlobalTrigger is
 
    -- AXI Lite
-   constant NUM_AXIL_MASTERS_C   : natural := 4;
+   constant NUM_AXIL_MASTERS_C       : natural := 4;
 --   constant PGP_FC_LANE_AXIL_C : natural := 0;
-   constant FC_RX_LOGIC_AXIL_C   : natural := 0;
-   constant FC_EMU_AXIL_C        : natural := 1;
-   constant BC0_ALIGNER_AXIL_C   : natural := 2;
-   constant TRIGGER_LOGIC_AXIL_C : natural := 3;
+   constant FC_RX_LOGIC_AXIL_C       : natural := 0;
+   constant SYNTHETIC_TRIGGER_AXIL_C : natural := 1;
+   constant BC0_ALIGNER_AXIL_C       : natural := 2;
+   constant TRIGGER_LOGIC_AXIL_C     : natural := 3;
 
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
-      FC_RX_LOGIC_AXIL_C   => (
-         baseAddr          => AXIL_BASE_ADDR_G + X"0000",
-         addrBits          => 8,
-         connectivity      => X"FFFF"),
-      FC_EMU_AXIL_C        => (
-         baseAddr          => AXIL_BASE_ADDR_G + X"0100",
-         addrBits          => 8,
-         connectivity      => X"FFFF"),
-      BC0_ALIGNER_AXIL_C   => (
-         baseAddr          => AXIL_BASE_ADDR_G + X"0200",
-         addrBits          => 8,
-         connectivity      => X"FFFF"),
-      TRIGGER_LOGIC_AXIL_C => (
-         baseAddr          => AXIL_BASE_ADDR_G + X"0300",
-         addrBits          => 8,
-         connectivity      => X"FFFF"));
+      FC_RX_LOGIC_AXIL_C       => (
+         baseAddr              => AXIL_BASE_ADDR_G + X"0000",
+         addrBits              => 8,
+         connectivity          => X"FFFF"),
+      SYNTHETIC_TRIGGER_AXIL_C => (
+         baseAddr              => AXIL_BASE_ADDR_G + X"0100",
+         addrBits              => 8,
+         connectivity          => X"FFFF"),
+      BC0_ALIGNER_AXIL_C       => (
+         baseAddr              => AXIL_BASE_ADDR_G + X"0200",
+         addrBits              => 8,
+         connectivity          => X"FFFF"),
+      TRIGGER_LOGIC_AXIL_C     => (
+         baseAddr              => AXIL_BASE_ADDR_G + X"0300",
+         addrBits              => 8,
+         connectivity          => X"FFFF"));
 
    signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
@@ -153,28 +153,22 @@ begin
          axilWriteMaster => locAxilWriteMasters(FC_RX_LOGIC_AXIL_C),  -- [in]
          axilWriteSlave  => locAxilWriteSlaves(FC_RX_LOGIC_AXIL_C));  -- [out]
 
-   -- Use FcEmu for synthetic triggers
-   U_FcEmu_1 : entity ldmx_tdaq.FcEmu
+   U_SyntheticTrigger_1 : entity ldmx_tdaq.SyntheticTrigger
       generic map (
          TPD_G                => TPD_G,
          AXIL_CLK_IS_FC_CLK_G => false)
       port map (
-         fcClk           => lclsTimingClk,                       -- [in]
-         fcRst           => lclsTimingRst,                       -- [in]
-         enabled         => open,                                -- [out]
-         fcMsg           => emuFcMsg,                            -- [out]
-         bunchClk        => open,                                -- [out]
-         bunchStrobe     => open,                                -- [out]
-         axilClk         => axilClk,                             -- [in]
-         axilRst         => axilRst,                             -- [in]
-         axilReadMaster  => locAxilReadMasters(FC_EMU_AXIL_C),   -- [in]
-         axilReadSlave   => locAxilReadSlaves(FC_EMU_AXIL_C),    -- [out]
-         axilWriteMaster => locAxilWriteMasters(FC_EMU_AXIL_C),  -- [in]
-         axilWriteSlave  => locAxilWriteSlaves(FC_EMU_AXIL_C));  -- [out]
-
-   emuTriggerData.valid                     <= emuFcMsg.valid;
-   emuTriggerData.bc0                       <= fcBus.bc0;
-   emuTriggerData.data(FC_LEN_C-1 downto 0) <= emuFcMsg.message;
+         fcClk           => lclsTimingClk,                                  -- [in]
+         fcRst           => lclsTimingRst,                                  -- [in]
+         fcBus           => fcBus,                                          -- [in]
+         lclsTimingBus   => lclsTimingBus,                                  -- [in]
+         triggerData     => emuTriggerData,                                 -- [out]
+         axilClk         => axilClk,                                        -- [in]
+         axilRst         => axilRst,                                        -- [in]
+         axilReadMaster  => locAxilReadMasters(SYNTHETIC_TRIGGER_AXIL_C),   -- [in]
+         axilReadSlave   => locAxilReadSlaves(SYNTHETIC_TRIGGER_AXIL_C),    -- [out]
+         axilWriteMaster => locAxilWriteMasters(SYNTHETIC_TRIGGER_AXIL_C),  -- [in]
+         axilWriteSlave  => locAxilWriteSlaves(SYNTHETIC_TRIGGER_AXIL_C));  -- [out]
 
 
    -- Align all the trigger data based on bc0

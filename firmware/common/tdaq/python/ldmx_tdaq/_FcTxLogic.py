@@ -12,10 +12,12 @@ class FcTxLogic(pr.Device):
             base = pr.UInt,
             enum = {
                 0b00000 : 'RESET',
-                0b00001 : 'CHECK_LINKS',
-                0b00010 : 'LATENCY',
-                0b00011 : 'RUNNING',
-                0b00100 : 'STOPPED'}))
+                0b00001 : 'IDLE',
+                0b00010 : 'BC0',
+                0b00011 : 'PRESTART',
+                0b00100 : 'RUNNING',
+                0b00101 : 'STOPPED',                
+            }))
 
         @self.command()
         def AdvanceRunState():

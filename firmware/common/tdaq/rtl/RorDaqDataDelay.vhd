@@ -127,7 +127,7 @@ begin
                v.state    := WAIT_ROR_S;
             end if;
             
-            if (fcBus.stateChanged = '1') then
+            if (fcBus.runState /= RUN_STATE_BC0_C) then
                v.state := INIT_S;
             end if;
 

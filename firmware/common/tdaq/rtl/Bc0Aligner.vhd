@@ -1,4 +1,4 @@
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
@@ -191,8 +191,9 @@ begin
                v.timestampFifoWrEn              := '1';
                v.timestampFifoWrData.bunchCount := fcBus.bunchCount;
                v.timestampFifoWrData.pulseId    := fcBus.pulseId;
+            end if;
 
-
+            if (fcBus.bunchStrobePre = '1') then
                -- Burn data from the data fifos unless bc0 has arrived
                for i in CHANNELS_G-1 downto 0 loop
                   v.dataFifoRdEn(i) := '1';
@@ -211,7 +212,8 @@ begin
                   v.triggerTimestamp.valid := '1';
                   v.state                  := ALIGNED_S;
                end if;
-            end if;
+            end if;               
+
 
             -- Reset alignment if run state transitions before BC0
             if (fcBus.runState /= RUN_STATE_BC0_C) then
@@ -224,7 +226,9 @@ begin
                v.timestampFifoWrEn              := '1';
                v.timestampFifoWrData.bunchCount := fcBus.bunchCount;
                v.timestampFifoWrData.pulseId    := fcBus.pulseId;
+            end if;
 
+            if (fcBus.bunchStrobePre = '1') then
                -- Read timestamp and data each bunch clock
                v.timestampFifoRdEn      := '1';
                v.dataFifoRdEn           := (others => '1');
