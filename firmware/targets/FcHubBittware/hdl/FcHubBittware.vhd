@@ -70,6 +70,7 @@ entity FcHubBittware is
       -- System Ports
       userClkP       : in  sl;
       userClkN       : in  sl;
+      ledL           : out slv(3 downto 0);
       -- PCIe Ports
       pciRstL        : in  sl;
       pciRefClkP     : in  sl;
@@ -290,6 +291,7 @@ begin
          lclsTimingClkOut  => lclsTimingClk,                       -- [out]
          lclsTimingRstOut  => lclsTimingRst,                       -- [out]
          globalTriggerRor  => dummyGlobalTriggerRor,               -- [in]
+         fcTxMsgValid      => ledL(3),                             -- [out]
          fcHubRefClkP      => fcHubRefClkP,                        -- [in]
          fcHubRefClkN      => fcHubRefClkN,                        -- [in]
          fcHubTxP          => fcHubTxP,                            -- [out]

@@ -70,6 +70,7 @@ entity TrackerBittware is
       -- System Ports
       userClkP       : in  sl;
       userClkN       : in  sl;
+      ledL           : out slv(3 downto 0);
       -- PCIe Ports
       pciRstL        : in  sl;
       pciRefClkP     : in  sl;
@@ -116,6 +117,11 @@ architecture rtl of TrackerBittware is
    signal fcClk185 : sl;
    signal fcRst185 : sl;
    signal fcBus    : FcBusType;
+
+   -----------------------------
+   -- Debugging
+   -----------------------------
+   signal fcRxMsgValid : sl;
 
    -----------
    -- AXI Lite
@@ -351,6 +357,19 @@ begin
    fcRxP          <= qsfpRxP(0);
    fcRxN          <= qsfpRxN(0);
 
+   -------------------------------------------------------------------------------------------------
+   -- Debugging
+   -------------------------------------------------------------------------------------------------
+   U_StretchDbgRorTx : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 10)
+      port map (
+         clk     => fcClk185,
+         dataIn  => fcBus.fcMsg.valid,
+         dataOut => fcRxMsgValid);
+
+   ledL(3) <= fcRxMsgValid;
 
    -- FEB PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0
    GEN_FEB_REFCLK : for i in PGP_QUADS_G-1 downto 0 generate

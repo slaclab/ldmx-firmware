@@ -63,6 +63,8 @@ entity FcHub is
       lclsTimingClkOut : out sl;
       lclsTimingRstOut : out sl;
       globalTriggerRor : in  FcTimestampType;
+      -- Debugging port output
+      fcTxMsgValid     : out sl;
 
       ----------------------------------------------------------------------------------------------
       -- FC HUB
@@ -229,6 +231,18 @@ begin
          axilReadSlave   => locAxilReadSlaves(AXIL_FC_ARRAY_C),    -- [out]
          axilWriteMaster => locAxilWriteMasters(AXIL_FC_ARRAY_C),  -- [in]
          axilWriteSlave  => locAxilWriteSlaves(AXIL_FC_ARRAY_C));  -- [out]
+
+   -------------------------------------------------------------------------------------------------
+   -- Debugging
+   -------------------------------------------------------------------------------------------------
+   U_StretchDbgRorTx : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 10)
+      port map (
+         clk     => lclsTimingClk,
+         dataIn  => fcTxMsg.valid,
+         dataOut => fcTxMsgValid);
 
 
 end rtl;
