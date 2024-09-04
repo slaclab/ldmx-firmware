@@ -79,9 +79,12 @@ architecture rtl of TsRawDaq is
    signal tsRxMsgsSlvDelayIn     : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
    signal tsRxMsgsSlvDelayOut    : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
    signal tsRxMsgsSlvFifoOut     : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
+   signal tsRxMsgsFifoValid      : slv(TS_LANES_G-1 downto 0);
+   signal tsRxMsgsFifoOut        : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
    signal rorTimestampFifoInSlv  : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
    signal rorTimestampFifoOutSlv : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
    signal rorTimestampFifoValid  : sl;
+   signal rorTimestampFifoOut    : FcTimestampType;
    signal aligned                : slv(TS_LANES_G-1 downto 0);
    signal axisCtrl               : AxiStreamCtrlType;
 
@@ -124,8 +127,10 @@ begin
             rd_clk => axisClk,                      -- [in]
             rd_en  => r.fifoRdEn,                   -- [in]
             dout   => tsRxMsgsSlvFifoOut(i),        -- [out]
-            valid  => open);                        -- [out]
+            valid  => tsRxMsgsFifoValid(i));        -- [out]
 
+      -- For debugging
+      tsRxMsgsFifoOut(i) <= toTsData6ChMsg(tsRxMsgsSlvFifoOut(i), tsRxMsgsFifoValid(i));
    end generate;
 
    rorTimestampFifoInSlv <= toSlv(fcMsgTime);
@@ -148,6 +153,8 @@ begin
          dout   => rorTimestampFifoOutSlv,       -- [out]
          valid  => rorTimestampFifoValid);       -- [out]
 
+   -- For debugging
+   rorTimestampFifoOut <= toFcTimestamp(rorTimestampFifoOutSlv, rorTimestampFifoValid);
 
    comb : process (r, rorTimestampFifoOutSlv, rorTimestampFifoValid, tsRxMsgsSlvFifoOut) is
       variable v : RegType;

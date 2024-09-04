@@ -151,7 +151,8 @@ begin
          rdValid     => timestampFifoValid);    -- [out]   
 
 
-   comb : process (dataFifoRdData, fcBus, fcRst185, r, timestampFifoRdData) is
+   comb : process (dataFifoRdData, dataFifoValid, fcBus, fcRst185, r, timestampFifoRdData,
+                   timestampFifoValid) is
       variable v : RegType := REG_INIT_C;
    begin
       v := r;
@@ -169,9 +170,9 @@ begin
       case r.state is
          when WAIT_BC0_STATE_S =>
             -- Bleed off both fifo's when in reset state
-            if (fcBus.runState = RUN_STATE_RESET_C) then
-               v.dataFifoRdEn      := (others => '1');
-               v.timestampFifoRdEn := '1';
+            if (fcBus.runState /= RUN_STATE_BC0_C) then
+               v.dataFifoRdEn      := dataFifoValid;
+               v.timestampFifoRdEn := timestampFifoValid;
             end if;
 
             -- Start alignment when FC runState moves to CLOCK_ALIGN state

@@ -6,6 +6,7 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Delays data by readout request latency
+-- dataOut updates with rising edge of fcBus.bunchStrobe once aligned.
 -------------------------------------------------------------------------------
 -- This file is part of LDMX. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory
@@ -121,7 +122,7 @@ begin
             end if;
 
          when WAIT_BC0_DATA_S =>
-            -- Wait until BC0 data arrives then start writing into FIFO
+            -- Wait until BC0 data arrives then start writing into FIFO 
             if (timestampIn.valid = '1' and timestampIn.pulseID = r.bc0Id) then
                v.fifoWrEn := '1';
                v.state    := WAIT_ROR_S;
@@ -138,9 +139,8 @@ begin
                v.fifoWrEn := '1';
             end if;
 
-            -- Readout request during alignment is the T0 RoR
-            if (fcBus.readoutRequest.valid = '1' and fcBus.bunchStrobePre = '1') then
-               v.fifoRdEn := '1';
+            -- Readout request during alignment is the BC0 RoR
+            if (fcBus.readoutRequest.strobe = '1') then
                v.state    := ALIGNED_S;
                v.aligned  := '1';
             end if;
