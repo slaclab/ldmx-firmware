@@ -104,19 +104,42 @@ architecture rtl of S30xlGlobalTrigger is
          addrBits              => 8,
          connectivity          => X"FFFF"));
 
+   signal syncAxilReadMaster  : AxiLiteReadMasterType;
+   signal syncAxilReadSlave   : AxiLiteReadSlaveType;
+   signal syncAxilWriteMaster : AxiLiteWriteMasterType;
+   signal syncAxilWriteSlave  : AxiLiteWriteSlaveType;
+
    signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
    signal locAxilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
-   signal emuFcMsg       : FcMessageType;
-   signal emuTriggerData : TriggerDataType;
+   signal synFcMsg       : FcMessageType;
+   signal synTriggerData : TriggerDataType;
    signal fcBus          : FcBusType;
 
    signal triggerData      : TriggerDataArray(1 downto 0);
    signal triggerTimestamp : FcTimestampType;
 
 begin
+   U_AxiLiteAsync_1 : entity surf.AxiLiteAsync
+      generic map (
+         TPD_G         => TPD_G,
+         COMMON_CLK_G  => false,
+         PIPE_STAGES_G => 0)
+      port map (
+         sAxiClk         => axilClk,              -- [in]
+         sAxiClkRst      => axilRst,              -- [in]
+         sAxiReadMaster  => axilReadMaster,       -- [in]
+         sAxiReadSlave   => axilReadSlave,        -- [out]
+         sAxiWriteMaster => axilWriteMaster,      -- [in]
+         sAxiWriteSlave  => axilWriteSlave,       -- [out]
+         mAxiClk         => lclsTimingClk,        -- [in]
+         mAxiClkRst      => lclsTimingRst,        -- [in]
+         mAxiReadMaster  => syncAxilReadMaster,   -- [out]
+         mAxiReadSlave   => syncAxilReadSlave,    -- [in]
+         mAxiWriteMaster => syncAxilWriteMaster,  -- [out]
+         mAxiWriteSlave  => syncAxilWriteSlave);  -- [in]
 
    U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
@@ -125,12 +148,12 @@ begin
          NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
          MASTERS_CONFIG_G   => AXIL_XBAR_CFG_C)
       port map (
-         axiClk              => axilClk,
-         axiClkRst           => axilRst,
-         sAxiWriteMasters(0) => axilWriteMaster,
-         sAxiWriteSlaves(0)  => axilWriteSlave,
-         sAxiReadMasters(0)  => axilReadMaster,
-         sAxiReadSlaves(0)   => axilReadSlave,
+         axiClk              => lclsTimingClk,
+         axiClkRst           => lclsTimingRst,
+         sAxiWriteMasters(0) => syncAxilWriteMaster,
+         sAxiWriteSlaves(0)  => syncAxilWriteSlave,
+         sAxiReadMasters(0)  => syncAxilReadMaster,
+         sAxiReadSlaves(0)   => syncAxilReadSlave,
          mAxiWriteMasters    => locAxilWriteMasters,
          mAxiWriteSlaves     => locAxilWriteSlaves,
          mAxiReadMasters     => locAxilReadMasters,
@@ -139,15 +162,16 @@ begin
    -- Convert FC Messages to FC Bus for BC0 alignment
    U_FcRxLogic_1 : entity ldmx_tdaq.FcRxLogic
       generic map (
-         TPD_G => TPD_G)
+         TPD_G                => TPD_G,
+         AXIL_CLK_IS_FC_CLK_G => true)
       port map (
          fcClk185        => lclsTimingClk,                            -- [in]
          fcRst185        => lclsTimingRst,                            -- [in]
          fcValid         => lclsTimingFcTxMsg.valid,                  -- [in]
          fcWord          => lclsTimingFcTxMsg.message,                -- [in]
          fcBus           => fcBus,                                    -- [out]
-         axilClk         => axilClk,                                  -- [in]
-         axilRst         => axilRst,                                  -- [in]
+         axilClk         => lclsTimingClk,                            -- [in]
+         axilRst         => lclsTimingRst,                            -- [in]
          axilReadMaster  => locAxilReadMasters(FC_RX_LOGIC_AXIL_C),   -- [in]
          axilReadSlave   => locAxilReadSlaves(FC_RX_LOGIC_AXIL_C),    -- [out]
          axilWriteMaster => locAxilWriteMasters(FC_RX_LOGIC_AXIL_C),  -- [in]
@@ -156,15 +180,15 @@ begin
    U_SyntheticTrigger_1 : entity ldmx_tdaq.SyntheticTrigger
       generic map (
          TPD_G                => TPD_G,
-         AXIL_CLK_IS_FC_CLK_G => false)
+         AXIL_CLK_IS_FC_CLK_G => true)
       port map (
          fcClk           => lclsTimingClk,                                  -- [in]
          fcRst           => lclsTimingRst,                                  -- [in]
          fcBus           => fcBus,                                          -- [in]
          lclsTimingBus   => lclsTimingBus,                                  -- [in]
-         triggerData     => emuTriggerData,                                 -- [out]
-         axilClk         => axilClk,                                        -- [in]
-         axilRst         => axilRst,                                        -- [in]
+         triggerData     => synTriggerData,                                 -- [out]
+         axilClk         => lclsTimingClk,                                  -- [in]
+         axilRst         => lclsTimingRst,                                  -- [in]
          axilReadMaster  => locAxilReadMasters(SYNTHETIC_TRIGGER_AXIL_C),   -- [in]
          axilReadSlave   => locAxilReadSlaves(SYNTHETIC_TRIGGER_AXIL_C),    -- [out]
          axilWriteMaster => locAxilWriteMasters(SYNTHETIC_TRIGGER_AXIL_C),  -- [in]
@@ -182,15 +206,15 @@ begin
          triggerClks(1)   => fcClk185,                                 -- [in]
          triggerRsts(0)   => lclsTimingRst,                            --[in]
          triggerRsts(1)   => fcRst185,                                 -- [in]
-         triggerDataIn(0) => emuTriggerData,                           -- [in]
+         triggerDataIn(0) => synTriggerData,                           -- [in]
          triggerDataIn(1) => thresholdTriggerData,                     -- [in]
          fcClk185         => lclsTimingClk,                            -- [in]
          fcRst185         => lclsTimingRst,                            -- [in]
          fcBus            => fcBus,                                    -- [in]
          triggerDataOut   => triggerData,                              -- [out]
          triggerTimestamp => triggerTimestamp,                         -- [out]
-         axilClk          => axilClk,                                  -- [in]
-         axilRst          => axilRst,                                  -- [in]
+--          axilClk          => axilClk,                                  -- [in]
+--          axilRst          => axilRst,                                  -- [in]
          axilReadMaster   => locAxilReadMasters(BC0_ALIGNER_AXIL_C),   -- [in]
          axilReadSlave    => locAxilReadSlaves(BC0_ALIGNER_AXIL_C),    -- [out]
          axilWriteMaster  => locAxilWriteMasters(BC0_ALIGNER_AXIL_C),  -- [in]
@@ -203,13 +227,14 @@ begin
          lclsTimingClk          => lclsTimingClk,                              -- [in]
          lclsTimingRst          => lclsTimingRst,                              -- [in]
          tsThresholdTriggerData => triggerData(1),                             -- [in]
-         emuTriggerData         => triggerData(0),                             -- [in]
+         synTriggerData         => triggerData(0),                             -- [in]
          triggerTimestamp       => triggerTimestamp,                           -- [in]
+         fcBus                  => fcBus,                                      -- [in]
          gtRor                  => gtRor,
          gtDaqAxisMaster        => gtDaqAxisMaster,
          gtDaqAxisSlave         => gtDaqAxisSlave,
-         axilClk                => axilClk,                                    -- [in]
-         axilRst                => axilRst,                                    -- [in]
+--          axilClk                => axilClk,                                    -- [in]
+--          axilRst                => axilRst,                                    -- [in]
          axilReadMaster         => locAxilReadMasters(TRIGGER_LOGIC_AXIL_C),   -- [in]
          axilReadSlave          => locAxilReadSlaves(TRIGGER_LOGIC_AXIL_C),    -- [out]
          axilWriteMaster        => locAxilWriteMasters(TRIGGER_LOGIC_AXIL_C),  -- [in]

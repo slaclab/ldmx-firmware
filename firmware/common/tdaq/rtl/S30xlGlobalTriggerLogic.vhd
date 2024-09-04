@@ -44,8 +44,9 @@ entity S30xlGlobalTriggerLogic is
       lclsTimingClk          : in sl;
       lclsTimingRst          : in sl;
       tsThresholdTriggerData : in TriggerDataType;
-      emuTriggerData         : in TriggerDataType;
+      synTriggerData         : in TriggerDataType;
       triggerTimestamp       : in FcTimestampType;
+      fcBus                  : in FcBusType;
 
       --------
       -- Outut
@@ -55,8 +56,8 @@ entity S30xlGlobalTriggerLogic is
       gtDaqAxisSlave  : in  AxiStreamSlaveType;
 
       -- Axil inteface
-      axilClk         : in  sl;
-      axilRst         : in  sl;
+--       axilClk         : in  sl;
+--       axilRst         : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType;
@@ -69,30 +70,51 @@ architecture rtl of S30xlGlobalTriggerLogic is
    constant MIN_ROR_PERIOD_C : slv(3 downto 0) := toSlv(6, 4);
 
    type RegType is record
-      counter : slv(3 downto 0);
-      gtRor   : FcTimestampType;
+      counter                   : slv(3 downto 0);
+      enableSynTriggers         : sl;
+      enableTsThresholdTriggers : sl;
+      gtRor                     : FcTimestampType;
+      axilReadSlave             : AxiLiteReadSlaveType;
+      axilWriteSlave            : AxiLiteWriteSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      counter => (others => '0'),
-      gtRor   => FC_TIMESTAMP_INIT_C);
+      counter                   => (others => '0'),
+      enableSynTriggers         => '0',
+      enableTsThresholdTriggers => '0',
+      gtRor                     => FC_TIMESTAMP_INIT_C,
+      axilReadSlave             => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave            => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal tsS30xlThresholdTriggerDaq : TsS30xlThresholdTriggerDaqType;
-   signal emuTriggerMessage          : FcMessageType;
+   signal synTriggerMessage          : FcMessageType;
 
 begin
 
    tsS30xlThresholdTriggerDaq <= toThresholdTriggerDaq(tsThresholdTriggerData, triggerTimestamp);
-   emuTriggerMessage          <= toFcMessage(emuTriggerData.data(FC_LEN_C-1 downto 0), emuTriggerData.valid);
+   synTriggerMessage          <= toFcMessage(synTriggerData.data(FC_LEN_C-1 downto 0), synTriggerData.valid);
 
-   comb : process (emuTriggerData, r, triggerTimestamp, tsS30xlThresholdTriggerDaq) is
+   comb : process (fcBus, r, synTriggerData, triggerTimestamp, tsS30xlThresholdTriggerDaq) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
       v := r;
+
+      ----------------------------------------------------------------------------------------------
+      -- AXI Lite Registers
+      ----------------------------------------------------------------------------------------------
+      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
+
+      axiSlaveRegister (axilEp, x"00", 0, v.enableSynTriggers);
+      axiSlaveRegister (axilEp, x"00", 1, v.enableTsThresholdTriggers);
+
+
+      -- Closeout the transaction
+      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+
 
       v.gtRor.strobe := '0';
       v.gtRor.valid  := '0';
@@ -104,39 +126,48 @@ begin
 
       if (r.counter = 0) then
 
-         -- TS Triggering
-         if (tsS30xlThresholdTriggerDaq.valid = '1') then
-            -- If BC0 seen send a ROR         
-            if (tsS30xlThresholdTriggerDaq.bc0 = '1') then
-               v.counter      := MIN_ROR_PERIOD_C;
-               v.gtRor        := triggerTimestamp;
-               v.gtRor.valid  := '1';
-               v.gtRor.strobe := '1';
-            end if;
-
-            if (tsS30xlThresholdTriggerDaq.hits /= 0) then
-               v.counter      := MIN_ROR_PERIOD_C;
-               v.gtRor        := triggerTimestamp;
-               v.gtRor.valid  := '1';
-               v.gtRor.strobe := '1';
-            end if;
-         end if;
-
-         -- Synthetic triggering
-         if (emuTriggerData.valid = '1' and emuTriggerData.data(0) = '1') then
+         -- Special case for bc0
+         -- If BC0 seen send a ROR         
+         if (synTriggerData.bc0 = '1') then
             v.counter      := MIN_ROR_PERIOD_C;
             v.gtRor        := triggerTimestamp;
             v.gtRor.valid  := '1';
             v.gtRor.strobe := '1';
          end if;
-         
+
+         -- Gate triggers unless in RUNNING state
+         if (fcBus.runState = RUN_STATE_RUNNING_C) then
+
+            -- TS Triggering
+            if (r.enableTsThresholdTriggers = '1' and tsS30xlThresholdTriggerDaq.valid = '1') then
+               if (tsS30xlThresholdTriggerDaq.hits /= 0) then
+                  v.counter      := MIN_ROR_PERIOD_C;
+                  v.gtRor        := triggerTimestamp;
+                  v.gtRor.valid  := '1';
+                  v.gtRor.strobe := '1';
+               end if;
+            end if;
+
+            -- Synthetic triggering
+            if (r.enableSynTriggers = '1' and synTriggerData.valid = '1' and synTriggerData.data(0) = '1') then
+               v.counter      := MIN_ROR_PERIOD_C;
+               v.gtRor        := triggerTimestamp;
+               v.gtRor.valid  := '1';
+               v.gtRor.strobe := '1';
+            end if;
+
+         end if;
+
       end if;
 
 
 
       rin <= v;
 
-      gtRor <= r.gtRor;
+      gtRor          <= r.gtRor;
+      axilReadSlave  <= r.axilReadSlave;
+      axilWriteSlave <= r.axilWriteSlave;
+      
    end process;
 
 
