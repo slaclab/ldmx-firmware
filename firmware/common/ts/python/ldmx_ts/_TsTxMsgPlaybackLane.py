@@ -48,23 +48,19 @@ class TsTxMsgPlaybackLane(pr.Device):
                 valueStride = 128,
                 numValues = 2**8))
 
-#         self.add(pr.RemoteVariable(
-#             name = 'TxEnable',
-#             offset = 0x0,
-#             bitOffset = 127,
-#             bitSize = 1,
-#             base = pr.Bool))
+        @self.command()
+        def LoadNpy(arg):
+            for sample in range(len(arg)):
+                for channel in range(6):
+                    print(f'Set adc value {arg[sample, channel]:x} at index ADC[{channel}][{sample}]')
+                    self.ADC[channel].set(int(arg[sample, channel]), index=sample, write=False)
+                for channel in range(6):
+                    print(f'Set tdc value {arg[sample, channel+6]:x} at index TDC[{channel}][{sample}]')
+                    self.TDC[channel].set(int(arg[sample, channel+6])&0x3f, index=sample, write=False)
+    
 
         @self.command()
-        def Start():
-            self.RAM.set(value=0xff, index=15, write=True)
-
-        @self.command()            
-        def Stop():
-            self.RAM.set(value=0x00, index=15, write=True)
-
-        @self.command()
-        def FillRam():
+        def FillRamRandom():
             adcs = np.random.normal(
                 loc = [.2, .3, .4, .5, .6, .7],
                 scale = .1,
