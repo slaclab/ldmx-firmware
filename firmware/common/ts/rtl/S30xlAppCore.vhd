@@ -240,8 +240,8 @@ begin
          fcMsgTime       => fcMsgTime,           -- [in]
          axisClk         => axisClk,             -- [in]
          axisRst         => axisRst,             -- [in]
-         tsDaqAxisMaster => tsDaqRawAxisMaster,  -- [out]
-         tsDaqAxisSlave  => tsDaqRawAxisSlave);  -- [in]
+         eventAxisMaster => tsDaqRawAxisMaster,  -- [out]
+         eventAxisSlave  => tsDaqRawAxisSlave);  -- [in]
 
    -------------------------------------------------------------------------------------------------
    -- Trigger algorithm block
@@ -261,6 +261,7 @@ begin
    -- Trigger DAQ block
    -------------------------------------------------------------------------------------------------
    U_TsTrigDaq_1 : entity ldmx_ts.TsTrigDaq
+      
       generic map (
          TPD_G      => TPD_G,
          TS_LANES_G => TS_LANES_G)
@@ -271,8 +272,8 @@ begin
          tsTrigDaqData    => tsTrigDaqData,        -- [in]
          axisClk          => axisClk,              -- [in]
          axisRst          => axisRst,              -- [in]
-         tsTrigAxisMaster => tsDaqTrigAxisMaster,  -- [out]
-         tsTrigAxisSlave  => tsDaqTrigAxisSlave);  -- [in]
+         eventAxisMaster => tsDaqTrigAxisMaster,  -- [out]
+         eventAxisSlave  => tsDaqTrigAxisSlave);  -- [in]
 
 
    -------------------------------------------------------------------------------------------------

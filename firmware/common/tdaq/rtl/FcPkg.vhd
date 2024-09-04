@@ -73,14 +73,12 @@ package FcPkg is
    -- Readout Request Fields
    -------------------------------------------------------------------------------------------------
    type FcTimestampType is record
-      strobe     : sl;
       valid      : sl;
       bunchCount : slv(5 downto 0);
       pulseId    : slv(63 downto 0);
    end record FcTimestampType;
 
    constant FC_TIMESTAMP_INIT_C : FcTimestampType := (
-      strobe     => '0',
       valid      => '0',
       bunchCount => (others => '0'),
       pulseId    => (others => '0'));

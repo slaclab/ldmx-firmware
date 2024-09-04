@@ -140,7 +140,7 @@ begin
             end if;
 
             -- Readout request during alignment is the BC0 RoR
-            if (fcBus.readoutRequest.strobe = '1') then
+            if (fcBus.readoutRequest.valid = '1') then
                v.state    := ALIGNED_S;
                v.aligned  := '1';
             end if;

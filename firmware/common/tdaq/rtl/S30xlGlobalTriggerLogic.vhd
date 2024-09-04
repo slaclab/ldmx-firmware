@@ -116,7 +116,6 @@ begin
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
 
-      v.gtRor.strobe := '0';
       v.gtRor.valid  := '0';
 
       -- Count down to achieve minimum ror spacing
@@ -132,7 +131,6 @@ begin
             v.counter      := MIN_ROR_PERIOD_C;
             v.gtRor        := triggerTimestamp;
             v.gtRor.valid  := '1';
-            v.gtRor.strobe := '1';
          end if;
 
          -- Gate triggers unless in RUNNING state
@@ -144,7 +142,6 @@ begin
                   v.counter      := MIN_ROR_PERIOD_C;
                   v.gtRor        := triggerTimestamp;
                   v.gtRor.valid  := '1';
-                  v.gtRor.strobe := '1';
                end if;
             end if;
 
@@ -153,14 +150,11 @@ begin
                v.counter      := MIN_ROR_PERIOD_C;
                v.gtRor        := triggerTimestamp;
                v.gtRor.valid  := '1';
-               v.gtRor.strobe := '1';
             end if;
 
          end if;
 
       end if;
-
-
 
       rin <= v;
 

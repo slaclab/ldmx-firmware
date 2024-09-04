@@ -42,7 +42,6 @@ entity FcTimestampFifo is
       rst : in sl;
 
       wrClk       : in  sl;
-      wrEn        : in  sl;
       wrFull      : out sl;
       wrTimestamp : in  FcTimestampType;
 
@@ -75,17 +74,17 @@ begin
          DATA_WIDTH_G    => FC_TIMESTAMP_SIZE_C,
          ADDR_WIDTH_G    => ADDR_WIDTH_G)
       port map (
-         rst           => rst,          -- [in]
-         wr_clk        => wrClk,        -- [in]
-         wr_en         => wrEn,         -- [in]
-         din           => fifoDin,      -- [in]
-         wr_data_count => open,         -- [out]
-         full          => wrFull,       -- [out]
-         rd_clk        => rdClk,        -- [in]
-         rd_en         => rdEn,         -- [in]
-         dout          => fifoDout,     -- [out]
-         rd_data_count => open,         -- [out]
-         valid         => fifoValid);   -- [out]
+         rst           => rst,                -- [in]
+         wr_clk        => wrClk,              -- [in]
+         wr_en         => wrTimestamp.valid,  -- [in]
+         din           => fifoDin,            -- [in]
+         wr_data_count => open,               -- [out]
+         full          => wrFull,             -- [out]
+         rd_clk        => rdClk,              -- [in]
+         rd_en         => rdEn,               -- [in]
+         dout          => fifoDout,           -- [out]
+         rd_data_count => open,               -- [out]
+         valid         => fifoValid);         -- [out]
 
    rdValid     <= fifoValid;
    rdTimestamp <= toFcTimestamp(fifoDout, fifoValid);

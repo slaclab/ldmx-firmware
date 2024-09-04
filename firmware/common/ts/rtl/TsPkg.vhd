@@ -29,6 +29,9 @@ use ldmx_tdaq.FcPkg.all;
 
 package TsPkg is
 
+   constant TS_RAW_DATA_DAQ_ID_C       : slv(7 downto 0) := X"01";
+   constant TS_S30XL_THRESHOLD_TRIG_DAQ_ID_C : slv(7 downto 0) := X"02";
+
    type TsData8ChMsgType is record
       strobe : sl;                      -- Indicates new data
       capId  : slv(1 downto 0);

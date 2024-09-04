@@ -130,7 +130,7 @@ begin
       v.fcBus.bunchStrobe           := '0';
       v.fcBus.bunchStrobePre        := '0';
       v.fcBus.stateChanged          := '0';
-      v.fcBus.readoutRequest.strobe := '0';
+      v.fcBus.readoutRequest.valid := '0';
       v.fcBus.bc0                   := '0';
 
       -- Count cycles from start of run
@@ -144,22 +144,24 @@ begin
 
       -- Assert ror and soft rst (reset101) only on falling edge of fcClk37
       -- to allow enough setup time for shfited hybrid clocks to see it.
-      if (r.fcBus.subCount = BUNCH_CLK_FALL_C) then
-         v.fcBunchClk37               := '0';
-         v.fcBus.readoutRequest.valid := r.rorLatch;
+--       if (r.fcBus.subCount = BUNCH_CLK_FALL_C) then
+--          v.fcBunchClk37               := '0';
+--          v.fcBus.readoutRequest.valid := r.rorLatch;
 
-         v.rorLatch := '0';
-      end if;
+--          v.rorLatch := '0';
+--       end if;
 
       if (r.fcBus.subCount = BUNCH_CLK_RISE_C) then
          v.fcBunchClk37      := '1';
          v.fcBus.bunchStrobe := '1';
          v.fcBus.bunchCount  := r.fcBus.bunchCount + 1;
+
+         v.fcBus.readoutRequest.valid := r.rorLatch;
+         v.rorLatch := '0';
       end if;
 
       if (r.fcBus.subCount = BUNCH_CLK_PRE_RISE_C) then
          v.fcBus.bunchStrobePre        := '1';
-         v.fcBus.readoutRequest.strobe := r.fcBus.readoutRequest.valid;
       end if;
 
       -- Decode incomming fast control messages from PGPFC

@@ -77,7 +77,6 @@ architecture rtl of Bc0Aligner is
       state               : StateType;
       dataFifoRdEn        : slv(CHANNELS_G-1 downto 0);
       timestampFifoRdEn   : sl;
-      timestampFifoWrEn   : sl;
       timestampFifoWrData : FcTimestampType;
       triggerDataOut      : TriggerDataArray(CHANNELS_G-1 downto 0);
       triggerTimestamp    : FcTimestampType;
@@ -87,7 +86,6 @@ architecture rtl of Bc0Aligner is
       state               => WAIT_BC0_STATE_S,
       dataFifoRdEn        => (others => '0'),
       timestampFifoRdEn   => '0',
-      timestampFifoWrEn   => '0',
       timestampFifoWrData => FC_TIMESTAMP_INIT_C,
       triggerDataOut      => (others => TRIGGER_DATA_INIT_C),
       triggerTimestamp    => FC_TIMESTAMP_INIT_C);
@@ -143,7 +141,6 @@ begin
       port map (
          rst         => fcRst185,               -- [in]
          wrClk       => fcClk185,               -- [in]
-         wrEn        => r.timestampFifoWrEn,    -- [in]
          wrTimestamp => r.timestampFifoWrData,  -- [in]
          rdClk       => fcClk185,               -- [in]
          rdEn        => r.timestampFifoRdEn,    -- [in]
@@ -157,9 +154,9 @@ begin
    begin
       v := r;
 
-      v.dataFifoRdEn      := (others => '0');
-      v.timestampFifoRdEn := '0';
-      v.timestampFifoWrEn := '0';
+      v.dataFifoRdEn              := (others => '0');
+      v.timestampFifoRdEn         := '0';
+      v.timestampFifoWrData.valid := '0';
 
       STB_LOOP : for i in CHANNELS_G-1 downto 0 loop
          v.triggerDataOut(i).valid := '0';
@@ -180,7 +177,7 @@ begin
                -- Stop bleeding the timestamp fifo
                v.timestampFifoRdEn              := '0';
                -- Start writing timestamps
-               v.timestampFifoWrEn              := '1';
+               v.timestampFifoWrData.valid      := '1';
                v.timestampFifoWrData.pulseId    := fcBus.pulseId;
                v.timestampFifoWrData.bunchCount := fcBus.bunchCount;
                v.state                          := WAIT_BC0_DATA_S;
@@ -189,7 +186,7 @@ begin
          when WAIT_BC0_DATA_S =>
             if (fcBus.bunchStrobe = '1') then
                -- Write a new timestamp with each bunch strobe
-               v.timestampFifoWrEn              := '1';
+               v.timestampFifoWrData.valid      := '1';
                v.timestampFifoWrData.bunchCount := fcBus.bunchCount;
                v.timestampFifoWrData.pulseId    := fcBus.pulseId;
             end if;
@@ -213,7 +210,7 @@ begin
                   v.triggerTimestamp.valid := '1';
                   v.state                  := ALIGNED_S;
                end if;
-            end if;               
+            end if;
 
 
             -- Reset alignment if run state transitions before BC0
@@ -224,7 +221,7 @@ begin
          when ALIGNED_S =>
             if (fcBus.bunchStrobe = '1') then
                -- Write timestamp each bunch clock
-               v.timestampFifoWrEn              := '1';
+               v.timestampFifoWrData.valid      := '1';
                v.timestampFifoWrData.bunchCount := fcBus.bunchCount;
                v.timestampFifoWrData.pulseId    := fcBus.pulseId;
             end if;
