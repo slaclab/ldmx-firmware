@@ -56,8 +56,8 @@ entity Bc0Aligner is
       triggerTimestamp : out FcTimestampType;
 
       -- Axil inteface
-      axilClk         : in  sl;
-      axilRst         : in  sl;
+--       axilClk         : in  sl;
+--       axilRst         : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType;

@@ -26,7 +26,8 @@ use ldmx_tdaq.FcPkg.all;
 entity FcRxLogic is
 
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G                : time    := 1 ns;
+      AXIL_CLK_IS_FC_CLK_G : boolean := false);
    port (
       fcClk185     : in  sl;
       fcRst185     : in  sl;
@@ -99,7 +100,7 @@ begin
    U_AxiLiteAsync_1 : entity surf.AxiLiteAsync
       generic map (
          TPD_G         => TPD_G,
-         COMMON_CLK_G  => false,
+         COMMON_CLK_G  => AXIL_CLK_IS_FC_CLK_G,
          PIPE_STAGES_G => 0)
       port map (
          sAxiClk         => axilClk,              -- [in]
