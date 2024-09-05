@@ -1,3 +1,6 @@
+# ghdl files
+*.cf
+
 # SVN files
 .svn*
 

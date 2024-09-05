@@ -28,6 +28,7 @@ use surf.SsiPkg.all;
 
 library ldmx_tdaq;
 use ldmx_tdaq.FcPkg.all;
+use ldmx_tdaq.DaqPkg.all;
 
 library ldmx_ts;
 use ldmx_ts.TsPkg.all;
@@ -40,19 +41,16 @@ entity TsTrigDaq is
 
    port (
       -- TS Trig Data and Timing
-      fcClk185         : in sl;
-      fcRst185         : in sl;
-      fcBus            : in FcBusType;
-      tsTrigValid      : in sl;
-      tsTrigTimestamp  : in FcTimestampType;
-      tsTrigHits       : in slv(11 downto 0);
-      tsTrigAmplitudes : in slv17Array(11 downto 0);
+      fcClk185      : in sl;
+      fcRst185      : in sl;
+      fcBus         : in FcBusType;
+      tsTrigDaqData : in TsS30xlThresholdTriggerDaqType;
 
       -- Streaming interface to ETH
-      axisClk          : in  sl;
-      axisRst          : in  sl;
-      tsTrigAxisMaster : out AxiStreamMasterType;
-      tsTrigAxisSlave  : in  AxiStreamSlaveType);
+      axisClk         : in  sl;
+      axisRst         : in  sl;
+      eventAxisMaster : out AxiStreamMasterType;
+      eventAxisSlave  : in  AxiStreamSlaveType);
 
 end entity TsTrigDaq;
 
@@ -69,19 +67,18 @@ architecture rtl of TsTrigDaq is
       TAIL_S);
 
    type RegType is record
-      state       : StateType;
-      fifoRdEn    : sl;
-      axisMaster  : AxiStreamMasterType;
+      state      : StateType;
+      fifoRdEn   : sl;
+      axisMaster : AxiStreamMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state       => WAIT_ROR_S,
-      fifoRdEn    => '0',
-      axisMaster  => axiStreamMasterInit(AXIS_CFG_C));
+      state      => WAIT_ROR_S,
+      fifoRdEn   => '0',
+      axisMaster => axiStreamMasterInit(AXIS_CFG_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-
 
 
    signal delayedAmplitudes : Slv17Array(11 downto 0);
@@ -89,12 +86,14 @@ architecture rtl of TsTrigDaq is
    signal delayedHits       : slv(11 downto 0);
    signal fifoHits          : slv(11 downto 0);
 
-   signal rorTimestampFifoInSlv  : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
-   signal rorTimestampFifoOutSlv : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
-   signal rorTimestampFifoValid  : sl;
-   
+--    signal rorTimestampFifoInSlv  : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
+--    signal rorTimestampFifoOutSlv : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
+--    signal rorTimestampFifoValid  : sl;
+
    signal aligned  : slv(12 downto 0);
    signal axisCtrl : AxiStreamCtrlType;
+
+   signal rorDataValid : sl;
 
 begin
 
@@ -109,13 +108,13 @@ begin
             DATA_WIDTH_G  => 17,
             MEMORY_TYPE_G => "block")
          port map (
-            fcClk185    => fcClk185,               -- [in]
-            fcRst185    => fcRst185,               -- [in]
-            fcBus       => fcBus,                  -- [in]
-            timestampIn => tsTrigTimestamp,        -- [in]
-            dataIn      => tsTrigAmplitudes(i),    -- [in]
-            aligned     => aligned(i),             -- [out]
-            dataOut     => delayedAmplitudes(i));  -- [out]
+            fcClk185    => fcClk185,                     -- [in]
+            fcRst185    => fcRst185,                     -- [in]
+            fcBus       => fcBus,                        -- [in]
+            timestampIn => tsTrigDaqData.timestamp,      -- [in]
+            dataIn      => tsTrigDaqData.amplitudes(i),  -- [in]
+            aligned     => aligned(i),                   -- [out]
+            dataOut     => delayedAmplitudes(i));        -- [out]
 
 
       -- Buffer delayed data in fifos upon each ROR
@@ -130,14 +129,14 @@ begin
             DATA_WIDTH_G    => 17,
             ADDR_WIDTH_G    => 5)
          port map (
-            rst    => fcRst185,                     -- [in]
-            wr_clk => fcClk185,                     -- [in]
-            wr_en  => fcBus.readoutRequest.strobe,  -- [in]
-            din    => delayedAmplitudes(i),         -- [in]
-            rd_clk => axisClk,                      -- [in]
-            rd_en  => r.fifoRdEn,                   -- [in]
-            dout   => fifoAmplitudes(i),            -- [out]
-            valid  => open);                        -- [out]
+            rst    => fcRst185,                    -- [in]
+            wr_clk => fcClk185,                    -- [in]
+            wr_en  => fcBus.readoutRequest.valid,  -- [in]
+            din    => delayedAmplitudes(i),        -- [in]
+            rd_clk => axisClk,                     -- [in]
+            rd_en  => r.fifoRdEn,                  -- [in]
+            dout   => fifoAmplitudes(i),           -- [out]
+            valid  => open);                       -- [out]
 
    end generate;
 
@@ -150,13 +149,13 @@ begin
          DATA_WIDTH_G  => 12,
          MEMORY_TYPE_G => "block")
       port map (
-         fcClk185    => fcClk185,               -- [in]
-         fcRst185    => fcRst185,               -- [in]
-         fcBus       => fcBus,                  -- [in]
-         timestampIn => tsTrigTimestamp,        -- [in]
-         dataIn      => tsTrigHits,    -- [in]
-         aligned     => aligned(12),            -- [out]
-         dataOut     => delayedHits);  -- [out]
+         fcClk185    => fcClk185,                 -- [in]
+         fcRst185    => fcRst185,                 -- [in]
+         fcBus       => fcBus,                    -- [in]
+         timestampIn => tsTrigDaqData.timestamp,  -- [in]
+         dataIn      => tsTrigDaqData.hits,       -- [in]
+         aligned     => aligned(12),              -- [out]
+         dataOut     => delayedHits);             -- [out]
 
 
    -- Buffer delayed data in fifos upon each ROR
@@ -171,39 +170,39 @@ begin
          DATA_WIDTH_G    => 12,
          ADDR_WIDTH_G    => 5)
       port map (
-         rst    => fcRst185,                     -- [in]
-         wr_clk => fcClk185,                     -- [in]
-         wr_en  => fcBus.readoutRequest.strobe,  -- [in]
-         din    => delayedHits,                  -- [in]
-         rd_clk => axisClk,                      -- [in]
-         rd_en  => r.fifoRdEn,                   -- [in]
-         dout   => fifoHits,                     -- [out]
-         valid  => open);                        -- [out]
+         rst    => fcRst185,                    -- [in]
+         wr_clk => fcClk185,                    -- [in]
+         wr_en  => fcBus.readoutRequest.valid,  -- [in]
+         din    => delayedHits,                 -- [in]
+         rd_clk => axisClk,                     -- [in]
+         rd_en  => r.fifoRdEn,                  -- [in]
+         dout   => fifoHits,                    -- [out]
+         valid  => rorDataValid);               -- [out]
 
 
    -- Buffer ROR timestamps
-   rorTimestampFifoInSlv <= toSlv(tsTrigTimestamp);
-   ROR_TIMESTAMP_FIFO : entity surf.Fifo
-      generic map (
-         TPD_G           => TPD_G,
-         GEN_SYNC_FIFO_G => false,
-         FWFT_EN_G       => true,
-         SYNTH_MODE_G    => "inferred",
-         MEMORY_TYPE_G   => "distributed",
-         DATA_WIDTH_G    => FC_TIMESTAMP_SIZE_C,
-         ADDR_WIDTH_G    => 5)
-      port map (
-         rst    => fcRst185,                     -- [in]
-         wr_clk => fcClk185,                     -- [in]
-         wr_en  => fcBus.readoutRequest.strobe,  -- [in]
-         din    => rorTimestampFifoInSlv,        -- [in]
-         rd_clk => axisClk,                      -- [in]
-         rd_en  => r.fifoRdEn,                   -- [in]
-         dout   => rorTimestampFifoOutSlv,       -- [out]
-         valid  => rorTimestampFifoValid);       -- [out]
+--    rorTimestampFifoInSlv <= toSlv(tsTrigDaqData.timestamp);
+--    ROR_TIMESTAMP_FIFO : entity surf.Fifo
+--       generic map (
+--          TPD_G           => TPD_G,
+--          GEN_SYNC_FIFO_G => false,
+--          FWFT_EN_G       => true,
+--          SYNTH_MODE_G    => "inferred",
+--          MEMORY_TYPE_G   => "distributed",
+--          DATA_WIDTH_G    => FC_TIMESTAMP_SIZE_C,
+--          ADDR_WIDTH_G    => 5)
+--       port map (
+--          rst    => fcRst185,                    -- [in]
+--          wr_clk => fcClk185,                    -- [in]
+--          wr_en  => fcBus.readoutRequest.valid,  -- [in]
+--          din    => rorTimestampFifoInSlv,       -- [in]
+--          rd_clk => axisClk,                     -- [in]
+--          rd_en  => r.fifoRdEn,                  -- [in]
+--          dout   => rorTimestampFifoOutSlv,      -- [out]
+--          valid  => rorTimestampFifoValid);      -- [out]
 
 
-   comb : process (fifoAmplitudes, fifoHits, r, rorTimestampFifoOutSlv, rorTimestampFifoValid) is
+   comb : process (fifoAmplitudes, fifoHits, r, rorDataValid) is
       variable v : RegType;
    begin
       v := r;
@@ -214,10 +213,8 @@ begin
       case r.state is
          when WAIT_ROR_S =>
             -- Got a ROR, write the header
-            if (rorTimestampFifoValid = '1') then
-               v.axisMaster.tValid             := '1';
-               v.axisMaster.tData(69 downto 0) := rorTimestampFifoOutSlv;
-               v.state                         := DO_DATA_A_S;
+            if (rorDataValid = '1') then
+               v.state := DO_DATA_A_S;
             end if;
 
 
@@ -260,6 +257,7 @@ begin
             v.axisMaster.tData(56)  := fifoHits(9);
             v.axisMaster.tData(88)  := fifoHits(10);
             v.axisMaster.tData(120) := fifoHits(11);
+            v.axisMaster.tLast      := '1';
 
             v.state := FIFO_RD_S;
 
@@ -285,30 +283,26 @@ begin
       end if;
    end process seq;
 
-   U_AxiStreamFifoV2_1 : entity surf.AxiStreamFifoV2
+   U_DaqEventFormatter_1 : entity ldmx_tdaq.DaqEventFormatter
       generic map (
-         TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 0,
-         SLAVE_READY_EN_G    => false,
---          VALID_THOLD_G          => VALID_THOLD_G,
---          VALID_BURST_MODE_G     => VALID_BURST_MODE_G,
-         GEN_SYNC_FIFO_G     => true,
-         FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => 2**7-16,
-         FIFO_ADDR_WIDTH_G   => 7,
-         SYNTH_MODE_G        => "inferred",
-         MEMORY_TYPE_G       => "block",
-         SLAVE_AXI_CONFIG_G  => AXIS_CFG_C,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
+         TPD_G                     => TPD_G,
+         SUBSYSTEM_ID_G            => TS_SUBSYSTEM_ID_C,
+         CONTRIBUTOR_ID_G          => TS_S30XL_THRESHOLD_TRIG_DAQ_ID_C,
+         RAW_AXIS_CFG_G            => AXIS_CFG_C,
+         EVENT_FIFO_PAUSE_THRESH_G => 2**7-16,
+         EVENT_FIFO_ADDR_WIDTH_G   => 7,
+         EVENT_FIFO_SYNTH_MODE_G   => "inferred",
+         EVENT_FIFO_MEMORY_TYPE_G  => "block")
       port map (
-         sAxisClk    => axisClk,           -- [in]
-         sAxisRst    => axisRst,           -- [in]
-         sAxisMaster => r.axisMaster,      -- [in]
-         sAxisSlave  => open,              -- [out]
-         sAxisCtrl   => axisCtrl,          -- [out]
-         mAxisClk    => axisClk,           -- [in]
-         mAxisRst    => axisRst,           -- [in]
-         mAxisMaster => tsTrigAxisMaster,  -- [out]
-         mAxisSlave  => tsTrigAxisSlave);  -- [in]
+         fcClk185        => fcClk185,         -- [in]
+         fcRst185        => fcRst185,         -- [in]
+         fcBus           => fcBus,            -- [in]
+         axisClk         => axisClk,          -- [in]
+         axisRst         => axisRst,          -- [in]
+         rawAxisMaster   => r.axisMaster,     -- [in]
+         rawAxisCtrl     => open,             -- [out]
+         eventAxisMaster => eventAxisMaster,  -- [out]
+         eventAxisSlave  => eventAxisSlave);  -- [in]
+
 
 end architecture rtl;

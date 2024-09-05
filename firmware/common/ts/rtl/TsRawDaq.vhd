@@ -28,6 +28,7 @@ use surf.SsiPkg.all;
 
 library ldmx_tdaq;
 use ldmx_tdaq.FcPkg.all;
+use ldmx_tdaq.DaqPkg.all;
 
 library ldmx_ts;
 use ldmx_ts.TsPkg.all;
@@ -49,8 +50,8 @@ entity TsRawDaq is
       -- Streaming interface to ETH
       axisClk         : in  sl;
       axisRst         : in  sl;
-      tsDaqAxisMaster : out AxiStreamMasterType;
-      tsDaqAxisSlave  : in  AxiStreamSlaveType);
+      eventAxisMaster : out AxiStreamMasterType;
+      eventAxisSlave  : in  AxiStreamSlaveType);
 
 end entity TsRawDaq;
 
@@ -79,9 +80,12 @@ architecture rtl of TsRawDaq is
    signal tsRxMsgsSlvDelayIn     : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
    signal tsRxMsgsSlvDelayOut    : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
    signal tsRxMsgsSlvFifoOut     : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
-   signal rorTimestampFifoInSlv  : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
-   signal rorTimestampFifoOutSlv : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
-   signal rorTimestampFifoValid  : sl;
+   signal tsRxMsgsFifoValid      : slv(TS_LANES_G-1 downto 0);
+   signal tsRxMsgsFifoOut        : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
+--    signal rorTimestampFifoInSlv  : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
+--    signal rorTimestampFifoOutSlv : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
+--    signal rorTimestampFifoValid  : sl;
+--    signal rorTimestampFifoOut    : FcTimestampType;
    signal aligned                : slv(TS_LANES_G-1 downto 0);
    signal axisCtrl               : AxiStreamCtrlType;
 
@@ -117,39 +121,43 @@ begin
             DATA_WIDTH_G    => TS_DATA_6CH_MSG_SIZE_C,
             ADDR_WIDTH_G    => 5)
          port map (
-            rst    => fcRst185,                     -- [in]
-            wr_clk => fcClk185,                     -- [in]
-            wr_en  => fcBus.readoutRequest.strobe,  -- [in]
-            din    => tsRxMsgsSlvDelayOut(i),       -- [in]
-            rd_clk => axisClk,                      -- [in]
-            rd_en  => r.fifoRdEn,                   -- [in]
-            dout   => tsRxMsgsSlvFifoOut(i),        -- [out]
-            valid  => open);                        -- [out]
+            rst    => fcRst185,                    -- [in]
+            wr_clk => fcClk185,                    -- [in]
+            wr_en  => fcBus.readoutRequest.valid,  -- [in]
+            din    => tsRxMsgsSlvDelayOut(i),      -- [in]
+            rd_clk => axisClk,                     -- [in]
+            rd_en  => r.fifoRdEn,                  -- [in]
+            dout   => tsRxMsgsSlvFifoOut(i),       -- [out]
+            valid  => tsRxMsgsFifoValid(i));       -- [out]
 
+      -- For debugging
+      tsRxMsgsFifoOut(i) <= toTsData6ChMsg(tsRxMsgsSlvFifoOut(i), tsRxMsgsFifoValid(i));
    end generate;
 
-   rorTimestampFifoInSlv <= toSlv(fcMsgTime);
-   ROR_TIMESTAMP_FIFO : entity surf.Fifo
-      generic map (
-         TPD_G           => TPD_G,
-         GEN_SYNC_FIFO_G => false,
-         FWFT_EN_G       => true,
-         SYNTH_MODE_G    => "inferred",
-         MEMORY_TYPE_G   => "distributed",
-         DATA_WIDTH_G    => FC_TIMESTAMP_SIZE_C,
-         ADDR_WIDTH_G    => 5)
-      port map (
-         rst    => fcRst185,                     -- [in]
-         wr_clk => fcClk185,                     -- [in]
-         wr_en  => fcBus.readoutRequest.strobe,  -- [in]
-         din    => rorTimestampFifoInSlv,        -- [in]
-         rd_clk => axisClk,                      -- [in]
-         rd_en  => r.fifoRdEn,                   -- [in]
-         dout   => rorTimestampFifoOutSlv,       -- [out]
-         valid  => rorTimestampFifoValid);       -- [out]
+--    rorTimestampFifoInSlv <= toSlv(fcMsgTime);
+--    ROR_TIMESTAMP_FIFO : entity surf.Fifo
+--       generic map (
+--          TPD_G           => TPD_G,
+--          GEN_SYNC_FIFO_G => false,
+--          FWFT_EN_G       => true,
+--          SYNTH_MODE_G    => "inferred",
+--          MEMORY_TYPE_G   => "distributed",
+--          DATA_WIDTH_G    => FC_TIMESTAMP_SIZE_C,
+--          ADDR_WIDTH_G    => 5)
+--       port map (
+--          rst    => fcRst185,                    -- [in]
+--          wr_clk => fcClk185,                    -- [in]
+--          wr_en  => fcBus.readoutRequest.valid,  -- [in]
+--          din    => rorTimestampFifoInSlv,       -- [in]
+--          rd_clk => axisClk,                     -- [in]
+--          rd_en  => r.fifoRdEn,                  -- [in]
+--          dout   => rorTimestampFifoOutSlv,      -- [out]
+--          valid  => rorTimestampFifoValid);      -- [out]
 
+   -- For debugging
+--   rorTimestampFifoOut <= toFcTimestamp(rorTimestampFifoOutSlv, rorTimestampFifoValid);
 
-   comb : process (r, rorTimestampFifoOutSlv, rorTimestampFifoValid, tsRxMsgsSlvFifoOut) is
+   comb : process (r, tsRxMsgsFifoValid, tsRxMsgsSlvFifoOut) is
       variable v : RegType;
    begin
       v := r;
@@ -160,21 +168,24 @@ begin
       case r.state is
          when WAIT_ROR_S =>
             -- Got a ROR, write the header
-            if (rorTimestampFifoValid = '1') then
-               v.laneCounter                   := 0;
-               v.axisMaster.tValid             := '1';
-               v.axisMaster.tData(69 downto 0) := rorTimestampFifoOutSlv;
-               v.state                         := DO_DATA_S;
+            if (tsRxMsgsFifoValid(0) = '1') then
+               v.laneCounter                  := 0;
+               v.axisMaster.tValid            := '1';
+               v.axisMaster.tData(7 downto 0) := toSlv(TS_LANES_G, 8);
+               v.state                        := DO_DATA_S;
             end if;
 
          when DO_DATA_S =>
             v.axisMaster.tValid                                   := '1';
             v.axisMaster.tData(TS_DATA_6CH_MSG_SIZE_C-1 downto 0) := tsRxMsgsSlvFifoOut(r.laneCounter);
-            v.laneCounter                                         := r.laneCounter + 1;
+
             if (r.laneCounter = TS_LANES_G-1) then
+               v.laneCounter      := 0;
                v.axisMaster.tLast := '1';
                v.fifoRdEn         := '1';
                v.state            := TAIL_S;
+            else
+               v.laneCounter := r.laneCounter + 1;
             end if;
 
          when TAIL_S =>
@@ -193,30 +204,25 @@ begin
       end if;
    end process seq;
 
-   U_AxiStreamFifoV2_1 : entity surf.AxiStreamFifoV2
+   U_DaqEventFormatter_1 : entity ldmx_tdaq.DaqEventFormatter
       generic map (
-         TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 0,
-         SLAVE_READY_EN_G    => false,
---          VALID_THOLD_G          => VALID_THOLD_G,
---          VALID_BURST_MODE_G     => VALID_BURST_MODE_G,
-         GEN_SYNC_FIFO_G     => true,
-         FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => 2**7-16,
-         FIFO_ADDR_WIDTH_G   => 7,
-         SYNTH_MODE_G        => "inferred",
-         MEMORY_TYPE_G       => "block",
-         SLAVE_AXI_CONFIG_G  => AXIS_CFG_C,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
+         TPD_G                     => TPD_G,
+         SUBSYSTEM_ID_G            => TS_SUBSYSTEM_ID_C,
+         CONTRIBUTOR_ID_G          => TS_RAW_DATA_DAQ_ID_C,
+         RAW_AXIS_CFG_G            => AXIS_CFG_C,
+         EVENT_FIFO_PAUSE_THRESH_G => 2**7-16,
+         EVENT_FIFO_ADDR_WIDTH_G   => 7,
+         EVENT_FIFO_SYNTH_MODE_G   => "inferred",
+         EVENT_FIFO_MEMORY_TYPE_G  => "block")
       port map (
-         sAxisClk    => axisClk,          -- [in]
-         sAxisRst    => axisRst,          -- [in]
-         sAxisMaster => r.axisMaster,     -- [in]
-         sAxisSlave  => open,             -- [out]
-         sAxisCtrl   => axisCtrl,         -- [out]
-         mAxisClk    => axisClk,          -- [in]
-         mAxisRst    => axisRst,          -- [in]
-         mAxisMaster => tsDaqAxisMaster,  -- [out]
-         mAxisSlave  => tsDaqAxisSlave);  -- [in]
+         fcClk185        => fcClk185,         -- [in]
+         fcRst185        => fcRst185,         -- [in]
+         fcBus           => fcBus,            -- [in]
+         axisClk         => axisClk,          -- [in]
+         axisRst         => axisRst,          -- [in]
+         rawAxisMaster   => r.axisMaster,     -- [in]
+         rawAxisCtrl     => open,             -- [out]
+         eventAxisMaster => eventAxisMaster,  -- [out]
+         eventAxisSlave  => eventAxisSlave);  -- [in]   
 
 end architecture rtl;

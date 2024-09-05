@@ -29,12 +29,12 @@ library ldmx_ts;
 use ldmx_ts.zCCM_Pkg.ALL;
 
 entity Slow_Control_Monitor is
-    Port ( 
-        d            : in  STD_LOGIC ;
-        counter      : out STD_LOGIC_VECTOR (7 downto 0); 
-        clk          : in STD_LOGIC;
-        reset_n      : in STD_LOGIC
-         );
+  Port ( 
+    d            : in  STD_LOGIC ;
+    counter      : out STD_LOGIC_VECTOR (7 downto 0); 
+    clk          : in STD_LOGIC;
+    reset_n      : in STD_LOGIC
+  );
 end Slow_Control_Monitor;
 
 architecture behavioral of Slow_Control_Monitor is

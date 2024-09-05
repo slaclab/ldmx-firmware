@@ -34,6 +34,7 @@ entity FcReceiver is
    generic (
       TPD_G            : time                 := 1 ns;
       SIM_SPEEDUP_G    : boolean              := false;
+      GT_TYPE_G        : string               := "GTY";  -- Or GTH
       NUM_VC_EN_G      : integer range 0 to 4 := 0;
       GEN_FC_EMU_G     : boolean              := true;
       AXIL_CLK_FREQ_G  : real                 := 156.25e6;

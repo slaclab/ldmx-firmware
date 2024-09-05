@@ -14,6 +14,7 @@ loadRuckusTcl $::env(TOP_DIR)/common/ts
 
 # Load local source Code and constraints
 loadSource -lib ldmx_ts -path "$::DIR_PATH/rtl/S30xlAPx.vhd"
+loadSource -sim_only -lib ldmx_ts -dir "$::DIR_PATH/sim/"
 
 loadConstraints -dir "$::DIR_PATH/constraints/"
 # loadIpCore -dir "$::DIR_PATH/ip/"
@@ -24,4 +25,4 @@ loadConstraints -dir "$::DIR_PATH/constraints/"
 #set_property used_in_synthesis false [get_files  $::DIR_PATH/constraints/floorplan.tcl]
 #set_msg_config -suppress -id {Vivado 12-1433};  # Expecting a non-empty list of cells to be added to the pblock.  
 # Set top level sim
-#set_property top "LdmxFebTb"     [get_filesets sim_1]
+set_property top "S30xlAPxTb"     [get_filesets sim_1]

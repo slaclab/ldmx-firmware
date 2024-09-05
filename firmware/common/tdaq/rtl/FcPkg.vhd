@@ -34,11 +34,12 @@ package FcPkg is
    constant STATE_CHANGED_INDEX_C : natural := 69;
    subtype PULSE_ID_RANGE_C is natural range 63 downto 0;
 
-   constant RUN_STATE_RESET_C       : slv(4 downto 0) := "00000";
-   constant RUN_STATE_CLOCK_ALIGN_C : slv(4 downto 0) := "00001";  -- T0
-   constant RUN_STATE_PRESTART_C    : slv(4 downto 0) := "00010";
-   constant RUN_STATE_RUNNING_C     : slv(4 downto 0) := "00011";
-   constant RUN_STATE_STOPPED_C     : slv(4 downto 0) := "00100";
+   constant RUN_STATE_RESET_C    : slv(4 downto 0) := "00000";
+   constant RUN_STATE_IDLE_C     : slv(4 downto 0) := "00001";
+   constant RUN_STATE_BC0_C      : slv(4 downto 0) := "00010";
+   constant RUN_STATE_PRESTART_C : slv(4 downto 0) := "00011";
+   constant RUN_STATE_RUNNING_C  : slv(4 downto 0) := "00100";
+   constant RUN_STATE_STOPPED_C  : slv(4 downto 0) := "00101";
 
    constant MSG_TYPE_TIMING_C : slv(3 downto 0) := toSlv(0, 4);
    constant MSG_TYPE_ROR_C    : slv(3 downto 0) := toSlv(1, 4);
@@ -72,14 +73,12 @@ package FcPkg is
    -- Readout Request Fields
    -------------------------------------------------------------------------------------------------
    type FcTimestampType is record
-      strobe     : sl;
       valid      : sl;
       bunchCount : slv(5 downto 0);
       pulseId    : slv(63 downto 0);
    end record FcTimestampType;
 
    constant FC_TIMESTAMP_INIT_C : FcTimestampType := (
-      strobe     => '0',
       valid      => '0',
       bunchCount => (others => '0'),
       pulseId    => (others => '0'));
@@ -114,6 +113,7 @@ package FcPkg is
       bunchCount      : slv(5 downto 0);
       subCount        : slv(2 downto 0);
       bunchClkAligned : sl;
+      bc0             : sl;
 
       -- 185 MHz counter from T0
       runTime : slv(63 downto 0);
@@ -137,6 +137,7 @@ package FcPkg is
       bunchCount      => (others => '0'),
       subCount        => (others => '0'),
       bunchClkAligned => '0',
+      bc0             => '0',
       runTime         => (others => '0'),
       readoutRequest  => FC_TIMESTAMP_INIT_C,
       fcMsg           => FC_MSG_INIT_C);

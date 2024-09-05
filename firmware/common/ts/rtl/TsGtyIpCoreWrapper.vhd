@@ -29,6 +29,7 @@ use unisim.vcomponents.all;
 entity TsGtyIpCoreWrapper is
    generic (
       TPD_G             : time             := 1 ns;
+      SIMULATION_G      : boolean          := false;
       USE_ALIGN_CHECK_G : boolean          := true;
       AXIL_CLK_FREQ_G   : real             := 125.0e6;
       AXIL_BASE_ADDR_G  : slv(31 downto 0) := (others => '0'));
@@ -230,9 +231,10 @@ begin
    -- the associated generic is set to true.
    U_TsGtyIpCore : TsGtyIpCore
       port map (
-         gtwiz_userclk_tx_reset_in(0)          => buffBypassTxReset,
          gtwiz_userclk_tx_active_in(0)         => txUsrActive,
          gtwiz_userclk_rx_active_in(0)         => rxUsrActive,
+         gtwiz_reset_clk_freerun_in(0)         => stableClk,
+         gtwiz_reset_all_in(0)                 => stableRst,
          gtwiz_buffbypass_tx_reset_in(0)       => buffBypassTxReset,
          gtwiz_buffbypass_tx_start_user_in(0)  => buffBypassTxStart,
          gtwiz_buffbypass_tx_done_out(0)       => buffBypassTxDone,
@@ -241,8 +243,7 @@ begin
          gtwiz_buffbypass_rx_start_user_in(0)  => buffBypassRxStart,
          gtwiz_buffbypass_rx_done_out(0)       => buffBypassRxDone,
          gtwiz_buffbypass_rx_error_out(0)      => buffBypassRxError,
-         gtwiz_reset_clk_freerun_in(0)         => stableClk,
-         gtwiz_reset_all_in(0)                 => stableRst,
+         gtwiz_userclk_tx_reset_in(0)          => buffBypassTxReset,
          gtwiz_reset_tx_pll_and_datapath_in(0) => '0',
          gtwiz_reset_tx_datapath_in(0)         => txResetGt,
          gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
@@ -261,8 +262,8 @@ begin
          drprdy_out(0)                         => drpRdy,
          gtyrxn_in(0)                          => gtRxN,
          gtyrxp_in(0)                          => gtRxP,
-         loopback_in                           => loopback,
          gtrefclk0_in(0)                       => gtRefClk,
+         loopback_in                           => loopback,         
          rx8b10ben_in(0)                       => '1',
          rxcommadeten_in(0)                    => '1',
          rxmcommaalignen_in(0)                 => rxMcommaAlignEn,
@@ -272,13 +273,13 @@ begin
 --          txpcsreset_in(0)                      => txPcsReset,
 --          txpmareset_in(0)                      => txPmaReset,
 --          rxpolarity_in(0)                      => rxPolarity,
-         rxusrclk_in(0)                        => gtUserRefClk,
-         rxusrclk2_in(0)                       => gtUserRefClk,
+         rxusrclk_in(0)                        => rxUsrClk,
+         rxusrclk2_in(0)                       => rxUsrClk,
          tx8b10ben_in(0)                       => '1',
          txctrl0_in                            => X"0000",
          txctrl1_in                            => X"0000",
          txctrl2_in                            => txctrl2,
-         txpd_in                               => "11",        -- POWER DOWN TX
+         txpd_in                               => "00",        -- POWER DOWN TX
 --         txpolarity_in(0)                      => txPolarity,
          txusrclk_in(0)                        => gtUserRefClk,
          txusrclk2_in(0)                       => gtUserRefClk,
@@ -299,10 +300,12 @@ begin
 --         rxrecclkout_out(0)                    => rxRecClk,
          txoutclk_out(0)                       => txOutClkGt,  -- unused
          rxpmaresetdone_out(0)                 => rxPmaResetDone,
-         rxresetdone_out(0)                    => rxResetDone,
+         rxresetdone_out(0)                    => open,
 --         rxsyncdone_out(0)                     => rxSyncDone,
          txpmaresetdone_out(0)                 => txPmaResetDone,
          txresetdone_out(0)                    => txResetDone);
+
+   rxResetDone <= buffBypassRxDone;
 
    RXOUTCLK_BUFG_GT : BUFG_GT
       port map (
@@ -342,12 +345,13 @@ begin
    U_AlignCheck : entity surf.GtRxAlignCheck
       generic map (
          TPD_G          => TPD_G,
+         SIMULATION_G   => SIMULATION_G,
          GT_TYPE_G      => "GTYE4",
          AXI_CLK_FREQ_G => AXIL_CLK_FREQ_G,
          DRP_ADDR_G     => AXIL_XBAR_CFG_C(1).baseAddr)
       port map (
          -- Clock Monitoring
-         txClk            => '0',
+         txClk            => gtUserRefClk,
          rxClk            => rxUsrClk,
          refClk           => gtUserRefClk,
          -- GTH Status/Control Interface
@@ -395,17 +399,18 @@ begin
          drpDi           => drpDi,                -- [out]
          drpDo           => drpDo);               -- [in]
 
-
-
+   txctrl2     <= "000000" & txDataK;
+   txUsrActive <= txPmaResetDone;   
    rxUsrActive <= rxUsrClkActive and rxPmaResetDone;
-   rstSyncRxIn <= ite(USE_ALIGN_CHECK_G, rxResetAlignCheck, rxReset);
-   rxResetGt   <= ite(USE_ALIGN_CHECK_G, rxResetAlignCheck, rxReset);
+   
+   rstSyncRxIn <= rxResetAlignCheck or rxReset;
+   rxResetGt   <= rxResetAlignCheck or rxReset;
 
    rxOutClk <= rxOutClkB;
 
-   txUsrActive <= txPmaResetDone;
+
    txResetGt   <= txReset;
-   txctrl2     <= "000000" & txDataK;
+
 
    U_RstSyncTx : entity surf.RstSync
       generic map (TPD_G => TPD_G)

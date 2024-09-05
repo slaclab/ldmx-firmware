@@ -46,6 +46,8 @@ entity TsDataRx is
       tsRefClk250N : in slv(TS_REFCLKS_G-1 downto 0);
       tsDataRxP    : in slv(TS_LANES_G-1 downto 0);
       tsDataRxN    : in slv(TS_LANES_G-1 downto 0);
+      tsDataTxP    : out slv(TS_LANES_G-1 downto 0);
+      tsDataTxN    : out slv(TS_LANES_G-1 downto 0);
 
       -- Fast Control Interface
       fcClk185 : in sl;
@@ -148,8 +150,8 @@ begin
          tsRefClk250N    => tsRefClk250N,                                  -- [in]
          tsDataRxP       => tsDataRxP,                                     -- [in]
          tsDataRxN       => tsDataRxN,                                     -- [in]
---          tsDataTxP       => tsDataTxP,                                     -- [out]
---          tsDataTxN       => tsDataTxN,                                     -- [out]
+         tsDataTxP       => tsDataTxP,                                     -- [out]
+         tsDataTxN       => tsDataTxN,                                     -- [out]
          tsRecClks       => tsRecClks,                                     -- [out]
          tsRecRsts       => tsRecRsts,                                     -- [out]
          tsRxMsgs        => tsRxMsgs,                                      -- [out]
@@ -170,7 +172,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          TS_LANES_G       => TS_LANES_G,
-         AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G)
+         AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(AXIL_TS_TX_PLAYBACK_C).baseAddr)
       port map (
          tsTxClks        => tsTxClks,                                    -- [in]
          tsTxRsts        => tsTxRsts,                                    -- [in]

@@ -33,6 +33,7 @@ entity LdmxPgpFcLane is
    generic (
       TPD_G            : time                 := 1 ns;
       SIM_SPEEDUP_G    : boolean              := false;
+      GT_TYPE_G        : string               := "GTY";  -- Or GTH
       AXIL_CLK_FREQ_G  : real                 := 125.0e6;
       AXIL_BASE_ADDR_G : slv(31 downto 0)     := (others => '0');
       TX_ENABLE_G      : boolean              := true;
@@ -47,19 +48,19 @@ entity LdmxPgpFcLane is
       pgpRxN          : in  sl;
       pgpRefClk       : in  sl;
       pgpUserRefClk   : in  sl;
-      pgpRxRecClk     : out sl;         -- Tie to refclkout if used
+      pgpRxRecClk     : out sl;                          -- Tie to refclkout if used
       -- Rx Interface
       pgpRxRstOut     : out sl;
       pgpRxOutClk     : out sl;
-      pgpRxIn         : in  Pgp2fcRxInType                               := PGP2FC_RX_IN_INIT_C;
+      pgpRxIn         : in  Pgp2fcRxInType                   := PGP2FC_RX_IN_INIT_C;
       pgpRxOut        : out Pgp2fcRxOutType;
       pgpRxMasters    : out AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpRxCtrl       : in  AxiStreamCtrlArray(3 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
       -- Tx Interface
-      pgpTxRst        : in  sl                                           := '0';
+      pgpTxRst        : in  sl                               := '0';
       pgpTxOutClk     : out sl;
       pgpTxUsrClk     : in  sl;
-      pgpTxIn         : in  Pgp2fcTxInType                               := PGP2FC_TX_IN_INIT_C;
+      pgpTxIn         : in  Pgp2fcTxInType                   := PGP2FC_TX_IN_INIT_C;
       pgpTxOut        : out Pgp2fcTxOutType;
       pgpTxMasters    : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpTxSlaves     : out AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
@@ -100,11 +101,126 @@ architecture rtl of LdmxPgpFcLane is
 
    signal pgpRxResetDone    : sl;
    signal pgpRxPmaResetDone : sl;
-   signal pgpRxRst          : sl;
+   signal pgpRxRst          : sl := '0';
 
    signal pgpRxOutClkGt   : sl;
    signal pgpRxUsrClk     : sl;
    signal pgpRxMmcmLocked : sl;
+
+   -------------------------------------------------------------------------------------------------
+   -- Components
+   -------------------------------------------------------------------------------------------------
+   component Pgp2fcGtyUltra is
+      generic (
+         TPD_G               : time                 := 1 ns;
+         SIMULATION_G        : boolean              := false;
+         -- GT Settings
+         SEL_FABRIC_REFCLK_G : boolean              := false;
+         -- PGP Settings
+         FC_WORDS_G          : integer range 1 to 8 := 1;
+         TX_POLARITY_G       : sl                   := '0';
+         RX_POLARITY_G       : sl                   := '0';
+         AXI_CLK_FREQ_G      : real                 := 125.0e6;
+         AXI_BASE_ADDR_G     : slv(31 downto 0)     := (others => '0');
+         TX_ENABLE_G         : boolean              := true;
+         RX_ENABLE_G         : boolean              := true;
+         PAYLOAD_CNT_TOP_G   : integer              := 7;  -- Top bit for payload counter
+         VC_INTERLEAVE_G     : integer              := 0;  -- Interleave Frames
+         NUM_VC_EN_G         : integer range 1 to 4 := 4);
+      port (
+         stableClk         : in  sl;
+         stableRst         : in  sl;
+         gtRefClk          : in  sl;
+         gtFabricRefClk    : in  sl;
+         gtUserRefClk      : in  sl;
+         rxRecClk          : out sl;
+         pgpGtTxP          : out sl;
+         pgpGtTxN          : out sl;
+         pgpGtRxP          : in  sl;
+         pgpGtRxN          : in  sl;
+         pgpTxReset        : in  sl;
+         pgpTxResetDone    : out sl;
+         pgpTxOutClk       : out sl;
+         pgpTxClk          : in  sl;
+         pgpTxMmcmLocked   : in  sl;
+         pgpRxReset        : in  sl;
+         pgpRxResetDone    : out sl;
+         pgpRxPmaResetDone : out sl;
+         pgpRxOutClk       : out sl;
+         pgpRxClk          : in  sl;
+         pgpRxMmcmLocked   : in  sl;
+         pgpRxIn           : in  Pgp2fcRxInType;
+         pgpRxOut          : out Pgp2fcRxOutType;
+         pgpTxIn           : in  Pgp2fcTxInType;
+         pgpTxOut          : out Pgp2fcTxOutType;
+         pgpTxMasters      : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+         pgpTxSlaves       : out AxiStreamSlaveArray(3 downto 0);
+         pgpRxMasters      : out AxiStreamMasterArray(3 downto 0);
+         pgpRxMasterMuxed  : out AxiStreamMasterType;
+         pgpRxCtrl         : in  AxiStreamCtrlArray(3 downto 0);
+         axilClk           : in  sl                               := '0';
+         axilRst           : in  sl                               := '0';
+         axilReadMaster    : in  AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
+         axilReadSlave     : out AxiLiteReadSlaveType;
+         axilWriteMaster   : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
+         axilWriteSlave    : out AxiLiteWriteSlaveType);
+   end component Pgp2fcGtyUltra;
+
+   component Pgp2fcGthUltra is
+      generic (
+         TPD_G               : time                 := 1 ns;
+         SIMULATION_G        : boolean              := false;
+         -- GT Settings
+         SEL_FABRIC_REFCLK_G : boolean              := false;
+         -- PGP Settings
+         FC_WORDS_G          : integer range 1 to 8 := 1;
+         TX_POLARITY_G       : sl                   := '0';
+         RX_POLARITY_G       : sl                   := '0';
+         AXI_CLK_FREQ_G      : real                 := 125.0e6;
+         AXI_BASE_ADDR_G     : slv(31 downto 0)     := (others => '0');
+         TX_ENABLE_G         : boolean              := true;
+         RX_ENABLE_G         : boolean              := true;
+         PAYLOAD_CNT_TOP_G   : integer              := 7;  -- Top bit for payload counter
+         VC_INTERLEAVE_G     : integer              := 0;  -- Interleave Frames
+         NUM_VC_EN_G         : integer range 1 to 4 := 4);
+      port (
+         stableClk         : in  sl;
+         stableRst         : in  sl;
+         gtRefClk          : in  sl;
+         gtFabricRefClk    : in  sl;
+         gtUserRefClk      : in  sl;
+         rxRecClk          : out sl;
+         pgpGtTxP          : out sl;
+         pgpGtTxN          : out sl;
+         pgpGtRxP          : in  sl;
+         pgpGtRxN          : in  sl;
+         pgpTxReset        : in  sl;
+         pgpTxResetDone    : out sl;
+         pgpTxOutClk       : out sl;
+         pgpTxClk          : in  sl;
+         pgpTxMmcmLocked   : in  sl;
+         pgpRxReset        : in  sl;
+         pgpRxResetDone    : out sl;
+         pgpRxPmaResetDone : out sl;
+         pgpRxOutClk       : out sl;
+         pgpRxClk          : in  sl;
+         pgpRxMmcmLocked   : in  sl;
+         pgpRxIn           : in  Pgp2fcRxInType;
+         pgpRxOut          : out Pgp2fcRxOutType;
+         pgpTxIn           : in  Pgp2fcTxInType;
+         pgpTxOut          : out Pgp2fcTxOutType;
+         pgpTxMasters      : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+         pgpTxSlaves       : out AxiStreamSlaveArray(3 downto 0);
+         pgpRxMasters      : out AxiStreamMasterArray(3 downto 0);
+         pgpRxMasterMuxed  : out AxiStreamMasterType;
+         pgpRxCtrl         : in  AxiStreamCtrlArray(3 downto 0);
+         axilClk           : in  sl                               := '0';
+         axilRst           : in  sl                               := '0';
+         axilReadMaster    : in  AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
+         axilReadSlave     : out AxiLiteReadSlaveType;
+         axilWriteMaster   : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
+         axilWriteSlave    : out AxiLiteWriteSlaveType);
+   end component Pgp2fcGthUltra;
 
 begin
 
@@ -134,67 +250,129 @@ begin
    -----------
    -- PGP Core
    -----------
-   U_Pgp : entity surf.Pgp2fcGtyUltra
-      generic map (
-         TPD_G           => TPD_G,
-         SIMULATION_G    => SIM_SPEEDUP_G,
-         AXI_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
-         AXI_BASE_ADDR_G => AXIL_BASE_ADDR_G,
-         TX_ENABLE_G     => TX_ENABLE_G,
-         RX_ENABLE_G     => RX_ENABLE_G,
-         FC_WORDS_G      => 5,
-         VC_INTERLEAVE_G => 1,
-         NUM_VC_EN_G     => ite(NUM_VC_EN_G = 0, 1, NUM_VC_EN_G))
-      port map (
-         -- GT Clocking
-         stableClk         => axilClk,                       -- [in]
-         stableRst         => axilRst,                       -- [in]
-         gtRefClk          => pgpRefClk,                     -- [in]
-         gtFabricRefClk    => '0',                           -- [in]
-         gtUserRefClk      => pgpUserRefClk,                 -- [in]
-         rxRecClk          => pgpRxRecClk,                   -- [out]
-         -- Gt Serial IO
-         pgpGtTxP          => pgpTxP,                        -- [out]
-         pgpGtTxN          => pgpTxN,                        -- [out]
-         pgpGtRxP          => pgpRxP,                        -- [in]
-         pgpGtRxN          => pgpRxN,                        -- [in]
-         -- Tx Clocking
-         pgpTxReset        => pgpTxRst,                      -- [in]
-         pgpTxResetDone    => pgpTxResetDone,                -- [out]
-         pgpTxOutClk       => pgpTxOutClk,                   -- [out]
-         pgpTxClk          => pgpTxUsrClk,                   -- [in]
-         pgpTxMmcmLocked   => '1',                           -- [in]
-         -- Rx clocking
-         pgpRxReset        => pgpRxRst,                      -- [in]
-         pgpRxResetDone    => pgpRxResetDone,                -- [out]
-         pgpRxPmaResetDone => pgpRxPmaResetDone,             -- [out]
-         pgpRxOutClk       => pgpRxOutClkGt,                 -- [out]
-         pgpRxClk          => pgpRxUsrClk,                   -- [in]
-         pgpRxMmcmLocked   => pgpRxMmcmLocked,               -- [in]
-         -- Non VC Rx Signals
-         pgpRxIn           => pgpRxInGt,                     -- [in]
-         pgpRxOut          => pgpRxOutGt,                    -- [out]
-         -- Non VC Tx Signals
-         pgpTxIn           => pgpTxInGt,                     -- [in]
-         pgpTxOut          => pgpTxOutGt,                    -- [out]
-         -- Frame Transmit Interface
-         pgpTxMasters      => pgpTxMasters,                -- [in]
-         pgpTxSlaves       => pgpTxSlavesGt,                 -- [out]
-         -- Frame Receive Interface
-         pgpRxMasters      => pgpRxMastersGt,                -- [out]
-         pgpRxCtrl         => pgpRxCtrl,                   -- [in]
-         -- AXI-Lite Interface
-         axilClk           => axilClk,                       -- [in]
-         axilRst           => axilRst,                       -- [in]
-         axilReadMaster    => axilReadMasters(GT_INDEX_C),   -- [in]
-         axilReadSlave     => axilReadSlaves(GT_INDEX_C),    -- [out]
-         axilWriteMaster   => axilWriteMasters(GT_INDEX_C),  -- [in]
-         axilWriteSlave    => axilWriteSlaves(GT_INDEX_C));  -- [out]
+   GEN_GTY : if (GT_TYPE_G = "GTY") generate
+      U_Pgp : Pgp2fcGtyUltra
+         generic map (
+            TPD_G           => TPD_G,
+            SIMULATION_G    => SIM_SPEEDUP_G,
+            AXI_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
+            AXI_BASE_ADDR_G => AXIL_BASE_ADDR_G,
+            TX_ENABLE_G     => TX_ENABLE_G,
+            RX_ENABLE_G     => RX_ENABLE_G,
+            FC_WORDS_G      => 5,
+            VC_INTERLEAVE_G => 1,
+            NUM_VC_EN_G     => ite(NUM_VC_EN_G = 0, 1, NUM_VC_EN_G))
+         port map (
+            -- GT Clocking
+            stableClk         => axilClk,                       -- [in]
+            stableRst         => axilRst,                       -- [in]
+            gtRefClk          => pgpRefClk,                     -- [in]
+            gtFabricRefClk    => '0',                           -- [in]
+            gtUserRefClk      => pgpUserRefClk,                 -- [in]
+            rxRecClk          => pgpRxRecClk,                   -- [out]
+            -- Gt Serial IO
+            pgpGtTxP          => pgpTxP,                        -- [out]
+            pgpGtTxN          => pgpTxN,                        -- [out]
+            pgpGtRxP          => pgpRxP,                        -- [in]
+            pgpGtRxN          => pgpRxN,                        -- [in]
+            -- Tx Clocking
+            pgpTxReset        => pgpTxRst,                      -- [in]
+            pgpTxResetDone    => pgpTxResetDone,                -- [out]
+            pgpTxOutClk       => pgpTxOutClk,                   -- [out]
+            pgpTxClk          => pgpTxUsrClk,                   -- [in]
+            pgpTxMmcmLocked   => '1',                           -- [in]
+            -- Rx clocking
+            pgpRxReset        => pgpRxRst,                      -- [in]
+            pgpRxResetDone    => pgpRxResetDone,                -- [out]
+            pgpRxPmaResetDone => pgpRxPmaResetDone,             -- [out]
+            pgpRxOutClk       => pgpRxOutClkGt,                 -- [out]
+            pgpRxClk          => pgpRxUsrClk,                   -- [in]
+            pgpRxMmcmLocked   => pgpRxMmcmLocked,               -- [in]
+            -- Non VC Rx Signals
+            pgpRxIn           => pgpRxInGt,                     -- [in]
+            pgpRxOut          => pgpRxOutGt,                    -- [out]
+            -- Non VC Tx Signals
+            pgpTxIn           => pgpTxInGt,                     -- [in]
+            pgpTxOut          => pgpTxOutGt,                    -- [out]
+            -- Frame Transmit Interface
+            pgpTxMasters      => pgpTxMasters,                  -- [in]
+            pgpTxSlaves       => pgpTxSlavesGt,                 -- [out]
+            -- Frame Receive Interface
+            pgpRxMasters      => pgpRxMastersGt,                -- [out]
+            pgpRxCtrl         => pgpRxCtrl,                     -- [in]
+            -- AXI-Lite Interface
+            axilClk           => axilClk,                       -- [in]
+            axilRst           => axilRst,                       -- [in]
+            axilReadMaster    => axilReadMasters(GT_INDEX_C),   -- [in]
+            axilReadSlave     => axilReadSlaves(GT_INDEX_C),    -- [out]
+            axilWriteMaster   => axilWriteMasters(GT_INDEX_C),  -- [in]
+            axilWriteSlave    => axilWriteSlaves(GT_INDEX_C));  -- [out]
+   end generate GEN_GTY;
+
+   GEN_GTH : if (GT_TYPE_G = "GTH") generate
+      U_Pgp : Pgp2fcGthUltra
+         generic map (
+            TPD_G           => TPD_G,
+            SIMULATION_G    => SIM_SPEEDUP_G,
+            AXI_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
+            AXI_BASE_ADDR_G => AXIL_BASE_ADDR_G,
+            TX_ENABLE_G     => TX_ENABLE_G,
+            RX_ENABLE_G     => RX_ENABLE_G,
+            FC_WORDS_G      => 5,
+            VC_INTERLEAVE_G => 1,
+            NUM_VC_EN_G     => ite(NUM_VC_EN_G = 0, 1, NUM_VC_EN_G))
+         port map (
+            -- GT Clocking
+            stableClk         => axilClk,                       -- [in]
+            stableRst         => axilRst,                       -- [in]
+            gtRefClk          => pgpRefClk,                     -- [in]
+            gtFabricRefClk    => '0',                           -- [in]
+            gtUserRefClk      => pgpUserRefClk,                 -- [in]
+            rxRecClk          => pgpRxRecClk,                   -- [out]
+            -- Gt Serial IO
+            pgpGtTxP          => pgpTxP,                        -- [out]
+            pgpGtTxN          => pgpTxN,                        -- [out]
+            pgpGtRxP          => pgpRxP,                        -- [in]
+            pgpGtRxN          => pgpRxN,                        -- [in]
+            -- Tx Clocking
+            pgpTxReset        => pgpTxRst,                      -- [in]
+            pgpTxResetDone    => pgpTxResetDone,                -- [out]
+            pgpTxOutClk       => pgpTxOutClk,                   -- [out]
+            pgpTxClk          => pgpTxUsrClk,                   -- [in]
+            pgpTxMmcmLocked   => '1',                           -- [in]
+            -- Rx clocking
+            pgpRxReset        => pgpRxRst,                      -- [in]
+            pgpRxResetDone    => pgpRxResetDone,                -- [out]
+            pgpRxPmaResetDone => pgpRxPmaResetDone,             -- [out]
+            pgpRxOutClk       => pgpRxOutClkGt,                 -- [out]
+            pgpRxClk          => pgpRxUsrClk,                   -- [in]
+            pgpRxMmcmLocked   => pgpRxMmcmLocked,               -- [in]
+            -- Non VC Rx Signals
+            pgpRxIn           => pgpRxInGt,                     -- [in]
+            pgpRxOut          => pgpRxOutGt,                    -- [out]
+            -- Non VC Tx Signals
+            pgpTxIn           => pgpTxInGt,                     -- [in]
+            pgpTxOut          => pgpTxOutGt,                    -- [out]
+            -- Frame Transmit Interface
+            pgpTxMasters      => pgpTxMasters,                  -- [in]
+            pgpTxSlaves       => pgpTxSlavesGt,                 -- [out]
+            -- Frame Receive Interface
+            pgpRxMasters      => pgpRxMastersGt,                -- [out]
+            pgpRxCtrl         => pgpRxCtrl,                     -- [in]
+            -- AXI-Lite Interface
+            axilClk           => axilClk,                       -- [in]
+            axilRst           => axilRst,                       -- [in]
+            axilReadMaster    => axilReadMasters(GT_INDEX_C),   -- [in]
+            axilReadSlave     => axilReadSlaves(GT_INDEX_C),    -- [out]
+            axilWriteMaster   => axilWriteMasters(GT_INDEX_C),  -- [in]
+            axilWriteSlave    => axilWriteSlaves(GT_INDEX_C));  -- [out]
+   end generate GEN_GTH;
+
 
    -------------------------------------------------------------------------------------------------
    -- Tie Streaming IO to PGP module
    -------------------------------------------------------------------------------------------------
-   pgpTxSlaves <= pgpTxSlavesGt;
+   pgpTxSlaves  <= pgpTxSlavesGt;
    pgpRxMasters <= pgpRxMastersGt;
 
    RX_CLK_MMCM_GEN : if (RX_CLK_MMCM_G) generate
@@ -317,14 +495,42 @@ begin
 
    end generate GEN_MON;
 
-   U_RstSync_Rx : entity surf.RstSync
-      generic map (
-         TPD_G         => TPD_G,
-         IN_POLARITY_G => '0')
-      port map (
-         clk      => pgpRxUsrClk,       -- [in]
-         asyncRst => pgpRxResetDone,    -- [in]
-         syncRst  => pgpRxRst);         -- [out]
+
+--    U_Wtd : entity surf.WatchDogRst
+--       generic map(
+--          TPD_G      => TPD_G,
+--          DURATION_G => getTimeRatio(AXI_CLK_FREQ_G, 0.2))  -- 5 s timeout
+--       port map (
+--          clk    => axilClk,
+--          monIn  => pgpRxOut.remLinkReady,
+--          rstOut => wdtRst);
+
+--    U_PwrUpRst : entity surf.PwrUpRst
+--       generic map (
+--          TPD_G         => TPD_G,
+--          SIM_SPEEDUP_G => false,
+--          DURATION_G    => getTimeRatio(AXI_CLK_FREQ_G, 10.0))  -- 100 ms reset pulse
+--       port map (
+--          clk    => axilClk,
+--          arst   => wdtRst,
+--          rstOut => pwrUpRstOut);
+
+--    U_RstSync_Tx : entity surf.RstSync
+--       generic map (
+--          TPD_G => TPD_G)
+--       port map (
+--          clk      => pgpTxClk,          -- [in]
+--          asyncRst => pgpTxRstAsync,     -- [in]
+--          syncRst  => pgpTxRst);         -- [out]
+
+--    U_RstSync_Rx : entity surf.RstSync
+--       generic map (
+--          TPD_G         => TPD_G,
+--          IN_POLARITY_G => '0')
+--       port map (
+--          clk      => pgpRxUsrClk,       -- [in]
+--          asyncRst => pgpRxResetDone,    -- [in]
+--          syncRst  => pgpRxRst);         -- [out]
 
    pgpRxRstOut <= pgpRxRst;
 

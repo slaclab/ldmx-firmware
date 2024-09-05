@@ -45,26 +45,29 @@ entity FcHub is
       -- LCLS Timing Interface
       ----------------------------------------------------------------------------------------------
       -- 185/371 MHz Ref Clk for LCLS timing recovery (freq used depends on GT configuration)
-      lclsTimingRefClkP    : in  sl;
-      lclsTimingRefClkN    : in  sl;
+      lclsTimingRefClkP : in  sl;
+      lclsTimingRefClkN : in  sl;
       -- LCLS-II timing interface
-      lclsTimingRxP        : in  sl;
-      lclsTimingRxN        : in  sl;
-      lclsTimingTxP        : out sl;
-      lclsTimingTxN        : out sl;
+      lclsTimingRxP     : in  sl;
+      lclsTimingRxN     : in  sl;
+      lclsTimingTxP     : out sl;
+      lclsTimingTxN     : out sl;
       -- Recovered clock via GT dedicated clock pins
-      timingRecClkOutP     : out sl;
-      timingRecClkOutN     : out sl;
+      timingRecClkOutP  : out sl;
+      timingRecClkOutN  : out sl;
 
       ----------------------------------------------------------------------------------------------
       -- Global Trigger Interface
       ----------------------------------------------------------------------------------------------
       -- LCLS Recovered Clock Output via fabric pins
-      lclsTimingClkOut : out sl;
-      lclsTimingRstOut : out sl;
-      globalTriggerRor : in  FcTimestampType;
+      lclsTimingClkOut  : out sl;
+      lclsTimingRstOut  : out sl;
+      lclsTimingFcTxMsg : out FcMessageType;
+      lclsTimingBus     : out TimingBusType;
+      globalTriggerRor  : in  FcTimestampType;
       -- Debugging port output
-      fcTxMsgValid     : out sl;
+      fcTxMsgValid      : out sl;
+
 
       ----------------------------------------------------------------------------------------------
       -- FC HUB
@@ -100,15 +103,15 @@ architecture rtl of FcHub is
 
    constant AXIL_XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(AXIL_NUM_C-1 downto 0) := (
       AXIL_LCLS_TIMING_C => (
-         baseAddr        => AXIL_BASE_ADDR_G+x"0000_0000",
+         baseAddr        => AXIL_BASE_ADDR_G + X"0000_0000",
          addrBits        => 20,
          connectivity    => X"FFFF"),
       AXIL_TX_LOGIC_C    => (
-         baseAddr        => AXIL_BASE_ADDR_G+x"0010_0000",
+         baseAddr        => AXIL_BASE_ADDR_G +X"0010_0000",
          addrBits        => 8,
          connectivity    => X"FFFF"),
       AXIL_FC_ARRAY_C    => (
-         baseAddr        => AXIL_BASE_ADDR_G+x"0020_0000",
+         baseAddr        => AXIL_BASE_ADDR_G +X"0020_0000",
          addrBits        => 20,
          connectivity    => X"FFFF"));
 
@@ -118,9 +121,9 @@ architecture rtl of FcHub is
    signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(AXIL_NUM_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
    -- Recovered LCLS Timing Clock and Bus
-   signal lclsTimingClk : sl;
-   signal lclsTimingRst : sl;
-   signal lclsTimingBus : TimingBusType;
+   signal lclsTimingClk    : sl;
+   signal lclsTimingRst    : sl;
+   signal lclsTimingBusLoc : TimingBusType;
 
    -- LDMX Fast Control Message to FC Senders
    signal fcTxMsg : FcMessageType;
@@ -153,6 +156,7 @@ begin
    -- LCLS TIMING RX
    -------------------------------------------------------------------------------------------------
    lclsTimingClkOut <= lclsTimingClk;
+   lclsTimingBus    <= lclsTimingBusLoc;
 
    U_Lcls2TimingRx_1 : entity ldmx_tdaq.Lcls2TimingRx
       generic map (
@@ -174,7 +178,7 @@ begin
          axilWriteSlave   => locAxilWriteSlaves(AXIL_LCLS_TIMING_C),   -- [out]
          recTimingClk     => lclsTimingClk,                            -- [out]
          recTimingRst     => lclsTimingRst,                            -- [out]
-         appTimingBus     => lclsTimingBus,                            -- [out]
+         appTimingBus     => lclsTimingBusLoc,                         -- [out]
          timingRxP        => lclsTimingRxP,                            -- [in]
          timingRxN        => lclsTimingRxN,                            -- [in]
          timingTxP        => lclsTimingTxP,                            -- [out]
@@ -187,21 +191,22 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Fast Control Output Word Logic
    -------------------------------------------------------------------------------------------------
+   lclsTimingFcTxMsg <= fcTxMsg;
    U_FcTxLogic_1 : entity ldmx_tdaq.FcTxLogic
       generic map (
          TPD_G => TPD_G)
       port map (
-         lclsTimingClk    => lclsTimingClk,     -- [in]
-         lclsTimingRst    => lclsTimingRst,     -- [in]
-         lclsTimingBus    => lclsTimingBus,     -- [in]
-         globalTriggerRor => globalTriggerRor,  -- [in]
-         fcMsg            => fcTxMsg,           -- [out]
-         axilClk          => axilClk,           -- [in]
-         axilRst          => axilRst,           -- [in]
-         axilReadMaster   => locAxilReadMasters(AXIL_TX_LOGIC_C),    -- [in]
-         axilReadSlave    => locAxilReadSlaves(AXIL_TX_LOGIC_C),     -- [out]
-         axilWriteMaster  => locAxilWriteMasters(AXIL_TX_LOGIC_C),   -- [in]
-         axilWriteSlave   => locAxilWriteSlaves(AXIL_TX_LOGIC_C));   -- [out]
+         lclsTimingClk    => lclsTimingClk,                         -- [in]
+         lclsTimingRst    => lclsTimingRst,                         -- [in]
+         lclsTimingBus    => lclsTimingBusLoc,                      -- [in]
+         globalTriggerRor => globalTriggerRor,                      -- [in]
+         fcMsg            => fcTxMsg,                               -- [out]
+         axilClk          => axilClk,                               -- [in]
+         axilRst          => axilRst,                               -- [in]
+         axilReadMaster   => locAxilReadMasters(AXIL_TX_LOGIC_C),   -- [in]
+         axilReadSlave    => locAxilReadSlaves(AXIL_TX_LOGIC_C),    -- [out]
+         axilWriteMaster  => locAxilWriteMasters(AXIL_TX_LOGIC_C),  -- [in]
+         axilWriteSlave   => locAxilWriteSlaves(AXIL_TX_LOGIC_C));  -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Fast Control Fanout to Subsystems

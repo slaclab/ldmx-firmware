@@ -45,10 +45,13 @@ entity TsDataRxLaneArray is
       AXIL_BASE_ADDR_G : slv(31 downto 0)      := X"00000000");
    port (
       -- TS RX
-      tsRefClk250P : in slv(TS_REFCLKS_G-1 downto 0);
-      tsRefClk250N : in slv(TS_REFCLKS_G-1 downto 0);
-      tsDataRxP    : in slv(TS_LANES_G-1 downto 0);
-      tsDataRxN    : in slv(TS_LANES_G-1 downto 0);
+      tsRefClk250P : in  slv(TS_REFCLKS_G-1 downto 0);
+      tsRefClk250N : in  slv(TS_REFCLKS_G-1 downto 0);
+      tsDataRxP    : in  slv(TS_LANES_G-1 downto 0);
+      tsDataRxN    : in  slv(TS_LANES_G-1 downto 0);
+      tsDataTxP    : out slv(TS_LANES_G-1 downto 0);
+      tsDataTxN    : out slv(TS_LANES_G-1 downto 0);
+
 
       -- Output
       tsRecClks : out slv(TS_LANES_G-1 downto 0);
@@ -74,7 +77,7 @@ architecture rtl of TsDataRxLaneArray is
    constant NUM_AXIL_MASTERS_C : natural := 2;
 
    constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) :=
-      genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 20, 14);
+      genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 20, 15);
 
    signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
@@ -163,6 +166,8 @@ begin
             tsUserClk250    => tsUserClk250(TS_REFCLK_MAP_G(i)),  -- [in]
             tsDataRxP       => tsDataRxP(i),                      -- [in]
             tsDataRxN       => tsDataRxN(i),                      -- [in]
+            tsDataTxP       => tsDataTxP(i),                      -- [out]
+            tsDataTxN       => tsDataTxN(i),                      -- [out]
             tsRecClk        => tsRecClks(i),                      -- [out]
             tsRecRst        => tsRecRsts(i),                      -- [out]
             tsRxMsg         => tsRxMsgs(i),                       -- [out]

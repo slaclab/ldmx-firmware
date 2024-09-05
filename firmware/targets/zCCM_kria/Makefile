@@ -14,7 +14,11 @@ export TOP_DIR = $(abspath $(PWD)/../../)
 export USE_XVC_DEBUG = 0
 
 #Setup for releases.yaml
-export RELEASE = simple_ruckus
+export RELEASE = zCCM_kria
+
+# Include .XSA in image dir
+export GEN_XSA_IMAGE = 1
+
 
 #Use top level makefile
 include ../../submodules/ruckus/system_vivado.mk

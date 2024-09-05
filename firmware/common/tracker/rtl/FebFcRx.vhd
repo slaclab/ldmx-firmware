@@ -125,7 +125,7 @@ begin
             when RUN_STATE_RESET_C =>
                -- Reset counters and FIFOs
                v.fifoRst := '1';
-            when RUN_STATE_CLOCK_ALIGN_C =>
+            when RUN_STATE_BC0_C =>
                -- Algin Bunch clock
                v.fifoRst := '0';
             when RUN_STATE_PRESTART_C =>

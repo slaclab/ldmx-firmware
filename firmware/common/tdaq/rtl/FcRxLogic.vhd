@@ -26,7 +26,8 @@ use ldmx_tdaq.FcPkg.all;
 entity FcRxLogic is
 
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G                : time    := 1 ns;
+      AXIL_CLK_IS_FC_CLK_G : boolean := false);
    port (
       fcClk185     : in  sl;
       fcRst185     : in  sl;
@@ -55,6 +56,7 @@ architecture rtl of FcRxLogic is
 
    type RegType is record
       runTime        : slv(63 downto 0);
+      clkCounter     : slv(7 downto 0);
       rorLatch       : sl;
       fcClkLost      : sl;
       fcBunchClk37   : sl;
@@ -69,6 +71,7 @@ architecture rtl of FcRxLogic is
    -- Timing comes up already enabled so that ADC can be read before sync is established
    constant REG_INIT_C : RegType := (
       runTime        => (others => '0'),
+      clkCounter     => (others => '0'),
       rorLatch       => '0',
       fcClkLost      => '1',
       fcBunchClk37   => '0',
@@ -97,7 +100,7 @@ begin
    U_AxiLiteAsync_1 : entity surf.AxiLiteAsync
       generic map (
          TPD_G         => TPD_G,
-         COMMON_CLK_G  => false,
+         COMMON_CLK_G  => AXIL_CLK_IS_FC_CLK_G,
          PIPE_STAGES_G => 0)
       port map (
          sAxiClk         => axilClk,              -- [in]
@@ -126,7 +129,9 @@ begin
       v.fcBus.pulseStrobe           := '0';
       v.fcBus.bunchStrobe           := '0';
       v.fcBus.bunchStrobePre        := '0';
-      v.fcBus.readoutRequest.strobe := '0';
+      v.fcBus.stateChanged          := '0';
+      v.fcBus.readoutRequest.valid := '0';
+      v.fcBus.bc0                   := '0';
 
       -- Count cycles from start of run
       v.runTime := r.runTime + 1;
@@ -139,25 +144,28 @@ begin
 
       -- Assert ror and soft rst (reset101) only on falling edge of fcClk37
       -- to allow enough setup time for shfited hybrid clocks to see it.
-      if (r.fcBus.subCount = BUNCH_CLK_FALL_C) then
-         v.fcBunchClk37               := '0';
-         v.fcBus.readoutRequest.valid := r.rorLatch;
+--       if (r.fcBus.subCount = BUNCH_CLK_FALL_C) then
+--          v.fcBunchClk37               := '0';
+--          v.fcBus.readoutRequest.valid := r.rorLatch;
 
-         v.rorLatch := '0';
-      end if;
+--          v.rorLatch := '0';
+--       end if;
 
       if (r.fcBus.subCount = BUNCH_CLK_RISE_C) then
          v.fcBunchClk37      := '1';
          v.fcBus.bunchStrobe := '1';
+         v.fcBus.bunchCount  := r.fcBus.bunchCount + 1;
+
+         v.fcBus.readoutRequest.valid := r.rorLatch;
+         v.rorLatch := '0';
       end if;
 
       if (r.fcBus.subCount = BUNCH_CLK_PRE_RISE_C) then
          v.fcBus.bunchStrobePre        := '1';
-         v.fcBus.readoutRequest.strobe := r.fcBus.readoutRequest.valid;
       end if;
 
       -- Decode incomming fast control messages from PGPFC
-      fcMsg := toFcMessage(fcWord, fcValid);
+      fcMsg               := toFcMessage(fcWord, fcValid);
       v.fcBus.fcMsg.valid := fcValid;
 
       -- Process FC Messages
@@ -170,16 +178,13 @@ begin
 
             -- Process timing messages
             when MSG_TYPE_TIMING_C =>
-               -- Align bunch clock every time?
-
-
                -- Output fields
                v.fcBus.pulseStrobe  := '1';
                v.fcBus.pulseId      := fcMsg.pulseId;
-               v.fcBus.bunchCount   := fcMsg.bunchCount;
+               v.fcBus.bunchCount   := fcMsg.bunchCount;  -- Should always be 0
                v.fcBus.runState     := fcMsg.runState;
                v.fcBus.stateChanged := fcMsg.stateChanged;
-               v.fcBus.subCount := (others => '0');
+               v.fcBus.subCount     := (others => '0');
 
                -- State specific actions
                if (fcMsg.stateChanged = '1') then
@@ -188,11 +193,13 @@ begin
                         -- Reset counters and FIFOs
                         v.rorCount              := (others => '0');
                         v.fcBus.bunchClkAligned := '0';
-                     when RUN_STATE_CLOCK_ALIGN_C =>
+                     when RUN_STATE_IDLE_C =>
                         -- Algin Bunch clock
                         v.fcBunchClk37          := '0';
                         v.fcClkLost             := '1';  -- Creats a bunchClkRst
                         v.fcBus.bunchClkAligned := '1';
+                     when RUN_STATE_BC0_C =>
+                        v.fcBus.bc0 := '1';
                      when RUN_STATE_RUNNING_C =>
                         -- Reset runtime timestamp counter
                         -- Might do this in an earlier state
@@ -204,7 +211,7 @@ begin
 
             -- Process readout requests
             when MSG_TYPE_ROR_C =>
-               if (r.fcBus.runState = RUN_STATE_RUNNING_C) then
+               if (r.fcBus.runState = RUN_STATE_BC0_C or r.fcBus.runState = RUN_STATE_RUNNING_C) then
                   -- Place on output bus
                   v.fcBus.readoutRequest.bunchCount := fcMsg.bunchCount;
                   v.fcBus.readoutRequest.pulseId    := fcMsg.pulseId;
@@ -213,9 +220,7 @@ begin
                end if;
             when others => null;
          end case;
-
       end if;
-
 
 
       -- AXI Lite registers
