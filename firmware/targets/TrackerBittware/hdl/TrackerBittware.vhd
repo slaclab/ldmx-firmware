@@ -118,11 +118,6 @@ architecture rtl of TrackerBittware is
    signal fcRst185 : sl;
    signal fcBus    : FcBusType;
 
-   -----------------------------
-   -- Debugging
-   -----------------------------
-   signal fcRxMsgValid : sl;
-
    -----------
    -- AXI Lite
    -----------
@@ -301,6 +296,7 @@ begin
 --         fcFb            => FC_FB_INIT_C,                    -- [in]
          fcBunchClk37    => open,                            -- [out]
          fcBunchRst37    => open,                            -- [out]
+         fcRxMsgValid    => ledL(3),                         -- [out]
          axilClk         => axilClk,                         -- [in]
          axilRst         => axilRst,                         -- [in]
          axilReadMaster  => axilReadMasters(FC_RX_AXIL_C),   -- [in]
@@ -356,20 +352,6 @@ begin
    qsfpTxN(0)     <= fcTxN;
    fcRxP          <= qsfpRxP(0);
    fcRxN          <= qsfpRxN(0);
-
-   -------------------------------------------------------------------------------------------------
-   -- Debugging
-   -------------------------------------------------------------------------------------------------
-   U_StretchDbgRorTx : entity surf.SynchronizerOneShot
-      generic map (
-         TPD_G         => TPD_G,
-         PULSE_WIDTH_G => 10)
-      port map (
-         clk     => fcClk185,
-         dataIn  => fcBus.fcMsg.valid,
-         dataOut => fcRxMsgValid);
-
-   ledL(3) <= fcRxMsgValid;
 
    -- FEB PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0
    GEN_FEB_REFCLK : for i in PGP_QUADS_G-1 downto 0 generate

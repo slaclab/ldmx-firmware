@@ -63,6 +63,8 @@ entity FcReceiver is
       pgpRxOut     : out Pgp2fcRxOutType;
       pgpRxMasters : out AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpRxCtrl    : in  AxiStreamCtrlArray(3 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+      -- Debugging interface
+      fcRxMsgValid : out sl;
 
       -- TX FC and PGP interface
       txClk185     : out sl;
@@ -357,6 +359,16 @@ begin
 
 --   pgpTxIn.locData(0) <= fcFb.busy;
 
-
+   -------------------------------------------------------------------------------------------------
+   -- Debugging
+   -------------------------------------------------------------------------------------------------
+   U_StretchDbgRorTx : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 10)
+      port map (
+         clk     => fcClk185Loc,
+         dataIn  => fcValid,
+         dataOut => fcRxMsgValid);
 
 end architecture rtl;
