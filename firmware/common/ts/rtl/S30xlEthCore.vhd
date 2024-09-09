@@ -31,6 +31,8 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--use ldmx_tdaq.DaqPkg.all;
+
 entity S30xlEthCore is
    generic(
       TPD_G                    : time             := 1 ns;
