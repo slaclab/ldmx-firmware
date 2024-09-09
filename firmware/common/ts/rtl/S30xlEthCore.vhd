@@ -42,7 +42,7 @@ entity S30xlEthCore is
       SIM_TRIG_DATA_PORT_NUM_G : integer          := 9200;
       AXIL_CLK_FREQ_G          : real             := 125.0e6;
       AXIL_BASE_ADDR_G         : slv(31 downto 0) := X"00000000";
-      DHCP_G                   : boolean          := false;  -- true = DHCP, false = static address
+      DHCP_G                   : boolean          := true;  -- true = DHCP, false = static address
       IP_ADDR_G                : slv(31 downto 0) := x"0A01A8C0";  -- 192.168.1.10 (before DHCP)
       MAC_ADDR_G               : slv(47 downto 0) := x"00_00_16_56_00_08");
    port (
