@@ -32,6 +32,7 @@ create_generated_clock -name fcRecClk185 [get_pins U_FcReceiver_1/U_LdmxPgpFcLan
 #     -group [get_clocks -include_generated_clocks axilClk] \
 #     -group [get_clocks -include_generated_clocks dmaClk]
 
+# note the use of *U_Pgp2fcGtyCore*; change accordingly if instantiating a different core (e.g. Gth)
 set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks axilClk] \
     -group [get_clocks -include_generated_clocks dmaClk] \    
@@ -39,11 +40,12 @@ set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks febPgpFcRefClk0] \
     -group [get_clocks -include_generated_clocks febPgpFcRefClk1] \
     -group [get_clocks fcRecClk185] \
-    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/RXOUTCLK}]] \
-    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/TXOUTCLK}]] \
-    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/TXOUTCLKPCS}]]  
+    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp2fcGtyCore/*/RXOUTCLK}]] \
+    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp2fcGtyCore/*/TXOUTCLK}]] \
+    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp2fcGtyCore/*/TXOUTCLKPCS}]]
     
     
+# U_FcReceiver_1/U_LdmxPgpFcLane_1/GEN_GTY.U_Pgp/PgpGtyCoreWrapper_1/U_Pgp2fcGtyCore/inst/gen_gtwizard_gtye4_top.Pgp2fcGtyCore_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_channel_container[5].gen_enabled_channel.gtye4_channel_wrapper_inst/channel_inst/gtye4_channel_gen.gen_gtye4_channel_inst[0].GTYE4_CHANNEL_PRIM_INST/TXOUTCLKPCS
 #    -group [get_clocks -include_generated_clocks qsfpRefClk0]
 #    -group [get_clocks -include_generated_clocks qsfpRefClk1] \
 #    -group [get_clocks -include_generated_clocks qsfpRefClk2] \
