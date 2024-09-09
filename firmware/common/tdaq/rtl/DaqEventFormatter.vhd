@@ -87,7 +87,7 @@ begin
          SYNTH_MODE_G        => "inferred",
          MEMORY_TYPE_G       => "distributed",
          SLAVE_AXI_CONFIG_G  => RAW_AXIS_CFG_G,
-         MASTER_AXI_CONFIG_G => DAQ_EVENT_AXIS_CONFIG_C)
+         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
          sAxisClk    => axisClk,                -- [in]
          sAxisRst    => axisRst,                -- [in]
@@ -116,12 +116,12 @@ begin
          rdTimestamp => rorFifoTimestamp,      -- [out]
          rdValid     => open);                 -- [out]
 
-   comb : process (axisRst, eventAxisCtrl, rawFifoAxisMaster, rorFifoTimestamp, r) is
+   comb : process (axisRst, eventAxisCtrl, r, rawFifoAxisMaster, rorFifoTimestamp) is
       variable v : RegType;
    begin
       v := r;
 
-      v.eventAxisMaster := axiStreamMasterInit(DAQ_EVENT_AXIS_CONFIG_C);
+      v.eventAxisMaster := axiStreamMasterInit(EMAC_AXIS_CONFIG_C);
       v.rorFifoRdEn     := '0';
 
       case r.state is
@@ -173,13 +173,13 @@ begin
 --          VALID_THOLD_G          => VALID_THOLD_G,
 --          VALID_BURST_MODE_G     => VALID_BURST_MODE_G,
          GEN_SYNC_FIFO_G     => true,
-         FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => EVENT_FIFO_PAUSE_THRESH_G,
+--         FIFO_FIXED_THRESH_G => true,
+--         FIFO_PAUSE_THRESH_G => EVENT_FIFO_PAUSE_THRESH_G,
          FIFO_ADDR_WIDTH_G   => EVENT_FIFO_ADDR_WIDTH_G,
          SYNTH_MODE_G        => EVENT_FIFO_SYNTH_MODE_G,
          MEMORY_TYPE_G       => EVENT_FIFO_MEMORY_TYPE_G,
-         SLAVE_AXI_CONFIG_G  => DAQ_EVENT_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => DAQ_EVENT_AXIS_CONFIG_C)
+         SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
          sAxisClk    => axisClk,            -- [in]
          sAxisRst    => axisRst,            -- [in]
