@@ -39,7 +39,7 @@ use unisim.vcomponents.all;
 entity TrackerBittware is
    generic (
       TPD_G                : time                        := 1 ns;
-      SIM_SPEEDUP_G        : boolean                     := true;
+      SIM_SPEEDUP_G        : boolean                     := false;
       ROGUE_SIM_EN_G       : boolean                     := false;
       ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000;
       DMA_BURST_BYTES_G    : integer range 256 to 4096   := 4096;
