@@ -42,10 +42,10 @@ entity TsDataRx is
       AXIL_BASE_ADDR_G : slv(31 downto 0) := X"00000000");
    port (
       -- TS Interface
-      tsRefClk250P : in slv(TS_REFCLKS_G-1 downto 0);
-      tsRefClk250N : in slv(TS_REFCLKS_G-1 downto 0);
-      tsDataRxP    : in slv(TS_LANES_G-1 downto 0);
-      tsDataRxN    : in slv(TS_LANES_G-1 downto 0);
+      tsRefClk250P : in  slv(TS_REFCLKS_G-1 downto 0);
+      tsRefClk250N : in  slv(TS_REFCLKS_G-1 downto 0);
+      tsDataRxP    : in  slv(TS_LANES_G-1 downto 0);
+      tsDataRxN    : in  slv(TS_LANES_G-1 downto 0);
       tsDataTxP    : out slv(TS_LANES_G-1 downto 0);
       tsDataTxN    : out slv(TS_LANES_G-1 downto 0);
 
@@ -56,8 +56,8 @@ entity TsDataRx is
 
       -- TS data synchronized to fcClk
       -- and corresponding fcMsg
-      fcTsRxMsgs : out TsData6ChMsgArray(TS_LANES_G-1 downto 0);
-      fcMsgTime  : out FcTimestampType;
+      fcTsRxMsgs     : out TsData6ChMsgArray(TS_LANES_G-1 downto 0);
+      fcMsgTimestamp : out FcTimestampType;
 
       -- AXI Lite interface
       axilClk         : in  sl;
@@ -203,7 +203,7 @@ begin
          fcRst185        => fcRst185,                                   -- [in]
          fcBus           => fcBus,                                      -- [in]
          fcTsRxMsgs      => fcTsRxMsgs,                                 -- [out]
-         fcMsgTime       => fcMsgTime,                                  -- [out]
+         fcMsgTimestamp  => fcMsgTimestamp,                             -- [out]
          axilClk         => axilClk,                                    -- [in]
          axilRst         => axilRst,                                    -- [in]
          axilReadMaster  => locAxilReadMasters(AXIL_TS_RX_ALIGNER_C),   -- [in]

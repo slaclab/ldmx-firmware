@@ -45,7 +45,7 @@ entity TsRawDaq is
       fcRst185   : in sl;
       fcBus      : in FcBusType;
       fcTsRxMsgs : in TsData6ChMsgArray(TS_LANES_G-1 downto 0);
-      fcMsgTime  : in FcTimestampType;
+      fcMsgTimestamp  : in FcTimestampType;
 
       -- Streaming interface to ETH
       axisClk         : in  sl;
@@ -103,7 +103,7 @@ begin
             fcClk185    => fcClk185,                 -- [in]
             fcRst185    => fcRst185,                 -- [in]
             fcBus       => fcBus,                    -- [in]
-            timestampIn => fcMsgTime,                -- [in]
+            timestampIn => fcMsgTimestamp,                -- [in]
             dataIn      => tsRxMsgsSlvDelayIn(i),    -- [in]
             aligned     => aligned(i),               -- [out]
             dataOut     => tsRxMsgsSlvDelayOut(i));  -- [out]
@@ -134,7 +134,7 @@ begin
       tsRxMsgsFifoOut(i) <= toTsData6ChMsg(tsRxMsgsSlvFifoOut(i), tsRxMsgsFifoValid(i));
    end generate;
 
---    rorTimestampFifoInSlv <= toSlv(fcMsgTime);
+--    rorTimestampFifoInSlv <= toSlv(fcMsgTimestamp);
 --    ROR_TIMESTAMP_FIFO : entity surf.Fifo
 --       generic map (
 --          TPD_G           => TPD_G,
