@@ -112,7 +112,6 @@ package FcPkg is
       bunchStrobe     : sl;             -- Pulsed on cycle that bunchCount increments
       bunchCount      : slv(5 downto 0);
       subCount        : slv(2 downto 0);
-      bunchClkAligned : sl;
       bc0             : sl;
 
       -- 185 MHz counter from T0
@@ -122,7 +121,7 @@ package FcPkg is
       readoutRequest : FcTimestampType;
 
       -- All FC messages placed on this bus as they are received
-      -- Might not be useful
+      -- Usefull for propagating raw messages (as on tracker)
       fcMsg : FcMessageType;
    end record FcBusType;
 
@@ -136,7 +135,6 @@ package FcPkg is
       bunchStrobe     => '0',
       bunchCount      => (others => '0'),
       subCount        => (others => '0'),
-      bunchClkAligned => '0',
       bc0             => '0',
       runTime         => (others => '0'),
       readoutRequest  => FC_TIMESTAMP_INIT_C,

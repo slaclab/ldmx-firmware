@@ -5,6 +5,7 @@ import axipcie
 
 import rogue
 
+import ldmx_tdaq
 import ldmx_ts
 
 

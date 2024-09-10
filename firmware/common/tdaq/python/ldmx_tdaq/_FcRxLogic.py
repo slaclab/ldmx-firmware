@@ -7,13 +7,6 @@ class FcRxLogic(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
-            name = 'BunchClkAligned',
-            mode = 'RO',
-            base = pr.Bool,
-            offset = 0x00,
-            bitSize = 1))
-
-        self.add(pr.RemoteVariable(
             name = 'RoRCount',
             mode = 'RO',
             base = pr.UInt,
