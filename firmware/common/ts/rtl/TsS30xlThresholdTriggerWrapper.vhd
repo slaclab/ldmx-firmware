@@ -51,9 +51,9 @@ architecture rtl of TsS30xlThresholdTriggerWrapper is
       port (
          ap_clk        : in  std_logic;
          ap_rst        : in  std_logic;
-         timestamp_in  : in  std_logic_vector (69 downto 0);
+         timestamp_in  : in  std_logic_vector (71 downto 0);
          bc0_in        : in  sl;
-         timestamp_out : out std_logic_vector (69 downto 0);
+         timestamp_out : out std_logic_vector (71 downto 0);
          bc0_out       : out sl;
          dataReady_in  : in  std_logic_vector (0 downto 0);
          dataReady_out : out std_logic_vector (0 downto 0);

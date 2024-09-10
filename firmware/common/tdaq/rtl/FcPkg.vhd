@@ -83,7 +83,7 @@ package FcPkg is
       bunchCount => (others => '0'),
       pulseId    => (others => '0'));
 
-   constant FC_TIMESTAMP_SIZE_C : integer := 70;
+   constant FC_TIMESTAMP_SIZE_C : integer := 72;
 
    function toSlv (
       fcTimestamp : FcTimestampType)
@@ -207,9 +207,10 @@ package body FcPkg is
    function toSlv (
       fcTimestamp : FcTimestampType)
       return slv is
-      variable ret : slv(69 downto 0);
+      variable ret : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
    begin
-      ret(69 downto 6) := fcTimestamp.pulseId;
+      ret := (others => '0');
+      ret(71 downto 8) := fcTimestamp.pulseId;
       ret(5 downto 0)  := fcTimestamp.bunchCount;
       return ret;
    end function toSlv;
@@ -221,7 +222,7 @@ package body FcPkg is
       variable ret : FcTimestampType;
    begin
       ret.valid      := valid;
-      ret.pulseId    := vector(69 downto 6);
+      ret.pulseId    := vector(71 downto 8);
       ret.bunchCount := vector(5 downto 0);
       return ret;
    end function toFcTimestamp;

@@ -6,9 +6,9 @@
 
 #include "objdef.h"
 
-void ts_s30xl_threshold_trigger_hw(ap_uint<70> timestamp_in[1],
+void ts_s30xl_threshold_trigger_hw(ap_uint<72> timestamp_in[1],
                                    ap_uint<1> bc0_in[1],
-                                   ap_uint<70> timestamp_out[1],
+                                   ap_uint<72> timestamp_out[1],
                                    ap_uint<1> bc0_out[1],
                                    ap_uint<1> dataReady_in[1],
                                    ap_uint<1> dataReady_out[1],

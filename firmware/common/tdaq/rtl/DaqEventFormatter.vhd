@@ -131,7 +131,7 @@ begin
                v.rorFifoRdEn                         := '1';
                v.eventAxisMaster.tValid              := '1';
                v.eventAxisMaster.tData               := (others => '0');
-               v.eventAxisMaster.tData(69 downto 0)  := toSlv(rorFifoTimestamp);
+               v.eventAxisMaster.tData(71 downto 0)  := toSlv(rorFifoTimestamp);
                v.eventAxisMaster.tData(79 downto 72) := CONTRIBUTOR_ID_G;
                v.eventAxisMaster.tData(87 downto 80) := SUBSYSTEM_ID_G;
                v.state                               := DO_DATA_S;
