@@ -30,7 +30,6 @@ class FcHubBittwareRoot(pr.Root):
             sim = False,
             prbsEn = False,
             numPgpQuads = 1,
-            numLanes = 1,
             numVc = 4,
             **kwargs):
         if sim:
@@ -119,15 +118,6 @@ class FcHubArgParser(argparse.ArgumentParser):
             "--sim",
             action = 'store_true',
             default = False)
-
-        self.add_argument(
-            "--numLanes",
-            "-l",
-            type     = int,
-            required = False,
-            default  = 1,
-            help     = "# of DMA Lanes (same as Transceiver Quads)",
-        )
 
 #         self.add_argument(
 #             "--numLinks",

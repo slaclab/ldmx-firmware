@@ -78,6 +78,10 @@ class TrackerPciePgpFcRoot(pr.Root):
                     self.prbsTx[lane][vc] >> self.dmaStream[lane][vc]
                     self.add(self.prbsTx[lane][vc])
 
+        # Zmq Server
+        self.zmqServer = pyrogue.interfaces.ZmqServer(root=self, addr='127.0.0.1', port=0)
+        self.addInterface(self.zmqServer)
+
         # Add the PCIe core device to base
         self.add(axipcie.AxiPcieCore(
             offset      = 0x00000000,
@@ -95,11 +99,11 @@ class TrackerPciePgpFcRoot(pr.Root):
 
         self.add(ldmx_tracker.TrackerPgpFcArray(
             offset = 0x00900000,
+            numVc = numVc,
             memBase = self.memMap,
             numPgpQuads = numPgpQuads,
             expand = True
         ))
-        
 
 
 class TrackerPciePgpFcArgParser(argparse.ArgumentParser):
@@ -119,15 +123,6 @@ class TrackerPciePgpFcArgParser(argparse.ArgumentParser):
             "--sim",
             action = 'store_true',
             default = False)
-
-        self.add_argument(
-            "--numLanes",
-            "-l",
-            type     = int,
-            required = False,
-            default  = 1,
-            help     = "# of DMA Lanes (same as Transceiver Quads)",
-        )
 
 #         self.add_argument(
 #             "--numLinks",
