@@ -81,7 +81,8 @@ package TsPkg is
       return slv;
 
    function toSlv128 (
-      tsData : TsData6ChMsgType)
+      tsData : TsData6ChMsgType;
+      lane   : integer := 0)
       return slv;
 
    function toTsData6ChMsg (
