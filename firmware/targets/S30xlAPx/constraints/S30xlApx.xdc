@@ -189,7 +189,14 @@ set_clock_groups -asynchronous \
 set_clock_groups -asynchronous \
     -group [get_clocks lclsTimingTxOutClkPcs] \
     -group [get_clocks lclsTimingRefClk] \
-    -group [get_clocks clk125In]     
+    -group [get_clocks clk125In]
+
+# LEDs
+set_property -dict {PACKAGE_PIN AR35 IOSTANDARD LVCMOS18} [get_ports rgbGreenLed]
+set_property -dict {PACKAGE_PIN AT35 IOSTANDARD LVCMOS18} [get_ports rgbRedLed  ]
+set_property -dict {PACKAGE_PIN AR36 IOSTANDARD LVCMOS18} [get_ports rgbBlueLed ]
+set_property -dict {PACKAGE_PIN AR34 IOSTANDARD LVCMOS18} [get_ports organgeLed ]
+set_property -dict {PACKAGE_PIN AT34 IOSTANDARD LVCMOS18} [get_ports greenLed   ]
 
 # 125 MHz OSC Clock In
 set_property -dict {PACKAGE_PIN H28 IOSTANDARD LVDS DIFF_TERM TRUE} [get_ports clk125InP]

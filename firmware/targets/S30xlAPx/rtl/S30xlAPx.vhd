@@ -123,7 +123,17 @@ entity S30xlAPx is
       ethTxP        : out sl;
       ethTxN        : out sl;
       ethRxP        : in  sl;
-      ethRxN        : in  sl
+      ethRxN        : in  sl;
+
+      ----------------------------------------------------------------------------------------------
+      -- LEDS
+      ----------------------------------------------------------------------------------------------
+      rgbGreenLed : out sl := '0';
+      rgbRedLed   : out sl := '0';
+      rgbBlueLed  : out sl := '0';
+
+      organgeLed : out sl := '0';
+      greenLed   : out sl := '0'
 
       );
 
@@ -236,6 +246,18 @@ begin
          syncRst  => axilRst);          -- [out]
 
    -------------------------------------------------------------------------------------------------
+   -- LED
+   -------------------------------------------------------------------------------------------------
+   Heartbeat_axilClk : entity surf.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 8.0E-9,
+         PERIOD_OUT_G => 0.8)
+      port map (
+         clk => axilClk,
+         o   => rgbGreenLed);   
+
+   -------------------------------------------------------------------------------------------------
    -- Top Level AXI-Lite crossbar
    -------------------------------------------------------------------------------------------------
    U_XBAR : entity surf.AxiLiteCrossbar
@@ -328,7 +350,7 @@ begin
    -------------------------------------------------------------------------------------------------
    U_S30xlGlobalTrigger_1 : entity ldmx_tdaq.S30xlGlobalTrigger
       generic map (
-         TPD_G => TPD_G,
+         TPD_G            => TPD_G,
          AXIL_BASE_ADDR_G => AXIL_XBAR_CONFIG_C(AXIL_GLOBAL_TRIGGER_C).baseAddr)
       port map (
          fcClk185             => tsFcClk185,                                  -- [in]
