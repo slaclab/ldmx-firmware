@@ -325,7 +325,7 @@ begin
 --            APP_STREAM_PRIORITY_G => RSSI_PRIORITY_C,
             APP_AXIS_CONFIG_G    => RSSI_AXIS_CONFIG_C,
             CLK_FREQUENCY_G      => ETH_CLK_FREQ_C,
-            TIMEOUT_UNIT_G       => 1.0E-3,  -- In units of seconds
+            TIMEOUT_UNIT_G       => 1.0E-3,         -- In units of seconds
             SERVER_G             => true,
             RETRANSMIT_ENABLE_G  => true,
             BYPASS_CHUNKER_G     => false,
@@ -339,9 +339,9 @@ begin
             openRq_i          => '1',
             -- Application Layer Interface
             sAppAxisMasters_i => srpRssiIbMasters,  --[in]
-            sAppAxisSlaves_o  => srpRssiIbSlaves,  -- [out]
+            sAppAxisSlaves_o  => srpRssiIbSlaves,   -- [out]
             mAppAxisMasters_o => srpRssiObMasters,  -- [out]
-            mAppAxisSlaves_i  => srpRssiObSlaves,  -- [in]
+            mAppAxisSlaves_i  => srpRssiObSlaves,   -- [in]
             -- Transport Layer Interface
             sTspAxisMaster_i  => obServerMasters(SRP_RSSI_INDEX_C),
             sTspAxisSlave_o   => obServerSlaves(SRP_RSSI_INDEX_C),

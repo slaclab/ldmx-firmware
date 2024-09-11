@@ -29,7 +29,7 @@ use ldmx_tdaq.FcPkg.all;
 
 package TsPkg is
 
-   constant TS_RAW_DATA_DAQ_ID_C       : slv(7 downto 0) := X"01";
+   constant TS_RAW_DATA_DAQ_ID_C             : slv(7 downto 0) := X"01";
    constant TS_S30XL_THRESHOLD_TRIG_DAQ_ID_C : slv(7 downto 0) := X"02";
 
    type TsData8ChMsgType is record
@@ -139,7 +139,8 @@ package body TsPkg is
    end function toSlv;
 
    function toSlv128 (
-      tsData : TsData6ChMsgType)
+      tsData : TsData6ChMsgType;
+      lane   : integer := 0)
       return slv
    is
       variable ret : slv(127 downto 0);
@@ -158,9 +159,10 @@ package body TsPkg is
       ret(101 downto 96)  := tsData.tdc(3);
       ret(109 downto 104) := tsData.tdc(4);
 
-      ret(113 downto 112) := tsData.capId;
+      ret(113 downto 112) := tsData.capId;  -- Byte 14
       ret(114)            := tsData.ce;
       ret(115)            := tsData.bc0;
+      ret(127 downto 120) := toSlv(lane, 8);
       return ret;
    end function toSlv128;
 
