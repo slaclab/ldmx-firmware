@@ -53,8 +53,8 @@ entity TrackerBittware is
       -- QSFP-DD Ports
       qsfpRefClkP    : in  slv(7 downto 0);
       qsfpRefClkN    : in  slv(7 downto 0);
---       qsfpRecClkP    : out slv(7 downto 0);
---       qsfpRecClkN    : out slv(7 downto 0);
+      qsfpRecClkP    : out slv(7 downto 0);
+      qsfpRecClkN    : out slv(7 downto 0);
       qsfpRxP        : in  slv(31 downto 0);
       qsfpRxN        : in  slv(31 downto 0);
       qsfpTxP        : out slv(31 downto 0);
