@@ -44,7 +44,7 @@ entity TrackerBittware is
       ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000;
       DMA_BURST_BYTES_G    : integer range 256 to 4096   := 4096;
       DMA_BYTE_WIDTH_G     : integer range 8 to 64       := 8;
-      PGP_QUADS_G          : integer                     := 2;
+      PGP_QUADS_G          : integer                     := 1;
       BUILD_INFO_G         : BuildInfoType);
    port (
       ---------------------
@@ -386,7 +386,7 @@ begin
          SIMULATION_G => SIM_SPEEDUP_G,
          WIDTH_G      => 3)
       port map (
-         refClk   => axilCLk,                    -- [in]
+         refClk   => axilClk,                    -- [in]
          rxoutClk => dummyRxOutClk(3 downto 1),  -- [out]
          gtRxP    => qsfpRxP(3 downto 1),        -- [in]
          gtRxN    => qsfpRxN(3 downto 1),        -- [in]
@@ -399,7 +399,7 @@ begin
          SIMULATION_G => SIM_SPEEDUP_G,
          WIDTH_G      => 12)
       port map (
-         refClk   => axilCLk,                     -- [in]
+         refClk   => axilClk,                     -- [in]
          rxoutClk => dummyRxOutClk(15 downto 4),  -- [out]
          gtRxP    => qsfpRxP(15 downto 4),        -- [in]
          gtRxN    => qsfpRxN(15 downto 4),        -- [in]
@@ -410,27 +410,27 @@ begin
       generic map (
          TPD_G        => TPD_G,
          SIMULATION_G => SIM_SPEEDUP_G,
-         WIDTH_G      => 8)
+         WIDTH_G      => 32-(PGP_QUADS_G*4+16))
       port map (
-         refClk   => axilCLk,                      -- [in]
-         rxoutClk => dummyRxOutClk(31 downto 24),  -- [out]
-         gtRxP    => qsfpRxP(31 downto 24),        -- [in]
-         gtRxN    => qsfpRxN(31 downto 24),        -- [in]
-         gtTxP    => qsfpTxP(31 downto 24),        -- [out]
-         gtTxN    => qsfpTxN(31 downto 24));       -- [out]
+         refClk   => axilClk,                      -- [in]
+         rxoutClk => dummyRxOutClk(31 downto PGP_QUADS_G*4+16),  -- [out]
+         gtRxP    => qsfpRxP(31 downto PGP_QUADS_G*4+16),        -- [in]
+         gtRxN    => qsfpRxN(31 downto PGP_QUADS_G*4+16),        -- [in]
+         gtTxP    => qsfpTxP(31 downto PGP_QUADS_G*4+16),        -- [out]
+         gtTxN    => qsfpTxN(31 downto PGP_QUADS_G*4+16));       -- [out]
 
-   GEN_DUMMY_RECCLK_BUF : for i in 7 downto 1 generate
-      U_mgtRecClk : OBUFDS_GTE4
-         generic map (
-            REFCLK_EN_TX_PATH => '1',
-            REFCLK_ICNTL_TX   => "00000")
-         port map (
-            O   => qsfpRecClkP(i),
-            OB  => qsfpRecClkN(i),
-            CEB => '0',
-            I   => dummyRxOutClk(i*4));  -- using rxRecClk from Channel=0
-
-   end generate GEN_DUMMY_RECCLK_BUF;
+   -- including this leads to unroutable nets
+   --GEN_DUMMY_RECCLK_BUF : for i in 7 downto 1 generate
+   --   U_mgtRecClk : OBUFDS_GTE4
+   --      generic map (
+   --         REFCLK_EN_TX_PATH => '1',
+   --         REFCLK_ICNTL_TX   => "00000")
+   --      port map (
+   --         O   => qsfpRecClkP(i),
+   --         OB  => qsfpRecClkN(i),
+   --         CEB => '0',
+   --         I   => dummyRxOutClk(i*4));  -- using rxRecClk from Channel=0
+   --end generate GEN_DUMMY_RECCLK_BUF;
 
 
 end rtl;

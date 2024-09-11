@@ -350,7 +350,7 @@ begin
          SIMULATION_G => SIM_SPEEDUP_G,
          WIDTH_G      => 3)
       port map (
-         refClk   => axilCLk,                    -- [in]
+         refClk   => axilClk,                    -- [in]
          rxoutClk => dummyRxOutClk(3 downto 1),  -- [out]
          gtRxP    => qsfpRxP(3 downto 1),        -- [in]
          gtRxN    => qsfpRxN(3 downto 1),        -- [in]
@@ -363,7 +363,7 @@ begin
          SIMULATION_G => SIM_SPEEDUP_G,
          WIDTH_G      => 12)
       port map (
-         refClk   => axilCLk,                     -- [in]
+         refClk   => axilClk,                     -- [in]
          rxoutClk => dummyRxOutClk(15 downto 4),  -- [out]
          gtRxP    => qsfpRxP(15 downto 4),        -- [in]
          gtRxN    => qsfpRxN(15 downto 4),        -- [in]
@@ -376,13 +376,14 @@ begin
          SIMULATION_G => SIM_SPEEDUP_G,
          WIDTH_G      => 32-(FC_HUB_QUADS_G*4+16))
       port map (
-         refClk   => axilCLk,                      -- [in]
+         refClk   => axilClk,                      -- [in]
          rxoutClk => dummyRxOutClk(31 downto FC_HUB_QUADS_G*4+16),  -- [out]
          gtRxP    => qsfpRxP(31 downto FC_HUB_QUADS_G*4+16),        -- [in]
          gtRxN    => qsfpRxN(31 downto FC_HUB_QUADS_G*4+16),        -- [in]
          gtTxP    => qsfpTxP(31 downto FC_HUB_QUADS_G*4+16),        -- [out]
          gtTxN    => qsfpTxN(31 downto FC_HUB_QUADS_G*4+16));       -- [out]
 
+   -- including this leads to unroutable nets
    --GEN_DUMMY_RECCLK_BUF : for i in 7 downto 1 generate
    --   U_mgtRecClk : OBUFDS_GTE4
    --      generic map (
