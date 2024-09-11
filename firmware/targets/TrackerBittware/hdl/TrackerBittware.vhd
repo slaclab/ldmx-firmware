@@ -53,8 +53,8 @@ entity TrackerBittware is
       -- QSFP-DD Ports
       qsfpRefClkP    : in  slv(7 downto 0);
       qsfpRefClkN    : in  slv(7 downto 0);
-      qsfpRecClkP    : out slv(7 downto 0);
-      qsfpRecClkN    : out slv(7 downto 0);
+--       qsfpRecClkP    : out slv(7 downto 0);
+--       qsfpRecClkN    : out slv(7 downto 0);
       qsfpRxP        : in  slv(31 downto 0);
       qsfpRxN        : in  slv(31 downto 0);
       qsfpTxP        : out slv(31 downto 0);
@@ -380,57 +380,57 @@ begin
    -- Dummy GTs
    -- Need dummy on every unused GTY in port IO
    -------------------------------------------------------------------------------------------------
---    U_Gtye4ChannelDummy_1 : entity surf.Gtye4ChannelDummy
---       generic map (
---          TPD_G        => TPD_G,
---          SIMULATION_G => SIM_SPEEDUP_G,
---          WIDTH_G      => 3)
---       port map (
---          refClk   => axilCLk,                    -- [in]
---          rxoutClk => dummyRxOutClk(3 downto 1),  -- [out]
---          gtRxP    => qsfpRxP(3 downto 1),        -- [in]
---          gtRxN    => qsfpRxN(3 downto 1),        -- [in]
---          gtTxP    => qsfpTxP(3 downto 1),        -- [out]
---          gtTxN    => qsfpTxN(3 downto 1));       -- [out]
+   U_Gtye4ChannelDummy_1 : entity surf.Gtye4ChannelDummy
+      generic map (
+         TPD_G        => TPD_G,
+         SIMULATION_G => true,
+         WIDTH_G      => 3)
+      port map (
+         refClk   => axilCLk,                    -- [in]
+         rxoutClk => dummyRxOutClk(3 downto 1),  -- [out]
+         gtRxP    => qsfpRxP(3 downto 1),        -- [in]
+         gtRxN    => qsfpRxN(3 downto 1),        -- [in]
+         gtTxP    => qsfpTxP(3 downto 1),        -- [out]
+         gtTxN    => qsfpTxN(3 downto 1));       -- [out]
 
---    U_Gtye4ChannelDummy_2 : entity surf.Gtye4ChannelDummy
---       generic map (
---          TPD_G        => TPD_G,
---          SIMULATION_G => SIM_SPEEDUP_G,
---          WIDTH_G      => 12)
---       port map (
---          refClk   => axilCLk,                     -- [in]
---          rxoutClk => dummyRxOutClk(15 downto 4),  -- [out]
---          gtRxP    => qsfpRxP(15 downto 4),        -- [in]
---          gtRxN    => qsfpRxN(15 downto 4),        -- [in]
---          gtTxP    => qsfpTxP(15 downto 4),        -- [out]
---          gtTxN    => qsfpTxN(15 downto 4));       -- [out]
+   U_Gtye4ChannelDummy_2 : entity surf.Gtye4ChannelDummy
+      generic map (
+         TPD_G        => TPD_G,
+         SIMULATION_G => true,
+         WIDTH_G      => 12)
+      port map (
+         refClk   => axilCLk,                     -- [in]
+         rxoutClk => dummyRxOutClk(15 downto 4),  -- [out]
+         gtRxP    => qsfpRxP(15 downto 4),        -- [in]
+         gtRxN    => qsfpRxN(15 downto 4),        -- [in]
+         gtTxP    => qsfpTxP(15 downto 4),        -- [out]
+         gtTxN    => qsfpTxN(15 downto 4));       -- [out]
 
---    U_Gtye4ChannelDummy_3 : entity surf.Gtye4ChannelDummy
---       generic map (
---          TPD_G        => TPD_G,
---          SIMULATION_G => SIM_SPEEDUP_G,
---          WIDTH_G      => 8)
---       port map (
---          refClk   => axilCLk,                      -- [in]
---          rxoutClk => dummyRxOutClk(31 downto 24),  -- [out]
---          gtRxP    => qsfpRxP(31 downto 24),        -- [in]
---          gtRxN    => qsfpRxN(31 downto 24),        -- [in]
---          gtTxP    => qsfpTxP(31 downto 24),        -- [out]
---          gtTxN    => qsfpTxN(31 downto 24));       -- [out]
+   U_Gtye4ChannelDummy_3 : entity surf.Gtye4ChannelDummy
+      generic map (
+         TPD_G        => TPD_G,
+         SIMULATION_G => true,
+         WIDTH_G      => 8)
+      port map (
+         refClk   => axilCLk,                      -- [in]
+         rxoutClk => dummyRxOutClk(31 downto 24),  -- [out]
+         gtRxP    => qsfpRxP(31 downto 24),        -- [in]
+         gtRxN    => qsfpRxN(31 downto 24),        -- [in]
+         gtTxP    => qsfpTxP(31 downto 24),        -- [out]
+         gtTxN    => qsfpTxN(31 downto 24));       -- [out]
 
---    GEN_DUMMY_RECCLK_BUF : for i in 7 downto 1 generate
---       U_mgtRecClk : OBUFDS_GTE4
---          generic map (
---             REFCLK_EN_TX_PATH => '1',
---             REFCLK_ICNTL_TX   => "00000")
---          port map (
---             O   => qsfpRecClkP(i),
---             OB  => qsfpRecClkN(i),
---             CEB => '0',
---             I   => dummyRxOutClk(i*4));  -- using rxRecClk from Channel=0
+   GEN_DUMMY_RECCLK_BUF : for i in 7 downto 1 generate
+      U_mgtRecClk : OBUFDS_GTE4
+         generic map (
+            REFCLK_EN_TX_PATH => '1',
+            REFCLK_ICNTL_TX   => "00000")
+         port map (
+            O   => qsfpRecClkP(i),
+            OB  => qsfpRecClkN(i),
+            CEB => '0',
+            I   => dummyRxOutClk(i*4));  -- using rxRecClk from Channel=0
 
---    end generate GEN_DUMMY_RECCLK_BUF;
+   end generate GEN_DUMMY_RECCLK_BUF;
 
 
 end rtl;
