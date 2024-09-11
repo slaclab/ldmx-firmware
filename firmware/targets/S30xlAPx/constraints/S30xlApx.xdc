@@ -64,9 +64,11 @@ create_clock -name fcHubTxOutClkPcs3  -period 5.384 [get_pins -hier * -filter {n
 
 # App FC Clocks
 create_clock -name appFcRxOutClk -period 5.384 [get_pins -hier * -filter {name=~*/U_FcReceiver_1/*/RXOUTCLK}]
-create_generated_clock -name appFcRxOutClkMmcm [get_pins U_S30xlAppCore_1/U_FcReceiver_1/U_LdmxPgpFcLane_1/RX_CLK_MMCM_GEN.U_ClockManager/MmcmGen.U_Mmcm/CLKOUT0]
 create_clock -name appFcTxOutClkPcs -period 5.384 [get_pins -hier * -filter {name=~*/U_FcReceiver_1/*/TXOUTCLKPCS}]
+create_clock -name appFcTxOutClkMon -period 5.384 [get_pins -hier * -filter {name=~*/U_FcReceiver_1/*/bufg_gt_txoutclkmon_inst/O}]
+create_generated_clock -name appFcRxOutClkMmcm [get_pins U_S30xlAppCore_1/U_FcReceiver_1/U_LdmxPgpFcLane_1/RX_CLK_MMCM_GEN.U_ClockManager/MmcmGen.U_Mmcm/CLKOUT0]
 
+#U_S30xlAppCore_1/U_FcReceiver_1/U_LdmxPgpFcLane_1/GEN_GTY.U_Pgp/PgpGtyCoreWrapper_1/U_Pgp2fcGtyCore/inst/gen_gtwizard_gtye4_top.Pgp2fcGtyCore_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[0].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_16_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_16_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O
 
 # TS Rec Clocks
 create_clock -name tsRxOutClk0 -period 4.0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[0]*/RXOUTCLK}]
@@ -74,6 +76,9 @@ create_clock -name tsRxOutClk1 -period 4.0 [get_pins -hier * -filter {name=~*U_T
 
 create_clock -name tsTxOutClk0 -period 4.0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[0]*/TXOUTCLK}]
 create_clock -name tsTxOutClk1 -period 4.0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[1]*/TXOUTCLK}]
+
+create_clock -name tsTxOutClkPcs0 -period 4.0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[0]*/TXOUTCLKPCS}]
+create_clock -name tsTxOutClkPcs1 -period 4.0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[1]*/TXOUTCLKPCS}]
 
 create_clock -name tsTxOutClkMon0  -period 4.0 [get_pins -hier * -filter {name=~ */U_TsDataRx_1/*/GEN_LANES[0]*/bufg_gt_txoutclkmon_inst/O}]
 create_clock -name tsTxOutClkMon1  -period 4.0 [get_pins -hier * -filter {name=~ */U_TsDataRx_1/*/GEN_LANES[1]*/bufg_gt_txoutclkmon_inst/O}]
@@ -117,8 +122,10 @@ set_clock_groups -asynchronous \
 
 set_clock_groups -asynchronous \
     -group [get_clocks appFcTxOutClkPcs] \
+    -group [get_clocks appFcTxOutClkMon] \    
     -group [get_clocks -include_generated_clocks appFcRxOutClk] \
-    -group [get_clocks appFcRefClk]
+    -group [get_clocks appFcRefClk] \
+    -group [get_clocks clk125In]
 
 set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks appFcRxOutClk] \
@@ -157,13 +164,32 @@ set_clock_groups -asynchronous \
     -group [get_clocks fcHubRxOutClk3] 
 
 set_clock_groups -asynchronous \
+    -group [get_clocks clk125In] \
+    -group [get_clocks lclsTimingRxOutClkMmcm] \
+    -group [get_clocks fcHubTxOutClkMon0] \
+    -group [get_clocks fcHubTxOutClkMon1] \
+    -group [get_clocks fcHubTxOutClkMon2] \
+    -group [get_clocks fcHubTxOutClkMon3] \
+    -group [get_clocks fcHubTxOutClkPcs0] \    
+    -group [get_clocks fcHubTxOutClkPcs1] \
+    -group [get_clocks fcHubTxOutClkPcs2] \
+    -group [get_clocks fcHubTxOutClkPcs3] \    
+    
+
+set_clock_groups -asynchronous \
     -group [get_clocks tsRefClk250] \
     -group [get_clocks tsRxOutClk0] \
-    -group [get_clocks tsRxOutClk1]
+    -group [get_clocks tsRxOutClk1] \
+    -group [get_clocks tsTxOutClkMon0] \
+    -group [get_clocks tsTxOutClkMon1] \
+    -group [get_clocks tsTxOutClkPcs0] \
+    -group [get_clocks tsTxOutClkPcs1] \
+    -group [get_clocks clk125In]     
 
 set_clock_groups -asynchronous \
     -group [get_clocks lclsTimingTxOutClkPcs] \
-    -group [get_clocks lclsTimingRefClk]
+    -group [get_clocks lclsTimingRefClk] \
+    -group [get_clocks clk125In]     
 
 # 125 MHz OSC Clock In
 set_property -dict {PACKAGE_PIN H28 IOSTANDARD LVDS DIFF_TERM TRUE} [get_ports clk125InP]
