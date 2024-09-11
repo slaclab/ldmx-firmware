@@ -218,7 +218,7 @@ begin
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_GTY_INDEX_C).baseAddr,
          EXTREF_G          => TIME_GEN_EXTREF_G,
          DISABLE_TIME_GT_G => false,
-         ADDR_BITS_G       => 12,
+--         ADDR_BITS_G       => 12,
          GTY_DRP_OFFSET_G  => x"00001000")
       port map (
          axilClk         => axilClk,
