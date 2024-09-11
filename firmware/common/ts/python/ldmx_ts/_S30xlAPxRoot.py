@@ -45,10 +45,9 @@ class S30xlAPxRoot(pr.Root):
             memBase = self.srp,
             expand = True))
 
-        self.dataReceiver = ldmx_tdaq.DaqDataReceiver()
-        self.addInterface(self.dataReceiver)
+        self.rawEventReceiver = ldmx_ts.TsRawEventReceiver()
+        self.addInterface(self.rawEventReceiver)
 
-        self.dataReceiver.setDebug(256, 'EventFrame')
 
-        self.rawDataStream >> self.dataReceiver
-        self.trigDataStream >> self.dataReceiver
+        self.rawDataStream >> self.rawEventReceiver
+#        self.trigDataStream >> self.dataReceiver
