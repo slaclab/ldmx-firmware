@@ -37,7 +37,7 @@ entity FcHub is
       SIM_SPEEDUP_G     : boolean              := false;
       REFCLKS_G         : integer range 1 to 4 := 1;
       QUADS_G           : integer range 1 to 4 := 1;
-      QUAD_REFCLK_MAP_G : IntegerArray         := (0      => 0);  --, 1 => 0, 2 => 1, 3 => 1);  -- Map a refclk for each quad
+      QUAD_REFCLK_MAP_G : IntegerArray         := (0      => 0); --, 1 => 0, 2 => 1, 3 => 1);  -- Map a refclk for each quad
       AXIL_CLK_FREQ_G   : real                 := 156.25e6;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)     := (others => '0'));
    port (
@@ -65,6 +65,9 @@ entity FcHub is
       lclsTimingFcTxMsg : out FcMessageType;
       lclsTimingBus     : out TimingBusType;
       globalTriggerRor  : in  FcTimestampType;
+      -- Debugging port output
+      fcTxMsgValid      : out sl;
+
 
       ----------------------------------------------------------------------------------------------
       -- FC HUB
@@ -233,6 +236,18 @@ begin
          axilReadSlave   => locAxilReadSlaves(AXIL_FC_ARRAY_C),    -- [out]
          axilWriteMaster => locAxilWriteMasters(AXIL_FC_ARRAY_C),  -- [in]
          axilWriteSlave  => locAxilWriteSlaves(AXIL_FC_ARRAY_C));  -- [out]
+
+   -------------------------------------------------------------------------------------------------
+   -- Debugging
+   -------------------------------------------------------------------------------------------------
+   U_StretchDbgRorTx : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 10)
+      port map (
+         clk     => lclsTimingClk,
+         dataIn  => fcTxMsg.valid,
+         dataOut => fcTxMsgValid);
 
 
 end rtl;

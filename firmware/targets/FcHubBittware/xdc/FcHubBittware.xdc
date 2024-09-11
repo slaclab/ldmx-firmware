@@ -45,9 +45,9 @@ set_clock_groups -asynchronous \
     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Lcls2TimingRx_1/*/RXOUTCLK}]] \
     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Lcls2TimingRx_1/*/TXOUTCLK}]] \
     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Lcls2TimingRx_1/*/TXOUTCLKPCS}]] \
-    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/RXOUTCLK}]] \
-    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/TXOUTCLK}]] \
-    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/TXOUTCLKPCS}]]
+    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp2fcGt*Core/*/RXOUTCLK}]] \
+    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp2fcGt*Core/*/TXOUTCLK}]] \
+    -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp2fcGt*Core/*/TXOUTCLKPCS}]]
 
 
 #    -group [get_clocks -include_generated_clocks qsfpRefClk0]
@@ -61,9 +61,9 @@ set_clock_groups -asynchronous \
 
 
 # set_clock_groups -asynchronous \
-#     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/RXOUTCLK}]] \
-#     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/TXOUTCLK}]] \
-#     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp/*/TXOUTCLKPCS}]]  \
+#     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp2fcGt*Core/*/RXOUTCLK}]] \
+#     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp2fcGt*Core/*/TXOUTCLK}]] \
+#     -group [get_clocks -of_objects [get_pins -hier * -filter {name=~*/U_Pgp2fcGt*Core/*/TXOUTCLKPCS}]]  \
 #     -group [get_clocks axilClk] \
 #     -group [get_clocks dmaClk]
 #    -group [get_clocks -include_generated_clocks qsfpRefClk0]
@@ -89,8 +89,3 @@ set_clock_groups -asynchronous \
 # add_cells_to_pblock SLR1_GRP  [get_cells -of_objects  [get_pins -hier * -filter {name=~U_PgpLaneWrapper/GEN_QUAD[5]*}]]
 # add_cells_to_pblock SLR1_GRP  [get_cells -of_objects  [get_pins -hier * -filter {name=~U_PgpLaneWrapper/GEN_QUAD[6]*}]]
 # add_cells_to_pblock SLR2_GRP  [get_cells -of_objects  [get_pins -hier * -filter {name=~U_PgpLaneWrapper/GEN_QUAD[7]*}]]
-
-#set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins {U_PgpLaneWrapper/GEN_QUAD[*].U_Lane/U_Pgp/PgpGtyCoreWrapper_1/U_PgpGtyCore/inst/gen_gtwizard_gtye4_top.PgpGtyCore_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_channel_container[0].gen_enabled_channel.gtye4_channel_wrapper_inst/channel_inst/gtye4_channel_gen.gen_gtye4_channel_inst[0].GTYE4_CHANNEL_PRIM_INST/RXOUTCLK}]] -group [get_clocks -of_objects [get_pins {U_PgpLaneWrapper/GEN_QUAD[*].U_Lane/U_Pgp/PgpGtyCoreWrapper_1/U_PgpGtyCore/inst/gen_gtwizard_gtye4_top.PgpGtyCore_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_channel_container[0].gen_enabled_channel.gtye4_channel_wrapper_inst/channel_inst/gtye4_channel_gen.gen_gtye4_channel_inst[0].GTYE4_CHANNEL_PRIM_INST/TXOUTCLK}]]
-
-#set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins {U_PgpLaneWrapper/GEN_QUAD[*].U_Lane/U_Pgp/PgpGtyCoreWrapper_1/U_PgpGtyCore/inst/gen_gtwizard_gtye4_top.PgpGtyCore_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_channel_container[0].gen_enabled_channel.gtye4_channel_wrapper_inst/channel_inst/gtye4_channel_gen.gen_gtye4_channel_inst[0].GTYE4_CHANNEL_PRIM_INST/TXOUTCLKPCS}]] -group [get_clocks -of_objects [get_pins {U_PgpLaneWrapper/GEN_QUAD[*].U_Lane/U_Pgp/PgpGtyCoreWrapper_1/U_PgpGtyCore/inst/gen_gtwizard_gtye4_top.PgpGtyCore_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_channel_container[0].gen_enabled_channel.gtye4_channel_wrapper_inst/channel_inst/gtye4_channel_gen.gen_gtye4_channel_inst[0].GTYE4_CHANNEL_PRIM_INST/TXOUTCLK}]]
-

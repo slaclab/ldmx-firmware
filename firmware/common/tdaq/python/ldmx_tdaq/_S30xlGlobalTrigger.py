@@ -1,7 +1,7 @@
 import pyrogue as pr
 
 import ldmx_tdaq
-import ldmx_ts
+#import ldmx_ts
 
 class S30xlGlobalTrigger(pr.Device):
     def __init__(self, **kwargs):

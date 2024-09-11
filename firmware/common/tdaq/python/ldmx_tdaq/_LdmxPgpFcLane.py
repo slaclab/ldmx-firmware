@@ -18,7 +18,6 @@ class LdmxPgpFcLane(pr.Device):
         self.add(ldmx_tdaq.Pgp2fcGtyCoreWrapper(
             name   = "GTY",
             offset = 0x0000))
-        
 
         if numVc > 0:
             self.add(surf.axi.AxiStreamMonAxiL(
@@ -34,6 +33,3 @@ class LdmxPgpFcLane(pr.Device):
                 numberLanes = numVc,
                 hideConfig = False,
                 chName = None))
-
-
-        

@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      :
 -------------------------------------------------------------------------------
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -93,7 +93,7 @@ begin
             ODIV2 => open,
             O     => fcHubRefClk(i));
    end generate;
-   
+
    U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
@@ -111,7 +111,7 @@ begin
          mAxiWriteSlaves     => locAxilWriteSlaves,
          mAxiReadMasters     => locAxilReadMasters,
          mAxiReadSlaves      => locAxilReadSlaves);
-   
+
    -------------------------------------------------------------------------------------------------
    -- FC Senders
    -------------------------------------------------------------------------------------------------

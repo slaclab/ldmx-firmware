@@ -44,7 +44,7 @@ entity TrackerBittware is
       ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000;
       DMA_BURST_BYTES_G    : integer range 256 to 4096   := 4096;
       DMA_BYTE_WIDTH_G     : integer range 8 to 64       := 8;
-      PGP_QUADS_G          : integer                     := 2;
+      PGP_QUADS_G          : integer                     := 1;
       BUILD_INFO_G         : BuildInfoType);
    port (
       ---------------------
@@ -70,6 +70,7 @@ entity TrackerBittware is
       -- System Ports
       userClkP       : in  sl;
       userClkN       : in  sl;
+      ledL           : out slv(3 downto 0);
       -- PCIe Ports
       pciRstL        : in  sl;
       pciRefClkP     : in  sl;
@@ -295,6 +296,7 @@ begin
 --         fcFb            => FC_FB_INIT_C,                    -- [in]
          fcBunchClk37    => open,                            -- [out]
          fcBunchRst37    => open,                            -- [out]
+         fcRxMsgValid    => ledL(3),                         -- [out]
          axilClk         => axilClk,                         -- [in]
          axilRst         => axilRst,                         -- [in]
          axilReadMaster  => axilReadMasters(FC_RX_AXIL_C),   -- [in]
@@ -350,7 +352,6 @@ begin
    qsfpTxN(0)     <= fcTxN;
    fcRxP          <= qsfpRxP(0);
    fcRxN          <= qsfpRxN(0);
-
 
    -- FEB PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0
    GEN_FEB_REFCLK : for i in PGP_QUADS_G-1 downto 0 generate
