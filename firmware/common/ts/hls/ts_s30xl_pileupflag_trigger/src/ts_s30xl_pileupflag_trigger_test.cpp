@@ -66,8 +66,10 @@ int main(){
 					//std::cout<<FIFO2[k]<<std::endl;
 				}
 				ap_uint<1> dataReady_out[1]={0.0};
+				ap_uint<1> bc0_out[1]={globalCount};
 				ap_uint<70> timestamp_out[1]={0.0};
 				ap_uint<70> timestamp_in[1]={globalCount};
+				ap_uint<1> bc0_in[1]={globalCount};
 				ap_uint<1> dataReady_in[1]={1};
 				if(globalCount%2==0){
 					std::cout<<"even"<<std::endl;
@@ -76,7 +78,7 @@ int main(){
 					std::cout<<"odd"<<std::endl;
 					dataReady_in[0]=1;
 				}
-				ts_s30xl_pileupflag_trigger_hw(timestamp_in,timestamp_out,dataReady_in,dataReady_out,FIFO2,outflag,outHit,pileup_out);
+				ts_s30xl_pileupflag_trigger_hw(timestamp_in,bc0_in,timestamp_out,bc0_out,dataReady_in,dataReady_out,FIFO2,outflag,outHit,pileup_out);
 				std::cout<<timestamp_out[0]<<std::endl;
 				if(!(timestamp_out[0]==globalCount)){
 					std::cout<<globalCount<<std::endl;

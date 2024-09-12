@@ -5,7 +5,7 @@
 
 
 
-void ts_s30xl_pileupflag_trigger_hw(ap_uint<70> timestamp_in[1],ap_uint<70> timestamp_out[1],ap_uint<1> dataReady_in[1],ap_uint<1> dataReady_out[1],ap_uint<14> FIFO[NHITS],ap_uint<1> onflag[NHITS],ap_uint<17> amplitude[NHITS],ap_uint<1> pileup_out[NHITS]){
+void ts_s30xl_pileupflag_trigger_hw(ap_uint<70> timestamp_in[1], ap_uint<1> bc0_in[1],ap_uint<70> timestamp_out[1], ap_uint<1> bc0_out[1],ap_uint<1> dataReady_in[1],ap_uint<1> dataReady_out[1],ap_uint<14> FIFO[NHITS],ap_uint<1> onflag[NHITS],ap_uint<17> amplitude[NHITS],ap_uint<1> pileup_out[NHITS]){
 	#pragma HLS ARRAY_PARTITION variable=FIFO complete
 	#pragma HLS ARRAY_PARTITION variable=amplitude complete
 	#pragma HLS ARRAY_PARTITION variable=onflag complete
@@ -114,6 +114,7 @@ void ts_s30xl_pileupflag_trigger_hw(ap_uint<70> timestamp_in[1],ap_uint<70> time
 		amplitude[i]=((charge1-36)*.00625);
 		pileup_out[i]=pup;
 	}
+	bc0_out[0] = bc0_in[0];
 	timestamp_out[0]=timestamp_in[0];
 	return;
 }
