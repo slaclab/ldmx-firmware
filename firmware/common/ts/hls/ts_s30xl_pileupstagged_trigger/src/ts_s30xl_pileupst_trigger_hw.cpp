@@ -3,7 +3,7 @@
 #include "C:\Users\Rory\AppData\Roaming\Xilinx\Vitis\objdef.h"
 #include "C:\Users\Rory\AppData\Roaming\Xilinx\Vitis\ts_s30xl_pileupst_trigger_hw.h"
 
-void ts_s30xl_pileupst_trigger_hw(ap_uint<70> timestamp_in[1],ap_uint<70> timestamp_out[1],ap_uint<1> dataReady_in[1],ap_uint<1> dataReady_out[1],ap_uint<14> FIFO1[NHITS],ap_uint<14> FIFO2[NHITS],ap_uint<1> onflag[NHITS],ap_uint<17> amplitude[NHITS]){
+void ts_s30xl_pileupst_trigger_hw(ap_uint<70> timestamp_in[1], ap_uint<1> bc0_in[1],ap_uint<70> timestamp_out[1], ap_uint<1> bc0_out[1],ap_uint<1> dataReady_in[1],ap_uint<1> dataReady_out[1],ap_uint<14> FIFO1[NHITS],ap_uint<14> FIFO2[NHITS],ap_uint<1> onflag[NHITS],ap_uint<17> amplitude[NHITS]){
 	#pragma HLS ARRAY_PARTITION variable=FIFO1 complete
 	#pragma HLS ARRAY_PARTITION variable=FIFO2 complete
 	#pragma HLS ARRAY_PARTITION variable=amplitude complete
@@ -125,6 +125,7 @@ void ts_s30xl_pileupst_trigger_hw(ap_uint<70> timestamp_in[1],ap_uint<70> timest
 		amplitude[i]=((charge2-bigC-36)*.00625);
 	}
 	timestamp_out[0]=timestamp_in[0];
+	bc0_out[0] = bc0_in[0];
 	return;
 }
 

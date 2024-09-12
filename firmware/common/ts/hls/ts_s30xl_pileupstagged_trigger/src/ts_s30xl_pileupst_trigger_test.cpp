@@ -53,9 +53,11 @@ int main(){
 					FIFO1[0]=FIFO[HELPER1][0];
 					FIFO2[1]=FIFO[HELPER1][1];
 				}
-				ap_uint<1> dataReady_out[1]={0.0};
+				ap_uint<1> dataReady_out[1]={0.0};	
+				ap_uint<1> bc0_out[1]={globalCount};
 				ap_uint<70> timestamp_out[1]={0.0};
 				ap_uint<70> timestamp_in[1]={globalCount};
+				ap_uint<1> bc0_in[1]={globalCount};
 				ap_uint<1> dataReady_in[1]={1};
 				std::cout<<"BEFORE IF"<<std::endl;
 				if(globalCount%2==0){
@@ -65,7 +67,7 @@ int main(){
 					std::cout<<"odd"<<std::endl;
 					dataReady_in[0]=1;
 				}
-				ts_s30xl_pileupst_trigger_hw(timestamp_in,timestamp_out,dataReady_in,dataReady_out,FIFO1,FIFO2,onflag,amplitude);
+				ts_s30xl_pileupst_trigger_hw(timestamp_in,bc0_in,timestamp_out,bc0_out,dataReady_in,dataReady_out,FIFO2,outflag,outHit,pileup_out);
 				std::cout<<"AFTER IF"<<std::endl;
 				std::cout<<"I MADE IT AFTER THE FIRMWARE"<<std::endl;
 				continue;
