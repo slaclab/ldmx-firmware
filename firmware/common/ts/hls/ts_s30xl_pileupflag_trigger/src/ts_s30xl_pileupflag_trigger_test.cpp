@@ -21,7 +21,7 @@ int main(){
 
 	ap_uint<17> outHit[NHITS];
 	ap_uint<1> outflag[NHITS];
-	ap_uint<1> pileup_out[NHITS];
+	ap_uint<2> pileup_out[NHITS];
 
 	int H = 0;
 	std::ifstream TestVec("TestVec.dat", std::ifstream::in);
@@ -80,6 +80,7 @@ int main(){
 				}
 				ts_s30xl_pileupflag_trigger_hw(timestamp_in,bc0_in,timestamp_out,bc0_out,dataReady_in,dataReady_out,FIFO2,outflag,outHit,pileup_out);
 				std::cout<<timestamp_out[0]<<std::endl;
+				std::cout<<"PileUp Number "<<pileup_out[0]<<" "<<pileup_out[1]<<" "<<pileup_out[2]<<" "<<pileup_out[3]<<" "<<pileup_out[4]<<" "<<pileup_out[5]<<" "<<pileup_out[6]<<" "<<pileup_out[7]<<" "<<pileup_out[8]<<" "<<pileup_out[9]<<" "<<pileup_out[10]<<" "<<pileup_out[11]<<std::endl;
 				if(!(timestamp_out[0]==globalCount)){
 					std::cout<<globalCount<<std::endl;
 					return -1;

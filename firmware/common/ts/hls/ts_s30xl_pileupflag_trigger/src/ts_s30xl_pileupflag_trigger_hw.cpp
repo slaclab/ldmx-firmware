@@ -5,7 +5,7 @@
 
 
 
-void ts_s30xl_pileupflag_trigger_hw(ap_uint<70> timestamp_in[1], ap_uint<1> bc0_in[1],ap_uint<70> timestamp_out[1], ap_uint<1> bc0_out[1],ap_uint<1> dataReady_in[1],ap_uint<1> dataReady_out[1],ap_uint<14> FIFO1[NHITS],ap_uint<14> FIFO2[NHITS],ap_uint<1> onflag[NHITS],ap_uint<17> amplitude[NHITS]){
+void ts_s30xl_pileupflag_trigger_hw(ap_uint<70> timestamp_in[1], ap_uint<1> bc0_in[1],ap_uint<70> timestamp_out[1], ap_uint<1> bc0_out[1],ap_uint<1> dataReady_in[1],ap_uint<1> dataReady_out[1],ap_uint<14> FIFO[NHITS],ap_uint<1> onflag[NHITS],ap_uint<17> amplitude[NHITS],ap_uint<2> pileup_out[NHITS]){
 	#pragma HLS ARRAY_PARTITION variable=FIFO complete
 	#pragma HLS ARRAY_PARTITION variable=amplitude complete
 	#pragma HLS ARRAY_PARTITION variable=onflag complete
@@ -98,13 +98,11 @@ void ts_s30xl_pileupflag_trigger_hw(ap_uint<70> timestamp_in[1], ap_uint<1> bc0_
 		ap_uint<14> v1 = (word1>>6)%64;
 		ap_uint<14> ss = 1*(v1>nbins_[1])+1*(v1>nbins_[2])+1*(v1>nbins_[3]);
 		charge1 = edges_[4*rr+ss]+(v1-nbins_[ss])*sense_[4*rr+ss]+sense_[4*rr+ss]/2-1;
-		ap_uint<1> helper = 0;ap_uint<1> pup = 0;
+		ap_uint<1> helper = 0;ap_uint<2> pup = 0;
 		if(((charge1-36)*.00625)>=10){
 			helper=1;
 		}
-		if(((charge1-36)*.00625)>=30){
-			pup=1;
-		}
+		pup=1*(((charge1-36)*.00625)>=30)+1*(((charge1-36)*.00625)>=60)+1*(((charge1-36)*.00625)>=90);
 		if(ready==0){
 			helper=0;
 			pup=0;
