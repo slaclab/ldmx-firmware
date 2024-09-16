@@ -260,7 +260,7 @@ begin
 --          gtTxPostCursor      => gtTxPostCursor,       -- [in]
 --          gtTxDiffCtrl        => gtTxDiffCtrl,         -- [in]
             gtRxPolarity           => '0',                              -- [in]
-            gtTxPolarity           => '1',                              -- [in]
+            gtTxPolarity           => '0',                              -- [in]
 --          gtRefClk            => gtRefClk,             -- [in]
             gtClkP                 => ethGtRefClkP,                     -- [in]
             gtClkN                 => ethGtRefClkN,                     -- [in]
