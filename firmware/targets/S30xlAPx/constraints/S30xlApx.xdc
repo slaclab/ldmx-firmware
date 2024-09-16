@@ -88,6 +88,7 @@ create_generated_clock -name ethTxOutClk [get_pins -hier * -filter {name=~U_TenG
 create_generated_clock -name ethTxOutClkPcs [get_pins -hier * -filter {name=~U_TenGigEthGtyCore_1/*/TXOUTCLKPCS}]
 create_generated_clock -name ethRxOutClk [get_pins -hier * -filter {name=~U_TenGigEthGtyCore_1/*/RXOUTCLK}]
 
+#set_property CLOCK_DEDICATED_ROUTE ANY_CMT_COLUMN [get_nets U_S30xlAppCore_1/U_FcReceiver_1/pgpUserRefClkOdiv2]
 
 set daqClk37Pin [get_pins { U_S30xlAppCore_1/U_FcReceiver_1/U_FcRxLogic_1/r_reg[fcBunchClk37]/Q }]
 create_generated_clock \
