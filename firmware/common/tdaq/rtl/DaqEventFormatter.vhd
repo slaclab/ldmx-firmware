@@ -128,19 +128,22 @@ begin
          when WAIT_ROR_S =>
             -- Got a ROR, write the header
             if (rorFifoTimestamp.valid = '1' and eventAxisCtrl.pause = '0') then
-               v.rorFifoRdEn                         := '1';
-               v.eventAxisMaster.tValid              := '1';
-               v.eventAxisMaster.tData               := (others => '0');
-               v.eventAxisMaster.tData(71 downto 0)  := toSlv(rorFifoTimestamp);
-               v.eventAxisMaster.tData(79 downto 72) := CONTRIBUTOR_ID_G;
-               v.eventAxisMaster.tData(87 downto 80) := SUBSYSTEM_ID_G;
-               v.state                               := DO_DATA_S;
+               v.rorFifoRdEn                          := '1';
+               v.eventAxisMaster.tValid               := '1';
+               v.eventAxisMaster.tData                := (others => '0');
+               v.eventAxisMaster.tData(7 downto 0)    := X"01";  -- Version
+               v.eventAxisMaster.tData(15 downto 8)   := SUBSYSTEM_ID_G;
+               v.eventAxisMaster.tData(23 downto 16)  := CONTRIBUTOR_ID_G;
+               v.eventAxisMaster.tData(63 downto 56)  := "00" & rorFifoTimestamp.bunchCount;
+               v.eventAxisMaster.tData(127 downto 64) := rorFifoTimestamp.pulseID;
+
+               v.state := DO_DATA_S;
             end if;
 
          when DO_DATA_S =>
             -- Write Data after header until tLast
             v.rawFifoAxisSlave.tReady := rawFifoAxisMaster.tValid;
-            v.eventAxisMaster  := rawFifoAxisMaster;
+            v.eventAxisMaster         := rawFifoAxisMaster;
             if (rawFifoAxisMaster.tValid = '1' and rawFifoAxisMaster.tLast = '1') then
                v.state := WAIT_ROR_S;
             end if;
