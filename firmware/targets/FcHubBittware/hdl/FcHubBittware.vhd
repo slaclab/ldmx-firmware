@@ -88,8 +88,6 @@ architecture rtl of FcHubBittware is
    ---------------------------
    signal lclsTimingRefClkP : sl;
    signal lclsTimingRefClkN : sl;
-   signal timingRecClkOutP  : sl;
-   signal timingRecClkOutN  : sl;
    signal lclsTimingTxP     : sl;
    signal lclsTimingTxN     : sl;
    signal lclsTimingRxP     : sl;
@@ -286,8 +284,6 @@ begin
          lclsTimingRxN     => lclsTimingRxN,                       -- [in]
          lclsTimingTxP     => lclsTimingTxP,                       -- [out]
          lclsTimingTxN     => lclsTimingTxN,                       -- [out]
-         timingRecClkOutP  => timingRecClkOutP,                    -- [out]
-         timingRecClkOutN  => timingRecClkOutN,                    -- [out]
          lclsTimingClkOut  => lclsTimingClk,                       -- [out]
          lclsTimingRstOut  => lclsTimingRst,                       -- [out]
          globalTriggerRor  => dummyGlobalTriggerRor,               -- [in]
@@ -311,8 +307,6 @@ begin
    -- LCLS-II Timing RX is quad 0
    lclsTimingRefClkP <= qsfpRefClkP(0);
    lclsTimingRefClkN <= qsfpRefClkN(0);
-   qsfpRecClkP(0)    <= timingRecClkOutP;
-   qsfpRecClkN(0)    <= timingRecClkOutN;
    qsfpTxP(0)        <= lclsTimingTxP;
    qsfpTxN(0)        <= lclsTimingTxN;
    lclsTimingRxP     <= qsfpRxP(0);
@@ -347,7 +341,7 @@ begin
    U_Gtye4ChannelDummy_1 : entity surf.Gtye4ChannelDummy
       generic map (
          TPD_G        => TPD_G,
-         SIMULATION_G => SIM_SPEEDUP_G,
+         SIMULATION_G => true,
          WIDTH_G      => 3)
       port map (
          refClk   => axilClk,                    -- [in]
@@ -360,7 +354,7 @@ begin
    U_Gtye4ChannelDummy_2 : entity surf.Gtye4ChannelDummy
       generic map (
          TPD_G        => TPD_G,
-         SIMULATION_G => SIM_SPEEDUP_G,
+         SIMULATION_G => true,
          WIDTH_G      => 12)
       port map (
          refClk   => axilClk,                     -- [in]
@@ -373,7 +367,7 @@ begin
    U_Gtye4ChannelDummy_3 : entity surf.Gtye4ChannelDummy
       generic map (
          TPD_G        => TPD_G,
-         SIMULATION_G => SIM_SPEEDUP_G,
+         SIMULATION_G => true,
          WIDTH_G      => 32-(FC_HUB_QUADS_G*4+16))
       port map (
          refClk   => axilClk,                      -- [in]
@@ -382,20 +376,5 @@ begin
          gtRxN    => qsfpRxN(31 downto FC_HUB_QUADS_G*4+16),        -- [in]
          gtTxP    => qsfpTxP(31 downto FC_HUB_QUADS_G*4+16),        -- [out]
          gtTxN    => qsfpTxN(31 downto FC_HUB_QUADS_G*4+16));       -- [out]
-
-   -- including this leads to unroutable nets
-   --GEN_DUMMY_RECCLK_BUF : for i in 7 downto 1 generate
-   --   U_mgtRecClk : OBUFDS_GTE4
-   --      generic map (
-   --         REFCLK_EN_TX_PATH => '1',
-   --         REFCLK_ICNTL_TX   => "00000")
-   --      port map (
-   --         O   => qsfpRecClkP(i),
-   --         OB  => qsfpRecClkN(i),
-   --         CEB => '0',
-   --         I   => dummyRxOutClk(i*4));  -- using rxRecClk from Channel=0
-
-   --end generate GEN_DUMMY_RECCLK_BUF;
-
 
 end rtl;

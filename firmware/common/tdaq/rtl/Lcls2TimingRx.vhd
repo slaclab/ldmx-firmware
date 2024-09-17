@@ -74,9 +74,7 @@ entity Lcls2TimingRx is
       timingTxP        : out sl;
       timingTxN        : out sl;
       timingRefClkInP  : in  sl;
-      timingRefClkInN  : in  sl;
-      timingRecClkOutP : out sl;
-      timingRecClkOutN : out sl);
+      timingRefClkInN  : in  sl);
 end Lcls2TimingRx;
 
 architecture rtl of Lcls2TimingRx is
@@ -245,7 +243,6 @@ begin
          rxDispErr       => rxDispErr,
          rxDecErr        => rxDecErr,
          rxOutClk        => timingRxOutClkGt,
-         rxRecClk        => timingRxRecClk,  -- Piped directly to GTCLK Pins
          txControl       => timingPhy.control,
          txStatus        => txStatus,
          txUsrClk        => txUsrClk,
@@ -286,18 +283,6 @@ begin
       timingRxOutClk <= timingRxOutClkGt;
       rxUsrClkActive <= '1';
    end generate NO_RX_CLK_MMCM_GEN;
-
-   -- Output recovered clock from GT to GTREFCLK pins for jitter cleaning
-   U_mgtRecClk : OBUFDS_GTE4
-      generic map (
-         REFCLK_EN_TX_PATH => '1',
-         REFCLK_ICNTL_TX   => "00000")
-      port map (
-         O   => timingRecClkOutP,
-         OB  => timingRecClkOutN,
-         CEB => '0',
-         I   => timingRxRecClk);
-
 
    ------------------------------------------------------------------------------------------------
    -- Timing Core

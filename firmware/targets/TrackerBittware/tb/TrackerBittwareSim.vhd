@@ -2,10 +2,10 @@
 -- Title      : Testbench for design "BittWareXupVv8Pgp2fc"
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of pgp-pcie-apps. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory
@@ -61,8 +61,6 @@ architecture sim of TrackerBittwareSim is
    -- component ports
    signal qsfpRefClkP    : slv(7 downto 0)  := (others => '0');  -- [in]
    signal qsfpRefClkN    : slv(7 downto 0)  := (others => '0');  -- [in]
-   signal qsfpRecClkP    : slv(7 downto 0)  := (others => '0');  -- [out]
-   signal qsfpRecClkN    : slv(7 downto 0)  := (others => '0');  -- [out]
    signal qsfpRxP        : slv(31 downto 0) := (others => '0');  -- [in]
    signal qsfpRxN        : slv(31 downto 0) := (others => '0');  -- [in]
    signal qsfpTxP        : slv(31 downto 0) := (others => '0');  -- [out]
@@ -86,7 +84,7 @@ architecture sim of TrackerBittwareSim is
 
 
 begin
-   
+
    fcTxP <= qsfpTxP(0);
    fcTxN <= qsfpTxN(0);
    qsfpRxP(0) <= fcRxP;
@@ -95,10 +93,10 @@ begin
    febPgpFcTxP(PGP_QUADS_G*4-1 downto 0) <= qsfpTxP(PGP_QUADS_G*4+15 downto 16);
    febPgpFcTxN(PGP_QUADS_G*4-1 downto 0) <= qsfpTxN(PGP_QUADS_G*4+15 downto 16);
    qsfpRxP(PGP_QUADS_G*4+15 downto 16) <= febPgpFcRxP(PGP_QUADS_G*4-1 downto 0);
-   qsfpRxN(PGP_QUADS_G*4+15 downto 16) <= febPgpFcRxN(PGP_QUADS_G*4-1 downto 0);   
-   
+   qsfpRxN(PGP_QUADS_G*4+15 downto 16) <= febPgpFcRxN(PGP_QUADS_G*4-1 downto 0);
 
-   -- FPGA 
+
+   -- FPGA
    U_TrackerBittware_1 : entity ldmx_tracker.TrackerBittware
       generic map (
          TPD_G                => TPD_G,
@@ -112,8 +110,6 @@ begin
       port map (
          qsfpRefClkP    => qsfpRefClkP,     -- [in]
          qsfpRefClkN    => qsfpRefClkN,     -- [in]
-         qsfpRecClkP    => qsfpRecClkP,     -- [out]
-         qsfpRecClkN    => qsfpRecClkN,     -- [out]
          qsfpRxP        => qsfpRxP,         -- [in]
          qsfpRxN        => qsfpRxN,         -- [in]
          qsfpTxP        => qsfpTxP,         -- [out]
@@ -147,7 +143,7 @@ begin
    qsfpRefClkP(0) <= fcRefClk185P;
    qsfpRefClkN(0) <= fcRefClk185N;
 
-   -- FEB PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0   
+   -- FEB PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0
    GEN_PGP_REFCLK: for i in PGP_QUADS_G-1 downto 0 generate
       qsfpRefClkP(i+4) <= fabClkOutP(0);
       qsfpRefClkN(i+4) <= fabClkOutN(0);

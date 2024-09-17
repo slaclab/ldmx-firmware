@@ -45,9 +45,6 @@ entity FcReceiver is
       fcRefClk185N : in  sl;
       fcRefClk185G : out sl;
       fcRefRst185  : out sl;
-      -- Output Recovered Clock
-      fcRecClkP    : out sl;
-      fcRecClkN    : out sl;
       -- PGP serial IO
       fcTxP        : out sl;
       fcTxN        : out sl;
@@ -118,7 +115,6 @@ architecture rtl of FcReceiver is
    signal pgpUserRefClkOdiv2 : sl;      -- Refclk ODIV2
    signal pgpUserRefClk      : sl;      -- ODIV2+BUFG_GT - Used to clock TX
    signal pgpUserRefRst      : sl;
-   signal pgpRxRecClk        : sl;      -- Recovered RX clock for refclk output
    signal fcClk185Loc        : sl;      -- Recovered RX clock for local use
    signal fcRst185Loc        : sl;
 
@@ -198,18 +194,6 @@ begin
          DIV     => "000",
          O       => pgpUserRefClk);
 
-   -- Output recovered clock on gt clock pins
-   -- Might need generic around this
-   U_mgtRecClk : OBUFDS_GTE4
-      generic map (
-         REFCLK_EN_TX_PATH => '1',
-         REFCLK_ICNTL_TX   => "00000")
-      port map (
-         O   => fcRecClkP,
-         OB  => fcRecClkN,
-         CEB => '0',
-         I   => pgpRxRecClk);           -- using rxRecClk from Channel=0
-
    -------------------------------------------------------------------------------------------------
    -- Create a reset for pgpUserRefClk
    -------------------------------------------------------------------------------------------------
@@ -255,7 +239,6 @@ begin
          pgpRxN          => fcRxN,                                    -- [in]
          pgpRefClk       => pgpRefClk,                                -- [in]
          pgpUserRefClk   => pgpUserRefClk,                            -- [in]
-         pgpRxRecClk     => pgpRxRecClk,                              -- [out]
          pgpRxRstOut     => fcRst185Loc,                              -- [out]
          pgpRxOutClk     => fcClk185Loc,                              -- [out]
          pgpRxIn         => pgpRxInLoc,                               -- [in]

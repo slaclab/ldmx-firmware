@@ -48,7 +48,6 @@ entity LdmxPgpFcLane is
       pgpRxN          : in  sl;
       pgpRefClk       : in  sl;
       pgpUserRefClk   : in  sl;
-      pgpRxRecClk     : out sl;                          -- Tie to refclkout if used
       -- Rx Interface
       pgpRxRstOut     : out sl;
       pgpRxOutClk     : out sl;
@@ -269,7 +268,6 @@ begin
             gtRefClk          => pgpRefClk,                     -- [in]
             gtFabricRefClk    => '0',                           -- [in]
             gtUserRefClk      => pgpUserRefClk,                 -- [in]
-            rxRecClk          => pgpRxRecClk,                   -- [out]
             -- Gt Serial IO
             pgpGtTxP          => pgpTxP,                        -- [out]
             pgpGtTxN          => pgpTxN,                        -- [out]
@@ -328,7 +326,6 @@ begin
             gtRefClk          => pgpRefClk,                     -- [in]
             gtFabricRefClk    => '0',                           -- [in]
             gtUserRefClk      => pgpUserRefClk,                 -- [in]
-            rxRecClk          => pgpRxRecClk,                   -- [out]
             -- Gt Serial IO
             pgpGtTxP          => pgpTxP,                        -- [out]
             pgpGtTxN          => pgpTxN,                        -- [out]

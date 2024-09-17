@@ -62,8 +62,6 @@ architecture sim of FcHubBittwareSim is
    -- component ports
    signal qsfpRefClkP    : slv(7 downto 0)  := (others => '0');  -- [in]
    signal qsfpRefClkN    : slv(7 downto 0)  := (others => '0');  -- [in]
-   signal qsfpRecClkP    : slv(0 downto 0)  := (others => '0');  -- [out]
-   signal qsfpRecClkN    : slv(0 downto 0)  := (others => '0');  -- [out]
    signal qsfpRxP        : slv(31 downto 0) := (others => '0');  -- [in]
    signal qsfpRxN        : slv(31 downto 0) := (others => '0');  -- [in]
    signal qsfpTxP        : slv(31 downto 0) := (others => '0');  -- [out]
@@ -103,8 +101,6 @@ begin
       port map (
          qsfpRefClkP    => qsfpRefClkP,     -- [in]
          qsfpRefClkN    => qsfpRefClkN,     -- [in]
-         qsfpRecClkP    => qsfpRecClkP,     -- [out]
-         qsfpRecClkN    => qsfpRecClkN,     -- [out]
          qsfpRxP        => qsfpRxP,         -- [in]
          qsfpRxN        => qsfpRxN,         -- [in]
          qsfpTxP        => qsfpTxP,         -- [out]

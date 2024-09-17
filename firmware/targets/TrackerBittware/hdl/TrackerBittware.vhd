@@ -53,8 +53,6 @@ entity TrackerBittware is
       -- QSFP-DD Ports
       qsfpRefClkP    : in  slv(7 downto 0);
       qsfpRefClkN    : in  slv(7 downto 0);
-      qsfpRecClkP    : out slv(7 downto 0);
-      qsfpRecClkN    : out slv(7 downto 0);
       qsfpRxP        : in  slv(31 downto 0);
       qsfpRxN        : in  slv(31 downto 0);
       qsfpTxP        : out slv(31 downto 0);
@@ -88,8 +86,6 @@ architecture rtl of TrackerBittware is
    -----------------------------------------
    signal fcRefClk185P    : sl;
    signal fcRefClk185N    : sl;
-   signal fcRecClkP       : sl;
-   signal fcRecClkN       : sl;
    signal fcTxP           : sl;
    signal fcTxN           : sl;
    signal fcRxP           : sl;
@@ -284,8 +280,6 @@ begin
       port map (
          fcRefClk185P    => fcRefClk185P,                    -- [in]
          fcRefClk185N    => fcRefClk185N,                    -- [in]
-         fcRecClkP       => fcRecClkP,                       -- [out]
-         fcRecClkN       => fcRecClkN,                       -- [out]
          fcTxP           => fcTxP,                           -- [out]
          fcTxN           => fcTxN,                           -- [out]
          fcRxP           => fcRxP,                           -- [in]
@@ -346,8 +340,6 @@ begin
    -- FC RX is quad 0
    fcRefClk185P   <= qsfpRefClkP(0);
    fcRefClk185N   <= qsfpRefClkN(0);
-   qsfpRecClkP(0) <= fcRecClkP;
-   qsfpRecClkN(0) <= fcRecClkN;
    qsfpTxP(0)     <= fcTxP;
    qsfpTxN(0)     <= fcTxN;
    fcRxP          <= qsfpRxP(0);
@@ -383,7 +375,7 @@ begin
    U_Gtye4ChannelDummy_1 : entity surf.Gtye4ChannelDummy
       generic map (
          TPD_G        => TPD_G,
-         SIMULATION_G => SIM_SPEEDUP_G,
+         SIMULATION_G => true,
          WIDTH_G      => 3)
       port map (
          refClk   => axilClk,                    -- [in]
@@ -396,7 +388,7 @@ begin
    U_Gtye4ChannelDummy_2 : entity surf.Gtye4ChannelDummy
       generic map (
          TPD_G        => TPD_G,
-         SIMULATION_G => SIM_SPEEDUP_G,
+         SIMULATION_G => true,
          WIDTH_G      => 12)
       port map (
          refClk   => axilClk,                     -- [in]
@@ -409,7 +401,7 @@ begin
    U_Gtye4ChannelDummy_3 : entity surf.Gtye4ChannelDummy
       generic map (
          TPD_G        => TPD_G,
-         SIMULATION_G => SIM_SPEEDUP_G,
+         SIMULATION_G => true,
          WIDTH_G      => 32-(PGP_QUADS_G*4+16))
       port map (
          refClk   => axilClk,                      -- [in]
@@ -418,19 +410,5 @@ begin
          gtRxN    => qsfpRxN(31 downto PGP_QUADS_G*4+16),        -- [in]
          gtTxP    => qsfpTxP(31 downto PGP_QUADS_G*4+16),        -- [out]
          gtTxN    => qsfpTxN(31 downto PGP_QUADS_G*4+16));       -- [out]
-
-   -- including this leads to unroutable nets
-   --GEN_DUMMY_RECCLK_BUF : for i in 7 downto 1 generate
-   --   U_mgtRecClk : OBUFDS_GTE4
-   --      generic map (
-   --         REFCLK_EN_TX_PATH => '1',
-   --         REFCLK_ICNTL_TX   => "00000")
-   --      port map (
-   --         O   => qsfpRecClkP(i),
-   --         OB  => qsfpRecClkN(i),
-   --         CEB => '0',
-   --         I   => dummyRxOutClk(i*4));  -- using rxRecClk from Channel=0
-   --end generate GEN_DUMMY_RECCLK_BUF;
-
 
 end rtl;
