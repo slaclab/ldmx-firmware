@@ -132,7 +132,6 @@ architecture rtl of LdmxPgpFcLane is
          gtRefClk          : in  sl;
          gtFabricRefClk    : in  sl;
          gtUserRefClk      : in  sl;
-         rxRecClk          : out sl;
          pgpGtTxP          : out sl;
          pgpGtTxN          : out sl;
          pgpGtRxP          : in  sl;
@@ -188,7 +187,6 @@ architecture rtl of LdmxPgpFcLane is
          gtRefClk          : in  sl;
          gtFabricRefClk    : in  sl;
          gtUserRefClk      : in  sl;
-         rxRecClk          : out sl;
          pgpGtTxP          : out sl;
          pgpGtTxN          : out sl;
          pgpGtRxP          : in  sl;

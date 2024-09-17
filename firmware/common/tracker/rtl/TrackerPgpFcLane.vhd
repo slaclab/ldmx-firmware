@@ -110,7 +110,6 @@ begin
          pgpRxN          => pgpRxN,           -- [in]
          pgpRefClk       => pgpRefClk,        -- [in]
          pgpUserRefClk   => pgpUserRefClk,    -- [in]
-         pgpRxRecClk     => open,             -- [out]
          pgpRxRstOut     => pgpRxRstOut,      -- [out]
          pgpRxOutClk     => pgpRxOutClk,      -- [out]
          pgpRxIn         => pgpRxIn,          -- [in]
