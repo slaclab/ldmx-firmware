@@ -42,34 +42,35 @@ entity LdmxPgpFcLane is
       RX_CLK_MMCM_G    : boolean              := false);
    port (
       -- PGP Serial Ports
-      pgpTxP          : out sl;
-      pgpTxN          : out sl;
-      pgpRxP          : in  sl;
-      pgpRxN          : in  sl;
-      pgpRefClk       : in  sl;
-      pgpUserRefClk   : in  sl;
+      pgpTxP           : out sl;
+      pgpTxN           : out sl;
+      pgpRxP           : in  sl;
+      pgpRxN           : in  sl;
+      pgpRefClk        : in  sl;
+      pgpUserRefClk    : in  sl;
+      pgpUserStableClk : in  sl;
       -- Rx Interface
-      pgpRxRstOut     : out sl;
-      pgpRxOutClk     : out sl;
-      pgpRxIn         : in  Pgp2fcRxInType                   := PGP2FC_RX_IN_INIT_C;
-      pgpRxOut        : out Pgp2fcRxOutType;
-      pgpRxMasters    : out AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      pgpRxCtrl       : in  AxiStreamCtrlArray(3 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+      pgpRxRstOut      : out sl;
+      pgpRxOutClk      : out sl;
+      pgpRxIn          : in  Pgp2fcRxInType                   := PGP2FC_RX_IN_INIT_C;
+      pgpRxOut         : out Pgp2fcRxOutType;
+      pgpRxMasters     : out AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
       -- Tx Interface
-      pgpTxRst        : in  sl                               := '0';
-      pgpTxOutClk     : out sl;
-      pgpTxUsrClk     : in  sl;
-      pgpTxIn         : in  Pgp2fcTxInType                   := PGP2FC_TX_IN_INIT_C;
-      pgpTxOut        : out Pgp2fcTxOutType;
-      pgpTxMasters    : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      pgpTxSlaves     : out AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
+      pgpTxRst         : in  sl                               := '0';
+      pgpTxOutClk      : out sl;
+      pgpTxUsrClk      : in  sl;
+      pgpTxIn          : in  Pgp2fcTxInType                   := PGP2FC_TX_IN_INIT_C;
+      pgpTxOut         : out Pgp2fcTxOutType;
+      pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpTxSlaves      : out AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
       -- AXI-Lite Interface (axilClk domain)
-      axilClk         : in  sl;
-      axilRst         : in  sl;
-      axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+      axilClk          : in  sl;
+      axilRst          : in  sl;
+      axilReadMaster   : in  AxiLiteReadMasterType;
+      axilReadSlave    : out AxiLiteReadSlaveType;
+      axilWriteMaster  : in  AxiLiteWriteMasterType;
+      axilWriteSlave   : out AxiLiteWriteSlaveType);
 end LdmxPgpFcLane;
 
 architecture rtl of LdmxPgpFcLane is
@@ -261,7 +262,7 @@ begin
             NUM_VC_EN_G     => ite(NUM_VC_EN_G = 0, 1, NUM_VC_EN_G))
          port map (
             -- GT Clocking
-            stableClk         => axilClk,                       -- [in]
+            stableClk         => pgpUserStableClk,              -- [in]
             stableRst         => axilRst,                       -- [in]
             gtRefClk          => pgpRefClk,                     -- [in]
             gtFabricRefClk    => '0',                           -- [in]
@@ -319,7 +320,7 @@ begin
             NUM_VC_EN_G     => ite(NUM_VC_EN_G = 0, 1, NUM_VC_EN_G))
          port map (
             -- GT Clocking
-            stableClk         => axilClk,                       -- [in]
+            stableClk         => pgpUserStableClk,              -- [in]
             stableRst         => axilRst,                       -- [in]
             gtRefClk          => pgpRefClk,                     -- [in]
             gtFabricRefClk    => '0',                           -- [in]

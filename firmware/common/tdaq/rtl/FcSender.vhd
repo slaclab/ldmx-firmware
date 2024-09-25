@@ -29,7 +29,6 @@ use ldmx_tdaq.FcPkg.all;
 
 
 entity FcSender is
-
    generic (
       TPD_G            : time             := 1 ns;
       SIM_SPEEDUP_G    : boolean          := false;
@@ -38,6 +37,7 @@ entity FcSender is
    port (
       -- Reference clock
       fcHubRefClk       : in  sl;
+      fcHubDiv2RefClk   : in  sl;
       -- PGP FC serial IO
       fcHubTxP          : out sl;
       fcHubTxN          : out sl;
@@ -90,31 +90,32 @@ begin
          NUM_VC_EN_G      => 0,
          RX_CLK_MMCM_G    => false)
       port map (
-         pgpTxP          => fcHubTxP,                              -- [out]
-         pgpTxN          => fcHubTxN,                              -- [out]
-         pgpRxP          => fcHubRxP,                              -- [in]
-         pgpRxN          => fcHubRxN,                              -- [in]
-         pgpRefClk       => fcHubRefClk,                           -- [in]
-         pgpUserRefClk   => lclsTimingUserClk,                     -- [in]
-         pgpRxRstOut     => fcRxRst185,                            -- [out]
-         pgpRxOutClk     => fcRxClk185,                            -- [out]
-         pgpRxIn         => pgpRxIn,                               -- [in]
-         pgpRxOut        => pgpRxOut,                              -- [out]
-         pgpRxMasters    => open,                                  -- [out]
-         pgpRxCtrl       => (others => AXI_STREAM_CTRL_UNUSED_C),  -- [in]
-         pgpTxRst        => lclsTimingUserRst,                     -- [in]
-         pgpTxOutClk     => open,                                  -- [out]
-         pgpTxUsrClk     => lclsTimingUserClk,                     -- [in]
-         pgpTxIn         => pgpTxIn,                               -- [in]
-         pgpTxOut        => pgpTxOut,                              -- [out]
-         pgpTxMasters    => (others => AXI_STREAM_MASTER_INIT_C),  -- [in]
-         pgpTxSlaves     => open,                                  -- [out]
-         axilClk         => axilClk,                               -- [in]
-         axilRst         => axilRst,                               -- [in]
-         axilReadMaster  => axilReadMaster,                        -- [in]
-         axilReadSlave   => axilReadSlave,                         -- [out]
-         axilWriteMaster => axilWriteMaster,                       -- [in]
-         axilWriteSlave  => axilWriteSlave);                       -- [out]
+         pgpTxP           => fcHubTxP,                              -- [out]
+         pgpTxN           => fcHubTxN,                              -- [out]
+         pgpRxP           => fcHubRxP,                              -- [in]
+         pgpRxN           => fcHubRxN,                              -- [in]
+         pgpRefClk        => fcHubRefClk,                           -- [in]
+         pgpUserRefClk    => lclsTimingUserClk,                     -- [in]
+         pgpUserStableClk => fcHubDiv2RefClk                        -- [in]
+         pgpRxRstOut      => fcRxRst185,                            -- [out]
+         pgpRxOutClk      => fcRxClk185,                            -- [out]
+         pgpRxIn          => pgpRxIn,                               -- [in]
+         pgpRxOut         => pgpRxOut,                              -- [out]
+         pgpRxMasters     => open,                                  -- [out]
+         pgpRxCtrl        => (others => AXI_STREAM_CTRL_UNUSED_C),  -- [in]
+         pgpTxRst         => lclsTimingUserRst,                     -- [in]
+         pgpTxOutClk      => open,                                  -- [out]
+         pgpTxUsrClk      => lclsTimingUserClk,                     -- [in]
+         pgpTxIn          => pgpTxIn,                               -- [in]
+         pgpTxOut         => pgpTxOut,                              -- [out]
+         pgpTxMasters     => (others => AXI_STREAM_MASTER_INIT_C),  -- [in]
+         pgpTxSlaves      => open,                                  -- [out]
+         axilClk          => axilClk,                               -- [in]
+         axilRst          => axilRst,                               -- [in]
+         axilReadMaster   => axilReadMaster,                        -- [in]
+         axilReadSlave    => axilReadSlave,                         -- [out]
+         axilWriteMaster  => axilWriteMaster,                       -- [in]
+         axilWriteSlave   => axilWriteSlave);                       -- [out]
 
 
    -------------------------------------------------------------------------------------------------
