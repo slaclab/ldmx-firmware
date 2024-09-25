@@ -141,7 +141,7 @@ end entity S30xlAPx;
 
 architecture rtl of S30xlAPx is
 
-   constant AXIL_CLK_FREQ_C : real := 125.0e6;
+   constant AXIL_CLK_FREQ_C : real := 125.0e6; --156.25e6;
 
    constant AXIL_NUM_C            : integer := 5;
    constant AXIL_VERSION_C        : integer := 0;
@@ -207,7 +207,9 @@ architecture rtl of S30xlAPx is
    signal gtDaqAxisMaster : AxiStreamMasterType;
    signal gtDaqAxisSlave  : AxiStreamSlaveType;
 
-   signal clk125In : sl;
+   signal clk125In        : sl;
+   signal ethGtRefClk156G : sl;
+   signal ethGtRefClk78G  : sl;
 
 begin
 
@@ -232,16 +234,16 @@ begin
    end generate GEN_CLKOUT_125;
 
    -------------------------------------------------------------------------------------------------
-   -- Use 125 MHz clock for axi lite clock
+   -- Select AXIL Clock
    -------------------------------------------------------------------------------------------------
-   axilClk <= clk125In;
+   axilClk <= clk125In; --ethGtRefClk156G;
 
    U_RstSync_1 : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          OUT_REG_RST_G => true)
       port map (
-         clk      => clk125In,          -- [in]
+         clk      => axilClk,           -- [in]
          asyncRst => '0',               -- [in]
          syncRst  => axilRst);          -- [out]
 
@@ -255,7 +257,7 @@ begin
          PERIOD_OUT_G => 0.8)
       port map (
          clk => axilClk,
-         o   => rgbGreenLed);   
+         o   => rgbGreenLed);
 
    -------------------------------------------------------------------------------------------------
    -- Top Level AXI-Lite crossbar
@@ -300,14 +302,16 @@ begin
          extRst              => '0',    -- [in] -- might need PwrUpRst here
          ethGtRefClkP        => ethRefClk156P,                    -- [in]
          ethGtRefClkN        => ethRefClk156N,                    -- [in]
+         ethGtRefClk156G     => ethGtRefClk156G,                  -- [out]
+         ethGtRefClk78G      => ethGtRefClk78G,                   -- [out]
          ethRxP              => ethRxP,                           -- [in]
          ethRxN              => ethRxN,                           -- [in]
          ethTxP              => ethTxP,                           -- [out]
          ethTxN              => ethTxN,                           -- [out]
          phyReady            => open,   -- [out]
          rssiStatus          => open,   -- [out]
-         axilClk             => axilClk,                          -- [out]
-         axilRst             => axilRst,                          -- [out]
+         axilClk             => axilClk,                          -- [in]
+         axilRst             => axilRst,                          -- [in]
          mAxilReadMaster     => ethAxilReadMaster,                -- [out]
          mAxilReadSlave      => ethAxilReadSlave,                 -- [in]
          mAxilWriteMaster    => ethAxilWriteMaster,               -- [out]
@@ -384,29 +388,30 @@ begin
          AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_C,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CONFIG_C(AXIL_FC_HUB_C).baseAddr)
       port map (
-         lclsTimingRefClkP => lclsTimingRefClkP,                   -- [in]
-         lclsTimingRefClkN => lclsTimingRefClkN,                   -- [in]
-         lclsTimingRxP     => lclsTimingRxP,                       -- [in]
-         lclsTimingRxN     => lclsTimingRxN,                       -- [in]
-         lclsTimingTxP     => lclsTimingTxP,                       -- [out]
-         lclsTimingTxN     => lclsTimingTxN,                       -- [out]
-         lclsTimingClkOut  => lclsTimingClk,                       -- [out]
-         lclsTimingRstOut  => lclsTimingRst,                       -- [out]
-         lclsTimingFcTxMsg => lclsTimingFcTxMsg,                   -- [out]
-         lclsTimingBus     => lclsTimingBus,                       -- [out]
-         globalTriggerRor  => gtRor,                               -- [in]
-         fcHubRefClkP      => fcHubRefClkP,                        -- [in]
-         fcHubRefClkN      => fcHubRefClkN,                        -- [in]
-         fcHubTxP          => fcHubTxP,                            -- [out]
-         fcHubTxN          => fcHubTxN,                            -- [out]
-         fcHubRxP          => fcHubRxP,                            -- [in]
-         fcHubRxN          => fcHubRxN,                            -- [in]
-         axilClk           => axilClk,                             -- [in]
-         axilRst           => axilRst,                             -- [in]
-         axilReadMaster    => locAxilReadMasters(AXIL_FC_HUB_C),   -- [in]
-         axilReadSlave     => locAxilReadSlaves(AXIL_FC_HUB_C),    -- [out]
-         axilWriteMaster   => locAxilWriteMasters(AXIL_FC_HUB_C),  -- [in]
-         axilWriteSlave    => locAxilWriteSlaves(AXIL_FC_HUB_C));  -- [out]
+         lclsTimingStableClk78 => ethGtRefClk78G,                      -- [in]
+         lclsTimingRefClkP   => lclsTimingRefClkP,                   -- [in]
+         lclsTimingRefClkN   => lclsTimingRefClkN,                   -- [in]
+         lclsTimingRxP       => lclsTimingRxP,                       -- [in]
+         lclsTimingRxN       => lclsTimingRxN,                       -- [in]
+         lclsTimingTxP       => lclsTimingTxP,                       -- [out]
+         lclsTimingTxN       => lclsTimingTxN,                       -- [out]
+         lclsTimingClkOut    => lclsTimingClk,                       -- [out]
+         lclsTimingRstOut    => lclsTimingRst,                       -- [out]
+         lclsTimingFcTxMsg   => lclsTimingFcTxMsg,                   -- [out]
+         lclsTimingBus       => lclsTimingBus,                       -- [out]
+         globalTriggerRor    => gtRor,                               -- [in]
+         fcHubRefClkP        => fcHubRefClkP,                        -- [in]
+         fcHubRefClkN        => fcHubRefClkN,                        -- [in]
+         fcHubTxP            => fcHubTxP,                            -- [out]
+         fcHubTxN            => fcHubTxN,                            -- [out]
+         fcHubRxP            => fcHubRxP,                            -- [in]
+         fcHubRxN            => fcHubRxN,                            -- [in]
+         axilClk             => axilClk,                             -- [in]
+         axilRst             => axilRst,                             -- [in]
+         axilReadMaster      => locAxilReadMasters(AXIL_FC_HUB_C),   -- [in]
+         axilReadSlave       => locAxilReadSlaves(AXIL_FC_HUB_C),    -- [out]
+         axilWriteMaster     => locAxilWriteMasters(AXIL_FC_HUB_C),  -- [in]
+         axilWriteSlave      => locAxilWriteSlaves(AXIL_FC_HUB_C));  -- [out]
 
    GEN_LCLS_CLK_OUT : for i in 1 downto 0 generate
       U_ClkOutBufDiff_2 : entity surf.ClkOutBufDiff

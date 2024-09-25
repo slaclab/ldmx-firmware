@@ -50,6 +50,8 @@ entity S30xlEthCore is
       -- GT ports and clock
       ethGtRefClkP        : in  sl;     -- GT Ref Clock 156.25 MHz
       ethGtRefClkN        : in  sl;
+      ethGtRefClk156G     : out sl;
+      ethGtRefClk78G      : out sl;
       ethRxP              : in  sl;
       ethRxN              : in  sl;
       ethTxP              : out sl;
@@ -199,6 +201,28 @@ begin
 
    localMac(47 downto 0) <= MAC_ADDR_G;  --x"00_00_16_56_00_08";
 
+
+   -------------------------------------------------------------------------------------------------
+   -- Synchronize incomming axi lite bus to eth clock
+   -- Mostly because UdpEngineWrapper doesn't allow for a different axi clock
+   -------------------------------------------------------------------------------------------------
+   U_AxiLiteAsync_1 : entity surf.AxiLiteAsync
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         sAxiClk         => axilClk,              -- [in]
+         sAxiClkRst      => axilRst,              -- [in]
+         sAxiReadMaster  => sAxilReadMaster,      -- [in]
+         sAxiReadSlave   => sAxilReadSlave,       -- [out]
+         sAxiWriteMaster => sAxilWriteMaster,     -- [in]
+         sAxiWriteSlave  => sAxilWriteSlave,      -- [out]
+         mAxiClk         => ethClk,               -- [in]
+         mAxiClkRst      => ethRst,               -- [in]
+         mAxiReadMaster  => syncAxilReadMaster,   -- [out]
+         mAxiReadSlave   => syncAxilReadSlave,    -- [in]
+         mAxiWriteMaster => syncAxilWriteMaster,  -- [out]
+         mAxiWriteSlave  => syncAxilWriteSlave);  -- [in]
+
    ----------------------------------------------------------------------------------------------
    -- AXIL Crossbar
    ----------------------------------------------------------------------------------------------
@@ -211,14 +235,28 @@ begin
       port map (
          axiClk              => ethClk,
          axiClkRst           => ethRst,
-         sAxiWriteMasters(0) => sAxilWriteMaster,
-         sAxiWriteSlaves(0)  => sAxilWriteSlave,
-         sAxiReadMasters(0)  => sAxilReadMaster,
-         sAxiReadSlaves(0)   => sAxilReadSlave,
+         sAxiWriteMasters(0) => syncAxilWriteMaster,
+         sAxiWriteSlaves(0)  => syncAxilWriteSlave,
+         sAxiReadMasters(0)  => syncAxilReadMaster,
+         sAxiReadSlaves(0)   => syncAxilReadSlave,
          mAxiWriteMasters    => locAxilWriteMasters,
          mAxiWriteSlaves     => locAxilWriteSlaves,
          mAxiReadMasters     => locAxilReadMasters,
          mAxiReadSlaves      => locAxilReadSlaves);
+
+   -------------------------------------------------------------------------------------------------
+   -- Local clock outputs
+   -------------------------------------------------------------------------------------------------
+   ethGtRefClk156G <= ethClk;
+
+   BUFGCE_DIV_ETH_CLK_78 : BUFGCE_DIV
+      generic map (
+         BUFGCE_DIVIDE => 2)
+      port map (
+         i   => ethClk,
+         clr => '0',
+         ce  => '1',
+         o   => ethGtRefClk78G);
 
 
    REAL_ETH_GEN : if (not SIMULATION_G) generate

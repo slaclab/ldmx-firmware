@@ -37,24 +37,25 @@ entity FcHub is
       SIM_SPEEDUP_G     : boolean              := false;
       REFCLKS_G         : integer range 1 to 4 := 1;
       QUADS_G           : integer range 1 to 4 := 1;
-      QUAD_REFCLK_MAP_G : IntegerArray         := (0      => 0); --, 1 => 0, 2 => 1, 3 => 1);  -- Map a refclk for each quad
+      QUAD_REFCLK_MAP_G : IntegerArray         := (0      => 0);  --, 1 => 0, 2 => 1, 3 => 1);  -- Map a refclk for each quad
       AXIL_CLK_FREQ_G   : real                 := 156.25e6;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)     := (others => '0'));
    port (
       ----------------------------------------------------------------------------------------------
       -- LCLS Timing Interface
       ----------------------------------------------------------------------------------------------
+      lclsTimingStableClk78 : in  sl;   -- Stable 156.25/2 MHz clock
       -- 185/371 MHz Ref Clk for LCLS timing recovery (freq used depends on GT configuration)
-      lclsTimingRefClkP : in  sl;
-      lclsTimingRefClkN : in  sl;
+      lclsTimingRefClkP     : in  sl;
+      lclsTimingRefClkN     : in  sl;
       -- LCLS-II timing interface
-      lclsTimingRxP     : in  sl;
-      lclsTimingRxN     : in  sl;
-      lclsTimingTxP     : out sl;
-      lclsTimingTxN     : out sl;
+      lclsTimingRxP         : in  sl;
+      lclsTimingRxN         : in  sl;
+      lclsTimingTxP         : out sl;
+      lclsTimingTxN         : out sl;
       -- Recovered clock via GT dedicated clock pins
-      timingRecClkOutP  : out sl;
-      timingRecClkOutN  : out sl;
+      timingRecClkOutP      : out sl;
+      timingRecClkOutN      : out sl;
 
       ----------------------------------------------------------------------------------------------
       -- Global Trigger Interface
@@ -128,6 +129,9 @@ architecture rtl of FcHub is
    -- LDMX Fast Control Message to FC Senders
    signal fcTxMsg : FcMessageType;
 
+   -- Stable clock reset
+   signal stableClkRst : sl;
+
 begin
 
    -------------------------------------------------------------------------------------------------
@@ -151,6 +155,18 @@ begin
          mAxiReadMasters     => locAxilReadMasters,
          mAxiReadSlaves      => locAxilReadSlaves);
 
+   -------------------------------------------------------------------------------------------------
+   -- Create stable clk reset
+   -------------------------------------------------------------------------------------------------
+   U_RstSync_1 : entity surf.RstSync
+      generic map (
+         TPD_G         => TPD_G,
+         OUT_REG_RST_G => true)
+      port map (
+         clk      => lclsTimingStableClk78,  -- [in]
+         asyncRst => '0',                    -- [in]
+         syncRst  => stableClkRst);          -- [out]   
+
 
    -------------------------------------------------------------------------------------------------
    -- LCLS TIMING RX
@@ -168,10 +184,10 @@ begin
          AXI_CLK_FREQ_G    => AXIL_CLK_FREQ_G,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CONFIG_C(AXIL_LCLS_TIMING_C).baseAddr)
       port map (
-         stableClk        => axilClk,   -- [in] -- axilClk from TenGigEth core is not mmcm
-         stableRst        => axilRst,   -- [in]
-         axilClk          => axilClk,   -- [in]
-         axilRst          => axilRst,   -- [in]
+         stableClk        => lclsTimingStableClk78,                    -- [in] 
+         stableRst        => stableClkRst,                             -- [in]
+         axilClk          => axilClk,                                  -- [in]
+         axilRst          => axilRst,                                  -- [in]
          axilReadMaster   => locAxilReadMasters(AXIL_LCLS_TIMING_C),   -- [in]
          axilReadSlave    => locAxilReadSlaves(AXIL_LCLS_TIMING_C),    -- [out]
          axilWriteMaster  => locAxilWriteMasters(AXIL_LCLS_TIMING_C),  -- [in]
