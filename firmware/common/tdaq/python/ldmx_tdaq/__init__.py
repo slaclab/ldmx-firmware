@@ -10,3 +10,4 @@ from ._TimingGtCoreWrapper import *
 from ._S30xlGlobalTrigger import *
 from ._S30xlGlobalTriggerLogic import *
 from ._SyntheticTrigger import *
+from ._DaqDataReceiver import *

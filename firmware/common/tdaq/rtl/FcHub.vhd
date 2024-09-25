@@ -44,6 +44,7 @@ entity FcHub is
       ----------------------------------------------------------------------------------------------
       -- LCLS Timing Interface
       ----------------------------------------------------------------------------------------------
+      lclsTimingStableClk78 : in  sl;   -- Stable 156.25/2 MHz clock
       -- 185/371 MHz Ref Clk for LCLS timing recovery (freq used depends on GT configuration)
       lclsTimingRefClkP : in  sl;
       lclsTimingRefClkN : in  sl;
@@ -125,6 +126,9 @@ architecture rtl of FcHub is
    -- LDMX Fast Control Message to FC Senders
    signal fcTxMsg : FcMessageType;
 
+   -- Stable clock reset
+   signal stableClkRst : sl;
+
 begin
 
    -------------------------------------------------------------------------------------------------
@@ -148,6 +152,18 @@ begin
          mAxiReadMasters     => locAxilReadMasters,
          mAxiReadSlaves      => locAxilReadSlaves);
 
+   -------------------------------------------------------------------------------------------------
+   -- Create stable clk reset
+   -------------------------------------------------------------------------------------------------
+   U_RstSync_1 : entity surf.RstSync
+      generic map (
+         TPD_G         => TPD_G,
+         OUT_REG_RST_G => true)
+      port map (
+         clk      => lclsTimingStableClk78,  -- [in]
+         asyncRst => '0',                    -- [in]
+         syncRst  => stableClkRst);          -- [out]   
+
 
    -------------------------------------------------------------------------------------------------
    -- LCLS TIMING RX
@@ -165,10 +181,10 @@ begin
          AXI_CLK_FREQ_G    => AXIL_CLK_FREQ_G,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CONFIG_C(AXIL_LCLS_TIMING_C).baseAddr)
       port map (
-         stableClk        => axilClk,   -- [in] -- axilClk from TenGigEth core is not mmcm
-         stableRst        => axilRst,   -- [in]
-         axilClk          => axilClk,   -- [in]
-         axilRst          => axilRst,   -- [in]
+         stableClk        => lclsTimingStableClk78,                    -- [in] 
+         stableRst        => stableClkRst,                             -- [in]
+         axilClk          => axilClk,                                  -- [in]
+         axilRst          => axilRst,                                  -- [in]
          axilReadMaster   => locAxilReadMasters(AXIL_LCLS_TIMING_C),   -- [in]
          axilReadSlave    => locAxilReadSlaves(AXIL_LCLS_TIMING_C),    -- [out]
          axilWriteMaster  => locAxilWriteMasters(AXIL_LCLS_TIMING_C),  -- [in]
@@ -181,7 +197,9 @@ begin
          timingTxP        => lclsTimingTxP,                            -- [out]
          timingTxN        => lclsTimingTxN,                            -- [out]
          timingRefClkInP  => lclsTimingRefClkP,                        -- [in]
-         timingRefClkInN  => lclsTimingRefClkN);                       -- [in]
+         timingRefClkInN  => lclsTimingRefClkN,                        -- [in]
+         timingRecClkOutP => timingRecClkOutP,                         -- [out]
+         timingRecClkOutN => timingRecClkOutN);                        -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Fast Control Output Word Logic

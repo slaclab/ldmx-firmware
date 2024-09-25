@@ -5,6 +5,7 @@ import axipcie
 
 import rogue
 
+import ldmx_tdaq
 import ldmx_ts
 
 
@@ -43,3 +44,10 @@ class S30xlAPxRoot(pr.Root):
         self.add(ldmx_ts.S30xlAPx(
             memBase = self.srp,
             expand = True))
+
+        self.rawEventReceiver = ldmx_ts.TsRawEventReceiver()
+        self.addInterface(self.rawEventReceiver)
+
+
+        self.rawDataStream >> self.rawEventReceiver
+#        self.trigDataStream >> self.dataReceiver

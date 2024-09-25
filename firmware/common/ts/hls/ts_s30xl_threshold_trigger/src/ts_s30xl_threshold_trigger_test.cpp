@@ -34,7 +34,7 @@ int main() {
     bool readin             = true;
     bool start              = true;
     int counter1            = 0;
-    ap_uint<70> globalCount = 0;
+    ap_uint<72> globalCount = 0;
     bool amIOn              = false;
     while (TestVec) {
         if (start) {
@@ -62,8 +62,8 @@ int main() {
                     // std::cout<<FIFO2[k]<<std::endl;
                 }
                 ap_uint<1> dataReady_out[1]  = {0.0};
-                ap_uint<70> timestamp_out[1] = {0.0};
-                ap_uint<70> timestamp_in[1]  = {globalCount};
+                ap_uint<72> timestamp_out[1] = {0.0};
+                ap_uint<72> timestamp_in[1]  = {globalCount};
                 ap_uint<1> bc0_in[1] = {0.0};
                 ap_uint<1> bc0_out[1] = {0.0};                
                 ap_uint<1> dataReady_in[1]   = {1};

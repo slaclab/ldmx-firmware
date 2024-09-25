@@ -41,11 +41,11 @@ entity TsRawDaq is
 
    port (
       -- TS Raw Data and Timing
-      fcClk185   : in sl;
-      fcRst185   : in sl;
-      fcBus      : in FcBusType;
-      fcTsRxMsgs : in TsData6ChMsgArray(TS_LANES_G-1 downto 0);
-      fcMsgTime  : in FcTimestampType;
+      fcClk185       : in sl;
+      fcRst185       : in sl;
+      fcBus          : in FcBusType;
+      fcTsRxMsgs     : in TsData6ChMsgArray(TS_LANES_G-1 downto 0);
+      fcMsgTimestamp : in FcTimestampType;
 
       -- Streaming interface to ETH
       axisClk         : in  sl;
@@ -77,17 +77,17 @@ architecture rtl of TsRawDaq is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal tsRxMsgsSlvDelayIn     : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
-   signal tsRxMsgsSlvDelayOut    : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
-   signal tsRxMsgsSlvFifoOut     : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
-   signal tsRxMsgsFifoValid      : slv(TS_LANES_G-1 downto 0);
-   signal tsRxMsgsFifoOut        : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
+   signal tsRxMsgsSlvDelayIn  : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
+   signal tsRxMsgsSlvDelayOut : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
+   signal tsRxMsgsSlvFifoOut  : TsData6ChMsgSlvArray(TS_LANES_G-1 downto 0);
+   signal tsRxMsgsFifoValid   : slv(TS_LANES_G-1 downto 0);
+   signal tsRxMsgsFifoOut     : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
 --    signal rorTimestampFifoInSlv  : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
 --    signal rorTimestampFifoOutSlv : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
 --    signal rorTimestampFifoValid  : sl;
 --    signal rorTimestampFifoOut    : FcTimestampType;
-   signal aligned                : slv(TS_LANES_G-1 downto 0);
-   signal axisCtrl               : AxiStreamCtrlType;
+   signal aligned             : slv(TS_LANES_G-1 downto 0);
+   signal axisCtrl            : AxiStreamCtrlType;
 
 begin
 
@@ -103,7 +103,7 @@ begin
             fcClk185    => fcClk185,                 -- [in]
             fcRst185    => fcRst185,                 -- [in]
             fcBus       => fcBus,                    -- [in]
-            timestampIn => fcMsgTime,                -- [in]
+            timestampIn => fcMsgTimestamp,           -- [in]
             dataIn      => tsRxMsgsSlvDelayIn(i),    -- [in]
             aligned     => aligned(i),               -- [out]
             dataOut     => tsRxMsgsSlvDelayOut(i));  -- [out]
@@ -134,7 +134,7 @@ begin
       tsRxMsgsFifoOut(i) <= toTsData6ChMsg(tsRxMsgsSlvFifoOut(i), tsRxMsgsFifoValid(i));
    end generate;
 
---    rorTimestampFifoInSlv <= toSlv(fcMsgTime);
+--    rorTimestampFifoInSlv <= toSlv(fcMsgTimestamp);
 --    ROR_TIMESTAMP_FIFO : entity surf.Fifo
 --       generic map (
 --          TPD_G           => TPD_G,
@@ -157,7 +157,7 @@ begin
    -- For debugging
 --   rorTimestampFifoOut <= toFcTimestamp(rorTimestampFifoOutSlv, rorTimestampFifoValid);
 
-   comb : process (r, tsRxMsgsFifoValid, tsRxMsgsSlvFifoOut) is
+   comb : process (r, tsRxMsgsFifoOut, tsRxMsgsFifoValid) is
       variable v : RegType;
    begin
       v := r;
@@ -170,14 +170,14 @@ begin
             -- Got a ROR, write the header
             if (tsRxMsgsFifoValid(0) = '1') then
                v.laneCounter                  := 0;
-               v.axisMaster.tValid            := '1';
+               v.axisMaster.tValid            := '0';
                v.axisMaster.tData(7 downto 0) := toSlv(TS_LANES_G, 8);
                v.state                        := DO_DATA_S;
             end if;
 
          when DO_DATA_S =>
-            v.axisMaster.tValid                                   := '1';
-            v.axisMaster.tData(TS_DATA_6CH_MSG_SIZE_C-1 downto 0) := tsRxMsgsSlvFifoOut(r.laneCounter);
+            v.axisMaster.tValid              := '1';
+            v.axisMaster.tData(127 downto 0) := toSlv128(tsRxMsgsFifoOut(r.laneCounter), r.laneCounter);  -- tsRxMsgsSlvFifoOut(r.laneCounter);
 
             if (r.laneCounter = TS_LANES_G-1) then
                v.laneCounter      := 0;

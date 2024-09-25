@@ -124,8 +124,8 @@ architecture rtl of S30xlAppCore is
    ----------
    -- TS Raw Data
    ----------
-   signal fcTsRxMsgs : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
-   signal fcMsgTime  : FcTimestampType;
+   signal fcTsRxMsgs     : TsData6ChMsgArray(TS_LANES_G-1 downto 0);
+   signal fcMsgTimestamp : FcTimestampType;
 
    signal tsTrigDaqData : TsS30xlThresholdTriggerDaqType;
 
@@ -216,7 +216,7 @@ begin
          fcRst185        => fcRst185,                           -- [in]
          fcBus           => fcBus,                              -- [in]
          fcTsRxMsgs      => fcTsRxMsgs,                         -- [out]
-         fcMsgTime       => fcMsgTime,                          -- [out]
+         fcMsgTimestamp  => fcMsgTimestamp,                     -- [out]
          axilClk         => axilClk,                            -- [in]
          axilRst         => axilRst,                            -- [in]
          axilReadMaster  => locAxilReadMasters(AXIL_TS_RX_C),   -- [in]
@@ -237,7 +237,7 @@ begin
          fcRst185        => fcRst185,            -- [in]
          fcBus           => fcBus,               -- [in]
          fcTsRxMsgs      => fcTsRxMsgs,          -- [in]
-         fcMsgTime       => fcMsgTime,           -- [in]
+         fcMsgTimestamp  => fcMsgTimestamp,      -- [in]
          axisClk         => axisClk,             -- [in]
          axisRst         => axisRst,             -- [in]
          eventAxisMaster => tsDaqRawAxisMaster,  -- [out]
@@ -250,28 +250,28 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         fcClk185  => fcClk185,                 -- [in]
-         fcRst185  => fcRst185,                 -- [in]
-         fcTsMsg   => fcTsRxMsgs,               -- [in]
-         fcMsgTime => fcMsgTime,                -- [in]
-         daqData   => tsTrigDaqData,            -- [out]
-         gtData    => thresholdTriggerData);  -- [out]
+         fcClk185       => fcClk185,               -- [in]
+         fcRst185       => fcRst185,               -- [in]
+         fcTsMsg        => fcTsRxMsgs,             -- [in]
+         fcMsgTimestamp => fcMsgTimestamp,         -- [in]
+         daqData        => tsTrigDaqData,          -- [out]
+         gtData         => thresholdTriggerData);  -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Trigger DAQ block
    -------------------------------------------------------------------------------------------------
    U_TsTrigDaq_1 : entity ldmx_ts.TsTrigDaq
-      
+
       generic map (
          TPD_G      => TPD_G,
          TS_LANES_G => TS_LANES_G)
       port map (
-         fcClk185         => fcClk185,             -- [in]
-         fcRst185         => fcRst185,             -- [in]
-         fcBus            => fcBus,                -- [in]
-         tsTrigDaqData    => tsTrigDaqData,        -- [in]
-         axisClk          => axisClk,              -- [in]
-         axisRst          => axisRst,              -- [in]
+         fcClk185        => fcClk185,             -- [in]
+         fcRst185        => fcRst185,             -- [in]
+         fcBus           => fcBus,                -- [in]
+         tsTrigDaqData   => tsTrigDaqData,        -- [in]
+         axisClk         => axisClk,              -- [in]
+         axisRst         => axisRst,              -- [in]
          eventAxisMaster => tsDaqTrigAxisMaster,  -- [out]
          eventAxisSlave  => tsDaqTrigAxisSlave);  -- [in]
 

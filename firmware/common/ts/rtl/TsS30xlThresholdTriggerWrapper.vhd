@@ -37,12 +37,12 @@ entity TsS30xlThresholdTriggerWrapper is
    generic (
       TPD_G : time := 1 ns);
    port (
-      fcClk185  : in  sl;
-      fcRst185  : in  sl;
-      fcTsMsg   : in  TsData6ChMsgArray(1 downto 0);
-      fcMsgTime : in  FcTimestampType;
-      daqData   : out TsS30xlThresholdTriggerDaqType;
-      gtData    : out TriggerDataType);
+      fcClk185       : in  sl;
+      fcRst185       : in  sl;
+      fcTsMsg        : in  TsData6ChMsgArray(1 downto 0);
+      fcMsgTimestamp : in  FcTimestampType;
+      daqData        : out TsS30xlThresholdTriggerDaqType;
+      gtData         : out TriggerDataType);
 
 end entity TsS30xlThresholdTriggerWrapper;
 
@@ -51,9 +51,9 @@ architecture rtl of TsS30xlThresholdTriggerWrapper is
       port (
          ap_clk        : in  std_logic;
          ap_rst        : in  std_logic;
-         timestamp_in  : in  std_logic_vector (69 downto 0);
+         timestamp_in  : in  std_logic_vector (71 downto 0);
          bc0_in        : in  sl;
-         timestamp_out : out std_logic_vector (69 downto 0);
+         timestamp_out : out std_logic_vector (71 downto 0);
          bc0_out       : out sl;
          dataReady_in  : in  std_logic_vector (0 downto 0);
          dataReady_out : out std_logic_vector (0 downto 0);
@@ -99,8 +99,8 @@ architecture rtl of TsS30xlThresholdTriggerWrapper is
 
    signal outputValidInt : sl;
 
-   signal fcMsgTimeSlv        : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
-   signal fcMsgTimeDelayedSlv : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
+   signal fcMsgTimestampSlv        : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
+   signal fcMsgTimestampDelayedSlv : slv(FC_TIMESTAMP_SIZE_C-1 downto 0);
 
    signal fifoIn : Slv14Array(11 downto 0);
 
@@ -114,8 +114,8 @@ architecture rtl of TsS30xlThresholdTriggerWrapper is
 
 begin
 
-   inputValid   <= fcMsgTime.valid;
-   fcMsgTimeSlv <= toSlv(fcMsgTime);
+   inputValid        <= fcMsgTimestamp.valid;
+   fcMsgTimestampSlv <= toSlv(fcMsgTimestamp);
 
    FifoIn(0)  <= fcTsMsg(0).tdc(0) & fcTsMsg(0).adc(0);  -- [IN]
    FifoIn(1)  <= fcTsMsg(0).tdc(1) & fcTsMsg(0).adc(1);  -- [IN]
@@ -133,54 +133,54 @@ begin
 
    U_ts_s30xl_threshold_trigger_hw_1 : ts_s30xl_threshold_trigger_hw
       port map (
-         ap_clk           => fcClk185,                -- [IN]
-         ap_rst           => fcRst185,                -- [IN]
-         timestamp_in     => fcMsgTimeSlv,            -- [IN]
-         bc0_in           => fcTsMsg(0).bc0,          -- [in]
-         timestamp_out    => fcMsgTimeDelayedSlv,     -- [OUT]
-         bc0_out          => bc0Out,                  -- [out]
-         dataReady_in(0)  => inputValid,              -- [IN]
-         dataReady_out(0) => outputValidInt,          -- [OUT]
-         FIFO_0           => fifoIn(0),               -- [IN]
-         FIFO_1           => fifoIn(1),               -- [IN]
-         FIFO_2           => fifoIn(2),               -- [IN]
-         FIFO_3           => fifoIn(3),               -- [IN]
-         FIFO_4           => fifoIn(4),               -- [IN]
-         FIFO_5           => fifoIn(5),               -- [IN]
-         FIFO_6           => fifoIn(6),               -- [IN]
-         FIFO_7           => fifoIn(7),               -- [IN]
-         FIFO_8           => fifoIn(8),               -- [IN]
-         FIFO_9           => fifoIn(9),               -- [IN]
-         FIFO_10          => fifoIn(10),              -- [IN]
-         FIFO_11          => fifoIn(11),              -- [IN]
-         onflag_0(0)      => channelHits(0),          -- [OUT]
-         onflag_1(0)      => channelHits(1),          -- [OUT]
-         onflag_2(0)      => channelHits(2),          -- [OUT]
-         onflag_3(0)      => channelHits(3),          -- [OUT]
-         onflag_4(0)      => channelHits(4),          -- [OUT]
-         onflag_5(0)      => channelHits(5),          -- [OUT]
-         onflag_6(0)      => channelHits(6),          -- [OUT]
-         onflag_7(0)      => channelHits(7),          -- [OUT]
-         onflag_8(0)      => channelHits(8),          -- [OUT]
-         onflag_9(0)      => channelHits(9),          -- [OUT]
-         onflag_10(0)     => channelHits(10),         -- [OUT]
-         onflag_11(0)     => channelHits(11),         -- [OUT]
-         amplitude_0      => channelAmplitudes(0),    -- [OUT]
-         amplitude_1      => channelAmplitudes(1),    -- [OUT]
-         amplitude_2      => channelAmplitudes(2),    -- [OUT]
-         amplitude_3      => channelAmplitudes(3),    -- [OUT]
-         amplitude_4      => channelAmplitudes(4),    -- [OUT]
-         amplitude_5      => channelAmplitudes(5),    -- [OUT]
-         amplitude_6      => channelAmplitudes(6),    -- [OUT]
-         amplitude_7      => channelAmplitudes(7),    -- [OUT]
-         amplitude_8      => channelAmplitudes(8),    -- [OUT]
-         amplitude_9      => channelAmplitudes(9),    -- [OUT]
-         amplitude_10     => channelAmplitudes(10),   -- [OUT]
-         amplitude_11     => channelAmplitudes(11));  -- [OUT]
+         ap_clk           => fcClk185,                  -- [IN]
+         ap_rst           => fcRst185,                  -- [IN]
+         timestamp_in     => fcMsgTimestampSlv,         -- [IN]
+         bc0_in           => fcTsMsg(0).bc0,            -- [in]
+         timestamp_out    => fcMsgTimestampDelayedSlv,  -- [OUT]
+         bc0_out          => bc0Out,                    -- [out]
+         dataReady_in(0)  => inputValid,                -- [IN]
+         dataReady_out(0) => outputValidInt,            -- [OUT]
+         FIFO_0           => fifoIn(0),                 -- [IN]
+         FIFO_1           => fifoIn(1),                 -- [IN]
+         FIFO_2           => fifoIn(2),                 -- [IN]
+         FIFO_3           => fifoIn(3),                 -- [IN]
+         FIFO_4           => fifoIn(4),                 -- [IN]
+         FIFO_5           => fifoIn(5),                 -- [IN]
+         FIFO_6           => fifoIn(6),                 -- [IN]
+         FIFO_7           => fifoIn(7),                 -- [IN]
+         FIFO_8           => fifoIn(8),                 -- [IN]
+         FIFO_9           => fifoIn(9),                 -- [IN]
+         FIFO_10          => fifoIn(10),                -- [IN]
+         FIFO_11          => fifoIn(11),                -- [IN]
+         onflag_0(0)      => channelHits(0),            -- [OUT]
+         onflag_1(0)      => channelHits(1),            -- [OUT]
+         onflag_2(0)      => channelHits(2),            -- [OUT]
+         onflag_3(0)      => channelHits(3),            -- [OUT]
+         onflag_4(0)      => channelHits(4),            -- [OUT]
+         onflag_5(0)      => channelHits(5),            -- [OUT]
+         onflag_6(0)      => channelHits(6),            -- [OUT]
+         onflag_7(0)      => channelHits(7),            -- [OUT]
+         onflag_8(0)      => channelHits(8),            -- [OUT]
+         onflag_9(0)      => channelHits(9),            -- [OUT]
+         onflag_10(0)     => channelHits(10),           -- [OUT]
+         onflag_11(0)     => channelHits(11),           -- [OUT]
+         amplitude_0      => channelAmplitudes(0),      -- [OUT]
+         amplitude_1      => channelAmplitudes(1),      -- [OUT]
+         amplitude_2      => channelAmplitudes(2),      -- [OUT]
+         amplitude_3      => channelAmplitudes(3),      -- [OUT]
+         amplitude_4      => channelAmplitudes(4),      -- [OUT]
+         amplitude_5      => channelAmplitudes(5),      -- [OUT]
+         amplitude_6      => channelAmplitudes(6),      -- [OUT]
+         amplitude_7      => channelAmplitudes(7),      -- [OUT]
+         amplitude_8      => channelAmplitudes(8),      -- [OUT]
+         amplitude_9      => channelAmplitudes(9),      -- [OUT]
+         amplitude_10     => channelAmplitudes(10),     -- [OUT]
+         amplitude_11     => channelAmplitudes(11));    -- [OUT]
 
    daqDataInt.valid      <= outputValidInt;
    daqDataInt.bc0        <= bc0Out;
-   daqDataInt.timestamp  <= toFcTimestamp(fcMsgTimeDelayedSlv, outputValidInt);
+   daqDataInt.timestamp  <= toFcTimestamp(fcMsgTimestampDelayedSlv, outputValidInt);
    daqDataInt.hits       <= channelHits;
    daqDataInt.amplitudes <= channelAmplitudes;
 

@@ -290,8 +290,6 @@ begin
    -- Activated when PGP GT placed in loopback mode
    -------------------------------------------------------------------------------------------------
    GEN_FC_EMU : if (GEN_FC_EMU_G) generate
-
-
       U_FcEmu_1 : entity ldmx_tdaq.FcEmu
          generic map (
             TPD_G                => TPD_G,
