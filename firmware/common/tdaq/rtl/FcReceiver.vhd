@@ -226,6 +226,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          SIM_SPEEDUP_G    => SIM_SPEEDUP_G,
+         GT_TYPE_G        => GT_TYPE_G,
          AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
          AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(PGP_FC_LANE_AXIL_C).baseAddr,
          TX_ENABLE_G      => true,
