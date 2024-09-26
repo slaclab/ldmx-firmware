@@ -95,7 +95,7 @@ begin
             ODIV2 => mgtRefClkOdiv2(i),
             O     => fcHubRefClk(i));
 
-      U_mgtUserRefClkDiv2 : BUFG_GT
+      U_mgtUserDiv2RefClk : BUFG_GT
          port map (
             I       => mgtRefClkOdiv2(i),
             CE      => '1',

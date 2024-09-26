@@ -162,7 +162,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Convert 100 MHz userClk to 125 MHz for AXI-Lite clock and 78.125 MHz for Timing GT stableClk
    -------------------------------------------------------------------------------------------------
-   U_userClk : entity surf.ClockManagerUltraScale
+   U_AxiClkStableClk : entity surf.ClockManagerUltraScale
       generic map(
          TPD_G             => TPD_G,
          TYPE_G            => "MMCM",
