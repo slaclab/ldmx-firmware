@@ -103,7 +103,7 @@ begin
             CLR     => '0',
             CLRMASK => '1',
             DIV     => "001",
-            O       => fcHubDiv2RefClk);
+            O       => fcHubDiv2RefClk(i));
    end generate;
 
    U_XBAR : entity surf.AxiLiteCrossbar

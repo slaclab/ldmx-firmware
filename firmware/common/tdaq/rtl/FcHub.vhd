@@ -184,14 +184,13 @@ begin
          timingTxP        => lclsTimingTxP,                            -- [out]
          timingTxN        => lclsTimingTxN,                            -- [out]
          timingRefClkInP  => lclsTimingRefClkP,                        -- [in]
-         timingRefClkInN  => lclsTimingRefClkN,                        -- [in]
-         timingRecClkOutP => timingRecClkOutP,                         -- [out]
-         timingRecClkOutN => timingRecClkOutN);                        -- [out]
+         timingRefClkInN  => lclsTimingRefClkN);                       -- [in]
 
    -------------------------------------------------------------------------------------------------
    -- Fast Control Output Word Logic
    -------------------------------------------------------------------------------------------------
    lclsTimingFcTxMsg <= fcTxMsg;
+
    U_FcTxLogic_1 : entity ldmx_tdaq.FcTxLogic
       generic map (
          TPD_G => TPD_G)
