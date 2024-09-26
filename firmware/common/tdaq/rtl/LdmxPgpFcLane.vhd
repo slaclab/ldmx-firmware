@@ -97,15 +97,17 @@ architecture rtl of LdmxPgpFcLane is
    signal pgpTxSlavesGt  : AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
    signal pgpRxMastersGt : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
 
-   signal pgpTxResetDone : sl;
+   signal pgpTxResetDone    : sl;
 
    signal pgpRxResetDone    : sl;
    signal pgpRxPmaResetDone : sl;
    signal pgpRxRst          : sl := '0';
 
-   signal pgpRxOutClkGt   : sl;
-   signal pgpRxUsrClk     : sl;
-   signal pgpRxMmcmLocked : sl;
+   signal pgpRxOutClkGt     : sl;
+   signal pgpRxUsrClk       : sl;
+   signal pgpRxMmcmLocked   : sl;
+
+   signal pgpUserStableRst  : sl;
 
    -------------------------------------------------------------------------------------------------
    -- Components
@@ -222,8 +224,6 @@ architecture rtl of LdmxPgpFcLane is
 
 begin
 
-
-
    ---------------------
    -- AXI-Lite Crossbar
    ---------------------
@@ -263,7 +263,7 @@ begin
          port map (
             -- GT Clocking
             stableClk         => pgpUserStableClk,              -- [in]
-            stableRst         => axilRst,                       -- [in]
+            stableRst         => pgpUserStableRst,              -- [in]
             gtRefClk          => pgpRefClk,                     -- [in]
             gtFabricRefClk    => '0',                           -- [in]
             gtUserRefClk      => pgpUserRefClk,                 -- [in]
@@ -321,7 +321,7 @@ begin
          port map (
             -- GT Clocking
             stableClk         => pgpUserStableClk,              -- [in]
-            stableRst         => axilRst,                       -- [in]
+            stableRst         => pgpUserStableRst,              -- [in]
             gtRefClk          => pgpRefClk,                     -- [in]
             gtFabricRefClk    => '0',                           -- [in]
             gtUserRefClk      => pgpUserRefClk,                 -- [in]
@@ -527,6 +527,14 @@ begin
 --          clk      => pgpRxUsrClk,       -- [in]
 --          asyncRst => pgpRxResetDone,    -- [in]
 --          syncRst  => pgpRxRst);         -- [out]
+
+    U_RstSync_StableRst : entity surf.RstSync
+       generic map (
+          TPD_G => TPD_G)
+       port map (
+          clk      => pgpUserStableClk,  -- [in]
+          asyncRst => axilRst,           -- [in]
+          syncRst  => pgpUserStableRst); -- [out]
 
    pgpRxRstOut <= pgpRxRst;
 
