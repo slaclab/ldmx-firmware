@@ -73,6 +73,7 @@ architecture rtl of FcSenderArray is
 
 --   signal lclsTimingRecClkOdiv2 :    slv(REFCLKS_G-1 downto 0);
    signal fcHubRefClk     : slv(REFCLKS_G-1 downto 0);
+   signal mgtRefClkOdiv2  : slv(REFCLKS_G-1 downto 0);
    signal fcHubDiv2RefClk : slv(REFCLKS_G-1 downto 0);
 --   signal lclsTimingRecUserClk  : in slv(REFCLKS_G-1 downto 0);
 
@@ -85,14 +86,24 @@ begin
       U_mgtRefClk : IBUFDS_GTE4
          generic map (
             REFCLK_EN_TX_PATH  => '0',
-            REFCLK_HROW_CK_SEL => "01",  -- 2'b00: ODIV2 = O
+            REFCLK_HROW_CK_SEL => "00",  -- 2'b00: ODIV2 = O
             REFCLK_ICNTL_RX    => "00")
          port map (
             I     => fcHubRefClkP(i),
             IB    => fcHubRefClkN(i),
             CEB   => '0',
-            ODIV2 => fcHubDiv2RefClk(i),
+            ODIV2 => mgtRefClkOdiv2(i),
             O     => fcHubRefClk(i));
+
+      U_mgtUserRefClkDiv2 : BUFG_GT
+         port map (
+            I       => mgtRefClkOdiv2(i),
+            CE      => '1',
+            CEMASK  => '1',
+            CLR     => '0',
+            CLRMASK => '1',
+            DIV     => "001",
+            O       => fcHubDiv2RefClk);
    end generate;
 
    U_XBAR : entity surf.AxiLiteCrossbar
@@ -125,21 +136,21 @@ begin
                AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
                AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(quad*4+ch).baseAddr)
             port map (
-               fcHubRefClk       => fcHubRefClk(QUAD_REFCLK_MAP_G(quad)),    -- [in]
-               fcHubDiv2RefClk   => fcHubDiv2RefClk(QUAD_REFCLK_MAP_G(quad)) -- [in]
-               fcHubTxP          => fcHubTxP(quad*4+ch),                     -- [out]
-               fcHubTxN          => fcHubTxN(quad*4+ch),                     -- [out]
-               fcHubRxP          => fcHubRxP(quad*4+ch),                     -- [in]
-               fcHubRxN          => fcHubRxN(quad*4+ch),                     -- [in]
-               lclsTimingUserClk => lclsTimingClk,                           -- [in]
-               lclsTimingUserRst => lclsTimingRst,                           -- [in]
-               fcTxMsg           => fcTxMsg,                                 -- [in]
-               axilClk           => axilClk,                                 -- [in]
-               axilRst           => axilRst,                                 -- [in]
-               axilReadMaster    => locAxilReadMasters(quad*4+ch),           -- [in]
-               axilReadSlave     => locAxilReadSlaves(quad*4+ch),            -- [out]
-               axilWriteMaster   => locAxilWriteMasters(quad*4+ch),          -- [in]
-               axilWriteSlave    => locAxilWriteSlaves(quad*4+ch));          -- [out]
+               fcHubRefClk       => fcHubRefClk(QUAD_REFCLK_MAP_G(quad)),     -- [in]
+               fcHubDiv2RefClk   => fcHubDiv2RefClk(QUAD_REFCLK_MAP_G(quad)), -- [in]
+               fcHubTxP          => fcHubTxP(quad*4+ch),                      -- [out]
+               fcHubTxN          => fcHubTxN(quad*4+ch),                      -- [out]
+               fcHubRxP          => fcHubRxP(quad*4+ch),                      -- [in]
+               fcHubRxN          => fcHubRxN(quad*4+ch),                      -- [in]
+               lclsTimingUserClk => lclsTimingClk,                            -- [in]
+               lclsTimingUserRst => lclsTimingRst,                            -- [in]
+               fcTxMsg           => fcTxMsg,                                  -- [in]
+               axilClk           => axilClk,                                  -- [in]
+               axilRst           => axilRst,                                  -- [in]
+               axilReadMaster    => locAxilReadMasters(quad*4+ch),            -- [in]
+               axilReadSlave     => locAxilReadSlaves(quad*4+ch),             -- [out]
+               axilWriteMaster   => locAxilWriteMasters(quad*4+ch),           -- [in]
+               axilWriteSlave    => locAxilWriteSlaves(quad*4+ch));           -- [out]
       end generate GEN_CHANNELS;
    end generate GEN_QUADS;
 

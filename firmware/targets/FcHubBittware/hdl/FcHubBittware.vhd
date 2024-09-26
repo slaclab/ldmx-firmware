@@ -113,7 +113,6 @@ architecture rtl of FcHubBittware is
    -- User Clocks
    --------------
    signal userClk100 : sl;
-   signal userRst100 : sl;
 
    -----------
    -- AXI Lite
@@ -134,6 +133,8 @@ architecture rtl of FcHubBittware is
 
    signal axilClk          : sl;
    signal axilRst          : sl;
+   signal stableClk        : sl;
+   signal stableRst        : sl;
    signal axilReadMaster   : AxiLiteReadMasterType;
    signal axilReadSlave    : AxiLiteReadSlaveType;
    signal axilWriteMaster  : AxiLiteWriteMasterType;
@@ -159,38 +160,32 @@ architecture rtl of FcHubBittware is
 begin
 
    -------------------------------------------------------------------------------------------------
-   -- Convert 100 MHz user clock to 125 MHz for AXI-Lite clock
+   -- Convert 100 MHz userClk to 125 MHz for AXI-Lite clock and 78.125 MHz for Timing GT stableClk
    -------------------------------------------------------------------------------------------------
-   U_PwrUpRst : entity surf.PwrUpRst
-      generic map (
-         TPD_G      => TPD_G,
-         DURATION_G => 500)
-      port map (
-         arst   => '0',                 -- [in]
-         clk    => userClk100,          -- [in]
-         rstOut => userRst100);         -- [out]
-
-   U_axilClk : entity surf.ClockManagerUltraScale
+   U_userClk : entity surf.ClockManagerUltraScale
       generic map(
          TPD_G             => TPD_G,
-         TYPE_G            => "PLL",
+         TYPE_G            => "MMCM",
          INPUT_BUFG_G      => false,
          FB_BUFG_G         => true,
          RST_IN_POLARITY_G => '1',
-         NUM_CLOCKS_G      => 1,
+         NUM_CLOCKS_G      => 2,
          -- MMCM attributes
          BANDWIDTH_G       => "OPTIMIZED",
          CLKIN_PERIOD_G    => 10.0,     -- 100 MHz
-         CLKFBOUT_MULT_G   => 10,       -- 100x10 = 1000 MHz
-         CLKOUT0_DIVIDE_G  => 8)        -- 1000/8 = 125  MHz
+         CLKFBOUT_MULT_F_G => 12.5,     -- 100x12.5 = 1250   MHz
+         CLKOUT0_DIVIDE_G  => 10,       -- 1250/10  = 125    MHz
+         CLKOUT1_DIVIDE_G  => 16)       -- 1250/16  = 78.125 MHz
       port map(
          -- Clock Input
          clkIn     => userClk100,
          rstIn     => dmaRst,
          -- Clock Outputs
          clkOut(0) => axilClk,
+         clkOut(1) => stableClk,
          -- Reset Outputs
-         rstOut(0) => axilRst);
+         rstOut(0) => axilRst,
+         rstOut(1) => stableRst);
 
    -----------------------
    -- axi-pcie-core module
@@ -276,28 +271,30 @@ begin
          AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_C,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_FC_HUB_C).baseAddr)
       port map (
-         lclsTimingRefClkP => lclsTimingRefClkP,                   -- [in]
-         lclsTimingRefClkN => lclsTimingRefClkN,                   -- [in]
-         lclsTimingRxP     => lclsTimingRxP,                       -- [in]
-         lclsTimingRxN     => lclsTimingRxN,                       -- [in]
-         lclsTimingTxP     => lclsTimingTxP,                       -- [out]
-         lclsTimingTxN     => lclsTimingTxN,                       -- [out]
-         lclsTimingClkOut  => lclsTimingClk,                       -- [out]
-         lclsTimingRstOut  => lclsTimingRst,                       -- [out]
-         globalTriggerRor  => dummyGlobalTriggerRor,               -- [in]
-         fcTxMsgValid      => ledL(3),                             -- [out]
-         fcHubRefClkP      => fcHubRefClkP,                        -- [in]
-         fcHubRefClkN      => fcHubRefClkN,                        -- [in]
-         fcHubTxP          => fcHubTxP,                            -- [out]
-         fcHubTxN          => fcHubTxN,                            -- [out]
-         fcHubRxP          => fcHubRxP,                            -- [in]
-         fcHubRxN          => fcHubRxN,                            -- [in]
-         axilClk           => axilClk,                             -- [in]
-         axilRst           => axilRst,                             -- [in]
-         axilReadMaster    => axilReadMasters(AXIL_FC_HUB_C),      -- [in]
-         axilReadSlave     => axilReadSlaves(AXIL_FC_HUB_C),       -- [out]
-         axilWriteMaster   => axilWriteMasters(AXIL_FC_HUB_C),     -- [in]
-         axilWriteSlave    => axilWriteSlaves(AXIL_FC_HUB_C));     -- [out]
+         lclsTimingStableClk78 => stableClk,                           -- [in]
+         lclsTimingStableRst   => stableRst,                           -- [in]
+         lclsTimingRefClkP     => lclsTimingRefClkP,                   -- [in]
+         lclsTimingRefClkN     => lclsTimingRefClkN,                   -- [in]
+         lclsTimingRxP         => lclsTimingRxP,                       -- [in]
+         lclsTimingRxN         => lclsTimingRxN,                       -- [in]
+         lclsTimingTxP         => lclsTimingTxP,                       -- [out]
+         lclsTimingTxN         => lclsTimingTxN,                       -- [out]
+         lclsTimingClkOut      => lclsTimingClk,                       -- [out]
+         lclsTimingRstOut      => lclsTimingRst,                       -- [out]
+         globalTriggerRor      => dummyGlobalTriggerRor,               -- [in]
+         fcTxMsgValid          => ledL(3),                             -- [out]
+         fcHubRefClkP          => fcHubRefClkP,                        -- [in]
+         fcHubRefClkN          => fcHubRefClkN,                        -- [in]
+         fcHubTxP              => fcHubTxP,                            -- [out]
+         fcHubTxN              => fcHubTxN,                            -- [out]
+         fcHubRxP              => fcHubRxP,                            -- [in]
+         fcHubRxN              => fcHubRxN,                            -- [in]
+         axilClk               => axilClk,                             -- [in]
+         axilRst               => axilRst,                             -- [in]
+         axilReadMaster        => axilReadMasters(AXIL_FC_HUB_C),      -- [in]
+         axilReadSlave         => axilReadSlaves(AXIL_FC_HUB_C),       -- [out]
+         axilWriteMaster       => axilWriteMasters(AXIL_FC_HUB_C),     -- [in]
+         axilWriteSlave        => axilWriteSlaves(AXIL_FC_HUB_C));     -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Map DD-QSFP ports

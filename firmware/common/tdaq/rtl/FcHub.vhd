@@ -31,7 +31,6 @@ library ldmx_tdaq;
 use ldmx_tdaq.FcPkg.all;
 
 entity FcHub is
-
    generic (
       TPD_G             : time                 := 1 ns;
       SIM_SPEEDUP_G     : boolean              := false;
@@ -45,49 +44,50 @@ entity FcHub is
       -- LCLS Timing Interface
       ----------------------------------------------------------------------------------------------
       lclsTimingStableClk78 : in  sl;   -- Stable 156.25/2 MHz clock
+      lclsTimingStableRst   : in  sl;   -- StableClk-associated rst
       -- 185/371 MHz Ref Clk for LCLS timing recovery (freq used depends on GT configuration)
-      lclsTimingRefClkP : in  sl;
-      lclsTimingRefClkN : in  sl;
+      lclsTimingRefClkP     : in  sl;
+      lclsTimingRefClkN     : in  sl;
       -- LCLS-II timing interface
-      lclsTimingRxP     : in  sl;
-      lclsTimingRxN     : in  sl;
-      lclsTimingTxP     : out sl;
-      lclsTimingTxN     : out sl;
+      lclsTimingRxP         : in  sl;
+      lclsTimingRxN         : in  sl;
+      lclsTimingTxP         : out sl;
+      lclsTimingTxN         : out sl;
 
       ----------------------------------------------------------------------------------------------
       -- Global Trigger Interface
       ----------------------------------------------------------------------------------------------
       -- LCLS Recovered Clock Output via fabric pins
-      lclsTimingClkOut  : out sl;
-      lclsTimingRstOut  : out sl;
-      lclsTimingFcTxMsg : out FcMessageType;
-      lclsTimingBus     : out TimingBusType;
-      globalTriggerRor  : in  FcTimestampType;
+      lclsTimingClkOut      : out sl;
+      lclsTimingRstOut      : out sl;
+      lclsTimingFcTxMsg     : out FcMessageType;
+      lclsTimingBus         : out TimingBusType;
+      globalTriggerRor      : in  FcTimestampType;
       -- Debugging port output
-      fcTxMsgValid      : out sl;
+      fcTxMsgValid          : out sl;
 
 
       ----------------------------------------------------------------------------------------------
       -- FC HUB
       ----------------------------------------------------------------------------------------------
       -- Recovered and retimed LCLS Reference clock
-      fcHubRefClkP : in  slv(REFCLKS_G-1 downto 0);
-      fcHubRefClkN : in  slv(REFCLKS_G-1 downto 0);
+      fcHubRefClkP          : in  slv(REFCLKS_G-1 downto 0);
+      fcHubRefClkN          : in  slv(REFCLKS_G-1 downto 0);
       -- PGP FC serial IO
-      fcHubTxP     : out slv(QUADS_G*4-1 downto 0);
-      fcHubTxN     : out slv(QUADS_G*4-1 downto 0);
-      fcHubRxP     : in  slv(QUADS_G*4-1 downto 0);
-      fcHubRxN     : in  slv(QUADS_G*4-1 downto 0);
+      fcHubTxP              : out slv(QUADS_G*4-1 downto 0);
+      fcHubTxN              : out slv(QUADS_G*4-1 downto 0);
+      fcHubRxP              : in  slv(QUADS_G*4-1 downto 0);
+      fcHubRxN              : in  slv(QUADS_G*4-1 downto 0);
 
       ----------------------------------------------------------------------------------------------
       -- AXI Lite
       ----------------------------------------------------------------------------------------------
-      axilClk         : in  sl;
-      axilRst         : in  sl;
-      axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+      axilClk               : in  sl;
+      axilRst               : in  sl;
+      axilReadMaster        : in  AxiLiteReadMasterType;
+      axilReadSlave         : out AxiLiteReadSlaveType;
+      axilWriteMaster       : in  AxiLiteWriteMasterType;
+      axilWriteSlave        : out AxiLiteWriteSlaveType);
 
 end entity FcHub;
 
@@ -153,19 +153,6 @@ begin
          mAxiReadSlaves      => locAxilReadSlaves);
 
    -------------------------------------------------------------------------------------------------
-   -- Create stable clk reset
-   -------------------------------------------------------------------------------------------------
-   U_RstSync_1 : entity surf.RstSync
-      generic map (
-         TPD_G         => TPD_G,
-         OUT_REG_RST_G => true)
-      port map (
-         clk      => lclsTimingStableClk78,  -- [in]
-         asyncRst => '0',                    -- [in]
-         syncRst  => stableClkRst);          -- [out]   
-
-
-   -------------------------------------------------------------------------------------------------
    -- LCLS TIMING RX
    -------------------------------------------------------------------------------------------------
    lclsTimingClkOut <= lclsTimingClk;
@@ -181,8 +168,8 @@ begin
          AXI_CLK_FREQ_G    => AXIL_CLK_FREQ_G,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CONFIG_C(AXIL_LCLS_TIMING_C).baseAddr)
       port map (
-         stableClk        => lclsTimingStableClk78,                    -- [in] 
-         stableRst        => stableClkRst,                             -- [in]
+         stableClk        => lclsTimingStableClk78,                    -- [in]
+         stableRst        => lclsTimingStableRst,                      -- [in]
          axilClk          => axilClk,                                  -- [in]
          axilRst          => axilRst,                                  -- [in]
          axilReadMaster   => locAxilReadMasters(AXIL_LCLS_TIMING_C),   -- [in]
