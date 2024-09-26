@@ -4,16 +4,21 @@ import rogue
 from dataclasses import dataclass, field
 from typing import List
 
-def parseEventFrame(frame):
+def parseDaqEventFrameHeader(frame):
     channel = frame.getChannel()
     fl = frame.getPayload()
     raw = bytearray(fl)
     frame.read(raw, 0)
 
-    bunchCount = raw[0]
-    pulseId = int.from_bytes(raw[1:9], 'little', signed=False)
-    contributorId = raw[9]
-    subsystemId = raw[10]
+    raw = frame.getNumpy(0, 16) # Read first 16 bytes
+
+    version = raw[0]
+    subsystemId = raw[1]
+    contributorId = raw[2]    
+    bunchCount = raw[7]
+    pulseId = int.from_bytes(raw[8:16], 'little', signed=False)
+
+    data = raw[16:]
 
     print('Got frame')
     print(f'{subsystemId=}, {contributorId=}')
@@ -44,7 +49,7 @@ class TsData6ChMsg:
         return msg
     
         
-class TsRawEventReceiver(rogue.interfaces.stream.Slave):
+class TsDaqEventReceiver(rogue.interfaces.stream.Slave):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
