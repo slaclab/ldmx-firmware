@@ -40,32 +40,33 @@ entity TrackerPgpFcLane is
       NUM_VC_EN_G       : integer range 0 to 4 := 4);
    port (
       -- PGP Serial Ports
-      pgpTxP          : out sl;
-      pgpTxN          : out sl;
-      pgpRxP          : in  sl;
-      pgpRxN          : in  sl;
-      pgpRefClk       : in  sl;
-      pgpUserRefClk   : in  sl;
+      pgpTxP            : out sl;
+      pgpTxN            : out sl;
+      pgpRxP            : in  sl;
+      pgpRxN            : in  sl;
+      pgpRefClk         : in  sl;
+      pgpUserRefClk     : in  sl;
+      pgpUserDiv2RefClk : in  sl;
       -- Fast Control Interface
       -- Drives TX
-      fcClk185        : in  sl;
-      fcRst185        : in  sl;
-      fcBus           : in  FcBusType;
+      fcClk185          : in  sl;
+      fcRst185          : in  sl;
+      fcBus             : in  FcBusType;
       -- DMA Interface (dmaClk domain)
-      dmaClk          : in  sl;
-      dmaRst          : in  sl;
-      dmaBuffGrpPause : in  slv(7 downto 0);
-      dmaObMaster     : in  AxiStreamMasterType;
-      dmaObSlave      : out AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-      dmaIbMaster     : out AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-      dmaIbSlave      : in  AxiStreamSlaveType;
+      dmaClk            : in  sl;
+      dmaRst            : in  sl;
+      dmaBuffGrpPause   : in  slv(7 downto 0);
+      dmaObMaster       : in  AxiStreamMasterType;
+      dmaObSlave        : out AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+      dmaIbMaster       : out AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+      dmaIbSlave        : in  AxiStreamSlaveType;
       -- AXI-Lite Interface (axilClk domain)
-      axilClk         : in  sl;
-      axilRst         : in  sl;
-      axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+      axilClk           : in  sl;
+      axilRst           : in  sl;
+      axilReadMaster    : in  AxiLiteReadMasterType;
+      axilReadSlave     : out AxiLiteReadSlaveType;
+      axilWriteMaster   : in  AxiLiteWriteMasterType;
+      axilWriteSlave    : out AxiLiteWriteSlaveType);
 end entity TrackerPgpFcLane;
 
 architecture mapping of TrackerPgpFcLane is
@@ -74,7 +75,7 @@ architecture mapping of TrackerPgpFcLane is
    signal pgpRxRstOut : sl;
 
 
-   -- Rx 
+   -- Rx
    signal pgpRxIn  : Pgp2fcRxInType  := PGP2FC_RX_IN_INIT_C;
    signal pgpRxOut : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
    signal pgpTxIn  : Pgp2fcTxInType  := PGP2FC_TX_IN_INIT_C;
@@ -104,31 +105,32 @@ begin
          AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G,
          NUM_VC_EN_G      => NUM_VC_EN_G)
       port map (
-         pgpTxP          => pgpTxP,           -- [out]
-         pgpTxN          => pgpTxN,           -- [out]
-         pgpRxP          => pgpRxP,           -- [in]
-         pgpRxN          => pgpRxN,           -- [in]
-         pgpRefClk       => pgpRefClk,        -- [in]
-         pgpUserRefClk   => pgpUserRefClk,    -- [in]
-         pgpRxRstOut     => pgpRxRstOut,      -- [out]
-         pgpRxOutClk     => pgpRxOutClk,      -- [out]
-         pgpRxIn         => pgpRxIn,          -- [in]
-         pgpRxOut        => pgpRxOut,         -- [out]
-         pgpRxMasters    => pgpRxMasters,     -- [out]
-         pgpRxCtrl       => pgpRxCtrl,        -- [in]
-         pgpTxRst        => fcRst185,         -- [in]
-         pgpTxOutClk     => open,             -- [out]
-         pgpTxUsrClk     => fcClk185,         -- [in]
-         pgpTxIn         => pgpTxIn,          -- [in]
-         pgpTxOut        => pgpTxOut,         -- [out]
-         pgpTxMasters    => pgpTxMasters,     -- [in]
-         pgpTxSlaves     => pgpTxSlaves,      -- [out]
-         axilClk         => axilClk,          -- [in]
-         axilRst         => axilRst,          -- [in]
-         axilReadMaster  => axilReadMaster,   -- [in]
-         axilReadSlave   => axilReadSlave,    -- [out]
-         axilWriteMaster => axilWriteMaster,  -- [in]
-         axilWriteSlave  => axilWriteSlave);  -- [out]
+         pgpTxP           => pgpTxP,            -- [out]
+         pgpTxN           => pgpTxN,            -- [out]
+         pgpRxP           => pgpRxP,            -- [in]
+         pgpRxN           => pgpRxN,            -- [in]
+         pgpRefClk        => pgpRefClk,         -- [in]
+         pgpUserRefClk    => pgpUserRefClk,     -- [in]
+         pgpUserStableClk => pgpUserDiv2RefClk, -- [in]
+         pgpRxRstOut      => pgpRxRstOut,       -- [out]
+         pgpRxOutClk      => pgpRxOutClk,       -- [out]
+         pgpRxIn          => pgpRxIn,           -- [in]
+         pgpRxOut         => pgpRxOut,          -- [out]
+         pgpRxMasters     => pgpRxMasters,      -- [out]
+         pgpRxCtrl        => pgpRxCtrl,         -- [in]
+         pgpTxRst         => fcRst185,          -- [in]
+         pgpTxOutClk      => open,              -- [out]
+         pgpTxUsrClk      => fcClk185,          -- [in]
+         pgpTxIn          => pgpTxIn,           -- [in]
+         pgpTxOut         => pgpTxOut,          -- [out]
+         pgpTxMasters     => pgpTxMasters,      -- [in]
+         pgpTxSlaves      => pgpTxSlaves,       -- [out]
+         axilClk          => axilClk,           -- [in]
+         axilRst          => axilRst,           -- [in]
+         axilReadMaster   => axilReadMaster,    -- [in]
+         axilReadSlave    => axilReadSlave,     -- [out]
+         axilWriteMaster  => axilWriteMaster,   -- [in]
+         axilWriteSlave   => axilWriteSlave);   -- [out]
 
 
    GEN_BUFF : if NUM_VC_EN_G > 0 generate

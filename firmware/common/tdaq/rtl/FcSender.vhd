@@ -96,7 +96,7 @@ begin
          pgpRxN           => fcHubRxN,                              -- [in]
          pgpRefClk        => fcHubRefClk,                           -- [in]
          pgpUserRefClk    => lclsTimingUserClk,                     -- [in]
-         pgpUserStableClk => fcHubDiv2RefClk                        -- [in]
+         pgpUserStableClk => fcHubDiv2RefClk,                       -- [in]
          pgpRxRstOut      => fcRxRst185,                            -- [out]
          pgpRxOutClk      => fcRxClk185,                            -- [out]
          pgpRxIn          => pgpRxIn,                               -- [in]

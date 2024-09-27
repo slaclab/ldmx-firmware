@@ -195,7 +195,7 @@ begin
          DIV     => "000",
          O       => pgpUserRefClk);
 
-   U_mgtUserRefClk : BUFG_GT
+   U_mgtUserRefClkDiv2 : BUFG_GT
       port map (
          I       => pgpUserRefClkOdiv2,
          CE      => '1',
@@ -251,7 +251,7 @@ begin
          pgpRxN           => fcRxN,                                    -- [in]
          pgpRefClk        => pgpRefClk,                                -- [in]
          pgpUserRefClk    => pgpUserRefClk,                            -- [in]
-         pgpUserStableClk => pgpUserStableClk                          -- [in]
+         pgpUserStableClk => pgpUserStableClk,                         -- [in]
          pgpRxRstOut      => fcRst185Loc,                              -- [out]
          pgpRxOutClk      => fcClk185Loc,                              -- [out]
          pgpRxIn          => pgpRxInLoc,                               -- [in]

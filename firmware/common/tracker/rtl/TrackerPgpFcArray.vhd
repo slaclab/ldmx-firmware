@@ -81,9 +81,10 @@ architecture mapping of TrackerPgpFcArray is
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
 
-   signal pgpFcRefClk          : slv(PGP_QUADS_G-1 downto 0);
-   signal pgpFcUserRefClkOdiv2 : slv(PGP_QUADS_G-1 downto 0);
-   signal pgpFcUserRefClk      : slv(PGP_QUADS_G-1 downto 0);
+   signal pgpFcRefClk         : slv(PGP_QUADS_G-1 downto 0);
+   signal mgtRefClkOdiv2      : slv(PGP_QUADS_G-1 downto 0);
+   signal pgpFcUserDiv2RefClk : slv(PGP_QUADS_G-1 downto 0);
+   signal pgpFcUserRefClk     : slv(PGP_QUADS_G-1 downto 0);
 
    signal pgpObMasters : AxiStreamMasterArray(PGP_QUADS_G*4-1 downto 0);
    signal pgpObSlaves  : AxiStreamSlaveArray(PGP_QUADS_G*4-1 downto 0);
@@ -129,12 +130,12 @@ begin
             I     => pgpFcRefClkP(quad),
             IB    => pgpFcRefClkN(quad),
             CEB   => '0',
-            ODIV2 => pgpFcUserRefClkOdiv2(quad),
+            ODIV2 => mgtRefClkOdiv2(quad),
             O     => pgpFcRefClk(quad));
 
       U_mgtUserRefClk : BUFG_GT
          port map (
-            I       => pgpFcUserRefClkOdiv2(quad),
+            I       => mgtRefClkOdiv2(quad),
             CE      => '1',
             CEMASK  => '1',
             CLR     => '0',
@@ -142,6 +143,15 @@ begin
             DIV     => "000",
             O       => pgpFcUserRefClk(quad));
 
+      U_mgtUserDiv2RefClk : BUFG_GT
+         port map (
+            I       => mgtRefClkOdiv2(quad),
+            CE      => '1',
+            CEMASK  => '1',
+            CLR     => '0',
+            CLRMASK => '1',
+            DIV     => "001",
+            O       => pgpFcUserDiv2RefClk(quad));
 
       -- 4 Lanes per quad
       GEN_LANE : for lane in 3 downto 0 generate
@@ -156,31 +166,32 @@ begin
                NUM_VC_EN_G       => NUM_VC_EN_G)
             port map (
                -- PGP Serial Ports
-               pgpRxP          => pgpFcRxP(quad*4+lane),
-               pgpRxN          => pgpFcRxN(quad*4+lane),
-               pgpTxP          => pgpFcTxP(quad*4+lane),
-               pgpTxN          => pgpFcTxN(quad*4+lane),
-               pgpRefClk       => pgpFcRefClk(quad),
-               pgpUserRefClk   => pgpFcUserRefClk(quad),
+               pgpRxP            => pgpFcRxP(quad*4+lane),
+               pgpRxN            => pgpFcRxN(quad*4+lane),
+               pgpTxP            => pgpFcTxP(quad*4+lane),
+               pgpTxN            => pgpFcTxN(quad*4+lane),
+               pgpRefClk         => pgpFcRefClk(quad),
+               pgpUserRefClk     => pgpFcUserRefClk(quad),
+               pgpUserDiv2RefClk => pgpFcUserDiv2RefClk(quad),
                -- Fast Control Interface
-               fcClk185        => fcClk185,
-               fcRst185        => fcRst185,
-               fcBus           => fcBus,
+               fcClk185          => fcClk185,
+               fcRst185          => fcRst185,
+               fcBus             => fcBus,
                -- DMA Interface (dmaClk domain)
-               dmaClk          => dmaClk,
-               dmaRst          => dmaRst,
-               dmaBuffGrpPause => dmaBuffGrpPause,
-               dmaObMaster     => pgpObMasters(quad*4+lane),
-               dmaObSlave      => pgpObSlaves(quad*4+lane),
-               dmaIbMaster     => pgpIbMasters(quad*4+lane),
-               dmaIbSlave      => pgpIbSlaves(quad*4+lane),
+               dmaClk            => dmaClk,
+               dmaRst            => dmaRst,
+               dmaBuffGrpPause   => dmaBuffGrpPause,
+               dmaObMaster       => pgpObMasters(quad*4+lane),
+               dmaObSlave        => pgpObSlaves(quad*4+lane),
+               dmaIbMaster       => pgpIbMasters(quad*4+lane),
+               dmaIbSlave        => pgpIbSlaves(quad*4+lane),
                -- AXI-Lite Interface (axilClk domain)
-               axilClk         => axilClk,
-               axilRst         => axilRst,
-               axilReadMaster  => axilReadMasters(quad*4+lane),
-               axilReadSlave   => axilReadSlaves(quad*4+lane),
-               axilWriteMaster => axilWriteMasters(quad*4+lane),
-               axilWriteSlave  => axilWriteSlaves(quad*4+lane));
+               axilClk           => axilClk,
+               axilRst           => axilRst,
+               axilReadMaster    => axilReadMasters(quad*4+lane),
+               axilReadSlave     => axilReadSlaves(quad*4+lane),
+               axilWriteMaster   => axilWriteMasters(quad*4+lane),
+               axilWriteSlave    => axilWriteSlaves(quad*4+lane));
 
       end generate GEN_LANE;
 
