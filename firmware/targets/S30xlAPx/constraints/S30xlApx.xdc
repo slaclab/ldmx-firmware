@@ -14,6 +14,9 @@ create_generated_clock -name lclsTimingTxOutClk [get_pins -hier * -filter {name=
 create_clock -name lclsTimingRxOutClk -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/U_Lcls2TimingRx_1/*/RXOUTCLK}]
 create_generated_clock -name lclsTimingRxOutClkMmcm [get_pins U_FcHub_1/U_Lcls2TimingRx_1/RX_CLK_MMCM_GEN.U_ClockManager/MmcmGen.U_Mmcm/CLKOUT0]
 
+# FC Hub StableClk
+create_generated_clock -name fcHubRefClk0Div2 [get_pins -hier * -filter {name=~U_FcHub_1/U_FcSenderArray_1/REFCLK_BUFS[0].U_mgtUserDiv2RefClk/O}]
+
 # FC Hub Rec Clocks
 create_clock -name fcHubRxOutClk0  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[0]*/*/RXOUTCLK}]
 create_clock -name fcHubRxOutClk1  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[1]*/*/RXOUTCLK}]
@@ -63,6 +66,7 @@ create_clock -name fcHubTxOutClkPcs3  -period 5.384 [get_pins -hier * -filter {n
 
 
 # App FC Clocks
+create_generated_clock -name appFcRefClkDiv2 [get_pins -hier * -filter {name=~*/U_FcReceiver_1/U_mgtUserRefClkDiv2/O}]
 create_clock -name appFcRxOutClk -period 5.384 [get_pins -hier * -filter {name=~*/U_FcReceiver_1/*/RXOUTCLK}]
 create_clock -name appFcTxOutClkPcs -period 5.384 [get_pins -hier * -filter {name=~*/U_FcReceiver_1/*/TXOUTCLKPCS}]
 create_clock -name appFcTxOutClkMon -period 5.384 [get_pins -hier * -filter {name=~*/U_FcReceiver_1/*/bufg_gt_txoutclkmon_inst/O}]
@@ -115,6 +119,7 @@ set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks clk125In] \
     -group [get_clocks -include_generated_clocks lclsTimingRefClk] \
     -group [get_clocks -include_generated_clocks fcHubRefClk0] \
+    -group [get_clocks -include_generated_clocks fcHubRefClk0Div2] \    
     -group [get_clocks -include_generated_clocks appFcRefClk] \
     -group [get_clocks -include_generated_clocks tsRefClk250] \
     -group [get_clocks -include_generated_clocks ethRefClk156] \
@@ -126,6 +131,7 @@ set_clock_groups -asynchronous \
     -group [get_clocks appFcTxOutClkMon] \    
     -group [get_clocks -include_generated_clocks appFcRxOutClk] \
     -group [get_clocks appFcRefClk] \
+    -group [get_clocks appFcRefClkDiv2] \
     -group [get_clocks clk125In]
 
 set_clock_groups -asynchronous \
@@ -155,6 +161,7 @@ set_clock_groups -asynchronous \
 
 set_clock_groups -asynchronous \
     -group [get_clocks clk125In] \
+    -group [get_clocks fcHubRefClk0Div2] \        
     -group [get_clocks -include_generated_clocks lclsTimingRxOutClk] \
     -group [get_clocks ethRefClk156] \
     -group [get_clocks tsRxOutClk0] \
@@ -166,6 +173,7 @@ set_clock_groups -asynchronous \
 
 set_clock_groups -asynchronous \
     -group [get_clocks clk125In] \
+    -group [get_clocks fcHubRefClk0Div2] \        
     -group [get_clocks lclsTimingRxOutClkMmcm] \
     -group [get_clocks fcHubTxOutClkMon0] \
     -group [get_clocks fcHubTxOutClkMon1] \
@@ -178,6 +186,7 @@ set_clock_groups -asynchronous \
     
 
 set_clock_groups -asynchronous \
+    -group [get_clocks fcHubRefClk0Div2] \            
     -group [get_clocks tsRefClk250] \
     -group [get_clocks tsRxOutClk0] \
     -group [get_clocks tsRxOutClk1] \
