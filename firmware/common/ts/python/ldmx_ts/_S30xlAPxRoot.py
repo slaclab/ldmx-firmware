@@ -21,33 +21,38 @@ class S30xlAPxRoot(pr.Root):
         
         if sim is True:
             SIM_SRP_PORT = 10000
-            SIM_RAW_DATA_PORT = 11000
-            SIM_TRIG_DATA_PORT = 12000
+            SIM_DAQ_EVENT_PORT = 11000
+            SIM_TRIG_EVENT_PORT = 12000
 
             self.srpStream = rogue.interfaces.stream.TcpClient('localhost', SIM_SRP_PORT)
-            self.srp == self.srpStream
-            self.addInterface(self.srpStream)
-
-            self.rawDataStream = rogue.interfaces.stream.TcpClient('localhost', SIM_RAW_DATA_PORT)
-            self.trigDataStream = rogue.interfaces.stream.TcpClient('localhost', SIM_TRIG_DATA_PORT)
-
-            self.addInterface(self.rawDataStream, self.trigDataStream)
+            self.tsDaqEventStream = rogue.interfaces.stream.TcpClient('localhost', SIM_DAQ_EVENT_PORT)
+            self.tsTrigEventStream = rogue.interfaces.stream.TcpClient('localhost', SIM_TRIG_EVENT_PORT)
 
         else:
+            # Open rUDP connections
             self.srpUdp = pyrogue.protocols.UdpRssiPack(host=host, port=8192, packVer=2, name='SrpRssi')
-            self.rawDataUdp = pyrogue.protocols.UdpRssiPack(host=host, port=8193, packVer=2, name='RawDataRssi')
-            self.trigDataUdp = pyrogue.protocols.UdpRssiPack(host=host, port=8193, packVer=2, name='TrigDataRssi')            
-            self.srpStream = self.srpUdp.application(dest=0)
-            self.rawDataStream = self.rawDataUdp.application(dest=0)
-            self.trigDataStream = self.trigDataUdp.application(dest=0)
+            self.tsDaqUdp = pyrogue.protocols.UdpRssiPack(host=host, port=8193, packVer=2, name='TsDaqEventRssi')
+            self.trigDataUdp = pyrogue.protocols.UdpRssiPack(host=host, port=8194, packVer=2, name='TsTrigEventRssi')
 
+            self.addInterface(self.srpUdp, self.tsDaqUdp, self.trigDataUdp)
+            
+            self.srpStream = self.srpUdp.application(dest=0)
+            self.tsDaqEventStream = self.rawDataUdp.application(dest=0)
+            self.tsTrigEventStream = self.trigDataUdp.application(dest=0)
+
+        # Add stream interfaces for clean exit
+        self.addInterface(self.srpStream, self.tsDaqEventStream, self.tsTrigEventStream)
+            
+        # Connect srp stream to srp protocol
+        self.srp == self.srpStream
+
+        # Instantiate the FPGA Device Tree
         self.add(ldmx_ts.S30xlAPx(
             memBase = self.srp,
             expand = True))
 
-        self.rawEventReceiver = ldmx_ts.TsRawEventReceiver()
+        self.tsDaqEventReceiver = ldmx_ts.TsDaqEventReceiver()
         self.addInterface(self.rawEventReceiver)
 
-
-        self.rawDataStream >> self.rawEventReceiver
+        self.tsDaqEventStream >> self.rawEventReceiver
 #        self.trigDataStream >> self.dataReceiver
