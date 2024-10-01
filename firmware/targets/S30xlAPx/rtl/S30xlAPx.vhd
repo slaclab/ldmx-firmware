@@ -47,7 +47,7 @@ entity S30xlAPx is
       SIM_RAW_DATA_PORT_NUM_G  : integer              := 9100;
       SIM_TRIG_DATA_PORT_NUM_G : integer              := 9200;
       DHCP_G                   : boolean              := false;  -- true = DHCP, false = static address
-      IP_ADDR_G                : slv(31 downto 0)     := x"0A01A8C0";  -- 192.168.1.10 (before DHCP)
+      IP_ADDR_G                : slv(31 downto 0)     := x"0A0AA8C0";  -- 192.168.10.10 (before DHCP)
       MAC_ADDR_G               : slv(47 downto 0)     := x"00_00_16_56_00_08";
       TS_LANES_G               : integer              := 2;
       TS_REFCLKS_G             : integer              := 1;
