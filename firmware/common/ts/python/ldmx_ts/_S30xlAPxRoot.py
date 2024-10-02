@@ -1,5 +1,6 @@
 import pyrogue as pr
 import pyrogue.interfaces.simulation
+import pyrogue.protocols
 
 import axipcie
 
@@ -10,7 +11,7 @@ import ldmx_ts
 
 
 class S30xlAPxRoot(pr.Root):
-    def __init__(self, sim=True, emu=False, host='192.168.0.10', **kwargs):
+    def __init__(self, sim=True, emu=False, host='192.168.10.10', **kwargs):
         super().__init__(timeout=100000, **kwargs)
 
         self.zmqServer = pyrogue.interfaces.ZmqServer(root=self, addr='127.0.0.1', port=0)
@@ -37,7 +38,7 @@ class S30xlAPxRoot(pr.Root):
             self.addInterface(self.srpUdp, self.tsDaqUdp, self.trigDataUdp)
             
             self.srpStream = self.srpUdp.application(dest=0)
-            self.tsDaqEventStream = self.rawDataUdp.application(dest=0)
+            self.tsDaqEventStream = self.tsDaqUdp.application(dest=0)
             self.tsTrigEventStream = self.trigDataUdp.application(dest=0)
 
         # Add stream interfaces for clean exit
@@ -52,7 +53,7 @@ class S30xlAPxRoot(pr.Root):
             expand = True))
 
         self.tsDaqEventReceiver = ldmx_ts.TsDaqEventReceiver()
-        self.addInterface(self.rawEventReceiver)
+        self.addInterface(self.tsDaqEventReceiver)
 
-        self.tsDaqEventStream >> self.rawEventReceiver
+        self.tsDaqEventStream >> self.tsDaqEventReceiver
 #        self.trigDataStream >> self.dataReceiver
