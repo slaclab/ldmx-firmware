@@ -75,6 +75,7 @@ create_generated_clock -name appFcRxOutClkMmcm [get_pins U_S30xlAppCore_1/U_FcRe
 #U_S30xlAppCore_1/U_FcReceiver_1/U_LdmxPgpFcLane_1/GEN_GTY.U_Pgp/PgpGtyCoreWrapper_1/U_Pgp2fcGtyCore/inst/gen_gtwizard_gtye4_top.Pgp2fcGtyCore_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[0].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_16_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_16_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O
 
 # TS Rec Clocks
+create_generated_clock -name tsRefClkDiv2 [get_pins -hier * -filter {name=~*U_TsDataRx_1/U_TsDataRxLaneArray_1/REFCLK_BUFS[0].U_mgtUserRefClkDiv2/O}]
 create_clock -name tsRxOutClk0 -period 4.0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[0]*/RXOUTCLK}]
 create_clock -name tsRxOutClk1 -period 4.0 [get_pins -hier * -filter {name=~*U_TsDataRx_1/*/GEN_LANES[1]*/RXOUTCLK}]
 
@@ -122,6 +123,7 @@ set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks fcHubRefClk0Div2] \    
     -group [get_clocks -include_generated_clocks appFcRefClk] \
     -group [get_clocks -include_generated_clocks tsRefClk250] \
+    -group [get_clocks tsRefClkDiv2] \
     -group [get_clocks -include_generated_clocks ethRefClk156] \
     -group [get_clocks -include_generated_clocks lclsTimingRxOutClk] \
     -group [get_clocks -include_generated_clocks appFcRxOutClk]
@@ -137,7 +139,8 @@ set_clock_groups -asynchronous \
 set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks appFcRxOutClk] \
     -group [get_clocks tsRxOutClk0] \
-    -group [get_clocks tsRxOutClk1] 
+    -group [get_clocks tsRxOutClk1] \
+    -group [get_clocks tsRefClkDiv2]
 
 #Ethernet Clocks
 set_clock_groups -asynchronous \
@@ -188,6 +191,7 @@ set_clock_groups -asynchronous \
 set_clock_groups -asynchronous \
     -group [get_clocks fcHubRefClk0Div2] \            
     -group [get_clocks tsRefClk250] \
+    -group [get_clocks tsRefClkDiv2] \
     -group [get_clocks tsRxOutClk0] \
     -group [get_clocks tsRxOutClk1] \
     -group [get_clocks tsTxOutClkMon0] \

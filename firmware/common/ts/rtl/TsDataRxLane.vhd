@@ -37,7 +37,10 @@ entity TsDataRxLane is
    port (
       -- TS Interface
       tsRefClk250  : in  sl;
-      tsUserClk250 : in  sl;            -- Only used for monitoring freq
+      tsUserClk250 : in  sl;
+      tsUserRst250 : in  sl;
+      tsUserClk125 : in  sl;
+      tsUserRst125 : in  sl;
       tsDataRxP    : in  sl;
       tsDataRxN    : in  sl;
       tsDataTxP    : out sl;
@@ -164,8 +167,8 @@ begin
          AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_G,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_GTY_C).baseAddr)
       port map (
-         stableClk       => axilClk,                          -- [in]
-         stableRst       => axilRst,                          -- [in]
+         stableClk       => tsUserClk125,                     -- [in]
+         stableRst       => tsUserRst125,                     -- [in]
          gtRefClk        => tsRefClk250,                      -- [in]
          gtUserRefClk    => tsUserClk250,                     -- [in]
          gtRxP           => tsDataRxP,                        -- [in]
