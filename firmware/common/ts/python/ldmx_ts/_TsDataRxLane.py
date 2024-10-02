@@ -14,6 +14,9 @@ class TsDataRxLane(pr.Device):
 #             offset = 0x4100))
 
         self.add(surf.xilinx.Gtye4Channel(
-            offset = 0x0_0000))
+            offset = 0x1000))
+
+        self.add(surf.xilinx.GtRxAlignCheck(
+            offset = 0x0000))
 
         
