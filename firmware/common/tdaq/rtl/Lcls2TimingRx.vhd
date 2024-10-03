@@ -265,11 +265,11 @@ begin
             RST_IN_POLARITY_G  => '0',
             NUM_CLOCKS_G       => 1,
             -- MMCM attributes
-            BANDWIDTH_G        => "OPTIMIZED",
+            BANDWIDTH_G        => "HIGH",
             CLKIN_PERIOD_G     => 5.384,
             DIVCLK_DIVIDE_G    => 1,
-            CLKFBOUT_MULT_F_G  => 6.500,
-            CLKOUT0_DIVIDE_F_G => 6.500)
+            CLKFBOUT_MULT_F_G  => 8.500,
+            CLKOUT0_DIVIDE_F_G => 8.500)
          port map(
             clkIn     => timingRxOutClkGt,
             rstIn     => rxPmaRstDoneOut, -- reset polarity low -> active-low reset
