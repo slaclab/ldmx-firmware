@@ -11,8 +11,8 @@ class LdmxPgpFcLane(pr.Device):
 
         self.add(surf.protocols.pgp.Pgp2fcAxi(
             name   = "Pgp2Fc",
-            statusCountBits = 12,
-            errorCountBits  = 18,
+            statusCountBits = 32,
+            errorCountBits  = 32,
             offset = 0x4000))
 
         self.add(ldmx_tdaq.Pgp2fcGtyCoreWrapper(
