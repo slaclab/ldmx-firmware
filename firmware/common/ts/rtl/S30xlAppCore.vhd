@@ -173,8 +173,6 @@ begin
       port map (
          fcRefClk185P    => appFcRefClkP,                       -- [in]
          fcRefClk185N    => appFcRefClkN,                       -- [in]
-         fcRecClkP       => open,                               -- [out]
-         fcRecClkN       => open,                               -- [out]
          fcTxP           => appFcTxP,                           -- [out]
          fcTxN           => appFcTxN,                           -- [out]
          fcRxP           => appFcRxP,                           -- [in]

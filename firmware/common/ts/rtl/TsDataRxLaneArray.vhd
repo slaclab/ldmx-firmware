@@ -88,6 +88,8 @@ architecture rtl of TsDataRxLaneArray is
    signal tsRefClk250   : slv(TS_REFCLKS_G-1 downto 0);
    signal tsUserClk250  : slv(TS_REFCLKS_G-1 downto 0);
    signal tsUserRst250  : slv(TS_REFCLKS_G-1 downto 0);
+   signal tsUserClk125  : slv(TS_REFCLKS_G-1 downto 0);
+   signal tsUserRst125  : slv(TS_REFCLKS_G-1 downto 0);
 
 begin
 
@@ -146,6 +148,25 @@ begin
             asyncRst => '0',
             syncRst  => tsUserRst250(i));
 
+      U_mgtUserRefClkDiv2 : BUFG_GT
+         port map (
+            I       => tsRefClkOdiv2(i),
+            CE      => '1',
+            CEMASK  => '1',
+            CLR     => '0',
+            CLRMASK => '1',
+            DIV     => "001",
+            O       => tsUserClk125(i));
+
+      U_RstSync_2 : entity surf.RstSync
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk      => tsUserClk125(i),
+            asyncRst => '0',
+            syncRst  => tsUserRst125(i));
+
+
    end generate;
 
    -------------------------------------------------------------------------------------------------
@@ -164,6 +185,9 @@ begin
          port map (
             tsRefClk250     => tsRefClk250(TS_REFCLK_MAP_G(i)),   -- [in]
             tsUserClk250    => tsUserClk250(TS_REFCLK_MAP_G(i)),  -- [in]
+            tsUserRst250    => tsUserRst250(TS_REFCLK_MAP_G(i)),  -- [in]
+            tsUserClk125    => tsUserClk125(TS_REFCLK_MAP_G(i)),  -- [in]
+            tsUserRst125    => tsUserRst125(TS_REFCLK_MAP_G(i)),  -- [in]
             tsDataRxP       => tsDataRxP(i),                      -- [in]
             tsDataRxN       => tsDataRxN(i),                      -- [in]
             tsDataTxP       => tsDataTxP(i),                      -- [out]

@@ -413,8 +413,8 @@ begin
          COMMON_RX_CLK_G    => false,
          WRITE_EN_G         => true,
          AXI_CLK_FREQ_G     => AXIL_CLK_FREQ_G,
-         STATUS_CNT_WIDTH_G => 12,
-         ERROR_CNT_WIDTH_G  => 18)
+         STATUS_CNT_WIDTH_G => 32,
+         ERROR_CNT_WIDTH_G  => 32)
       port map (
          -- TX PGP Interface (pgpTxClk)
          pgpTxClk        => pgpTxUsrClk,

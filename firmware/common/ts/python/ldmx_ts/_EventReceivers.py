@@ -1,26 +1,31 @@
 import pyrogue as pr
 import rogue
 
+import numpy as np
 from dataclasses import dataclass, field
 from typing import List
 
-def parseEventFrame(frame):
-    channel = frame.getChannel()
-    fl = frame.getPayload()
-    raw = bytearray(fl)
-    frame.read(raw, 0)
+@dataclass
+class DaqEvent:
+    version: int
+    subsystemId: int 
+    contributorId: int
+    bunchCount: int
+    pulseId: int
+    data: np.ndarray
 
-    bunchCount = raw[0]
-    pulseId = int.from_bytes(raw[1:9], 'little', signed=False)
-    contributorId = raw[9]
-    subsystemId = raw[10]
+    @classmethod
+    def from_numpy(cls, arr):
+        header = cls(
+            version = int(arr[0]),
+            subsystemId = int(arr[1]),
+            contributorId = int(arr[2]),
+            bunchCount = int(arr[7]),
+            pulseId = int(arr[8:16].view(np.uint64)),
+            data = arr[16:])
+        return header
 
-    print('Got frame')
-    print(f'{subsystemId=}, {contributorId=}')
-    print(f'{pulseId=}, {bunchCount=}')
-
-    return raw[16:]
-        
+    
 @dataclass
 class TsData6ChMsg:
     pulseId: int
@@ -34,7 +39,7 @@ class TsData6ChMsg:
     tdc: List[int] = field(default_factory=list)
 
     @classmethod
-    def from_ba(cls, data: bytearray):
+    def from_numpy(cls, data):
         msg = cls(
             adc = [int(data[i]) for i in range(0, 6)],
             tdc = [int(data[i]) for i in range(8, 14)],
@@ -44,27 +49,20 @@ class TsData6ChMsg:
         return msg
     
         
-class TsRawEventReceiver(rogue.interfaces.stream.Slave):
+class TsDaqEventReceiver(rogue.interfaces.stream.Slave):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-
         
     def _acceptFrame(self, frame):
-        channel = frame.getChannel()
-        fl = frame.getPayload()
-        raw = bytearray(fl)
-        frame.read(raw, 0)
-        
-        bunchCount = raw[0]
-        pulseId = int.from_bytes(raw[1:9], 'little', signed=False)
-        contributorId = raw[9]
-        subsystemId = raw[10]
+        rawNumpy = frame.getNumpy(0, frame.getPayload())
 
-        msgs = []
-        for i in range(0, len(data), 16):
-            msg = 
-            msgs.append(TsData6ChMsg.from_ba(data[i:i+16]))
+        event = DaqEvent.from_numpy(rawNumpy)
+
+        data = event.data
+        data.resize(data.size//16, 16)
+        
+        msgs = [TsData6ChMsg.from_numpy(arr) for arr in data]
 
         print(msgs)
 
