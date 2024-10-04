@@ -160,6 +160,11 @@ architecture rtl of TrackerBittware is
    signal dmaIbMasters    : AxiStreamMasterArray(PGP_QUADS_G-1 downto 0);
    signal dmaIbSlaves     : AxiStreamSlaveArray(PGP_QUADS_G-1 downto 0);
 
+   ------------
+   -- Misc
+   ------------
+   signal fcRxMsgValid    : sl;
+
 begin
 
    -------------------------------------------------------------------------------------------------
@@ -290,7 +295,7 @@ begin
 --         fcFb            => FC_FB_INIT_C,                    -- [in]
          fcBunchClk37    => open,                            -- [out]
          fcBunchRst37    => open,                            -- [out]
-         fcRxMsgValid    => ledL(3),                         -- [out]
+         fcRxMsgValid    => fcRxMsgValid,                    -- [out]
          axilClk         => axilClk,                         -- [in]
          axilRst         => axilRst,                         -- [in]
          axilReadMaster  => axilReadMasters(FC_RX_AXIL_C),   -- [in]
@@ -344,6 +349,11 @@ begin
    qsfpTxN(0)     <= fcTxN;
    fcRxP          <= qsfpRxP(0);
    fcRxN          <= qsfpRxN(0);
+
+   -- Debugging Outputs
+   GEN_DBG: for i in 3 downto 0 generate
+      ledL(i) <= fcRxMsgValid;
+   end generate GEN_DBG;
 
    -- FEB PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0
    GEN_FEB_REFCLK : for i in PGP_QUADS_G-1 downto 0 generate
