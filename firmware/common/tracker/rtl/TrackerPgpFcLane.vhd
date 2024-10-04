@@ -47,6 +47,8 @@ entity TrackerPgpFcLane is
       pgpRefClk         : in  sl;
       pgpUserRefClk     : in  sl;
       pgpUserDiv2RefClk : in  sl;
+      pgpUserStableClk  : in  sl;
+      pgpUserStableRst  : in  sl;
       -- Fast Control Interface
       -- Drives TX
       fcClk185          : in  sl;
@@ -111,7 +113,8 @@ begin
          pgpRxN           => pgpRxN,            -- [in]
          pgpRefClk        => pgpRefClk,         -- [in]
          pgpUserRefClk    => pgpUserRefClk,     -- [in]
-         pgpUserStableClk => pgpUserDiv2RefClk, -- [in]
+         pgpUserStableClk => pgpUserStableClk,  -- [in]
+         pgpUserStableRst => pgpUserStableRst,  -- [in]
          pgpRxRstOut      => pgpRxRstOut,       -- [out]
          pgpRxOutClk      => pgpRxOutClk,       -- [out]
          pgpRxIn          => pgpRxIn,           -- [in]

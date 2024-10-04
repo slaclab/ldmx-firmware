@@ -50,7 +50,9 @@ entity FcReceiver is
       fcTxN        : out sl;
       fcRxP        : in  sl;
       fcRxN        : in  sl;
-
+      -- Stable 156.25/2 MHz clock
+      stableClk    : in  sl;
+      stableRst    : in  sl;
       -- RX FC and PGP interface
       fcClk185     : out sl;
       fcRst185     : out sl;
@@ -114,7 +116,6 @@ architecture rtl of FcReceiver is
    signal pgpRefClk          : sl;      -- Refclk after buffering
    signal pgpUserRefClkOdiv2 : sl;      -- Refclk ODIV2
    signal pgpUserRefClk      : sl;      -- ODIV2+BUFG_GT - Used to clock TX
-   signal pgpUserStableClk   : sl;      -- true div2 of gtRefClk; for GTY/GTH stableClk pin
    signal pgpUserRefRst      : sl;
    signal fcClk185Loc        : sl;      -- Recovered RX clock for local use
    signal fcRst185Loc        : sl;
@@ -195,16 +196,6 @@ begin
          DIV     => "000",
          O       => pgpUserRefClk);
 
-   U_mgtUserRefClkDiv2 : BUFG_GT
-      port map (
-         I       => pgpUserRefClkOdiv2,
-         CE      => '1',
-         CEMASK  => '1',
-         CLR     => '0',
-         CLRMASK => '1',
-         DIV     => "001",
-         O       => pgpUserStableClk);
-
    -------------------------------------------------------------------------------------------------
    -- Create a reset for pgpUserRefClk
    -------------------------------------------------------------------------------------------------
@@ -251,7 +242,8 @@ begin
          pgpRxN           => fcRxN,                                    -- [in]
          pgpRefClk        => pgpRefClk,                                -- [in]
          pgpUserRefClk    => pgpUserRefClk,                            -- [in]
-         pgpUserStableClk => pgpUserStableClk,                         -- [in]
+         pgpUserStableClk => stableClk,                                -- [in]
+         pgpUserStableRst => stableRst,                                -- [in]
          pgpRxRstOut      => fcRst185Loc,                              -- [out]
          pgpRxOutClk      => fcClk185Loc,                              -- [out]
          pgpRxIn          => pgpRxInLoc,                               -- [in]

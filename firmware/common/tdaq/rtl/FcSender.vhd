@@ -37,12 +37,14 @@ entity FcSender is
    port (
       -- Reference clock
       fcHubRefClk       : in  sl;
-      fcHubDiv2RefClk   : in  sl;
       -- PGP FC serial IO
       fcHubTxP          : out sl;
       fcHubTxN          : out sl;
       fcHubRxP          : in  sl;
       fcHubRxN          : in  sl;
+      -- Stable 156.25/2 MHz clock
+      stableClk         : in  sl;
+      stableRst         : in  sl;
       -- Interface to Global Trigger and LCLS Timing
       lclsTimingUserClk : in  sl;
       lclsTimingUserRst : in  sl;
@@ -88,7 +90,7 @@ begin
          TX_ENABLE_G      => true,
          RX_ENABLE_G      => true,
          NUM_VC_EN_G      => 0,
-         RX_CLK_MMCM_G    => false)
+         RX_CLK_MMCM_G    => true)
       port map (
          pgpTxP           => fcHubTxP,                              -- [out]
          pgpTxN           => fcHubTxN,                              -- [out]
@@ -96,7 +98,8 @@ begin
          pgpRxN           => fcHubRxN,                              -- [in]
          pgpRefClk        => fcHubRefClk,                           -- [in]
          pgpUserRefClk    => lclsTimingUserClk,                     -- [in]
-         pgpUserStableClk => fcHubDiv2RefClk,                       -- [in]
+         pgpUserStableClk => stableClk,                             -- [in]
+         pgpUserStableRst => stableRst,                             -- [in]
          pgpRxRstOut      => fcRxRst185,                            -- [out]
          pgpRxOutClk      => fcRxClk185,                            -- [out]
          pgpRxIn          => pgpRxIn,                               -- [in]

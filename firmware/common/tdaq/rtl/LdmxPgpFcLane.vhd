@@ -49,6 +49,7 @@ entity LdmxPgpFcLane is
       pgpRefClk        : in  sl;
       pgpUserRefClk    : in  sl;
       pgpUserStableClk : in  sl;
+      pgpUserStableRst : in  sl;
       -- Rx Interface
       pgpRxRstOut      : out sl;
       pgpRxOutClk      : out sl;
@@ -106,8 +107,6 @@ architecture rtl of LdmxPgpFcLane is
    signal pgpRxOutClkGt     : sl;
    signal pgpRxUsrClk       : sl;
    signal pgpRxMmcmLocked   : sl;
-
-   signal pgpUserStableRst  : sl;
 
    -------------------------------------------------------------------------------------------------
    -- Components
@@ -527,14 +526,6 @@ begin
 --          clk      => pgpRxUsrClk,       -- [in]
 --          asyncRst => pgpRxResetDone,    -- [in]
 --          syncRst  => pgpRxRst);         -- [out]
-
-    U_RstSync_StableRst : entity surf.RstSync
-       generic map (
-          TPD_G => TPD_G)
-       port map (
-          clk      => pgpUserStableClk,  -- [in]
-          asyncRst => axilRst,           -- [in]
-          syncRst  => pgpUserStableRst); -- [out]
 
    pgpRxRstOut <= pgpRxRst;
 

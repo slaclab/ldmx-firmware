@@ -138,6 +138,8 @@ architecture rtl of TrackerBittware is
 
    signal axilClk          : sl;
    signal axilRst          : sl;
+   signal stableClk        : sl;
+   signal stableRst        : sl;
    signal axilReadMaster   : AxiLiteReadMasterType;
    signal axilReadSlave    : AxiLiteReadSlaveType;
    signal axilWriteMaster  : AxiLiteWriteMasterType;
@@ -179,27 +181,33 @@ begin
          clk    => userClk100,          -- [in]
          rstOut => userRst100);         -- [out]
 
-   U_axilClk : entity surf.ClockManagerUltraScale
+   -------------------------------------------------------------------------------------------------
+   -- Convert 100 MHz userClk to 125 MHz for AXI-Lite clock and 78.125 MHz for Timing GT stableClk
+   -------------------------------------------------------------------------------------------------
+   U_AxiClkStableClk : entity surf.ClockManagerUltraScale
       generic map(
          TPD_G             => TPD_G,
-         TYPE_G            => "PLL",
+         TYPE_G            => "MMCM",
          INPUT_BUFG_G      => false,
          FB_BUFG_G         => true,
          RST_IN_POLARITY_G => '1',
-         NUM_CLOCKS_G      => 1,
+         NUM_CLOCKS_G      => 2,
          -- MMCM attributes
          BANDWIDTH_G       => "OPTIMIZED",
          CLKIN_PERIOD_G    => 10.0,     -- 100 MHz
-         CLKFBOUT_MULT_G   => 10,       -- 100x10 = 1000 MHz
-         CLKOUT0_DIVIDE_G  => 8)        -- 1000/8 = 125  MHz
+         CLKFBOUT_MULT_F_G => 12.5,     -- 100x12.5 = 1250   MHz
+         CLKOUT0_DIVIDE_G  => 10,       -- 1250/10  = 125    MHz
+         CLKOUT1_DIVIDE_G  => 16)       -- 1250/16  = 78.125 MHz
       port map(
          -- Clock Input
          clkIn     => userClk100,
          rstIn     => dmaRst,
          -- Clock Outputs
          clkOut(0) => axilClk,
+         clkOut(1) => stableClk,
          -- Reset Outputs
-         rstOut(0) => axilRst);
+         rstOut(0) => axilRst,
+         rstOut(1) => stableRst);
 
    -----------------------
    -- axi-pcie-core module
@@ -292,6 +300,8 @@ begin
          fcClk185        => fcClk185,                        -- [out]
          fcRst185        => fcRst185,                        -- [out]
          fcBus           => fcBus,                           -- [out]
+         stableClk       => stableClk,                       -- [in]
+         stableRst       => stableRst,                       -- [in]
 --         fcFb            => FC_FB_INIT_C,                    -- [in]
          fcBunchClk37    => open,                            -- [out]
          fcBunchRst37    => open,                            -- [out]
@@ -325,6 +335,8 @@ begin
          fcClk185        => fcClk185,                          -- [in]
          fcRst185        => fcRst185,                          -- [in]
          fcBus           => fcBus,                             -- [in]
+         stableClk       => stableClk,                         -- [in]
+         stableRst       => stableRst,                         -- [in]
          dmaClk          => dmaClk,                            -- [in]
          dmaRst          => dmaRst,                            -- [in]
          dmaBuffGrpPause => dmaBuffGrpPause,                   -- [in]
