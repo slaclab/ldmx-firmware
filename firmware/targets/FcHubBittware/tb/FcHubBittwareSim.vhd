@@ -45,6 +45,8 @@ entity FcHubBittwareSim is
       lclsTimingTxN     : out sl;
       timingRefClkP     : in  sl;
       timingRefClkN     : in  sl;
+      qsfpRecClkP       : out slv(FC_HUB_QUADS_G-1 downto 0);
+      qsfpRecClkN       : out slv(FC_HUB_QUADS_G-1 downto 0);
       fcHubTxP          : out slv(FC_HUB_QUADS_G*4-1 downto 0);
       fcHubTxN          : out slv(FC_HUB_QUADS_G*4-1 downto 0);
       fcHubRxP          : in  slv(FC_HUB_QUADS_G*4-1 downto 0);
@@ -101,6 +103,8 @@ begin
       port map (
          qsfpRefClkP    => qsfpRefClkP,     -- [in]
          qsfpRefClkN    => qsfpRefClkN,     -- [in]
+         qsfpRecClkP    => qsfpRecClkP,     -- [out]
+         qsfpRecClkN    => qsfpRecClkN,     -- [out]
          qsfpRxP        => qsfpRxP,         -- [in]
          qsfpRxN        => qsfpRxN,         -- [in]
          qsfpTxP        => qsfpTxP,         -- [out]

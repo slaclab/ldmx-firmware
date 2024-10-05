@@ -53,6 +53,8 @@ entity FcHubBittware is
       -- QSFP-DD Ports
       qsfpRefClkP    : in  slv(7 downto 0);
       qsfpRefClkN    : in  slv(7 downto 0);
+      qsfpRecClkP    : out slv(0 downto 0);
+      qsfpRecClkN    : out slv(0 downto 0);
       qsfpRxP        : in  slv(31 downto 0);
       qsfpRxN        : in  slv(31 downto 0);
       qsfpTxP        : out slv(31 downto 0);
@@ -86,6 +88,8 @@ architecture rtl of FcHubBittware is
    ---------------------------
    signal lclsTimingRefClkP : sl;
    signal lclsTimingRefClkN : sl;
+   signal timingRecClkOutP  : sl;
+   signal timingRecClkOutN  : sl;
    signal lclsTimingTxP     : sl;
    signal lclsTimingTxN     : sl;
    signal lclsTimingRxP     : sl;
@@ -280,6 +284,8 @@ begin
          lclsTimingRxN         => lclsTimingRxN,                       -- [in]
          lclsTimingTxP         => lclsTimingTxP,                       -- [out]
          lclsTimingTxN         => lclsTimingTxN,                       -- [out]
+         timingRecClkOutP      => timingRecClkOutP,                    -- [out]
+         timingRecClkOutN      => timingRecClkOutN,                    -- [out]
          lclsTimingClkOut      => lclsTimingClk,                       -- [out]
          lclsTimingRstOut      => lclsTimingRst,                       -- [out]
          globalTriggerRor      => dummyGlobalTriggerRor,               -- [in]
@@ -303,6 +309,8 @@ begin
    -- LCLS-II Timing RX is quad 0
    lclsTimingRefClkP <= qsfpRefClkP(0);
    lclsTimingRefClkN <= qsfpRefClkN(0);
+   qsfpRecClkP(0)    <= timingRecClkOutP;
+   qsfpRecClkN(0)    <= timingRecClkOutN;
    qsfpTxP(0)        <= lclsTimingTxP;
    qsfpTxN(0)        <= lclsTimingTxN;
    lclsTimingRxP     <= qsfpRxP(0);

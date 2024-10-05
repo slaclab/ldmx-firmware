@@ -53,6 +53,8 @@ entity TrackerBittware is
       -- QSFP-DD Ports
       qsfpRefClkP    : in  slv(7 downto 0);
       qsfpRefClkN    : in  slv(7 downto 0);
+      qsfpRecClkP    : out slv(0 downto 0);
+      qsfpRecClkN    : out slv(0 downto 0);
       qsfpRxP        : in  slv(31 downto 0);
       qsfpRxN        : in  slv(31 downto 0);
       qsfpTxP        : out slv(31 downto 0);
@@ -86,6 +88,8 @@ architecture rtl of TrackerBittware is
    -----------------------------------------
    signal fcRefClk185P    : sl;
    signal fcRefClk185N    : sl;
+   signal fcRecClkP       : sl;
+   signal fcRecClkN       : sl;
    signal fcTxP           : sl;
    signal fcTxN           : sl;
    signal fcRxP           : sl;
@@ -302,6 +306,8 @@ begin
          fcBus           => fcBus,                           -- [out]
          stableClk       => stableClk,                       -- [in]
          stableRst       => stableRst,                       -- [in]
+         fcRecClkP       => fcRecClkP,                       -- [out]
+         fcRecClkN       => fcRecClkN,                       -- [out]
 --         fcFb            => FC_FB_INIT_C,                    -- [in]
          fcBunchClk37    => open,                            -- [out]
          fcBunchRst37    => open,                            -- [out]
@@ -357,6 +363,8 @@ begin
    -- FC RX is quad 0
    fcRefClk185P   <= qsfpRefClkP(0);
    fcRefClk185N   <= qsfpRefClkN(0);
+   qsfpRecClkP(0) <= fcRecClkP;
+   qsfpRecClkN(0) <= fcRecClkN;
    qsfpTxP(0)     <= fcTxP;
    qsfpTxN(0)     <= fcTxN;
    fcRxP          <= qsfpRxP(0);

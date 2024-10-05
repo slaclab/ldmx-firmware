@@ -43,6 +43,8 @@ entity TrackerBittwareSim is
       fcRxN     : in  sl;
       fcTxP     : out sl;
       fcTxN     : out sl;
+      qsfpRecClkP : out slv(PGP_QUADS_G-1 downto 0);
+      qsfpRecClkN : out slv(PGP_QUADS_G-1 downto 0);
       febPgpFcRxP : in  slv(PGP_QUADS_G*4-1 downto 0);   -- [in]
       febPgpFcRxN : in  slv(PGP_QUADS_G*4-1 downto 0);   -- [in]
       febPgpFcTxP : out slv(PGP_QUADS_G*4-1 downto 0);   -- [out]
@@ -110,6 +112,8 @@ begin
       port map (
          qsfpRefClkP    => qsfpRefClkP,     -- [in]
          qsfpRefClkN    => qsfpRefClkN,     -- [in]
+         qsfpRecClkP    => qsfpRecClkP,     -- [out]
+         qsfpRecClkN    => qsfpRecClkN,     -- [out]
          qsfpRxP        => qsfpRxP,         -- [in]
          qsfpRxN        => qsfpRxN,         -- [in]
          qsfpTxP        => qsfpTxP,         -- [out]

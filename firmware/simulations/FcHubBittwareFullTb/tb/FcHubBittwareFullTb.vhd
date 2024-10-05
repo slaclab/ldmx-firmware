@@ -96,6 +96,11 @@ architecture sim of FcHubBittwareFullTb is
    signal febPgpFcTxP   : slv(PGP_QUADS_G*4-1 downto 0);    -- [out]
    signal febPgpFcTxN   : slv(PGP_QUADS_G*4-1 downto 0);    -- [out]
 
+   signal lclsRecClkP   : slv(FC_HUB_QUADS_G-1 downto 0); -- [out]
+   signal lclsRecClkN   : slv(FC_HUB_QUADS_G-1 downto 0); -- [out]
+   signal pgpRecClkP    : slv(PGP_QUADS_G-1 downto 0);    -- [out]
+   signal pgpRecClkN    : slv(PGP_QUADS_G-1 downto 0);    -- [out]
+
 begin
 
    -- Fast Control Refclk
@@ -124,6 +129,8 @@ begin
          lclsTimingRxN => lclsTimingRxN, -- [in]
          lclsTimingTxP => lclsTimingTxP, -- [out]
          lclsTimingTxN => lclsTimingTxN, -- [out]
+         qsfpRecClkP   => lclsRecClkP,   -- [out]
+         qsfpRecClkN   => lclsRecClkN,   -- [out]
          timingRefClkP => timingRefClkP, -- [in]
          timingRefClkN => timingRefClkN, -- [in]
          fcHubTxP      => fcHubTxP,      -- [in]
@@ -144,6 +151,8 @@ begin
          fcRxN       => fcRxN,          -- [in]
          fcTxP       => fcTxP,          -- [out]
          fcTxN       => fcTxN,          -- [out]
+         qsfpRecClkP => pgpRecClkP,     -- [out]
+         qsfpRecClkN => pgpRecClkN,     -- [out]
          febPgpFcRxP => febPgpFcRxP,    -- [in]
          febPgpFcRxN => febPgpFcRxN,    -- [in]
          febPgpFcTxP => febPgpFcTxP,    -- [out]

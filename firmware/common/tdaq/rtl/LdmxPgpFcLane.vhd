@@ -47,6 +47,7 @@ entity LdmxPgpFcLane is
       pgpRxP           : in  sl;
       pgpRxN           : in  sl;
       pgpRefClk        : in  sl;
+      pgpRxRecClk      : out sl;
       pgpUserRefClk    : in  sl;
       pgpUserStableClk : in  sl;
       pgpUserStableRst : in  sl;
@@ -134,6 +135,7 @@ architecture rtl of LdmxPgpFcLane is
          gtRefClk          : in  sl;
          gtFabricRefClk    : in  sl;
          gtUserRefClk      : in  sl;
+         gtRxRecClk        : out sl;
          pgpGtTxP          : out sl;
          pgpGtTxN          : out sl;
          pgpGtRxP          : in  sl;
@@ -266,6 +268,7 @@ begin
             gtRefClk          => pgpRefClk,                     -- [in]
             gtFabricRefClk    => '0',                           -- [in]
             gtUserRefClk      => pgpUserRefClk,                 -- [in]
+            gtRxRecClk        => pgpRxRecClk,                   -- [out]
             -- Gt Serial IO
             pgpGtTxP          => pgpTxP,                        -- [out]
             pgpGtTxN          => pgpTxN,                        -- [out]
@@ -306,6 +309,10 @@ begin
    end generate GEN_GTY;
 
    GEN_GTH : if (GT_TYPE_G = "GTH") generate
+
+      -- TO-DO: add the recClk port in GTH; this will probably lead to a placement error
+      pgpRxRecClk <= pgpUserRefClk;
+
       U_Pgp : Pgp2fcGthUltra
          generic map (
             TPD_G           => TPD_G,
