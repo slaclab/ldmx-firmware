@@ -402,7 +402,7 @@ begin
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CONFIG_C(AXIL_FC_HUB_C).baseAddr)
       port map (
          lclsTimingStableClk78 => ethGtRefClk78G,                      -- [in]
-         lclsTimingStableRst   => ethGtRefRst78,                       -- [in]
+         lclsTimingStableRst78 => ethGtRefRst78,                       -- [in]
          lclsTimingRefClkP     => lclsTimingRefClkP,                   -- [in]
          lclsTimingRefClkN     => lclsTimingRefClkN,                   -- [in]
          lclsTimingRxP         => lclsTimingRxP,                       -- [in]

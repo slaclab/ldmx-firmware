@@ -50,16 +50,14 @@ entity FcReceiver is
       fcTxN        : out sl;
       fcRxP        : in  sl;
       fcRxN        : in  sl;
-      -- Stable 156.25/2 MHz clock
-      stableClk    : in  sl;
-      stableRst    : in  sl;
+
       -- RX FC and PGP interface
       fcClk185     : out sl;
       fcRst185     : out sl;
       fcBus        : out FcBusType;
       fcBunchClk37 : out sl;
       fcBunchRst37 : out sl;
-      pgpRxIn      : in  Pgp2fcRxInType                               := PGP2FC_RX_IN_INIT_C;
+      pgpRxIn      : in  Pgp2fcRxInType                   := PGP2FC_RX_IN_INIT_C;
       pgpRxOut     : out Pgp2fcRxOutType;
       pgpRxMasters : out AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpRxCtrl    : in  AxiStreamCtrlArray(3 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
@@ -70,7 +68,7 @@ entity FcReceiver is
       txClk185     : out sl;
       txRst185     : out sl;
 --      fcFb         : in  FcFeedbackType;
-      pgpTxIn      : in  Pgp2fcTxInType                               := PGP2FC_TX_IN_INIT_C;
+      pgpTxIn      : in  Pgp2fcTxInType                   := PGP2FC_TX_IN_INIT_C;
       pgpTxOut     : out Pgp2fcTxOutType;
       pgpTxMasters : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpTxSlaves  : out AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
@@ -116,12 +114,14 @@ architecture rtl of FcReceiver is
    signal pgpRefClk          : sl;      -- Refclk after buffering
    signal pgpUserRefClkOdiv2 : sl;      -- Refclk ODIV2
    signal pgpUserRefClk      : sl;      -- ODIV2+BUFG_GT - Used to clock TX
-   signal pgpUserRefRst      : sl;
+   signal pgpStableClk92     : sl;      -- true div2 of gtRefClk; for GTY/GTH stableClk pin
+   signal pgpStableRst92     : sl;
+   signal pgpUserRefRst      : sl := '0';
    signal fcClk185Loc        : sl;      -- Recovered RX clock for local use
    signal fcRst185Loc        : sl;
 
    -- PGP IO
-   signal pgpRxInLoc  : Pgp2fcRxInType := PGP2FC_RX_IN_INIT_C;
+   signal pgpRxInLoc  : Pgp2fcRxInType  := PGP2FC_RX_IN_INIT_C;
    signal pgpRxOutLoc : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
    signal pgpTxInLoc  : Pgp2fcTxInType  := PGP2FC_TX_IN_INIT_C;
    signal pgpTxOutLoc : Pgp2fcTxOutType := PGP2FC_TX_OUT_INIT_C;
@@ -196,6 +196,16 @@ begin
          DIV     => "000",
          O       => pgpUserRefClk);
 
+   U_mgtUserRefClkDiv2 : BUFG_GT
+      port map (
+         I       => pgpUserRefClkOdiv2,
+         CE      => '1',
+         CEMASK  => '1',
+         CLR     => '0',
+         CLRMASK => '1',
+         DIV     => "001",
+         O       => pgpStableClk92);
+
    -------------------------------------------------------------------------------------------------
    -- Create a reset for pgpUserRefClk
    -------------------------------------------------------------------------------------------------
@@ -216,9 +226,9 @@ begin
          OUT_POLARITY_G  => '1',
          RELEASE_DELAY_G => 5)
       port map (
-         clk      => pgpUserRefClk,
+         clk      => pgpStableClk92,
          asyncRst => '0',
-         syncRst  => pgpUserRefRst);
+         syncRst  => pgpStableRst92);
 
 
    -------------------------------------------------------------------------------------------------
@@ -236,33 +246,33 @@ begin
          NUM_VC_EN_G      => NUM_VC_EN_G,
          RX_CLK_MMCM_G    => true)
       port map (
-         pgpTxP           => fcTxP,                                    -- [out]
-         pgpTxN           => fcTxN,                                    -- [out]
-         pgpRxP           => fcRxP,                                    -- [in]
-         pgpRxN           => fcRxN,                                    -- [in]
-         pgpRefClk        => pgpRefClk,                                -- [in]
-         pgpUserRefClk    => pgpUserRefClk,                            -- [in]
-         pgpUserStableClk => stableClk,                                -- [in]
-         pgpUserStableRst => stableRst,                                -- [in]
-         pgpRxRstOut      => fcRst185Loc,                              -- [out]
-         pgpRxOutClk      => fcClk185Loc,                              -- [out]
-         pgpRxIn          => pgpRxInLoc,                               -- [in]
-         pgpRxOut         => pgpRxOutLoc,                              -- [out]
-         pgpRxMasters     => pgpRxMasters,                             -- [out]
-         pgpRxCtrl        => pgpRxCtrl,                                -- [in]
-         pgpTxRst         => pgpUserRefRst,                            -- [in]
-         pgpTxOutClk      => open,                                     -- [out]
-         pgpTxUsrClk      => pgpUserRefClk,                            -- [in]
-         pgpTxIn          => pgpTxInLoc,                               -- [in]
-         pgpTxOut         => pgpTxOutLoc,                              -- [out]
-         pgpTxMasters     => pgpTxMasters,                             -- [in]
-         pgpTxSlaves      => pgpTxSlaves,                              -- [out]
-         axilClk          => axilClk,                                  -- [in]
-         axilRst          => axilRst,                                  -- [in]
-         axilReadMaster   => locAxilReadMasters(PGP_FC_LANE_AXIL_C),   -- [in]
-         axilReadSlave    => locAxilReadSlaves(PGP_FC_LANE_AXIL_C),    -- [out]
-         axilWriteMaster  => locAxilWriteMasters(PGP_FC_LANE_AXIL_C),  -- [in]
-         axilWriteSlave   => locAxilWriteSlaves(PGP_FC_LANE_AXIL_C));  -- [out]
+         pgpTxP          => fcTxP,                                    -- [out]
+         pgpTxN          => fcTxN,                                    -- [out]
+         pgpRxP          => fcRxP,                                    -- [in]
+         pgpRxN          => fcRxN,                                    -- [in]
+         pgpRefClk       => pgpRefClk,                                -- [in]
+         pgpUserRefClk   => pgpUserRefClk,                            -- [in]
+         pgpStableClk92  => pgpStableClk92,                           --[in]
+         pgpStableRst92  => pgpStableRst92,                           --[in]
+         pgpRxRstOut     => fcRst185Loc,                              -- [out]
+         pgpRxOutClk     => fcClk185Loc,                              -- [out]
+         pgpRxIn         => pgpRxInLoc,                               -- [in]
+         pgpRxOut        => pgpRxOutLoc,                              -- [out]
+         pgpRxMasters    => pgpRxMasters,                             -- [out]
+         pgpRxCtrl       => pgpRxCtrl,                                -- [in]
+         pgpTxRst        => pgpUserRefRst,                            -- [in]
+         pgpTxOutClk     => open,                                     -- [out]
+         pgpTxUsrClk     => pgpUserRefClk,                            -- [in]
+         pgpTxIn         => pgpTxInLoc,                               -- [in]
+         pgpTxOut        => pgpTxOutLoc,                              -- [out]
+         pgpTxMasters    => pgpTxMasters,                             -- [in]
+         pgpTxSlaves     => pgpTxSlaves,                              -- [out]
+         axilClk         => axilClk,                                  -- [in]
+         axilRst         => axilRst,                                  -- [in]
+         axilReadMaster  => locAxilReadMasters(PGP_FC_LANE_AXIL_C),   -- [in]
+         axilReadSlave   => locAxilReadSlaves(PGP_FC_LANE_AXIL_C),    -- [out]
+         axilWriteMaster => locAxilWriteMasters(PGP_FC_LANE_AXIL_C),  -- [in]
+         axilWriteSlave  => locAxilWriteSlaves(PGP_FC_LANE_AXIL_C));  -- [out]
 
 
    -------------------------------------------------------------------------------------------------

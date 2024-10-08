@@ -45,9 +45,9 @@ entity FcSenderArray is
       fcHubTxN        : out slv(QUADS_G*4-1 downto 0);
       fcHubRxP        : in  slv(QUADS_G*4-1 downto 0);
       fcHubRxN        : in  slv(QUADS_G*4-1 downto 0);
-      -- Stable 156.25/2 MHz clock
-      stableClk       : in  sl;
-      stableRst       : in  sl;
+      -- Stable 185.71/2 MHz clock
+      stableClk92     : in  sl;
+      stableRst92     : in  sl;
       -- Interface to Global Trigger and LCLS Timing
       lclsTimingClk   : in  sl;
       lclsTimingRst   : in  sl;
@@ -139,22 +139,22 @@ begin
                AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
                AXIL_BASE_ADDR_G => AXIL_XBAR_CFG_C(quad*4+ch).baseAddr)
             port map (
-               fcHubRefClk       => fcHubRefClk(QUAD_REFCLK_MAP_G(quad)),     -- [in]
-               fcHubTxP          => fcHubTxP(quad*4+ch),                      -- [out]
-               fcHubTxN          => fcHubTxN(quad*4+ch),                      -- [out]
-               fcHubRxP          => fcHubRxP(quad*4+ch),                      -- [in]
-               fcHubRxN          => fcHubRxN(quad*4+ch),                      -- [in]
-               stableClk         => stableClk,                                -- [in]
-               stableRst         => stableRst,                                -- [in]
-               lclsTimingUserClk => lclsTimingClk,                            -- [in]
-               lclsTimingUserRst => lclsTimingRst,                            -- [in]
-               fcTxMsg           => fcTxMsg,                                  -- [in]
-               axilClk           => axilClk,                                  -- [in]
-               axilRst           => axilRst,                                  -- [in]
-               axilReadMaster    => locAxilReadMasters(quad*4+ch),            -- [in]
-               axilReadSlave     => locAxilReadSlaves(quad*4+ch),             -- [out]
-               axilWriteMaster   => locAxilWriteMasters(quad*4+ch),           -- [in]
-               axilWriteSlave    => locAxilWriteSlaves(quad*4+ch));           -- [out]
+               fcHubRefClk       => fcHubRefClk(QUAD_REFCLK_MAP_G(quad)),  -- [in]
+               fcHubTxP          => fcHubTxP(quad*4+ch),                   -- [out]
+               fcHubTxN          => fcHubTxN(quad*4+ch),                   -- [out]
+               fcHubRxP          => fcHubRxP(quad*4+ch),                   -- [in]
+               fcHubRxN          => fcHubRxN(quad*4+ch),                   -- [in]
+               stableClk92       => stableClk92,                           -- [in]
+               stableRst92       => stableRst92,                           -- [in]
+               lclsTimingUserClk => lclsTimingClk,                         -- [in]
+               lclsTimingUserRst => lclsTimingRst,                         -- [in]
+               fcTxMsg           => fcTxMsg,                               -- [in]
+               axilClk           => axilClk,                               -- [in]
+               axilRst           => axilRst,                               -- [in]
+               axilReadMaster    => locAxilReadMasters(quad*4+ch),         -- [in]
+               axilReadSlave     => locAxilReadSlaves(quad*4+ch),          -- [out]
+               axilWriteMaster   => locAxilWriteMasters(quad*4+ch),        -- [in]
+               axilWriteSlave    => locAxilWriteSlaves(quad*4+ch));        -- [out]
       end generate GEN_CHANNELS;
    end generate GEN_QUADS;
 

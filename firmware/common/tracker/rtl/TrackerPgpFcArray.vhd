@@ -53,9 +53,6 @@ entity TrackerPgpFcArray is
       fcClk185        : in  sl;         -- Drives TXUSRCLK
       fcRst185        : in  sl;
       fcBus           : in  FcBusType;
-      -- Stable 78.125MHz Clock
-      stableClk       : in  sl;
-      stableRst       : in  sl;
       -- DMA Interface (dmaClk domain)
       dmaClk          : in  sl;
       dmaRst          : in  sl;
@@ -176,8 +173,6 @@ begin
                pgpRefClk         => pgpFcRefClk(quad),
                pgpUserRefClk     => pgpFcUserRefClk(quad),
                pgpUserDiv2RefClk => pgpFcUserDiv2RefClk(quad),
-               pgpUserStableClk  => stableClk,
-               pgpUserStableRst  => stableRst,
                -- Fast Control Interface
                fcClk185          => fcClk185,
                fcRst185          => fcRst185,
