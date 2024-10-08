@@ -10,3 +10,9 @@ export TOP_DIR = $(abspath $(PWD)/../../)
 
 # Use top level makefile
 include $(TOP_DIR)/submodules/ruckus/system_vivado.mk
+
+vcs: export PGP2FC_XCI=1
+vcs: export LCLS_TIMING_GTY_XCI=1
+
+gui: export PGP2FC_XCI=1
+gui: export LCLS_TIMING_GTY_XCI=1

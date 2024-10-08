@@ -108,6 +108,7 @@ architecture rtl of FcHubBittware is
    -------
    signal dummyGlobalTriggerRor : FcTimestampType := FC_TIMESTAMP_INIT_C;
    signal dummyRxOutClk         : slv(31 downto 1);
+   signal fcTxMsgValid          : sl;
 
    --------------
    -- User Clocks
@@ -271,8 +272,8 @@ begin
          AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_C,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_FC_HUB_C).baseAddr)
       port map (
-         lclsTimingStableClk78 => stableClk,                           -- [in]
-         lclsTimingStableRst   => stableRst,                           -- [in]
+         stableClk             => stableClk,                           -- [in]
+         stableRst             => stableRst,                           -- [in]
          lclsTimingRefClkP     => lclsTimingRefClkP,                   -- [in]
          lclsTimingRefClkN     => lclsTimingRefClkN,                   -- [in]
          lclsTimingRxP         => lclsTimingRxP,                       -- [in]
@@ -282,7 +283,7 @@ begin
          lclsTimingClkOut      => lclsTimingClk,                       -- [out]
          lclsTimingRstOut      => lclsTimingRst,                       -- [out]
          globalTriggerRor      => dummyGlobalTriggerRor,               -- [in]
-         fcTxMsgValid          => ledL(3),                             -- [out]
+         fcTxMsgValid          => fcTxMsgValid,                        -- [out]
          fcHubRefClkP          => fcHubRefClkP,                        -- [in]
          fcHubRefClkN          => fcHubRefClkN,                        -- [in]
          fcHubTxP              => fcHubTxP,                            -- [out]
@@ -306,6 +307,11 @@ begin
    qsfpTxN(0)        <= lclsTimingTxN;
    lclsTimingRxP     <= qsfpRxP(0);
    lclsTimingRxN     <= qsfpRxN(0);
+
+   -- Debugging Outputs
+   GEN_DBG: for i in 3 downto 0 generate
+      ledL(i) <= fcTxMsgValid;
+   end generate GEN_DBG;
 
    -- FC Hub PGP is QUADS 4 and 5 (banks 124 and 125) since they share the recRefClk with 0
    GEN_FEB_REFCLK : for i in FC_HUB_QUADS_G-1 downto 0 generate

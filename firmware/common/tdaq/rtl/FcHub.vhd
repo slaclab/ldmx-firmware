@@ -43,8 +43,8 @@ entity FcHub is
       ----------------------------------------------------------------------------------------------
       -- LCLS Timing Interface
       ----------------------------------------------------------------------------------------------
-      lclsTimingStableClk78 : in  sl;   -- Stable 156.25/2 MHz clock
-      lclsTimingStableRst   : in  sl;   -- StableClk-associated rst
+      stableClk             : in  sl;   -- Stable 156.25/2 MHz clock
+      stableRst             : in  sl;   -- StableClk-associated rst
       -- 185/371 MHz Ref Clk for LCLS timing recovery (freq used depends on GT configuration)
       lclsTimingRefClkP     : in  sl;
       lclsTimingRefClkN     : in  sl;
@@ -126,9 +126,6 @@ architecture rtl of FcHub is
    -- LDMX Fast Control Message to FC Senders
    signal fcTxMsg : FcMessageType;
 
-   -- Stable clock reset
-   signal stableClkRst : sl;
-
 begin
 
    -------------------------------------------------------------------------------------------------
@@ -168,8 +165,8 @@ begin
          AXI_CLK_FREQ_G    => AXIL_CLK_FREQ_G,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CONFIG_C(AXIL_LCLS_TIMING_C).baseAddr)
       port map (
-         stableClk        => lclsTimingStableClk78,                    -- [in]
-         stableRst        => lclsTimingStableRst,                      -- [in]
+         stableClk        => stableClk,                                -- [in]
+         stableRst        => stableRst,                                -- [in]
          axilClk          => axilClk,                                  -- [in]
          axilRst          => axilRst,                                  -- [in]
          axilReadMaster   => locAxilReadMasters(AXIL_LCLS_TIMING_C),   -- [in]
@@ -226,6 +223,8 @@ begin
          fcHubTxN        => fcHubTxN,                              -- [out]
          fcHubRxP        => fcHubRxP,                              -- [in]
          fcHubRxN        => fcHubRxN,                              -- [in]
+         stableClk       => stableClk,                             -- [in]
+         stableRst       => stableRst,                             -- [in]
          lclsTimingClk   => lclsTimingClk,                         -- [in]
          lclsTimingRst   => lclsTimingRst,                         -- [in]
          fcTxMsg         => fcTxMsg,                               -- [in]
