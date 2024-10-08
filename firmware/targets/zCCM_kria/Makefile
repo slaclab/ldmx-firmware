@@ -22,3 +22,5 @@ export GEN_XSA_IMAGE = 1
 
 #Use top level makefile
 include ../../submodules/ruckus/system_vivado.mk
+
+#export PGP2FC_XCI=1

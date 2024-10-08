@@ -20,7 +20,6 @@ export GZIP_BUILD_IMAGE = 1
 # Use top level makefile
 include $(RUCKUS_DIR)/system_vivado.mk
 
-
 vcs: export PGP2FC_XCI=1
 vcs: export LCLS_TIMING_GTY_XCI=1
 vcs: export LDMX_TS_XCI=1

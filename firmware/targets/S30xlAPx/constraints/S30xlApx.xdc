@@ -13,9 +13,10 @@ create_generated_clock -name lclsTimingTxOutClkPcs [get_pins -hier * -filter {na
 create_generated_clock -name lclsTimingTxOutClk [get_pins -hier * -filter {name=~U_FcHub_1/U_Lcls2TimingRx_1/*/TXOUTCLK}]
 create_clock -name lclsTimingRxOutClk -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/U_Lcls2TimingRx_1/*/RXOUTCLK}]
 create_generated_clock -name lclsTimingRxOutClkMmcm [get_pins U_FcHub_1/U_Lcls2TimingRx_1/RX_CLK_MMCM_GEN.U_ClockManager/MmcmGen.U_Mmcm/CLKOUT0]
+create_generated_clock -name lclsTimingRefClkDiv2 [get_pins U_FcHub_1/U_Lcls2TimingRx_1/U_BUFG_GT_DIV2/O]
 
 # FC Hub StableClk
-create_generated_clock -name fcHubRefClk0Div2 [get_pins -hier * -filter {name=~U_FcHub_1/U_FcSenderArray_1/REFCLK_BUFS[0].U_mgtUserDiv2RefClk/O}]
+# create_generated_clock -name fcHubRefClk0Div2 [get_pins -hier * -filter {name=~U_FcHub_1/U_FcSenderArray_1/REFCLK_BUFS[0].U_mgtUserDiv2RefClk/O}]
 
 # FC Hub Rec Clocks
 create_clock -name fcHubRxOutClk0  -period 5.384 [get_pins -hier * -filter {name=~U_FcHub_1/*/GEN_QUADS[0].GEN_CHANNELS[0]*/*/RXOUTCLK}]
@@ -101,7 +102,7 @@ create_generated_clock \
     -source [get_pins -hier * -filter {name=~*/*U_FcReceiver_1/*U_Mmcm/CLKOUT0}] \
     -edges {1 7 11} \
     ${daqClk37Pin}
-		 
+
 ########################################################
 # Clock Groups
 ########################################################
@@ -120,7 +121,7 @@ set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks clk125In] \
     -group [get_clocks -include_generated_clocks lclsTimingRefClk] \
     -group [get_clocks -include_generated_clocks fcHubRefClk0] \
-    -group [get_clocks -include_generated_clocks fcHubRefClk0Div2] \    
+    -group [get_clocks -include_generated_clocks lclsTimingRefClkDiv2] \
     -group [get_clocks -include_generated_clocks appFcRefClk] \
     -group [get_clocks -include_generated_clocks tsRefClk250] \
     -group [get_clocks tsRefClkDiv2] \
@@ -130,7 +131,7 @@ set_clock_groups -asynchronous \
 
 set_clock_groups -asynchronous \
     -group [get_clocks appFcTxOutClkPcs] \
-    -group [get_clocks appFcTxOutClkMon] \    
+    -group [get_clocks appFcTxOutClkMon] \
     -group [get_clocks -include_generated_clocks appFcRxOutClk] \
     -group [get_clocks appFcRefClk] \
     -group [get_clocks appFcRefClkDiv2] \
@@ -144,7 +145,7 @@ set_clock_groups -asynchronous \
 
 #Ethernet Clocks
 set_clock_groups -asynchronous \
-    -group [get_clocks ethRefClk156]    
+    -group [get_clocks ethRefClk156]
     -group [get_clocks ethTxOutClkPcs] \
     -group [get_clocks ethRxOutClk] \
     -group [get_clocks ethTxOutClk]
@@ -152,10 +153,10 @@ set_clock_groups -asynchronous \
 set_clock_groups -asynchronous \
     -group [get_clocks ethRxOutClk] \
     -group [get_clocks ethTxOutClk]
-    
+
 set_clock_groups -asynchronous \
     -group [get_clocks ethTxOutClkPcs] \
-    -group [get_clocks ethTxOutClk] 
+    -group [get_clocks ethTxOutClk]
 
 
 set_clock_groups -asynchronous \
@@ -164,32 +165,32 @@ set_clock_groups -asynchronous \
 
 set_clock_groups -asynchronous \
     -group [get_clocks clk125In] \
-    -group [get_clocks fcHubRefClk0Div2] \        
+    -group [get_clocks lclsTimingRefClkDiv2] \
     -group [get_clocks -include_generated_clocks lclsTimingRxOutClk] \
     -group [get_clocks ethRefClk156] \
     -group [get_clocks tsRxOutClk0] \
-    -group [get_clocks tsRxOutClk1] \    
+    -group [get_clocks tsRxOutClk1] \
     -group [get_clocks fcHubRxOutClk0] \
     -group [get_clocks fcHubRxOutClk1] \
     -group [get_clocks fcHubRxOutClk2] \
-    -group [get_clocks fcHubRxOutClk3] 
+    -group [get_clocks fcHubRxOutClk3]
 
 set_clock_groups -asynchronous \
     -group [get_clocks clk125In] \
-    -group [get_clocks fcHubRefClk0Div2] \        
+    -group [get_clocks lclsTimingRefClkDiv2] \
     -group [get_clocks lclsTimingRxOutClkMmcm] \
     -group [get_clocks fcHubTxOutClkMon0] \
     -group [get_clocks fcHubTxOutClkMon1] \
     -group [get_clocks fcHubTxOutClkMon2] \
     -group [get_clocks fcHubTxOutClkMon3] \
-    -group [get_clocks fcHubTxOutClkPcs0] \    
+    -group [get_clocks fcHubTxOutClkPcs0] \
     -group [get_clocks fcHubTxOutClkPcs1] \
     -group [get_clocks fcHubTxOutClkPcs2] \
-    -group [get_clocks fcHubTxOutClkPcs3] \    
-    
+    -group [get_clocks fcHubTxOutClkPcs3] \
+
 
 set_clock_groups -asynchronous \
-    -group [get_clocks fcHubRefClk0Div2] \            
+    -group [get_clocks lclsTimingRefClkDiv2] \
     -group [get_clocks tsRefClk250] \
     -group [get_clocks tsRefClkDiv2] \
     -group [get_clocks tsRxOutClk0] \
@@ -198,7 +199,7 @@ set_clock_groups -asynchronous \
     -group [get_clocks tsTxOutClkMon1] \
     -group [get_clocks tsTxOutClkPcs0] \
     -group [get_clocks tsTxOutClkPcs1] \
-    -group [get_clocks clk125In]     
+    -group [get_clocks clk125In]
 
 set_clock_groups -asynchronous \
     -group [get_clocks lclsTimingTxOutClkPcs] \
@@ -245,7 +246,7 @@ set_property -dict {PACKAGE_PIN M27 IOSTANDARD LVDS} [get_ports lclsTimingRecClk
 # set_property PACKAGE_PIN BD33 [get_ports ]; # RX1P - FFLY_RX1N - Pin Swap
 # set_property PACKAGE_PIN BD34 [get_ports ]; # RX1N - FFLY_RX1P - Pin Swap
 # set_property PACKAGE_PIN BE40 [get_ports ]; # TX2P - FFLY_TX2P
-# set_property PACKAGE_PIN BE41 [get_ports ]; # TX2N - FFLY_TX2N 
+# set_property PACKAGE_PIN BE41 [get_ports ]; # TX2N - FFLY_TX2N
 # set_property PACKAGE_PIN BF43 [get_ports ]; # RX2P - FFLY_RX4N - Pin Swap
 # set_property PACKAGE_PIN BF44 [get_ports ]; # RX2N - FFLY_RX4P - Pin Swap
 # set_property PACKAGE_PIN BD38 [get_ports ]; # TX3P - FFLY_TX1P
@@ -263,7 +264,7 @@ set_property -dict {PACKAGE_PIN M27 IOSTANDARD LVDS} [get_ports lclsTimingRecClk
 # set_property PACKAGE_PIN BB43 [get_ports ]; # RX1P - FFLY_RX2P
 # set_property PACKAGE_PIN BB44 [get_ports ]; # RX1N - FFLY_RX2N
 # set_property PACKAGE_PIN BA40 [get_ports ]; # TX2P - FFLY_TX1P
-# set_property PACKAGE_PIN BA41 [get_ports ]; # TX2N - FFLY_TX1N 
+# set_property PACKAGE_PIN BA41 [get_ports ]; # TX2N - FFLY_TX1N
 # set_property PACKAGE_PIN BA45 [get_ports ]; # RX2P - FFLY_RX3P
 # set_property PACKAGE_PIN BA45 [get_ports ]; # RX2N - FFLY_RX3N
 # set_property PACKAGE_PIN AY38 [get_ports ]; # TX3P - FFLY_TX2P
@@ -287,7 +288,7 @@ set_property -dict {PACKAGE_PIN M27 IOSTANDARD LVDS} [get_ports lclsTimingRecClk
 # set_property PACKAGE_PIN AV43 [get_ports ]; # RX1P - FFLY_RX2P
 # set_property PACKAGE_PIN AV44 [get_ports ]; # RX1N - FFLY_RX2N
 # set_property PACKAGE_PIN AU40 [get_ports ]; # TX2P - FFLY_TX1P
-# set_property PACKAGE_PIN AU41 [get_ports ]; # TX2N - FFLY_TX1N 
+# set_property PACKAGE_PIN AU41 [get_ports ]; # TX2N - FFLY_TX1N
 # set_property PACKAGE_PIN AU45 [get_ports ]; # RX2P - FFLY_RX3P
 # set_property PACKAGE_PIN AU46 [get_ports ]; # RX2N - FFLY_RX3N
 # set_property PACKAGE_PIN AT38 [get_ports ]; # TX3P - FFLY_TX2P
@@ -305,7 +306,7 @@ set_property -dict {PACKAGE_PIN M27 IOSTANDARD LVDS} [get_ports lclsTimingRecClk
 # set_property PACKAGE_PIN AP43 [get_ports ]; # RX1P - FFLY_RX2P
 # set_property PACKAGE_PIN AP44 [get_ports ]; # RX1N - FFLY_RX2N
 # set_property PACKAGE_PIN AN40 [get_ports ]; # TX2P - FFLY_TX1P
-# set_property PACKAGE_PIN AN41 [get_ports ]; # TX2N - FFLY_TX1N 
+# set_property PACKAGE_PIN AN41 [get_ports ]; # TX2N - FFLY_TX1N
 # set_property PACKAGE_PIN AN45 [get_ports ]; # RX2P - FFLY_RX3P
 # set_property PACKAGE_PIN AN46 [get_ports ]; # RX2N - FFLY_RX3N
 # set_property PACKAGE_PIN AM38 [get_ports ]; # TX3P - FFLY_TX2P
@@ -329,7 +330,7 @@ set_property -dict {PACKAGE_PIN M27 IOSTANDARD LVDS} [get_ports lclsTimingRecClk
 # set_property PACKAGE_PIN AK43 [get_ports ]; # RX1P - FFLY_RX2P
 # set_property PACKAGE_PIN AK44 [get_ports ]; # RX1N - FFLY_RX2N
 # set_property PACKAGE_PIN AJ40 [get_ports ]; # TX2P - FFLY_TX1P
-# set_property PACKAGE_PIN AJ41 [get_ports ]; # TX2N - FFLY_TX1N 
+# set_property PACKAGE_PIN AJ41 [get_ports ]; # TX2N - FFLY_TX1N
 # set_property PACKAGE_PIN AJ45 [get_ports ]; # RX2P - FFLY_RX3P
 # set_property PACKAGE_PIN AJ46 [get_ports ]; # RX2N - FFLY_RX3N
 # set_property PACKAGE_PIN AH38 [get_ports ]; # TX3P - FFLY_TX2P
@@ -351,7 +352,7 @@ set_property -dict {PACKAGE_PIN M27 IOSTANDARD LVDS} [get_ports lclsTimingRecClk
 # set_property PACKAGE_PIN AF43 [get_ports ]; # RX1P - AXILINK2_TO_FPGA_AC_P
 # set_property PACKAGE_PIN AF44 [get_ports ]; # RX1N - AXILINK2_TO_FPGA_AC_N
 # set_property PACKAGE_PIN AE40 [get_ports ]; # TX2P - FPGA_TCDS_EMUL_P
-# set_property PACKAGE_PIN AE41 [get_ports ]; # TX2N - FPGA_TCDS_EMUL_N 
+# set_property PACKAGE_PIN AE41 [get_ports ]; # TX2N - FPGA_TCDS_EMUL_N
 # set_property PACKAGE_PIN AE45 [get_ports ]; # RX2P - FPGA_TCDS2_RX_AC_P
 # set_property PACKAGE_PIN AE46 [get_ports ]; # RX2N - FPGA_TCDS2_RX_AC_N
 # set_property PACKAGE_PIN AD38 [get_ports ]; # TX3P - LDAQ_TX_P
@@ -373,7 +374,7 @@ set_property -dict {PACKAGE_PIN M27 IOSTANDARD LVDS} [get_ports lclsTimingRecClk
 # set_property PACKAGE_PIN AB43 [get_ports ]; # RX1P - FFLY_RX2P
 # set_property PACKAGE_PIN AB44 [get_ports ]; # RX1N - FFLY_RX2N
 # set_property PACKAGE_PIN AA40 [get_ports ]; # TX2P - FFLY_TX1P
-# set_property PACKAGE_PIN AA41 [get_ports ]; # TX2N - FFLY_TX1N 
+# set_property PACKAGE_PIN AA41 [get_ports ]; # TX2N - FFLY_TX1N
 # set_property PACKAGE_PIN AA45 [get_ports ]; # RX2P - FFLY_RX3P
 # set_property PACKAGE_PIN AA46 [get_ports ]; # RX2N - FFLY_RX3N
 # set_property PACKAGE_PIN Y38  [get_ports ]; # TX3P - FFLY_TX2P
@@ -391,7 +392,7 @@ set_property -dict {PACKAGE_PIN M27 IOSTANDARD LVDS} [get_ports lclsTimingRecClk
 # set_property PACKAGE_PIN V43 [get_ports ]; # RX1P - FFLY_RX2P
 # set_property PACKAGE_PIN V44 [get_ports ]; # RX1N - FFLY_RX2N
 # set_property PACKAGE_PIN U40 [get_ports ]; # TX2P - FFLY_TX1P
-# set_property PACKAGE_PIN U41 [get_ports ]; # TX2N - FFLY_TX1N 
+# set_property PACKAGE_PIN U41 [get_ports ]; # TX2N - FFLY_TX1N
 # set_property PACKAGE_PIN U45 [get_ports ]; # RX2P - FFLY_RX3P
 # set_property PACKAGE_PIN U46 [get_ports ]; # RX2N - FFLY_RX3N
 # set_property PACKAGE_PIN T38 [get_ports ]; # TX3P - FFLY_TX2P
@@ -409,7 +410,7 @@ set_property -dict {PACKAGE_PIN M27 IOSTANDARD LVDS} [get_ports lclsTimingRecClk
 # set_property PACKAGE_PIN P43 [get_ports ]; # RX1P - FFLY_RX2P
 # set_property PACKAGE_PIN P44 [get_ports ]; # RX1N - FFLY_RX2N
 # set_property PACKAGE_PIN N40 [get_ports ]; # TX2P - FFLY_TX1P
-# set_property PACKAGE_PIN N41 [get_ports ]; # TX2N - FFLY_TX1N 
+# set_property PACKAGE_PIN N41 [get_ports ]; # TX2N - FFLY_TX1N
 # set_property PACKAGE_PIN N45 [get_ports ]; # RX2P - FFLY_RX3P
 # set_property PACKAGE_PIN N46 [get_ports ]; # RX2N - FFLY_RX3N
 # set_property PACKAGE_PIN M38 [get_ports ]; # TX3P - FFLY_TX2P
@@ -431,7 +432,7 @@ set_property -dict {PACKAGE_PIN M27 IOSTANDARD LVDS} [get_ports lclsTimingRecClk
 # set_property PACKAGE_PIN K43 [get_ports ]; # RX1P - FFLY_RX2P
 # set_property PACKAGE_PIN K44 [get_ports ]; # RX1N - FFLY_RX2N
 # set_property PACKAGE_PIN J40 [get_ports ]; # TX2P - FFLY_TX1P
-# set_property PACKAGE_PIN J41 [get_ports ]; # TX2N - FFLY_TX1N 
+# set_property PACKAGE_PIN J41 [get_ports ]; # TX2N - FFLY_TX1N
 # set_property PACKAGE_PIN J45 [get_ports ]; # RX2P - FFLY_RX3P
 # set_property PACKAGE_PIN J46 [get_ports ]; # RX2N - FFLY_RX3N
 # set_property PACKAGE_PIN H38 [get_ports ]; # TX3P - FFLY_TX2P
@@ -453,7 +454,7 @@ set_property -dict {PACKAGE_PIN M27 IOSTANDARD LVDS} [get_ports lclsTimingRecClk
 # set_property PACKAGE_PIN F43 [get_ports ]; # RX1P - FFLY_RX3P
 # set_property PACKAGE_PIN F44 [get_ports ]; # RX1N - FFLY_RX3N
 # set_property PACKAGE_PIN G36 [get_ports ]; # TX2P - FFLY_TX4P
-# set_property PACKAGE_PIN G37 [get_ports ]; # TX2N - FFLY_TX4N 
+# set_property PACKAGE_PIN G37 [get_ports ]; # TX2N - FFLY_TX4N
 # set_property PACKAGE_PIN G31 [get_ports ]; # RX2P - FFLY_RX4N - Pin swap
 # set_property PACKAGE_PIN G32 [get_ports ]; # RX2N - FFLY_RX4P - Pin swap
 # set_property PACKAGE_PIN F34 [get_ports ]; # TX3P - FFLY_TX2P
@@ -535,7 +536,7 @@ set_property PACKAGE_PIN BB8 [get_ports fcHubTxN[1]]; # TX1N - FFLY_TXN
 set_property PACKAGE_PIN BB4 [get_ports fcHubRxP[1]]; # RX1P - FFLY_RXP
 set_property PACKAGE_PIN BB3 [get_ports fcHubRxN[1]]; # RX1N - FFLY_RXN
 set_property PACKAGE_PIN BA7 [get_ports fcHubTxP[2]]; # TX2P - FFLY_TXP
-set_property PACKAGE_PIN BA6 [get_ports fcHubTxN[2]]; # TX2N - FFLY_TXN 
+set_property PACKAGE_PIN BA6 [get_ports fcHubTxN[2]]; # TX2N - FFLY_TXN
 set_property PACKAGE_PIN BA2 [get_ports fcHubRxP[2]]; # RX2P - FFLY_RXP
 set_property PACKAGE_PIN BA1 [get_ports fcHubRxN[2]]; # RX2N - FFLY_RXN
 set_property PACKAGE_PIN AY9 [get_ports fcHubTxP[3]]; # TX3P - FFLY_TXP
@@ -557,7 +558,7 @@ set_property PACKAGE_PIN AW1 [get_ports lclsTimingRxN]; # RX0N - FFLY_RXN
 # set_property PACKAGE_PIN AV4 [get_ports ]; # RX1P - FFLY_RXP
 # set_property PACKAGE_PIN AV3 [get_ports ]; # RX1N - FFLY_RXN
 # set_property PACKAGE_PIN AU7 [get_ports ]; # TX2P - FFLY_TXP
-# set_property PACKAGE_PIN AU6 [get_ports ]; # TX2N - FFLY_TXN 
+# set_property PACKAGE_PIN AU6 [get_ports ]; # TX2N - FFLY_TXN
 # set_property PACKAGE_PIN AU2 [get_ports ]; # RX2P - FFLY_RXP
 # set_property PACKAGE_PIN AU1 [get_ports ]; # RX2N - FFLY_RXN
 # set_property PACKAGE_PIN AT9 [get_ports ]; # TX3P - FFLY_TXP
@@ -575,7 +576,7 @@ set_property PACKAGE_PIN AW1 [get_ports lclsTimingRxN]; # RX0N - FFLY_RXN
 # set_property PACKAGE_PIN AP4 [get_ports ]; # RX1P - FFLY_RX3P
 # set_property PACKAGE_PIN AP3 [get_ports ]; # RX1N - FFLY_RX3N
 # set_property PACKAGE_PIN AN7 [get_ports ]; # TX2P - FFLY_TX4P
-# set_property PACKAGE_PIN AN6 [get_ports ]; # TX2N - FFLY_TX4N 
+# set_property PACKAGE_PIN AN6 [get_ports ]; # TX2N - FFLY_TX4N
 # set_property PACKAGE_PIN AN2 [get_ports ]; # RX2P - FFLY_RX2P
 # set_property PACKAGE_PIN AN1 [get_ports ]; # RX2N - FFLY_RX2N
 # set_property PACKAGE_PIN AM9 [get_ports ]; # TX3P - FFLY_TX3P
@@ -597,7 +598,7 @@ set_property PACKAGE_PIN AD12 [get_ports ethRefClk156N]; # TOPA_5
 # set_property PACKAGE_PIN AK4 [get_ports ]; # RX1P - FFLY_RX3P
 # set_property PACKAGE_PIN AK3 [get_ports ]; # RX1N - FFLY_RX3N
 # set_property PACKAGE_PIN AJ7 [get_ports ]; # TX2P - FFLY_TX4P
-# set_property PACKAGE_PIN AJ6 [get_ports ]; # TX2N - FFLY_TX4N 
+# set_property PACKAGE_PIN AJ6 [get_ports ]; # TX2N - FFLY_TX4N
 # set_property PACKAGE_PIN AJ2 [get_ports ]; # RX2P - FFLY_RX2P
 # set_property PACKAGE_PIN AJ1 [get_ports ]; # RX2N - FFLY_RX2N
 # set_property PACKAGE_PIN AH9 [get_ports ]; # TX3P - FFLY_TX3P
@@ -619,7 +620,7 @@ set_property PACKAGE_PIN AF8 [get_ports ethTxN]; # TX1N - FFLY_TXN
 set_property PACKAGE_PIN AF4 [get_ports ethRxP]; # RX1P - FFLY_RXP
 set_property PACKAGE_PIN AF3 [get_ports ethRxN]; # RX1N - FFLY_RXN
 # set_property PACKAGE_PIN AE7 [get_ports ]; # TX2P - FFLY_TXP
-# set_property PACKAGE_PIN AE6 [get_ports ]; # TX2N - FFLY_TXN 
+# set_property PACKAGE_PIN AE6 [get_ports ]; # TX2N - FFLY_TXN
 # set_property PACKAGE_PIN AE2 [get_ports ]; # RX2P - FFLY_RXP
 # set_property PACKAGE_PIN AE1 [get_ports ]; # RX2N - FFLY_RXN
 # set_property PACKAGE_PIN AD9 [get_ports ]; # TX3P - FFLY_TXP
@@ -641,11 +642,10 @@ set_property PACKAGE_PIN AB8 [get_ports tsDataTxN[1]]; # TX1N - FFLY_TX1N
 set_property PACKAGE_PIN AB4 [get_ports tsDataRxP[1]]; # RX1P - FFLY_RX3P
 set_property PACKAGE_PIN AB3 [get_ports tsDataRxN[1]]; # RX1N - FFLY_RX3N
 # set_property PACKAGE_PIN AA7 [get_ports ]; # TX2P - FFLY_TX4P
-# set_property PACKAGE_PIN AA6 [get_ports ]; # TX2N - FFLY_TX4N 
+# set_property PACKAGE_PIN AA6 [get_ports ]; # TX2N - FFLY_TX4N
 # set_property PACKAGE_PIN AA2 [get_ports ]; # RX2P - FFLY_RX2P
 # set_property PACKAGE_PIN AA1 [get_ports ]; # RX2N - FFLY_RX2N
 # set_property PACKAGE_PIN Y9 [get_ports ]; # TX3P - FFLY_TX3P
 # set_property PACKAGE_PIN Y8 [get_ports ]; # TX3N - FFLY_TX3N
 # set_property PACKAGE_PIN Y4 [get_ports ]; # RX3P - FFLY_RX1P
 # set_property PACKAGE_PIN Y3 [get_ports ]; # RX3N - FFLY_RX1N
-
