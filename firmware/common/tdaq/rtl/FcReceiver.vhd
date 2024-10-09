@@ -30,7 +30,6 @@ use ldmx_tdaq.FcPkg.all;
 
 
 entity FcReceiver is
-
    generic (
       TPD_G            : time                 := 1 ns;
       SIM_SPEEDUP_G    : boolean              := false;
@@ -38,7 +37,8 @@ entity FcReceiver is
       NUM_VC_EN_G      : integer range 0 to 4 := 0;
       GEN_FC_EMU_G     : boolean              := true;
       AXIL_CLK_FREQ_G  : real                 := 156.25e6;
-      AXIL_BASE_ADDR_G : slv(31 downto 0)     := (others => '0'));
+      AXIL_BASE_ADDR_G : slv(31 downto 0)     := (others => '0');
+      RX_CLK_MMCM_G    : boolean              := true);
    port (
       -- Reference clock
       fcRefClk185P : in  sl;
@@ -244,7 +244,7 @@ begin
          TX_ENABLE_G      => true,
          RX_ENABLE_G      => true,
          NUM_VC_EN_G      => NUM_VC_EN_G,
-         RX_CLK_MMCM_G    => true)
+         RX_CLK_MMCM_G    => RX_CLK_MMCM_G)
       port map (
          pgpTxP          => fcTxP,                                    -- [out]
          pgpTxN          => fcTxN,                                    -- [out]
@@ -252,8 +252,8 @@ begin
          pgpRxN          => fcRxN,                                    -- [in]
          pgpRefClk       => pgpRefClk,                                -- [in]
          pgpUserRefClk   => pgpUserRefClk,                            -- [in]
-         pgpStableClk92  => pgpStableClk92,                           --[in]
-         pgpStableRst92  => pgpStableRst92,                           --[in]
+         pgpStableClk92  => pgpStableClk92,                           -- [in]
+         pgpStableRst92  => pgpStableRst92,                           -- [in]
          pgpRxRstOut     => fcRst185Loc,                              -- [out]
          pgpRxOutClk     => fcClk185Loc,                              -- [out]
          pgpRxIn         => pgpRxInLoc,                               -- [in]

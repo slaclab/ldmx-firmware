@@ -86,6 +86,9 @@ architecture mapping of TrackerPgpFcArray is
    signal pgpFcUserDiv2RefClk : slv(PGP_QUADS_G-1 downto 0);
    signal pgpFcUserRefClk     : slv(PGP_QUADS_G-1 downto 0);
 
+   signal stableClk92         : slv(PGP_QUADS_G-1 downto 0);
+   signal stableRst92         : slv(PGP_QUADS_G-1 downto 0);
+
    signal pgpObMasters : AxiStreamMasterArray(PGP_QUADS_G*4-1 downto 0);
    signal pgpObSlaves  : AxiStreamSlaveArray(PGP_QUADS_G*4-1 downto 0);
    signal pgpIbMasters : AxiStreamMasterArray(PGP_QUADS_G*4-1 downto 0);
@@ -153,6 +156,19 @@ begin
             DIV     => "001",
             O       => pgpFcUserDiv2RefClk(quad));
 
+      ----------------------------------------------------------------------------------------------
+      -- Stable Clock and Reset from Local Oscillator
+      ----------------------------------------------------------------------------------------------
+      stableClk92(quad) <= pgpFcUserDiv2RefClk(quad);
+
+      U_RstSync_1 : entity surf.RstSync
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk      => stableClk92(quad),  -- [in]
+            asyncRst => '0',                -- [in]
+            syncRst  => stableRst92(quad)); -- [out]
+
       -- 4 Lanes per quad
       GEN_LANE : for lane in 3 downto 0 generate
          U_Lane : entity ldmx_tracker.TrackerPgpFcLane
@@ -170,9 +186,10 @@ begin
                pgpRxN            => pgpFcRxN(quad*4+lane),
                pgpTxP            => pgpFcTxP(quad*4+lane),
                pgpTxN            => pgpFcTxN(quad*4+lane),
-               pgpRefClk         => pgpFcRefClk(quad),
-               pgpUserRefClk     => pgpFcUserRefClk(quad),
-               pgpUserDiv2RefClk => pgpFcUserDiv2RefClk(quad),
+               pgpRefClk185      => pgpFcRefClk(quad),
+               pgpUserRefClk185  => pgpFcUserRefClk(quad),
+               pgpStableClk92    => stableClk92(quad),
+               pgpStableRst92    => stableRst92(quad),
                -- Fast Control Interface
                fcClk185          => fcClk185,
                fcRst185          => fcRst185,

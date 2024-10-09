@@ -272,8 +272,8 @@ begin
          AXIL_CLK_FREQ_G   => AXIL_CLK_FREQ_C,
          AXIL_BASE_ADDR_G  => AXIL_XBAR_CFG_C(AXIL_FC_HUB_C).baseAddr)
       port map (
-         stableClk             => stableClk,                           -- [in]
-         stableRst             => stableRst,                           -- [in]
+         lclsTimingStableClk78 => stableClk,                           -- [in]
+         lclsTimingStableRst78 => stableRst,                           -- [in]
          lclsTimingRefClkP     => lclsTimingRefClkP,                   -- [in]
          lclsTimingRefClkN     => lclsTimingRefClkN,                   -- [in]
          lclsTimingRxP         => lclsTimingRxP,                       -- [in]

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      :
 -------------------------------------------------------------------------------
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -------------------------------------------------------------------------------
@@ -33,7 +33,8 @@ entity FcSender is
       TPD_G            : time             := 1 ns;
       SIM_SPEEDUP_G    : boolean          := false;
       AXIL_CLK_FREQ_G  : real             := 125.0e6;
-      AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
+      AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0');
+      RX_CLK_MMCM_G    : boolean          := false);
    port (
       -- Reference clock
       fcHubRefClk       : in  sl;
@@ -90,7 +91,7 @@ begin
          TX_ENABLE_G      => true,
          RX_ENABLE_G      => true,
          NUM_VC_EN_G      => 0,
-         RX_CLK_MMCM_G    => false)
+         RX_CLK_MMCM_G    => RX_CLK_MMCM_G)
       port map (
          pgpTxP          => fcHubTxP,                              -- [out]
          pgpTxN          => fcHubTxN,                              -- [out]
