@@ -136,6 +136,7 @@ begin
          risingEdge  => resetDoneRise,     -- [out]
          fallingEdge => open);             -- [out]
 
+
    comb : process (r, syncAxilReadMaster, syncAxilWriteMaster, tsRst250, tsRxData, tsRxDataK,
                    tsRxDecErr, tsRxDispErr, tsRxPhyResetDone) is
       variable v : RegType := REG_INIT_C;
@@ -203,6 +204,7 @@ begin
             v.state                      := WAIT_COMMA_S;
       end case;
 
+      
 
       if (r.state = WAIT_COMMA_S and (tsRxDispErr /= "00" or tsRxDecErr /= "00")) then
          v.state := INIT_S;

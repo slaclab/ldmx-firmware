@@ -97,6 +97,7 @@ architecture rtl of TsDataRxLane is
    signal tsRxPhyInit      : sl;
    signal tsRxPhyInitSync  : sl;
    signal tsRxPhyResetDone : sl;
+   signal tsRxPmaResetDone : sl;
    signal tsRxData         : slv(15 downto 0);
    signal tsRxDataK        : slv(1 downto 0);
    signal tsRxDispErr      : slv(1 downto 0);
@@ -137,23 +138,23 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Various Reset synchronization
    -------------------------------------------------------------------------------------------------
-   -- Sync phy init to stableClk (axilClk)
---    U_RstSync_1 : entity surf.SynchronizerOneShot
---       generic map (
---          TPD_G         => TPD_G,
---          PULSE_WIDTH_G => ite(SIMULATION_G, 12500, 125000000))  -- 100us in sim; 1s in silicon
---       port map (
---          clk     => axilClk,                                    -- [in]
---          dataIn  => tsRxPhyInit,                                -- [in]
---          dataOut => tsRxPhyInitSync);                           -- [out]
-
-   U_RstSync_1 : entity surf.RstSync
+   --Sync phy init to stableClk (axilClk)
+   U_RstSync_1 : entity surf.SynchronizerOneShot
       generic map (
-         TPD_G => TPD_G)
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 10)
       port map (
-         clk      => axilClk,
-         asyncRst => tsRxPhyInit,
-         syncRst  => tsRxPhyInitSync);
+         clk     => axilClk,            -- [in]
+         dataIn  => tsRxPhyInit,        -- [in]
+         dataOut => tsRxPhyInitSync);   -- [out]
+
+--    U_RstSync_1 : entity surf.RstSync
+--       generic map (
+--          TPD_G => TPD_G)
+--       port map (
+--          clk      => axilClk,
+--          asyncRst => tsRxPhyInit,
+--          syncRst  => tsRxPhyInitSync);
 
 
    -------------------------------------------------------------------------------------------------
@@ -178,6 +179,7 @@ begin
          rxReset         => rxReset,                          -- [in]
          rxUsrClkActive  => tsRecClkMmcmLocked,               -- [in]
          rxResetDone     => tsRxPhyResetDone,                 -- [out]
+         rxPmaResetDone  => tsRxPmaResetDone,                 -- [out]
          rxUsrClk        => tsRecClkMmcm,                     -- [in]
          rxData          => tsRxData,                         -- [out]
          rxDataK         => tsRxDataK,                        -- [out]
@@ -199,7 +201,7 @@ begin
 
    -- Don't need MMCM
    tsRecClkMmcm       <= tsRecClkGt;
-   tsRecClkMmcmLocked <= '1';
+   tsRecClkMmcmLocked <= '1'; -- tsRxPmaResetDone;
 
    RstSync_1 : entity surf.RstSync
       generic map (

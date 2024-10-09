@@ -51,6 +51,7 @@ entity TsGtyIpCoreWrapper is
       rxReset        : in  sl;
       rxUsrClkActive : in  sl;
       rxResetDone    : out sl;
+      rxPmaResetDone : out sl;
       rxUsrClk       : in  sl;
       rxData         : out slv(15 downto 0);
       rxDataK        : out slv(1 downto 0);
@@ -189,7 +190,7 @@ architecture mapping of TsGtyIpCoreWrapper is
    signal rxPmaReset        : sl              := '0';
    signal txPcsReset        : sl              := '0';
    signal txPmaReset        : sl              := '0';
-   signal rxPmaResetDone    : sl              := '0';
+   signal rxPmaResetDoneInt    : sl              := '0';
    signal txPmaResetDone    : sl              := '0';
    signal rxByteIsAligned   : sl              := '0';
    signal rxByteReAlign     : sl              := '0';
@@ -299,7 +300,7 @@ begin
          rxoutclk_out(0)                       => rxOutClkGt,
 --         rxrecclkout_out(0)                    => rxRecClk,
          txoutclk_out(0)                       => txOutClkGt,  -- unused
-         rxpmaresetdone_out(0)                 => rxPmaResetDone,
+         rxpmaresetdone_out(0)                 => rxPmaResetDoneInt,
          rxresetdone_out(0)                    => open,
 --         rxsyncdone_out(0)                     => rxSyncDone,
          txpmaresetdone_out(0)                 => txPmaResetDone,
@@ -399,18 +400,20 @@ begin
          drpDi           => drpDi,                -- [out]
          drpDo           => drpDo);               -- [in]
 
+   
    txctrl2     <= "000000" & txDataK;
    txUsrActive <= txPmaResetDone;   
-   rxUsrActive <= rxUsrClkActive and rxPmaResetDone;
+   rxUsrActive <= rxUsrClkActive and rxPmaResetDoneInt;
    
-   rstSyncRxIn <= rxResetAlignCheck or rxReset;
-   rxResetGt   <= rxResetAlignCheck or rxReset;
+--   rstSyncRxIn <= rxResetAlignCheck or rxReset;
+   rstSyncRxIn <= rxResetAlignCheck or not rxPmaResetDoneInt;
+   rxResetGt   <= rxResetAlignCheck; -- or rxReset;
 
    rxOutClk <= rxOutClkB;
 
-
    txResetGt   <= txReset;
-
+   
+   rxPmaResetDone <= rxPmaResetDoneInt;
 
    U_RstSyncTx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
