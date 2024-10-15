@@ -10,13 +10,30 @@
 
 import pyrogue as pr
 
-class Application(pr.Device):
+class ZccmApplication(pr.Device):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
-            name         = 'output_register',
-            offset       = 0x0,
+            name         = 'input_register',
+            offset       = 0xE_0000,
+            bitSize      = 32,
+            mode         = 'RW',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'output_registerA',
+            offset       = 0xE_0100,
+            bitSize      = 32,
+            mode         = 'RW',
+            pollInterval = 1,
+        ))
+
+        
+        self.add(pr.RemoteVariable(
+            name         = 'output_registerB',
+            offset       = 0xE_0104,
             bitSize      = 32,
             mode         = 'RW',
             pollInterval = 1,
