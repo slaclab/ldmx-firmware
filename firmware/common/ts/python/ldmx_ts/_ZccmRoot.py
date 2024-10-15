@@ -5,7 +5,7 @@ import rogue.hardware.axi
 
 import pyrogue as pr
 
-import ZccmApplication as zCCM
+import ldmx_ts
 import axi_soc_ultra_plus_core as socCore
 
 rogue.Version.minVersion('6.0.0')
@@ -39,7 +39,7 @@ class ZccmRoot(pr.Root):
             numDmaLanes  = 1,
         ))
         
-        self.add(zCCM.Application(
+        self.add(ldmx_ts.ZccmApplication(
             memBase = self.memMap,
             offset  = 0x04_8000_0000,
             expand  = True,
