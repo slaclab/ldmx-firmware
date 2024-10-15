@@ -10,10 +10,66 @@
 
 import pyrogue as pr
 
+class Si5344(pr.Device):
+    def __init__(self,
+                 description = "Container for xxx",
+                 pollInterval = 1,
+            **kwargs):
+        super().__init__(description=description, **kwargs)
+
+        self.addRemoteVariables(
+            name         = 'PAGE',
+            description  = 'Selects one of 256 possible pages',
+            offset       = 0x1,
+            bitSize      = 8,
+            mode         = 'RW',
+            number       = 1,
+            stride       = 0,
+            pollInterval = pollInterval
+        )
+
+        self.addRemoteVariables(
+            name         = 'PN_BASE_LOWER',
+            description  = 'lower 2 digits of part number'
+            offset       = 0x2,
+            bitSize      = 8,
+            mode         = 'R',
+            number       = 1,
+            stride       = 0,
+            pollInterval = pollInterval
+        )
+
+        self.addRemoteVariables(
+            name         = 'PN_BASE_UPPER',
+            description  = 'upper 2 digits of part number'
+            offset       = 0x3,
+            bitSize      = 8,
+            mode         = 'R',
+            number       = 1,
+            stride       = 0,
+            pollInterval = pollInterval
+        )
+
 class ZccmApplication(pr.Device):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
 
+        // synthesizing clock chip 
+        self.add(Si5344(
+            name         = f'SYNTH_I2C',
+            offset       = 0x3_0000,
+            pollInterval = 0,
+            hidden       = False,
+        ))
+
+        // jitter cleaner clock chip 
+        self.add(Si5344(
+            name         = f'JITTER_I2C',
+            offset       = 0x4_0000,
+            pollInterval = 0,
+            hidden       = False,
+        ))
+        
         self.add(pr.RemoteVariable(
             name         = 'input_register',
             offset       = 0xE_0000,
