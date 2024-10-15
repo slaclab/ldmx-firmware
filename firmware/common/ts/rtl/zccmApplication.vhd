@@ -165,11 +165,11 @@ architecture mapping of zccmApplication is
 
      AXIL_RM0_I2C_INDEX_C             => (    -- RM0 I2C Interface
          baseAddr                     => AXIL_BASE_ADDR_G + X"1_0000",
-         addrBits                     => 8,
+         addrBits                     => 16,
          connectivity                 => X"0001"),
      AXIL_RM1_I2C_INDEX_C             => (    -- RM1 I2C Interface
          baseAddr                     => AXIL_BASE_ADDR_G + X"2_0000",
-         addrBits                     => 8,
+         addrBits                     => 16,
          connectivity                 => X"0001"),
      -- AXIL_RM2_I2C_INDEX_C             => (    -- RM2 I2C Interface
      --     baseAddr                     => AXIL_BASE_ADDR_G + X"4_1500",
@@ -190,11 +190,11 @@ architecture mapping of zccmApplication is
 
      AXIL_SYNTH_I2C_INDEX_C           => (    -- SYNTH I2C Interface
          baseAddr                     => AXIL_BASE_ADDR_G + X"3_0000",
-         addrBits                     => 8,
+         addrBits                     => 16,
          connectivity                 => X"0001"),
      AXIL_JITTER_I2C_INDEX_C          => (    -- JITTER I2C Interface
          baseAddr                     => AXIL_BASE_ADDR_G + X"4_0000",
-         addrBits                     => 8,
+         addrBits                     => 16,
          connectivity                 => X"0001"),
 
      AXIL_TOP_REG_INDEX_C             => (    -- local axi interface
@@ -204,7 +204,7 @@ architecture mapping of zccmApplication is
 
      AXIL_SFP0_REG_INDEX_C            => (    -- SFP0 control Register Interface
          baseAddr                     => AXIL_BASE_ADDR_G + X"6_0000",
-         addrBits                     => 8,
+         addrBits                     => 16,
          connectivity                 => X"0001"),
      -- AXIL_SFP1_REG_INDEX_C            => (    -- SFP1 control Register Interface
      --     baseAddr                     => AXIL_BASE_ADDR_G + X"4_5000",
@@ -221,11 +221,11 @@ architecture mapping of zccmApplication is
 
      AXIL_SYNTH_REG_INDEX_C           => (    -- SYNTH Register Interface
          baseAddr                     => AXIL_BASE_ADDR_G + X"7_0000",
-         addrBits                     => 8,
+         addrBits                     => 16,
          connectivity                 => X"0001"),
      AXIL_JITTER_REG_INDEX_C          => (    -- Jitter Register Interface
          baseAddr                     => AXIL_BASE_ADDR_G + X"8_0000",
-         addrBits                     => 8,
+         addrBits                     => 16,
          connectivity                 => X"0001"),
 
      AXIL_RM0_REG_INDEX_C             => (    -- RM0 control Register Interface
@@ -259,22 +259,22 @@ architecture mapping of zccmApplication is
      --     connectivity                 => X"0001"),
 
       AXIL_OUTPUT_REG_INDEX_C          => (    -- Output Register Interface
-          baseAddr                     => AXIL_BASE_ADDR_G + X"5_2000",
-          addrBits                     => 8,
+          baseAddr                     => AXIL_BASE_ADDR_G + X"E_0000",
+          addrBits                     => 16,
           connectivity                 => X"0001"),
 
 
      AXIL_SYNCHLED_REG_INDEX_C        => (    -- local axi interface
          baseAddr                     => AXIL_BASE_ADDR_G + X"B_0000",
-         addrBits                     => 8,
+         addrBits                     => 16,
          connectivity                 => X"0001"),
      AXIL_SYNCHBCR_REG_INDEX_C             => (    -- local axi interface
          baseAddr                     => AXIL_BASE_ADDR_G + X"C_0000",
-         addrBits                     => 8,
+         addrBits                     => 16,
          connectivity                 => X"0001"),
      AXIL_FCREC_REG_INDEX_C           => (    -- FC Receiver Register Interface
          baseAddr                     => AXIL_BASE_ADDR_G + X"D_0000",
-         addrBits                     => 8,
+         addrBits                     => 16,
          connectivity                 => X"0001")
 
      );
