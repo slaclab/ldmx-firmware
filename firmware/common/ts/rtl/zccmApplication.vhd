@@ -173,19 +173,19 @@ architecture mapping of zccmApplication is
          connectivity                 => X"0001"),
      -- AXIL_RM2_I2C_INDEX_C             => (    -- RM2 I2C Interface
      --     baseAddr                     => AXIL_BASE_ADDR_G + X"4_1500",
-     --     addrBits                     => 8,
+     --     addrBits                     => 16,
      --     connectivity                 => X"0001"),
      -- AXIL_RM3_I2C_INDEX_C             => (    -- RM3 I2C Interface
      --     baseAddr                     => AXIL_BASE_ADDR_G + X"4_2000",
-     --     addrBits                     => 8,
+     --     addrBits                     => 16,
      --     connectivity                 => X"0001"),
      -- AXIL_RM4_I2C_INDEX_C             => (    -- RM4 I2C Interface
      --     baseAddr                     => AXIL_BASE_ADDR_G + X"4_2500",
-     --     addrBits                     => 8,
+     --     addrBits                     => 16,
      --     connectivity                 => X"0001"),
      -- AXIL_RM5_I2C_INDEX_C             => (    -- RM5 I2C Interface
      --     baseAddr                     => AXIL_BASE_ADDR_G + X"4_3000",
-     --     addrBits                     => 8,
+     --     addrBits                     => 16,
      --     connectivity                 => X"0001"),
 
      AXIL_SYNTH_I2C_INDEX_C           => (    -- SYNTH I2C Interface
@@ -199,7 +199,7 @@ architecture mapping of zccmApplication is
 
      AXIL_TOP_REG_INDEX_C             => (    -- local axi interface
        baseAddr                     => AXIL_BASE_ADDR_G + X"5_0000",
-       addrBits                     => 8,
+       addrBits                     => 16,
        connectivity                 => X"0001"),
 
      AXIL_SFP0_REG_INDEX_C            => (    -- SFP0 control Register Interface
@@ -230,11 +230,11 @@ architecture mapping of zccmApplication is
 
      AXIL_RM0_REG_INDEX_C             => (    -- RM0 control Register Interface
          baseAddr                     => AXIL_BASE_ADDR_G + X"9_0000",
-         addrBits                     => 8,
+         addrBits                     => 16,
          connectivity                 => X"0001"),
      AXIL_RM1_REG_INDEX_C             => (    -- RM1 control Register Interface
          baseAddr                     => AXIL_BASE_ADDR_G + X"A_0000",
-         addrBits                     => 8,
+         addrBits                     => 16,
          connectivity                 => X"0001"),
      -- AXIL_RM2_REG_INDEX_C             => (    -- RM2 control Register Interface
      --     baseAddr                     => AXIL_BASE_ADDR_G + X"4_8500",
@@ -279,19 +279,25 @@ architecture mapping of zccmApplication is
 
      );
 
-   constant RM_DEVICE_MAP_C : I2cAxiLiteDevArray(2 downto 0) := (
+   constant RM_DEVICE_MAP_C : I2cAxiLiteDevArray(3 downto 0) := (
     0              => MakeI2cAxiLiteDevType(                    -- GPIO (1000)
       i2cAddress  => "1000001",
       dataSize    => 8,
       addrSize    => 8,
-      endianness  => '0'),
+      endianness  => '1'),
     1              => MakeI2cAxiLiteDevType(                    -- EEPROM(1400)
       i2cAddress  => "1010000",
       dataSize    => 8,
-      addrSize    => 16,
-      endianness  => '0',
+      addrSize    => 12,
+      endianness  => '1',
       repeatStart => '1'),
-    2              => MakeI2cAxiLiteDevType(                    -- UART-bridge(1800)
+    2              => MakeI2cAxiLiteDevType(                    -- I2C                                                                                                                    --extenderv1                                       
+      i2cAddress  => "0111101",                                 --x3D                                              
+      dataSize    => 8,
+      addrSize    => 8,
+      endianness  => '1',
+      repeatStart => '0'),
+    3              => MakeI2cAxiLiteDevType(                    -- UART-bridge(1800)
       i2cAddress  => "1001101",
       dataSize    => 8, 
       addrSize    => 8,
@@ -303,14 +309,16 @@ architecture mapping of zccmApplication is
       i2cAddress  => "1101000",  -- si5344
       dataSize    => 8,
       addrSize    => 8,
-      endianness  => '0'));
+      endianness  => '1',
+      repeatStart => '0'));
 
    constant JITTER_DEVICE_MAP_C : I2cAxiLiteDevArray(0 downto 0) := (
     0              => MakeI2cAxiLiteDevType(
-      i2cAddress  => "1101001",  -- si5344
+      i2cAddress  => "1101000",  -- si5344
       dataSize    => 8,
       addrSize    => 8,
-      endianness  => '0'));
+      endianness  => '1',
+      repeatStart => '0'));
 
    constant I2C_SCL_FREQ_C  : real := ite(SIMULATION_G, 2.0e6, 100.0E+3);
    constant I2C_MIN_PULSE_C : real := ite(SIMULATION_G, 50.0e-9, 100.0E-9);
