@@ -10,6 +10,24 @@
 
 import pyrogue as pr
 
+class LTC4331(pr.Device):
+    def __init__(self,
+                 description = "Container for xxx",
+                 pollInterval = 1,
+            **kwargs):
+        super().__init__(description=description, **kwargs)
+
+        self.addRemoteVariables(
+            name         = 'SCRATCH',
+            description  = 'Scratch register',
+            offset       = (0x05<<2),
+            bitSize      = 8,
+            mode         = 'RW',
+            number       = 1,
+            stride       = 0,
+            pollInterval = pollInterval
+        )
+
 class Si5344(pr.Device):
     def __init__(self,
                  description = "Container for xxx",
@@ -30,10 +48,10 @@ class Si5344(pr.Device):
 
         self.addRemoteVariables(
             name         = 'PN_BASE_LOWER',
-            description  = 'lower 2 digits of part number'
+            description  = 'lower 2 digits of part number',
             offset       = 0x2,
             bitSize      = 8,
-            mode         = 'R',
+            mode         = 'RO',
             number       = 1,
             stride       = 0,
             pollInterval = pollInterval
@@ -41,10 +59,10 @@ class Si5344(pr.Device):
 
         self.addRemoteVariables(
             name         = 'PN_BASE_UPPER',
-            description  = 'upper 2 digits of part number'
+            description  = 'upper 2 digits of part number',
             offset       = 0x3,
             bitSize      = 8,
-            mode         = 'R',
+            mode         = 'RO',
             number       = 1,
             stride       = 0,
             pollInterval = pollInterval
@@ -54,17 +72,25 @@ class ZccmApplication(pr.Device):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
 
-        // synthesizing clock chip 
+        # RM0 I2C extender
+        self.add(LTC4331(
+            name         = 'RM0_I2C_EXT',
+            offset       = 0x3_8000,
+            pollInterval = 0,
+            hidden       = False,
+        ))
+        
+        # synthesizing clock chip 
         self.add(Si5344(
-            name         = f'SYNTH_I2C',
+            name         = 'SYNTH_I2C',
             offset       = 0x3_0000,
             pollInterval = 0,
             hidden       = False,
         ))
 
-        // jitter cleaner clock chip 
+        # jitter cleaner clock chip 
         self.add(Si5344(
-            name         = f'JITTER_I2C',
+            name         = 'JITTER_I2C',
             offset       = 0x4_0000,
             pollInterval = 0,
             hidden       = False,
